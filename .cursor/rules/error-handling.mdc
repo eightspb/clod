@@ -1,0 +1,77 @@
+---
+description: Error handling and validation patterns for React components
+globs: src/**/*.jsx
+alwaysApply: false
+---
+
+# Error Handling & Validation
+
+## Guard Clauses First
+Handle errors and edge cases at the top of functions — happy path goes last.
+
+```jsx
+// ✅ GOOD
+function DoctorCard({ doctor }) {
+  if (!doctor) return null
+  if (!doctor.name) return <SkeletonCard />
+
+  return <div>{doctor.name}</div>
+}
+
+// ❌ BAD
+function DoctorCard({ doctor }) {
+  if (doctor) {
+    if (doctor.name) {
+      return <div>{doctor.name}</div>
+    }
+  }
+}
+```
+
+## Early Returns Over Else
+Avoid `else` after a `return` — use if-return pattern.
+
+```jsx
+// ✅ GOOD
+if (isLoading) return <Spinner />
+if (hasError) return <ErrorMessage message={error} />
+return <Content />
+
+// ❌ BAD
+if (isLoading) {
+  return <Spinner />
+} else if (hasError) {
+  return <ErrorMessage />
+} else {
+  return <Content />
+}
+```
+
+## Form Validation
+- Validate on the client before any async call
+- Show inline errors next to fields, not only as toasts
+- Disable the submit button while `isSubmitting` is true
+
+## Error State Naming
+```jsx
+const [isLoading, setIsLoading] = useState(false)
+const [hasError, setHasError] = useState(false)
+const [errorMessage, setErrorMessage] = useState('')
+```
+
+## Async Calls
+```jsx
+// ✅ GOOD — explicit error boundary
+async function submitAppointment(data) {
+  setIsLoading(true)
+  try {
+    await api.post('/appointments', data)
+    onSuccess()
+  } catch (err) {
+    setErrorMessage('Не удалось отправить заявку. Попробуйте ещё раз.')
+    setHasError(true)
+  } finally {
+    setIsLoading(false)
+  }
+}
+```

@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background-color: #F7F3EE;
+    color: #3D4A44;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* ───── Clay Cards ───── */
+  .clay-card {
+    @apply rounded-3xl bg-clay-card;
+    box-shadow: 8px 8px 24px rgba(0, 0, 0, 0.09), -4px -4px 14px rgba(255, 255, 255, 0.92);
+  }
+
+  .clay-card-lg {
+    @apply rounded-4xl bg-clay-card;
+    box-shadow: 12px 12px 32px rgba(0, 0, 0, 0.1), -6px -6px 18px rgba(255, 255, 255, 0.88);
+  }
+
+  .clay-card-mint {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #72D8BC, #48C8A4);
+    box-shadow: 8px 8px 24px rgba(72, 200, 164, 0.38), -4px -4px 12px rgba(255, 255, 255, 0.55);
+  }
+
+  .clay-card-peach {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #FAC0A8, #F0A888);
+    box-shadow: 8px 8px 24px rgba(240, 168, 136, 0.38), -4px -4px 12px rgba(255, 255, 255, 0.55);
+  }
+
+  .clay-card-blue {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #9CD4F0, #70BCE4);
+    box-shadow: 8px 8px 24px rgba(112, 188, 228, 0.38), -4px -4px 12px rgba(255, 255, 255, 0.55);
+  }
+
+  .clay-card-lavender {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #CCC0EC, #B4A4DC);
+    box-shadow: 8px 8px 24px rgba(180, 164, 220, 0.38), -4px -4px 12px rgba(255, 255, 255, 0.55);
+  }
+
+  .clay-card-yellow {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #FAE0A0, #F0C870);
+    box-shadow: 8px 8px 24px rgba(240, 200, 112, 0.38), -4px -4px 12px rgba(255, 255, 255, 0.55);
+  }
+
+  .clay-card-soft-mint {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #DCF5EE, #C4EDE4);
+    box-shadow: 8px 8px 24px rgba(100, 200, 170, 0.2), -4px -4px 14px rgba(255, 255, 255, 0.9);
+  }
+
+  .clay-card-soft-peach {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #FDE8E0, #FAD8CC);
+    box-shadow: 8px 8px 24px rgba(230, 160, 130, 0.2), -4px -4px 14px rgba(255, 255, 255, 0.9);
+  }
+
+  .clay-card-soft-blue {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #E0F0FC, #CDE6F8);
+    box-shadow: 8px 8px 24px rgba(120, 180, 230, 0.2), -4px -4px 14px rgba(255, 255, 255, 0.9);
+  }
+
+  .clay-card-soft-lavender {
+    @apply rounded-3xl;
+    background: linear-gradient(145deg, #EAE4F8, #DDD5F4);
+    box-shadow: 8px 8px 24px rgba(180, 160, 220, 0.2), -4px -4px 14px rgba(255, 255, 255, 0.9);
+  }
+
+  /* ───── Buttons ───── */
+  .btn-clay-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full text-white font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
+    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    box-shadow: 5px 5px 16px rgba(68, 196, 160, 0.42), -3px -3px 8px rgba(255, 255, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  .btn-clay-primary:hover {
+    transform: translateY(1px);
+    box-shadow: 3px 3px 10px rgba(68, 196, 160, 0.42), -1px -1px 5px rgba(255, 255, 255, 0.5);
+  }
+  .btn-clay-primary:active {
+    transform: translateY(2px);
+    box-shadow: 2px 2px 6px rgba(68, 196, 160, 0.4);
+  }
+
+  .btn-clay-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-clay-card font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
+    color: #44C4A0;
+    box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.09), -3px -3px 10px rgba(255, 255, 255, 0.92);
+  }
+  .btn-clay-secondary:hover {
+    transform: translateY(1px);
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.09), -1px -1px 6px rgba(255, 255, 255, 0.92);
+  }
+
+  .btn-clay-white {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none text-clay-dark;
+    box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.12), -3px -3px 10px rgba(255, 255, 255, 0.7);
+  }
+  .btn-clay-white:hover {
+    transform: translateY(1px);
+  }
+
+  /* ───── Pill filters ───── */
+  .pill-filter {
+    @apply rounded-full px-5 py-2 text-sm font-medium cursor-pointer transition-all duration-200 select-none;
+    background: #FFFCF8;
+    color: #7A8C84;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.07), -2px -2px 8px rgba(255, 255, 255, 0.88);
+  }
+  .pill-filter:hover {
+    color: #44C4A0;
+  }
+  .pill-filter.active {
+    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    color: white;
+    box-shadow: 3px 3px 10px rgba(68, 196, 160, 0.38), -2px -2px 6px rgba(255, 255, 255, 0.5);
+  }
+
+  /* ───── Decorative Blobs ───── */
+  .blob-mint {
+    background: linear-gradient(145deg, #A8E4D4, #78D4BC);
+    border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
+  }
+  .blob-peach {
+    background: linear-gradient(145deg, #FADCC8, #F8C4B0);
+    border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
+  }
+  .blob-blue {
+    background: linear-gradient(145deg, #C0DCEE, #A8CCE4);
+    border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
+  }
+  .blob-lavender {
+    background: linear-gradient(145deg, #DDD5F0, #CCC0E8);
+    border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+  }
+
+  /* ───── Orb decorations ───── */
+  .orb {
+    @apply absolute rounded-full pointer-events-none;
+    filter: blur(0px);
+  }
+
+  /* ───── Section spacing ───── */
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .container-clay {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* ───── Number badge ───── */
+  .num-badge {
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-lg flex-shrink-0;
+    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    box-shadow: 4px 4px 10px rgba(68, 196, 160, 0.38), -2px -2px 6px rgba(255, 255, 255, 0.5);
+  }
+
+  /* ───── Icon circle ───── */
+  .icon-circle-mint {
+    @apply flex items-center justify-center w-14 h-14 rounded-full flex-shrink-0;
+    background: linear-gradient(145deg, #A0E4D4, #70D0B8);
+    box-shadow: 4px 4px 12px rgba(100, 200, 170, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .icon-circle-peach {
+    @apply flex items-center justify-center w-14 h-14 rounded-full flex-shrink-0;
+    background: linear-gradient(145deg, #FAC8B0, #F0A888);
+    box-shadow: 4px 4px 12px rgba(240, 168, 136, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .icon-circle-blue {
+    @apply flex items-center justify-center w-14 h-14 rounded-full flex-shrink-0;
+    background: linear-gradient(145deg, #A8D8F4, #78BCE8);
+    box-shadow: 4px 4px 12px rgba(120, 188, 232, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .icon-circle-lavender {
+    @apply flex items-center justify-center w-14 h-14 rounded-full flex-shrink-0;
+    background: linear-gradient(145deg, #D0C4EC, #B8A8DC);
+    box-shadow: 4px 4px 12px rgba(184, 168, 220, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .icon-circle-yellow {
+    @apply flex items-center justify-center w-14 h-14 rounded-full flex-shrink-0;
+    background: linear-gradient(145deg, #FAE0A0, #F0C870);
+    box-shadow: 4px 4px 12px rgba(240, 200, 112, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+
+  /* ───── Avatar ring ───── */
+  .avatar-ring-peach {
+    @apply rounded-full p-1.5;
+    background: linear-gradient(145deg, #FAC8B0, #F0A888);
+    box-shadow: 4px 4px 12px rgba(240, 168, 136, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .avatar-ring-blue {
+    @apply rounded-full p-1.5;
+    background: linear-gradient(145deg, #A8D8F4, #78BCE8);
+    box-shadow: 4px 4px 12px rgba(120, 188, 232, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .avatar-ring-mint {
+    @apply rounded-full p-1.5;
+    background: linear-gradient(145deg, #A0E4D4, #70D0B8);
+    box-shadow: 4px 4px 12px rgba(100, 200, 170, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+  .avatar-ring-lavender {
+    @apply rounded-full p-1.5;
+    background: linear-gradient(145deg, #D0C4EC, #B8A8DC);
+    box-shadow: 4px 4px 12px rgba(184, 168, 220, 0.38), -3px -3px 8px rgba(255, 255, 255, 0.6);
+  }
+
+  /* ───── Stat badge ───── */
+  .stat-pill {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
+    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    color: white;
+    box-shadow: 3px 3px 8px rgba(68, 196, 160, 0.35);
+  }
+}

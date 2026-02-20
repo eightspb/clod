@@ -1,0 +1,37 @@
+---
+description: Project tech stack and core development principles for Клиника Одинцова
+alwaysApply: true
+---
+
+# Клиника Одинцова — Tech Stack & Core Principles
+
+## Stack
+- **Runtime**: Bun (not npm/yarn)
+- **Framework**: React 18 (JSX — no TypeScript)
+- **Bundler**: Vite 6
+- **Styling**: Tailwind CSS 3 + custom clay utility classes in `src/index.css`
+- **Routing**: React Router v6
+- **Icons**: Lucide React
+- **Language**: JavaScript (`.jsx` files), Russian content
+
+## Key Principles
+- Write concise, functional, declarative code — avoid classes
+- Prefer iteration and modularization over duplication
+- Use descriptive variable names with auxiliary verbs (`isLoading`, `hasError`, `canSubmit`)
+- Use lowercase with dashes for directories (`components/clay-card`, `pages/second-opinion`)
+- Favor **named exports** for all components
+- Use the **RORO pattern** (Receive an Object, Return an Object) for functions with multiple params
+
+## JavaScript Style
+- Use `function` keyword for components and pure functions — not `const`
+- Omit semicolons
+- File structure order: exported component → subcomponents → helpers → static content
+- Avoid unnecessary curly braces in single-line conditionals
+- Use `if (condition) doSomething()` for simple guards
+
+## Running the project
+```bash
+bun run dev      # start dev server at localhost:5173
+bun run build    # production build
+bun run preview  # preview build
+```

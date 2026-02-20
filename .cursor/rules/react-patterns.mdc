@@ -1,0 +1,63 @@
+---
+description: React component patterns and Tailwind/claymorphism styling conventions
+globs: src/**/*.jsx
+alwaysApply: false
+---
+
+# React Patterns
+
+## Components
+- Use `function`, not `const`, for component definitions
+- One component per file; named export only
+- Props via destructured object — RORO pattern:
+
+```jsx
+// ✅ GOOD
+export function ClayCard({ title, children, variant = 'default' }) { ... }
+
+// ❌ BAD
+const ClayCard = (props) => { ... }
+export default ClayCard
+```
+
+## Claymorphism Design System
+The project uses a custom clay design system. Use these CSS classes from `src/index.css`:
+
+```
+clay-card          — white card with clay shadow
+clay-card-mint     — teal/mint colored card
+clay-card-peach    — peach colored card
+clay-card-blue     — blue colored card
+clay-card-lavender — lavender colored card
+clay-card-soft-*   — pastel pale versions (soft-mint, soft-peach, soft-blue, soft-lavender)
+btn-clay-primary   — primary teal pill button
+btn-clay-secondary — white secondary pill button
+icon-circle-*      — colored icon circle (mint, peach, blue, lavender, yellow)
+blob-mint/peach/blue/lavender — organic background blob shapes
+num-badge          — numbered step badge
+stat-pill          — small stat label
+```
+
+Never use `box-shadow` inline when a clay utility class exists.
+
+## Static Content
+- Keep static arrays and strings **outside** the component function
+- Use a `const` named in UPPER_SNAKE_CASE for static data arrays
+
+```jsx
+// ✅ GOOD
+const NAV_ITEMS = [{ label: 'Маммология', to: '/mammology' }]
+
+export function Nav() {
+  return NAV_ITEMS.map(item => <NavLink key={item.to} {...item} />)
+}
+```
+
+## Performance
+- Use `React.lazy` + `<Suspense>` for page-level components in the router
+- Always add `loading="lazy"` to `<img>` tags
+- Prefer WebP images; always specify `width` and `height`
+
+## Responsive
+- Mobile-first with Tailwind breakpoints: `sm:` `md:` `lg:`
+- Default layout is single column; expand with `sm:grid-cols-2`, `lg:grid-cols-4`
