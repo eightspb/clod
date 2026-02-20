@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Brain, Target, BookOpen, CheckCircle, MessageCircle, Zap } from 'lucide-react'
 
 const features = [
@@ -59,7 +58,7 @@ const myths = [
   },
 ]
 
-export default function Neurology() {
+export function Neurology() {
   return (
     <div>
       {/* HERO */}
@@ -70,9 +69,9 @@ export default function Neurology() {
         <div className="orb w-4 h-4 bottom-20 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAC8B0, #F0A888)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(184,168,216,0.18)', color: '#7860B0' }}>
               <Brain size={12} />
@@ -89,13 +88,13 @@ export default function Neurology() {
               Боль — это сигнал, а не ваш постоянный спутник жизни. В 80% случаев причину можно устранить без операции. Мы помогаем вернуться к активной жизни за 1–3 визита.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
                 Записаться к неврологу
                 <ArrowRight size={16} />
-              </Link>
-              <Link to="/prices" className="btn-clay-secondary">
+              </a>
+              <a href="/prices" className="btn-clay-secondary">
                 Посмотреть цены
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -232,10 +231,10 @@ export default function Neurology() {
               Запишитесь к нашему неврологу. Разберёмся в причине и предложим конкретный план.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
                 Записаться
                 <ArrowRight size={16} />
-              </Link>
+              </a>
               <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
@@ -247,3 +246,4 @@ export default function Neurology() {
     </div>
   )
 }
+export default Neurology

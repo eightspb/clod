@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle } from 'lucide-react'
 
 const features = [
@@ -56,7 +55,7 @@ const checks = [
   'Лимфоузел подозрительного характера',
 ]
 
-export default function Mammology() {
+export function Mammology() {
   return (
     <div>
       {/* HERO */}
@@ -67,9 +66,9 @@ export default function Mammology() {
         <div className="orb w-4 h-4 bottom-24 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAC8B0, #F0A888)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 text-white" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}>
               <Zap size={12} />
@@ -86,13 +85,13 @@ export default function Mammology() {
               Понимаем этот страх. Именно поэтому мы используем технологию ВАБ — вы остаётесь в сознании, разговариваете с врачом, а уже через 20 минут после процедуры едете домой.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
-              </Link>
-              <Link to="/second-opinion" className="btn-clay-secondary">
+              </a>
+              <a href="/second-opinion" className="btn-clay-secondary">
                 Получить второе мнение
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -178,9 +177,9 @@ export default function Mammology() {
                 <div className="flex items-center gap-2 bg-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-bold">
                   Цена: 0 ₽
                 </div>
-                <Link to="/second-opinion" className="btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
+                <a href="/second-opinion" className="btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
                   Получить второе мнение
-                </Link>
+                </a>
               </div>
               <div className="clay-card p-6">
                 <h3 className="font-bold text-clay-dark text-lg mb-4">Как проходит процедура</h3>
@@ -213,10 +212,10 @@ export default function Mammology() {
               Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в WhatsApp в течение 2 минут.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
-              </Link>
+              </a>
               <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
@@ -228,3 +227,4 @@ export default function Mammology() {
     </div>
   )
 }
+export default Mammology

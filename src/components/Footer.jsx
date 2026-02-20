@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom'
-import { Phone, MapPin, Clock, MessageCircle, Shield, Award, Star, Zap } from 'lucide-react'
+import { Phone, MapPin, Clock, MessageCircle, Award, Star, Zap } from 'lucide-react'
 
 const facts = [
   {
@@ -37,7 +36,7 @@ const links = [
   { label: 'Цены и гарантии', to: '/prices' },
 ]
 
-export default function Footer() {
+export function Footer() {
   return (
     <footer className="pt-16 pb-8">
       <div className="container-clay">
@@ -62,7 +61,10 @@ export default function Footer() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}>
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                   </svg>
@@ -89,7 +91,8 @@ export default function Footer() {
                   aria-label="Telegram"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-clay-blue" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+                    <path d="m22 2-7 20-4-9-9-4Z" />
+                    <path d="M22 2 11 13" />
                   </svg>
                 </a>
               </div>
@@ -101,12 +104,12 @@ export default function Footer() {
               <ul className="flex flex-col gap-2">
                 {links.map((link) => (
                   <li key={link.to}>
-                    <Link
-                      to={link.to}
+                    <a
+                      href={link.to}
                       className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200"
                     >
                       {link.label}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -122,7 +125,9 @@ export default function Footer() {
                   </div>
                   <div>
                     <p className="text-xs text-clay-muted">Телефон</p>
-                    <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">8 800 123-45-67</p>
+                    <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">
+                      8 800 123-45-67
+                    </p>
                   </div>
                 </a>
                 <div className="flex items-start gap-3">
@@ -131,7 +136,11 @@ export default function Footer() {
                   </div>
                   <div>
                     <p className="text-xs text-clay-muted">Адрес</p>
-                    <p className="text-sm font-semibold text-clay-dark">г. Москва,<br />ул. Одинцовская, 8</p>
+                    <p className="text-sm font-semibold text-clay-dark">
+                      г. Москва,
+                      <br />
+                      ул. Одинцовская, 8
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -144,9 +153,9 @@ export default function Footer() {
                   </div>
                 </div>
               </div>
-              <Link to="/second-opinion" className="btn-clay-primary mt-5 w-full justify-center text-sm py-3">
+              <a href="/second-opinion" className="btn-clay-primary mt-5 w-full justify-center text-sm py-3">
                 Записаться онлайн
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -155,11 +164,17 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 px-2">
           <p className="text-xs text-clay-muted">© 2025 Клиника Одинцова. Все права защищены.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">Политика конфиденциальности</a>
-            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">Лицензии</a>
+            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
+              Политика конфиденциальности
+            </a>
+            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
+              Лицензии
+            </a>
           </div>
         </div>
       </div>
     </footer>
   )
 }
+
+export default Footer

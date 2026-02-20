@@ -1,0 +1,41 @@
+---
+import Header from '../components/Header.jsx'
+import Footer from '../components/Footer.jsx'
+import '../styles/global.css'
+
+interface Props {
+  title?: string
+  description?: string
+}
+
+const {
+  title = 'Клиника Одинцова — Экспертная медицина',
+  description = 'Клиника экспертной медицины в маммологии, гинекологии, эндокринологии и неврологии. Технология ВАБ — удаление образований за 30 минут без скальпеля и швов.',
+} = Astro.props
+
+const currentPath = Astro.url.pathname
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-clay-bg font-sans">
+    <Header currentPath={currentPath} client:load />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

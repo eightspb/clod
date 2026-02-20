@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star } from 'lucide-react'
 
 const principles = [
@@ -91,7 +90,7 @@ const included = [
   'Связь с врачом в мессенджере (2 недели)',
 ]
 
-export default function Prices() {
+export function Prices() {
   return (
     <div>
       {/* HERO */}
@@ -101,9 +100,9 @@ export default function Prices() {
         <div className="orb w-5 h-5 top-28 left-1/3 opacity-50" style={{ background: 'linear-gradient(145deg, #FAE0A0, #F0C870)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
               <Shield size={12} />
@@ -117,10 +116,10 @@ export default function Prices() {
               Никаких скрытых доплат в день процедуры. Цена, которую назвали — цена, которую заплатите.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="btn-clay-primary gap-2">
                 Записаться на консультацию
                 <ArrowRight size={16} />
-              </Link>
+              </a>
               <a href="tel:+78001234567" className="btn-clay-secondary gap-2">
                 <Phone size={16} />
                 Уточнить цену
@@ -167,10 +166,10 @@ export default function Prices() {
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 35 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Финальная цена, без доплат</p>
-                <Link to="/second-opinion" className="btn-clay-primary gap-2">
+                <a href="/second-opinion" className="btn-clay-primary gap-2">
                   Записаться на ВАБ
                   <ArrowRight size={16} />
-                </Link>
+                </a>
               </div>
               <div>
                 <p className="text-sm font-semibold text-clay-dark mb-3">Что входит в стоимость:</p>
@@ -282,3 +281,4 @@ export default function Prices() {
     </div>
   )
 }
+export default Prices

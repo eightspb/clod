@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, Brain, Activity, Star, ChevronRight, Phone, MessageCircle } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle } from 'lucide-react'
 
 const services = [
   {
@@ -59,17 +58,14 @@ const doctors = [
   { name: 'Волкова Наталья Сергеевна', spec: 'Невролог', exp: '12 лет', ring: 'avatar-ring-lavender', initials: 'ВН' },
 ]
 
-export default function Home() {
+export function Home() {
   return (
     <div>
       {/* ── HERO ── */}
       <section className="relative overflow-hidden pt-8 pb-20 md:pt-12 md:pb-28">
-        {/* Blobs */}
         <div className="blob-mint absolute -top-16 -right-16 w-72 h-72 md:w-96 md:h-96 opacity-70 pointer-events-none" />
         <div className="blob-peach absolute -bottom-10 -left-10 w-56 h-56 opacity-60 pointer-events-none" />
         <div className="blob-blue absolute top-1/2 -left-20 w-40 h-40 opacity-40 pointer-events-none" />
-
-        {/* Orbs */}
         <div className="orb w-4 h-4 top-24 left-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAC8B0, #F0A888)' }} />
         <div className="orb w-6 h-6 bottom-32 right-1/3 opacity-50" style={{ background: 'linear-gradient(145deg, #A8D8F4, #78BCE8)' }} />
         <div className="orb w-3 h-3 top-1/3 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #CCC0EC, #B4A4DC)' }} />
@@ -88,13 +84,13 @@ export default function Home() {
               Решаем сложные медицинские задачи в маммологии, гинекологии, эндокринологии и неврологии. Без госпитализации, без общего наркоза и без «лишних» диагнозов.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="btn-clay-primary gap-2">
                 Записаться онлайн
                 <ArrowRight size={16} />
-              </Link>
-              <Link to="/mammology" className="btn-clay-secondary">
+              </a>
+              <a href="/mammology" className="btn-clay-secondary">
                 Узнать о ВАБ
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -139,13 +135,13 @@ export default function Home() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Link to="/mammology" className="btn-clay-white text-sm py-3">
+                <a href="/mammology" className="btn-clay-white text-sm py-3">
                   Подробнее о ВАБ
                   <ArrowRight size={14} />
-                </Link>
-                <Link to="/second-opinion" className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                </a>
+                <a href="/second-opinion" className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
                   Бесплатное второе мнение
-                </Link>
+                </a>
               </div>
             </div>
           </div>
@@ -161,7 +157,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {services.map((s) => (
-              <Link key={s.to} to={s.to} className="group block">
+              <a key={s.to} href={s.to} className="group block">
                 <div className={`${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -169,9 +165,7 @@ export default function Home() {
                         <span>{s.icon}</span>
                       </div>
                       <div>
-                        {s.tag && (
-                          <span className="stat-pill text-xs mb-1 block w-fit">{s.tag}</span>
-                        )}
+                        {s.tag && <span className="stat-pill text-xs mb-1 block w-fit">{s.tag}</span>}
                         <h3 className="font-bold text-clay-dark text-lg leading-tight">{s.title}</h3>
                       </div>
                     </div>
@@ -185,7 +179,7 @@ export default function Home() {
                     Подробнее <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
                   </div>
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -206,7 +200,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {whyItems.map((item) => (
                   <div key={item.title} className="clay-card p-4 flex items-start gap-3">
-                    <div className={`${item.bg}`}>{item.icon}</div>
+                    <div className={item.bg}>{item.icon}</div>
                     <div>
                       <h4 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h4>
                       <p className="text-clay-muted text-xs leading-relaxed">{item.desc}</p>
@@ -216,33 +210,21 @@ export default function Home() {
               </div>
             </div>
             <div className="space-y-4">
-              <div className="clay-card-soft-mint p-6">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl font-extrabold text-clay-mint leading-none">1/3</div>
-                  <div>
-                    <p className="font-bold text-clay-dark mb-1">пациентов избегают операции</p>
-                    <p className="text-clay-muted text-sm leading-relaxed">Каждый третий пациент, пришедший с направлением на операцию из другой клиники, решает проблему с помощью ВАБ за 30 минут.</p>
+              {[
+                { val: '1/3', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'пациентов избегают операции', desc: 'Каждый третий пациент, пришедший с направлением на операцию из другой клиники, решает проблему с помощью ВАБ за 30 минут.' },
+                { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж врачей', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
+                { val: '24ч', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'результаты анализов', desc: 'Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.' },
+              ].map((s) => (
+                <div key={s.val} className={`${s.card} p-6`}>
+                  <div className="flex items-start gap-4">
+                    <div className={`text-4xl font-extrabold ${s.color} leading-none`}>{s.val}</div>
+                    <div>
+                      <p className="font-bold text-clay-dark mb-1">{s.label}</p>
+                      <p className="text-clay-muted text-sm leading-relaxed">{s.desc}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="clay-card-soft-peach p-6">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl font-extrabold text-clay-peach leading-none">15+</div>
-                  <div>
-                    <p className="font-bold text-clay-dark mb-1">лет средний стаж врачей</p>
-                    <p className="text-clay-muted text-sm leading-relaxed">Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="clay-card-soft-blue p-6">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl font-extrabold text-clay-blue leading-none">24ч</div>
-                  <div>
-                    <p className="font-bold text-clay-dark mb-1">результаты анализов</p>
-                    <p className="text-clay-muted text-sm leading-relaxed">Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -274,7 +256,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA BANNER ── */}
+      {/* ── CTA ── */}
       <section className="section">
         <div className="container-clay">
           <div className="clay-card p-8 md:p-12 text-center relative overflow-hidden">
@@ -304,3 +286,5 @@ export default function Home() {
     </div>
   )
 }
+
+export default Home

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
 
 const steps = [
@@ -56,7 +55,7 @@ const faqs = [
   },
 ]
 
-export default function SecondOpinion() {
+export function SecondOpinion() {
   return (
     <div>
       {/* HERO */}
@@ -67,9 +66,9 @@ export default function SecondOpinion() {
         <div className="orb w-4 h-4 bottom-20 right-1/3 opacity-60" style={{ background: 'linear-gradient(145deg, #CCC0EC, #B4A4DC)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
               <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
@@ -215,3 +214,4 @@ export default function SecondOpinion() {
     </div>
   )
 }
+export default SecondOpinion

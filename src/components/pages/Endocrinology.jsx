@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle } from 'lucide-react'
 
 const features = [
@@ -55,7 +54,7 @@ const conditions = [
   { name: 'Нарушение обмена железа', color: 'clay-card-soft-lavender' },
 ]
 
-export default function Endocrinology() {
+export function Endocrinology() {
   return (
     <div>
       {/* HERO */}
@@ -66,9 +65,9 @@ export default function Endocrinology() {
         <div className="orb w-4 h-4 bottom-20 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAE0A0, #F0C870)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(114,184,224,0.15)', color: '#4890C0' }}>
               <Activity size={12} />
@@ -85,13 +84,13 @@ export default function Endocrinology() {
               Усталость, набор веса, выпадение волос — это не «норма современной жизни». За этим часто стоят конкретные цифры в анализах. Мы найдём их и исправим.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
                 Записаться к эндокринологу
                 <ArrowRight size={16} />
-              </Link>
-              <Link to="/prices" className="btn-clay-secondary">
+              </a>
+              <a href="/prices" className="btn-clay-secondary">
                 Посмотреть цены
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -190,10 +189,10 @@ export default function Endocrinology() {
               Запишитесь на эндокринологическую консультацию. Первый шаг — анализ, второй — результат.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
                 Записаться
                 <ArrowRight size={16} />
-              </Link>
+              </a>
               <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
@@ -205,3 +204,4 @@ export default function Endocrinology() {
     </div>
   )
 }
+export default Endocrinology

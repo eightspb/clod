@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Heart, CheckCircle, Star, Clock, MessageCircle, Smile } from 'lucide-react'
 
 const features = [
@@ -59,7 +58,7 @@ const myths = [
   },
 ]
 
-export default function Gynecology() {
+export function Gynecology() {
   return (
     <div>
       {/* HERO */}
@@ -70,9 +69,9 @@ export default function Gynecology() {
         <div className="orb w-4 h-4 bottom-20 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }} />
 
         <div className="container-clay relative z-10">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
+          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
             ← Назад на главную
-          </Link>
+          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(245,168,140,0.15)', color: '#D0785A' }}>
               <Heart size={12} />
@@ -89,13 +88,13 @@ export default function Gynecology() {
               Ваши страхи нам понятны. В нашей клинике осмотр — это партнёрство, а не инквизиция. Мы уважаем вас, ваше тело и ваше время. И никогда не назначим лечение, если оно не нужно.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
-              </Link>
-              <Link to="/prices" className="btn-clay-secondary">
+              </a>
+              <a href="/prices" className="btn-clay-secondary">
                 Посмотреть цены
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -190,10 +189,10 @@ export default function Gynecology() {
               Ответим в WhatsApp в течение 2 минут. Запись день в день — доступна по будням.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '5px 5px 16px rgba(240,160,128,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '5px 5px 16px rgba(240,160,128,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
-              </Link>
+              </a>
               <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
@@ -205,3 +204,4 @@ export default function Gynecology() {
     </div>
   )
 }
+export default Gynecology
