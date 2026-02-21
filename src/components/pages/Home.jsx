@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone
 import { useState, useEffect, useRef } from 'react'
 import { ClayContactBanner } from '../ClayContactBanner'
 
+
 const heroSlides = [
   {
     trustBadge: 'Технология 2024 года',
@@ -246,9 +247,9 @@ const FILTER_BG = ['#E8F8F4', '#FDF0EA', '#EAF4FC', '#F0EDF9']
 function matchesFilter(spec, filterId) {
   if (filterId === 'all') return true
   const s = spec.toLowerCase()
-  if (filterId === 'mammology') return s.includes('маммол') || s.includes('онкол')
-  if (filterId === 'gynecology') return s.includes('гинекол') || s.includes('акушер')
-  if (filterId === 'endocrinology') return s.includes('эндокринол') || s.includes('нутрициол')
+  if (filterId === 'mammology') return s.includes('онколог-маммолог')
+  if (filterId === 'gynecology') return s.includes('гинеколог')
+  if (filterId === 'endocrinology') return s.includes('эндокринолог')
   return false
 }
 
@@ -299,8 +300,8 @@ export function Home({ doctorsData = [] }) {
           exp: `${doc.experienceYears} лет`,
           ring: rings[i % rings.length],
           initials,
-          bio: doc.bio || '',
-          photo: doc.photoUrl || null,
+          bio: doc.tagline || '',
+          photo: doc.photo || null,
           slug: doc.slug || '',
         }
       })
@@ -312,6 +313,10 @@ export function Home({ doctorsData = [] }) {
     <div>
       {/* ── HERO SLIDER ── */}
       <section className="relative overflow-hidden">
+        {/* Фоновые блобы */}
+        <div className="blob-mint absolute -top-32 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
+        <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
+        <div className="blob-blue absolute top-1/3 -right-40 w-72 h-72 opacity-10 pointer-events-none" style={{ zIndex: 0 }} />
 
         <div className="container-clay relative z-10 py-12 md:py-20">
           {/* Слайды */}
@@ -614,10 +619,10 @@ export function Home({ doctorsData = [] }) {
                 <div className="flex items-start justify-between mb-4">
                   <div className={`${doc.ring} flex-shrink-0`}>
                     {doc.photo
-                      ? <img src={doc.photo} alt={doc.name} className="w-24 h-24 rounded-full object-cover" loading="lazy" width="96" height="96" />
+                      ? <img src={doc.photo} alt={doc.name} className="w-48 h-48 rounded-full object-cover" loading="lazy" width="192" height="192" />
                       : (
-                        <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                          <span className="text-3xl font-bold text-clay-muted">{doc.initials}</span>
+                        <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+                          <span className="text-6xl font-bold text-clay-muted">{doc.initials}</span>
                         </div>
                       )
                     }

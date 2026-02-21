@@ -23,7 +23,7 @@ const facts = [
     icon: <MapPin size={22} className="text-white" />,
     color: 'clay-card-lavender',
     title: 'Удобное расположение',
-    desc: 'Санкт-Петербург, пр. Богатырский 22 к. 1, пом. 38Н. Рядом с метро «Старая деревня»',
+    desc: 'Санкт-Петербург, пр. Богатырский 22 к.1. Рядом с метро «Коменданский проспект», «Старая деревня»',
   },
 ]
 
@@ -142,7 +142,7 @@ export function Footer() {
                     <p className="text-sm font-semibold text-clay-dark">
                       Санкт-Петербург,
                       <br />
-                      пр. Богатырский 22 к. 1, пом. 38Н
+                      пр. Богатырский 22 к.1
                     </p>
                   </div>
                 </div>

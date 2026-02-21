@@ -276,10 +276,62 @@
   /* ─────────────────────────────
      DECORATIVE BLOBS
   ───────────────────────────── */
-  .blob-mint     { background: linear-gradient(145deg, #A8E4D4, #78D4BC); border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%; }
-  .blob-peach    { background: linear-gradient(145deg, #FADCC8, #F8C4B0); border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%; }
-  .blob-blue     { background: linear-gradient(145deg, #C0DCEE, #A8CCE4); border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%; }
-  .blob-lavender { background: linear-gradient(145deg, #DDD5F0, #CCC0E8); border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; }
+
+  @keyframes blob-breathe-a {
+    0%   { border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%; transform: scale(1)    rotate(0deg); }
+    25%  { border-radius: 50% 50% 62% 38% / 52% 44% 56% 48%; transform: scale(1.04) rotate(1.5deg); }
+    50%  { border-radius: 42% 58% 48% 52% / 60% 38% 62% 40%; transform: scale(1.07) rotate(0deg); }
+    75%  { border-radius: 55% 45% 38% 62% / 44% 56% 44% 56%; transform: scale(1.03) rotate(-1.5deg); }
+    100% { border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%; transform: scale(1)    rotate(0deg); }
+  }
+
+  @keyframes blob-breathe-b {
+    0%   { border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%; transform: scale(1)    rotate(0deg); }
+    25%  { border-radius: 58% 42% 55% 45% / 42% 60% 40% 60%; transform: scale(1.05) rotate(-2deg); }
+    50%  { border-radius: 48% 52% 38% 62% / 52% 50% 50% 50%; transform: scale(1.08) rotate(0deg); }
+    75%  { border-radius: 62% 38% 50% 50% / 46% 54% 46% 54%; transform: scale(1.04) rotate(2deg); }
+    100% { border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%; transform: scale(1)    rotate(0deg); }
+  }
+
+  @keyframes blob-breathe-c {
+    0%   { border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%; transform: scale(1)    rotate(0deg); }
+    30%  { border-radius: 44% 56% 60% 40% / 62% 44% 56% 38%; transform: scale(1.06) rotate(1deg); }
+    60%  { border-radius: 62% 38% 44% 56% / 40% 58% 42% 58%; transform: scale(1.09) rotate(-1deg); }
+    80%  { border-radius: 50% 50% 55% 45% / 55% 45% 55% 45%; transform: scale(1.04) rotate(0.5deg); }
+    100% { border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%; transform: scale(1)    rotate(0deg); }
+  }
+
+  @keyframes blob-breathe-d {
+    0%   { border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; transform: scale(1)    rotate(0deg); }
+    35%  { border-radius: 60% 40% 42% 58% / 40% 62% 38% 62%; transform: scale(1.05) rotate(-1.5deg); }
+    65%  { border-radius: 38% 62% 55% 45% / 60% 40% 60% 40%; transform: scale(1.08) rotate(1.5deg); }
+    100% { border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; transform: scale(1)    rotate(0deg); }
+  }
+
+  .blob-mint {
+    background: linear-gradient(145deg, #A8E4D4, #78D4BC);
+    border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
+    animation: blob-breathe-a 9s ease-in-out infinite;
+    will-change: border-radius, transform;
+  }
+  .blob-peach {
+    background: linear-gradient(145deg, #FADCC8, #F8C4B0);
+    border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
+    animation: blob-breathe-b 11s ease-in-out infinite;
+    will-change: border-radius, transform;
+  }
+  .blob-blue {
+    background: linear-gradient(145deg, #C0DCEE, #A8CCE4);
+    border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
+    animation: blob-breathe-c 13s ease-in-out infinite;
+    will-change: border-radius, transform;
+  }
+  .blob-lavender {
+    background: linear-gradient(145deg, #DDD5F0, #CCC0E8);
+    border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+    animation: blob-breathe-d 10s ease-in-out infinite;
+    will-change: border-radius, transform;
+  }
 
   /* Floating decorative clay capsules */
   .orb {
@@ -395,41 +447,89 @@
   /* ─────────────────────────────
      AVATAR RINGS
   ───────────────────────────── */
-  .avatar-ring-peach {
-    @apply rounded-full p-1.5;
-    --hue: 18;
-    background: linear-gradient(145deg, #FAC8B0, #F0A888);
+  /* Базовые стили тора — общие для всех цветов */
+  .avatar-ring-peach,
+  .avatar-ring-blue,
+  .avatar-ring-mint,
+  .avatar-ring-lavender {
+    @apply rounded-full;
+    position: relative;
+    padding: 14px;
+  }
+
+  /* Псевдоэлемент — внутренняя тень тора (дно колодца) */
+  .avatar-ring-peach::after,
+  .avatar-ring-blue::after,
+  .avatar-ring-mint::after,
+  .avatar-ring-lavender::after {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    border-radius: 50%;
+    /* Тень внутри отверстия — создаёт глубину */
     box-shadow:
-      5px 5px 12px hsl(18, 12%, 62%),
-      inset -2px -2px 5px hsla(18, 25%, 45%, 0.4),
-      inset 0px 4px 8px hsla(18, 60%, 90%, 0.4);
+      inset 0px 6px 18px hsla(0, 0%, 0%, 0.35),
+      inset 0px 2px 6px hsla(0, 0%, 0%, 0.2),
+      inset 0px -4px 10px hsla(0, 0%, 100%, 0.08);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .avatar-ring-peach {
+    background:
+      radial-gradient(ellipse at 30% 25%, hsla(18, 100%, 95%, 0.7) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 80%, hsla(18, 40%, 45%, 0.5) 0%, transparent 55%),
+      linear-gradient(145deg, #FAC8B0, #E89070);
+    box-shadow:
+      8px 10px 24px hsla(18, 30%, 45%, 0.45),
+      -4px -4px 12px hsla(18, 60%, 95%, 0.8),
+      inset 0px 5px 10px hsla(18, 80%, 90%, 0.9),
+      inset 0px -6px 14px hsla(18, 40%, 30%, 0.55);
   }
   .avatar-ring-blue {
-    @apply rounded-full p-1.5;
-    --hue: 205;
-    background: linear-gradient(145deg, #A8D8F4, #78BCE8);
+    background:
+      radial-gradient(ellipse at 30% 25%, hsla(205, 100%, 95%, 0.7) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 80%, hsla(205, 40%, 45%, 0.5) 0%, transparent 55%),
+      linear-gradient(145deg, #A8D8F4, #58A8D8);
     box-shadow:
-      5px 5px 12px hsl(205, 12%, 62%),
-      inset -2px -2px 5px hsla(205, 25%, 45%, 0.4),
-      inset 0px 4px 8px hsla(205, 60%, 90%, 0.4);
+      8px 10px 24px hsla(205, 30%, 45%, 0.45),
+      -4px -4px 12px hsla(205, 60%, 95%, 0.8),
+      inset 0px 5px 10px hsla(205, 80%, 90%, 0.9),
+      inset 0px -6px 14px hsla(205, 40%, 30%, 0.55);
   }
   .avatar-ring-mint {
-    @apply rounded-full p-1.5;
-    --hue: 155;
-    background: linear-gradient(145deg, #A0E4D4, #70D0B8);
+    background:
+      radial-gradient(ellipse at 30% 25%, hsla(155, 100%, 95%, 0.7) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 80%, hsla(155, 40%, 40%, 0.5) 0%, transparent 55%),
+      linear-gradient(145deg, #A0E4D4, #50C0A0);
     box-shadow:
-      5px 5px 12px hsl(155, 12%, 62%),
-      inset -2px -2px 5px hsla(155, 25%, 45%, 0.4),
-      inset 0px 4px 8px hsla(155, 60%, 90%, 0.4);
+      8px 10px 24px hsla(155, 30%, 40%, 0.45),
+      -4px -4px 12px hsla(155, 60%, 95%, 0.8),
+      inset 0px 5px 10px hsla(155, 80%, 90%, 0.9),
+      inset 0px -6px 14px hsla(155, 40%, 25%, 0.55);
   }
   .avatar-ring-lavender {
-    @apply rounded-full p-1.5;
-    --hue: 260;
-    background: linear-gradient(145deg, #D0C4EC, #B8A8DC);
+    background:
+      radial-gradient(ellipse at 30% 25%, hsla(260, 100%, 97%, 0.7) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 80%, hsla(260, 35%, 45%, 0.5) 0%, transparent 55%),
+      linear-gradient(145deg, #D0C4EC, #9880CC);
     box-shadow:
-      5px 5px 12px hsl(260, 12%, 62%),
-      inset -2px -2px 5px hsla(260, 25%, 45%, 0.4),
-      inset 0px 4px 8px hsla(260, 60%, 90%, 0.4);
+      8px 10px 24px hsla(260, 25%, 45%, 0.45),
+      -4px -4px 12px hsla(260, 60%, 97%, 0.8),
+      inset 0px 5px 10px hsla(260, 80%, 95%, 0.9),
+      inset 0px -6px 14px hsla(260, 35%, 30%, 0.55);
+  }
+
+  /* Фото — утоплено на дно тора */
+  .avatar-ring-peach img,
+  .avatar-ring-blue img,
+  .avatar-ring-mint img,
+  .avatar-ring-lavender img {
+    position: relative;
+    z-index: 1;
+    box-shadow:
+      0px 4px 12px hsla(0, 0%, 0%, 0.3),
+      inset 0px 6px 16px hsla(0, 0%, 0%, 0.25);
   }
 
   /* ─────────────────────────────

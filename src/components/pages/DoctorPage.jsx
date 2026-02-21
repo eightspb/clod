@@ -97,14 +97,30 @@ export function DoctorPage({ doctor }) {
         </div>
       </section>
 
-      {/* ── Биография / О враче ── */}
+      {/* ── О враче ── */}
+      {doctor.aboutDoctor && (
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <h2 className="text-xl font-extrabold text-clay-dark mb-4">О враче</h2>
+              <div className="text-clay-muted leading-relaxed space-y-3">
+                {doctor.aboutDoctor.split('\n').filter(Boolean).map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Слово доктора / Биография ── */}
       {doctor.bio && (
         <section className="section">
           <div className="container-clay">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <div className="clay clay-card p-6 md:p-8">
-                  <h2 className="text-xl font-extrabold text-clay-dark mb-4">О враче</h2>
+                  <h2 className="text-xl font-extrabold text-clay-dark mb-4">Слово доктора</h2>
                   <div className="text-clay-muted leading-relaxed space-y-3">
                     {doctor.bio.split('\n').filter(Boolean).map((para, i) => (
                       <p key={i}>{para}</p>
