@@ -1,0 +1,10 @@
+---
+export const prerender = false
+
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import { LogsViewer } from '../../components/admin/LogsViewer.jsx'
+---
+
+<AdminLayout title="Логи событий" activeSection="logs">
+  <LogsViewer client:load />
+</AdminLayout>

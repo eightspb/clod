@@ -118,6 +118,8 @@ const currentPath = Astro.url.pathname
       })
     </script>
 
+    <script src="/tracker.js" is:inline></script>
+
     <script>
       // Параллакс для орбов: каждый орб движется медленнее скролла
       // Базовая позиция фиксируется при загрузке, затем top = basePx + scrollY * (1 - speed)

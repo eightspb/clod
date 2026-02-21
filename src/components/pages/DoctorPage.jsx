@@ -1,0 +1,228 @@
+import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star } from 'lucide-react'
+
+export function DoctorPage({ doctor }) {
+  if (!doctor) return null
+
+  const initials = doctor.name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+
+  const ringColors = {
+    mint: 'avatar-ring-mint',
+    peach: 'avatar-ring-peach',
+    blue: 'avatar-ring-blue',
+    lavender: 'avatar-ring-lavender',
+  }
+  const ring = ringColors[doctor.ringColor] || 'avatar-ring-mint'
+
+  return (
+    <div>
+      {/* ── Hero ── */}
+      <section className="section pt-8 pb-0">
+        <div className="container-clay">
+          <a
+            href="/doctors"
+            className="inline-flex items-center gap-2 text-clay-muted text-sm font-medium mb-6 hover:text-clay-mint transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Все врачи
+          </a>
+
+          <div className="clay clay-card p-6 md:p-10 relative overflow-hidden">
+            {/* Декоративные блобы */}
+            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
+            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
+
+            <div className="relative flex flex-col md:flex-row gap-8 items-start">
+              {/* Фото */}
+              <div className="flex-shrink-0 flex flex-col items-center gap-4">
+                <div className={ring}>
+                  {doctor.photo
+                    ? (
+                      <img
+                        src={doctor.photo}
+                        alt={doctor.name}
+                        className="w-36 h-36 rounded-full object-cover"
+                        loading="lazy"
+                        width="144"
+                        height="144"
+                      />
+                    )
+                    : (
+                      <div className="w-36 h-36 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+                        <span className="text-5xl font-bold text-clay-muted">{initials}</span>
+                      </div>
+                    )
+                  }
+                </div>
+
+                {/* Стаж */}
+                <div className="clay clay-card-soft-mint px-5 py-3 rounded-2xl text-center">
+                  <p className="text-xs text-clay-muted leading-none mb-1">Стаж работы</p>
+                  <p className="text-xl font-extrabold text-clay-mint leading-none">{doctor.experienceYears} лет</p>
+                </div>
+              </div>
+
+              {/* Основная информация */}
+              <div className="flex-1 min-w-0">
+                <div className="clay clay-card-soft-blue inline-flex px-3 py-1.5 rounded-xl mb-3">
+                  <p className="text-xs font-semibold text-clay-dark">{doctor.specialization}</p>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark leading-tight mb-4">
+                  {doctor.name}
+                </h1>
+
+                {doctor.tagline && (
+                  <p className="text-base md:text-lg text-clay-muted leading-relaxed mb-6 max-w-2xl">
+                    {doctor.tagline}
+                  </p>
+                )}
+
+                {/* Кнопка записи */}
+                <div className="flex flex-wrap gap-3">
+                  <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+                    <Phone size={16} />
+                    Записаться на приём
+                  </a>
+                  <a href="tel:+78127482210" className="clay btn-clay-secondary gap-2">
+                    +7 (812) 748-22-10
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Биография / О враче ── */}
+      {doctor.bio && (
+        <section className="section">
+          <div className="container-clay">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="clay clay-card p-6 md:p-8">
+                  <h2 className="text-xl font-extrabold text-clay-dark mb-4">О враче</h2>
+                  <div className="text-clay-muted leading-relaxed space-y-3">
+                    {doctor.bio.split('\n').filter(Boolean).map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Помощь при */}
+              {doctor.helpsWith && doctor.helpsWith.length > 0 && (
+                <div className="clay clay-card-soft-mint p-6">
+                  <h3 className="text-base font-extrabold text-clay-dark mb-4 flex items-center gap-2">
+                    <CheckCircle size={18} className="text-clay-mint flex-shrink-0" />
+                    Помогу при
+                  </h3>
+                  <ul className="space-y-2">
+                    {doctor.helpsWith.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-clay-muted leading-snug">
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-clay-mint flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Образование ── */}
+      {doctor.education && doctor.education.length > 0 && (
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+                <div className="icon-circle-blue flex-shrink-0">
+                  <GraduationCap size={18} className="text-white" />
+                </div>
+                Образование и повышение квалификации
+              </h2>
+
+              <div className="space-y-4">
+                {doctor.education.map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="clay clay-card-soft-blue px-3 py-1.5 rounded-xl text-center flex-shrink-0 min-w-[60px]">
+                      <p className="text-xs font-extrabold text-clay-mint leading-none">{item.year}</p>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="text-sm text-clay-dark leading-relaxed">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Отзывы ── */}
+      {doctor.reviews && doctor.reviews.length > 0 && (
+        <section className="section">
+          <div className="container-clay">
+            <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+              <div className="icon-circle-peach flex-shrink-0">
+                <Star size={18} className="text-white" />
+              </div>
+              Отзывы пациентов
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {doctor.reviews.map((review, i) => (
+                <div key={i} className="clay clay-card p-6 relative overflow-visible">
+                  <div className="pointer-events-none absolute top-3 right-8 w-2.5 h-2.5 rounded-full opacity-40" style={{ background: '#FAC8B0' }} />
+                  <div className="pointer-events-none absolute top-8 right-4 w-2 h-2 rounded-full opacity-30" style={{ background: '#A8D8F4' }} />
+
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(5)].map((_, si) => (
+                      <Star key={si} size={14} className="text-clay-mint fill-clay-mint" />
+                    ))}
+                  </div>
+                  <p className="text-clay-muted text-sm leading-relaxed mb-4">«{review.text}»</p>
+                  {review.author && (
+                    <p className="text-xs font-semibold text-clay-dark">{review.author}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── CTA ── */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
+            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
+            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
+            <div className="relative">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-clay-dark mb-3">
+                Записаться к {doctor.dativeShortName || doctor.name}
+              </h2>
+              <p className="text-clay-muted mb-6 max-w-lg mx-auto">
+                Звоните или оставьте заявку — мы перезвоним и подберём удобное время
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+                  <Phone size={16} />
+                  Онлайн-запись
+                </a>
+                <a href="tel:+78127482210" className="clay btn-clay-secondary gap-2">
+                  +7 (812) 748-22-10
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}

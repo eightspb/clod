@@ -1,0 +1,10 @@
+---
+export const prerender = false
+
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import { Dashboard } from '../../components/admin/Dashboard.jsx'
+---
+
+<AdminLayout title="Дашборд" activeSection="dashboard">
+  <Dashboard client:load />
+</AdminLayout>

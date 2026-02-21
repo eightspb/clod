@@ -312,11 +312,6 @@ export function Home({ doctorsData = [] }) {
     <div>
       {/* ── HERO SLIDER ── */}
       <section className="relative overflow-hidden">
-        {/* Декоративные блобы фона */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="blob-mint absolute -top-20 -right-20 w-96 h-96 opacity-20" />
-          <div className="blob-peach absolute bottom-0 -left-16 w-72 h-72 opacity-15" />
-        </div>
 
         <div className="container-clay relative z-10 py-12 md:py-20">
           {/* Слайды */}
@@ -609,7 +604,7 @@ export function Home({ doctorsData = [] }) {
           {/* Карточки врачей */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.map((doc) => (
-              <div key={doc.name} className="clay clay-card p-6 flex flex-col relative overflow-visible">
+              <div key={doc.name} className="clay clay-card p-6 flex flex-col relative overflow-visible group">
                 {/* Декоративные шарики */}
                 <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style={{ background: '#FAC8B0' }} />
                 <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style={{ background: '#A8D8F4' }} />
@@ -650,10 +645,10 @@ export function Home({ doctorsData = [] }) {
                     )}
                   </div>
                   <a
-                    href="/second-opinion"
+                    href={doc.slug ? `/doctors/${doc.slug}` : '/doctors'}
                     className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0"
                   >
-                    Записаться
+                    Подробнее
                   </a>
                 </div>
               </div>
@@ -665,6 +660,13 @@ export function Home({ doctorsData = [] }) {
               Врачи по выбранному направлению не найдены
             </div>
           )}
+
+          <div className="text-center mt-8">
+            <a href="/doctors" className="clay btn-clay-secondary gap-2">
+              Все врачи клиники
+              <ChevronRight size={16} />
+            </a>
+          </div>
         </div>
       </section>
 

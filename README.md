@@ -33,18 +33,42 @@ bun run preview  # превью собранного билда
 
 ## Архитектура
 
-Проект использует **Astro island architecture**:
+Проект использует **Astro hybrid mode** (SSG + SSR):
 
-- Страницы — `.astro`-файлы (статический HTML + слоты)
+- Публичные страницы — статически пре-рендерятся (SSG)
+- Админ-панель и API — серверный рендеринг (SSR) через `@astrojs/node`
 - Интерактивные части — React `.jsx`-компоненты с директивой `client:load`
 - Лейаут оборачивает все страницы через `<slot />`
 
 ```
-Запрос → src/pages/*.astro → src/layouts/Layout.astro → src/components/pages/*.jsx
+Публичный запрос → src/pages/*.astro (prerendered) → Layout.astro → components/pages/*.jsx
+Админ запрос     → src/pages/admin/*.astro (SSR) → AdminLayout.astro → components/admin/*.jsx
+API запрос       → src/pages/api/**/*.js (SSR)
 ```
 
-Только `Header.jsx` рендерится на клиенте (`client:load`) — для мобильного меню.
-Остальные компоненты рендерятся на сервере (SSG).
+Только `Header.jsx` и все admin-компоненты рендерятся на клиенте (`client:load`).
+
+### Аналитика и трекинг
+
+Клиентский трекер (`public/tracker.js`) автоматически подключается на всех публичных страницах и собирает:
+- Сессии посетителей (IP, UA, экран, язык, referrer)
+- Просмотры страниц с длительностью
+- Клики на кнопки и ссылки
+- Отправки форм
+- Переходы между страницами
+
+Данные хранятся в трёх таблицах БД: `AnalyticsSession`, `PageView`, `EventLog`.
+
+### Админ-панель
+
+Доступна по адресу `/admin/login`. Защита — одним паролем из `.env` (`ADMIN_PASSWORD`).
+
+| Раздел | URL | Описание |
+|---|---|---|
+| Дашборд | `/admin` | Статистика, графики, лента событий |
+| Сессии | `/admin/sessions` | Активные сессии с авто-обновлением |
+| Логи | `/admin/logs` | Все события с фильтрами и пагинацией |
+| Врачи | `/admin/doctors` | Редактирование данных врачей |
 
 ---
 
@@ -63,7 +87,9 @@ clod/
 │   │   │   ├── Endocrinology.jsx
 │   │   │   ├── Neurology.jsx
 │   │   │   ├── SecondOpinion.jsx
-│   │   │   └── Prices.jsx
+│   │   │   ├── Prices.jsx
+│   │   │   ├── Doctors.jsx        # Листинг всех врачей с фильтрами
+│   │   │   └── DoctorPage.jsx     # Страница отдельного врача
 │   │   ├── doctors-demo/          # Демо-компоненты карточек врачей
 │   │   │   ├── DoctorClayCard.jsx
 │   │   │   ├── DoctorDirectionFilters.jsx
@@ -72,7 +98,12 @@ clod/
 │   │   ├── Footer.jsx             # Подвал сайта
 │   │   └── ClayContactBanner.jsx  # Баннер с контактами
 │   ├── layouts/
-│   │   └── Layout.astro           # Главный лейаут (HTML-обёртка, шрифты, мета)
+│   │   ├── Layout.astro           # Главный лейаут публичного сайта
+│   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
+│   ├── lib/
+│   │   ├── auth.js                # HMAC-авторизация (токены, cookie)
+│   │   ├── tracker.js             # Источник клиентского трекера (копируется в public/)
+│   │   └── doctors-data.js        # Статические данные 9 врачей клиники
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
 │   │   ├── mammology.astro        # /mammology
@@ -80,14 +111,47 @@ clod/
 │   │   ├── endocrinology.astro    # /endocrinology
 │   │   ├── neurology.astro        # /neurology
 │   │   ├── second-opinion.astro   # /second-opinion
-│   │   └── prices.astro           # /prices
+│   │   ├── prices.astro           # /prices
+│   │   ├── doctors.astro          # /doctors — листинг врачей
+│   │   ├── doctors/
+│   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д.
+│   │   ├── admin/                 # Админ-панель (SSR)
+│   │   │   ├── index.astro        # /admin — дашборд
+│   │   │   ├── login.astro        # /admin/login
+│   │   │   ├── doctors.astro      # /admin/doctors
+│   │   │   ├── sessions.astro     # /admin/sessions
+│   │   │   └── logs.astro         # /admin/logs
+│   │   └── api/                   # API-эндпоинты (SSR)
+│   │       ├── analytics/
+│   │       │   ├── event.js       # POST — приём событий трекера
+│   │       │   └── heartbeat.js   # POST — heartbeat сессий
+│   │       ├── auth/
+│   │       │   ├── login.js       # POST — вход в админку
+│   │       │   └── logout.js      # POST — выход
+│   │       └── admin/
+│   │           ├── stats.js       # GET — агрегированная статистика
+│   │           ├── sessions.js    # GET — список сессий
+│   │           ├── logs.js        # GET — логи событий
+│   │           ├── doctors.js     # GET — список врачей
+│   │           └── doctors/[id].js # PUT — обновление врача
+│   ├── components/
+│   │   ├── admin/                 # Компоненты админ-панели
+│   │   │   ├── LoginForm.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── DoctorManager.jsx
+│   │   │   ├── SessionsViewer.jsx
+│   │   │   └── LogsViewer.jsx
+│   │   └── ...                    # Публичные компоненты
 │   ├── styles/
 │   │   └── global.css             # Tailwind + все clay-утилиты
 │   └── env.d.ts                   # Astro type references
+├── public/
+│   ├── tracker.js                 # Клиентский трекер аналитики
 ├── db/                            # Astro DB
 │   ├── config.ts                  # Схема базы данных
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
-├── astro.config.mjs               # Astro конфиг (react + tailwind интеграции)
+├── .env                           # Переменные окружения (ADMIN_PASSWORD)
+├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
 ├── tailwind.config.js             # Tailwind тема (цвета, тени, радиусы)
 ├── postcss.config.js
 ├── package.json
@@ -104,6 +168,8 @@ clod/
 
 Astro file-based routing — каждый `.astro`-файл в `src/pages/` = отдельный маршрут.
 
+### Публичные страницы (SSG — статические)
+
 | Маршрут | Astro-файл | React-компонент |
 |---|---|---|
 | `/` | `index.astro` | `Home.jsx` |
@@ -113,6 +179,20 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/neurology` | `neurology.astro` | `Neurology.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
 | `/prices` | `prices.astro` | `Prices.jsx` |
+| `/doctors` | `doctors.astro` | `Doctors.jsx` |
+| `/doctors/[slug]` | `doctors/[slug].astro` | `DoctorPage.jsx` |
+
+Данные врачей хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 врачами). Каждый врач имеет поля: `slug`, `name`, `specialization`, `experienceYears`, `ringColor`, `tagline`, `bio`, `helpsWith[]`, `education[]`, `reviews[]`.
+
+### Админ-панель (SSR — серверные)
+
+| Маршрут | Описание |
+|---|---|
+| `/admin/login` | Страница входа (пароль из `.env`) |
+| `/admin` | Дашборд: статистика, графики, лента событий |
+| `/admin/sessions` | Активные сессии с авто-обновлением каждые 10с |
+| `/admin/logs` | Логи всех событий с фильтрами и пагинацией |
+| `/admin/doctors` | Редактирование данных врачей |
 
 ---
 

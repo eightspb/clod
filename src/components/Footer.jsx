@@ -119,28 +119,20 @@ export function Footer() {
             <div>
               <h4 className="font-bold text-clay-dark mb-4 text-sm">Контакты</h4>
               <div className="flex flex-col gap-3">
-                <a href="tel:+78127482210" className="flex items-center gap-3 group">
-                  <div className="icon-circle-mint w-9 h-9 text-sm">
+                <div className="flex items-start gap-3">
+                  <div className="icon-circle-mint w-9 h-9 text-sm shrink-0 mt-0.5">
                     <Phone size={15} className="text-white" />
                   </div>
-                  <div>
+                  <div className="flex flex-col gap-1">
                     <p className="text-xs text-clay-muted">Телефон</p>
-                    <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">
+                    <a href="tel:+78127482210" className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
                       +7 (812) 748-22-10
-                    </p>
-                  </div>
-                </a>
-                <a href="tel:+79119258022" className="flex items-center gap-3 group">
-                  <div className="icon-circle-mint w-9 h-9 text-sm">
-                    <Phone size={15} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-clay-muted">Телефон 2</p>
-                    <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">
+                    </a>
+                    <a href="tel:+79119258022" className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
                       +7 (911) 925-80-22
-                    </p>
+                    </a>
                   </div>
-                </a>
+                </div>
                 <div className="flex items-start gap-3">
                   <div className="icon-circle-peach w-9 h-9 text-sm mt-0.5">
                     <MapPin size={15} className="text-white" />

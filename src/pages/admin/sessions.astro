@@ -1,0 +1,10 @@
+---
+export const prerender = false
+
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import { SessionsViewer } from '../../components/admin/SessionsViewer.jsx'
+---
+
+<AdminLayout title="Сессии" activeSection="sessions">
+  <SessionsViewer client:load />
+</AdminLayout>

@@ -1,0 +1,25 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { DoctorPage } from '../../components/pages/DoctorPage.jsx'
+import { DOCTORS, getDoctorBySlug } from '../../lib/doctors-data.js'
+
+export function getStaticPaths() {
+  return DOCTORS.map((doctor) => ({
+    params: { slug: doctor.slug },
+  }))
+}
+
+const { slug } = Astro.params
+const doctor = getDoctorBySlug(slug)
+
+if (!doctor) {
+  return Astro.redirect('/doctors')
+}
+---
+
+<Layout
+  title={`${doctor.name} — Клиника Одинцова`}
+  description={`${doctor.specialization}. Стаж ${doctor.experienceYears} лет. ${doctor.tagline}`}
+>
+  <DoctorPage doctor={doctor} />
+</Layout>

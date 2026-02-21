@@ -80,6 +80,59 @@ const Media = defineTable({
   }
 });
 
+// 7. Сертификаты врачей (набор изображений)
+const DoctorCertificate = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    doctorId: column.text(), // без FK — упрощённая связь
+    mediaId: column.text(), // ссылка на Media.id
+    title: column.text({ optional: true }), // название сертификата
+    sortOrder: column.number({ default: 0 }),
+    createdAt: column.date({ default: new Date() }),
+  }
+});
+
+// 8. Аналитика: сессии посетителей
+const AnalyticsSession = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    visitorId: column.text(), // Постоянный анонимный ID (localStorage)
+    ip: column.text({ optional: true }),
+    userAgent: column.text({ optional: true }),
+    currentPage: column.text({ optional: true }),
+    referrer: column.text({ optional: true }),
+    screenWidth: column.number({ optional: true }),
+    screenHeight: column.number({ optional: true }),
+    language: column.text({ optional: true }),
+    startedAt: column.date({ default: new Date() }),
+    lastActiveAt: column.date({ default: new Date() }),
+  }
+});
+
+// 8. Аналитика: просмотры страниц
+const PageView = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    sessionId: column.text(), // без FK — аналитика не требует строгой целостности
+    page: column.text(),
+    enteredAt: column.date({ default: new Date() }),
+    duration: column.number({ optional: true }), // секунды
+  }
+});
+
+// 9. Аналитика: лог событий (клики, навигация, формы и т.д.)
+const EventLog = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    sessionId: column.text(), // без FK — аналитика не требует строгой целостности
+    eventType: column.text(), // 'click' | 'navigation' | 'scroll' | 'form_submit' | 'page_enter' | 'page_leave'
+    page: column.text(),
+    target: column.text({ optional: true }), // текст кнопки/ссылки, ID элемента
+    details: column.text({ optional: true }), // JSON-строка с доп. данными
+    createdAt: column.date({ default: new Date() }),
+  }
+});
+
 export default defineDb({
-  tables: { User, Doctor, Patient, Service, Blog, Article, Media }
+  tables: { User, Doctor, Patient, Service, Blog, Article, Media, DoctorCertificate, AnalyticsSession, PageView, EventLog }
 });

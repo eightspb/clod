@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Doctors } from '../components/pages/Doctors.jsx'
+---
+
+<Layout
+  title="Врачи — Клиника Одинцова"
+  description="Онкологи-маммологи, гинекологи и эндокринологи клиники Одинцова. Все врачи владеют УЗИ и работают в единой команде."
+>
+  <Doctors client:load />
+</Layout>
