@@ -1,4 +1,4 @@
-import { Shield, Lock, Eye, UserCheck, Database, Phone, MapPin } from 'lucide-react'
+import { Shield, Lock, Eye, UserCheck, Database, Phone, MapPin, Mail } from 'lucide-react'
 
 const SECTIONS = [
   {
@@ -185,7 +185,7 @@ export function PrivacyPolicy() {
           По вопросам обработки персональных данных, реализации ваших прав или отзыва согласия обращайтесь к нам:
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="clay bg-white/20 rounded-2xl px-5 py-3 flex items-center gap-3">
+          <div className="clay bg-white/20 rounded-2xl px-5 py-3 flex items-center gap-3 flex-1">
             <Phone size={18} className="text-white flex-shrink-0" />
             <div>
               <p className="text-white/70 text-xs">Телефон</p>
@@ -193,7 +193,17 @@ export function PrivacyPolicy() {
               <a href="tel:+79119258022" className="text-white font-semibold text-sm block hover:text-white/80 transition-colors">+7 (911) 925-80-22</a>
             </div>
           </div>
-          <div className="clay bg-white/20 rounded-2xl px-5 py-3 flex items-center gap-3">
+          <a
+            href="mailto:info@odintsovclinic.ru"
+            className="clay bg-white/20 hover:bg-white/30 transition-colors rounded-2xl px-5 py-3 flex items-center gap-3 flex-1"
+          >
+            <Mail size={18} className="text-white flex-shrink-0" />
+            <div>
+              <p className="text-white/70 text-xs">Электронная почта</p>
+              <p className="text-white font-semibold text-sm">info@odintsovclinic.ru</p>
+            </div>
+          </a>
+          <div className="clay bg-white/20 rounded-2xl px-5 py-3 flex items-center gap-3 flex-1">
             <MapPin size={18} className="text-white flex-shrink-0" />
             <div>
               <p className="text-white/70 text-xs">Адрес</p>

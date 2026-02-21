@@ -209,9 +209,14 @@ export function Endocrinology() {
 
                 <div className="flex items-start justify-between mb-4">
                   <div className={`${doc.ring} flex-shrink-0`}>
-                    <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                      <span className="text-3xl font-bold text-clay-muted">{doc.initials}</span>
-                    </div>
+                    {doc.photo
+                      ? <img src={doc.photo} alt={doc.name} className="w-48 h-48 rounded-full object-cover" loading="lazy" width="192" height="192" />
+                      : (
+                        <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+                          <span className="text-6xl font-bold text-clay-muted">{doc.initials}</span>
+                        </div>
+                      )
+                    }
                   </div>
                   <div className="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0">
                     <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
