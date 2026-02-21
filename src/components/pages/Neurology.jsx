@@ -231,7 +231,7 @@ export function Neurology() {
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
+              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>

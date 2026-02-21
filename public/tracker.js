@@ -46,7 +46,9 @@
         headers: { 'Content-Type': 'application/json' },
         body: json,
         keepalive: true,
-      }).catch(function () {})
+      }).catch(function (err) {
+        if (typeof console !== 'undefined') console.warn('[tracker] send failed:', err)
+      })
     }
   }
 
@@ -104,6 +106,8 @@
   })
 
   window.addEventListener('beforeunload', function () {
+    if (heartbeatTimer) clearInterval(heartbeatTimer)
+    if (batchTimer) clearInterval(batchTimer)
     onPageLeave()
   })
 

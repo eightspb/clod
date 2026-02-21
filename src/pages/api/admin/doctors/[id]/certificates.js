@@ -2,7 +2,7 @@ export const prerender = false
 
 import { db, DoctorCertificate, Media } from 'astro:db'
 import { eq, and } from 'astro:db'
-import { isAuthenticated } from '../../../../../lib/auth.js'
+import { isAuthenticated, validateOrigin } from '../../../../../lib/auth.js'
 import { unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -45,6 +45,12 @@ export async function GET({ request, params }) {
 }
 
 export async function DELETE({ request, params }) {
+  if (!validateOrigin(request)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
   if (!await isAuthenticated(request)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,

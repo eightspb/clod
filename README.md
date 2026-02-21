@@ -59,6 +59,21 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 Данные хранятся в трёх таблицах БД: `AnalyticsSession`, `PageView`, `EventLog`.
 
+### Безопасность
+
+- **Security headers** — добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
+- **Rate limiting** — login endpoint: макс. 5 попыток за 15 минут с одного IP
+- **CSRF-защита** — проверка заголовка `Origin`/`Referer` на всех state-changing API
+- **Санитизация** — валидация и trim всех текстовых полей в admin API
+- **Разделение секретов** — `TOKEN_SECRET` для HMAC (fallback на `ADMIN_PASSWORD`), `Secure` cookie в production
+
+### Переменные окружения (`.env`)
+
+| Переменная | Описание |
+|---|---|
+| `ADMIN_PASSWORD` | Пароль для входа в админ-панель |
+| `TOKEN_SECRET` | Секрет для HMAC-подписи токенов (рекомендуется длинная случайная строка) |
+
 ### Админ-панель
 
 Доступна по адресу `/admin/login`. Защита — одним паролем из `.env` (`ADMIN_PASSWORD`).
@@ -76,9 +91,13 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ```
 clod/
-├── public/                        # Статические ассеты (favicon и т.д.)
-│   └── uploads/                   # Медиафайлы (разбиты по папкам: doctors, blog, и т.д.)
+├── public/                        # Статические ассеты
+│   ├── tracker.js                 # Клиентский трекер аналитики
+│   ├── robots.txt                 # Директивы для поисковых роботов
+│   ├── sitemap.xml                # Карта сайта для SEO
+│   └── uploads/                   # Медиафайлы (разбиты по папкам: doctors и т.д.)
 ├── src/
+│   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
 │   ├── components/
 │   │   ├── pages/                 # React-компоненты страниц
 │   │   │   ├── Home.jsx
@@ -91,19 +110,28 @@ clod/
 │   │   │   ├── Doctors.jsx        # Листинг всех докторов с фильтрами
 │   │   │   ├── DoctorPage.jsx     # Страница отдельного доктора
 │   │   │   └── PrivacyPolicy.jsx  # Политика конфиденциальности
-│   │   ├── doctors-demo/          # Демо-компоненты карточек докторов
-│   │   │   ├── DoctorClayCard.jsx
-│   │   │   ├── DoctorDirectionFilters.jsx
-│   │   │   └── DoctorsClayTitle.jsx
+│   │   ├── admin/                 # Компоненты админ-панели
+│   │   │   ├── LoginForm.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── DoctorManager.jsx  # Контейнер списка докторов
+│   │   │   ├── DoctorEditForm.jsx # Форма редактирования (модалка)
+│   │   │   ├── DoctorPhotoUpload.jsx # Загрузка фото доктора
+│   │   │   ├── DoctorCertificates.jsx # Управление сертификатами
+│   │   │   ├── SessionsViewer.jsx
+│   │   │   └── LogsViewer.jsx
 │   │   ├── Header.jsx             # Навигация (client:load, мобильное меню)
 │   │   ├── Footer.jsx             # Подвал сайта
-│   │   └── ClayContactBanner.jsx  # Баннер с контактами
+│   │   ├── ClayContactBanner.jsx  # Баннер с контактами
+│   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора
+│   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
+│   │   ├── ErrorBoundary.jsx      # React Error Boundary для page-level компонентов
+│   │   └── PageWrapper.jsx        # Обёртка страницы с ErrorBoundary
 │   ├── layouts/
-│   │   ├── Layout.astro           # Главный лейаут публичного сайта
+│   │   ├── Layout.astro           # Главный лейаут (OG-теги, canonical, JSON-LD)
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
 │   ├── lib/
-│   │   ├── auth.js                # HMAC-авторизация (токены, cookie)
-│   │   ├── tracker.js             # Источник клиентского трекера (копируется в public/)
+│   │   ├── auth.js                # HMAC-авторизация (токены, cookie, CSRF validateOrigin)
+│   │   ├── constants.js           # Общие константы: контакты, RING_COLOR_MAP, matchesFilter
 │   │   └── doctors-data.js        # Статические данные 9 докторов клиники
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
@@ -115,7 +143,7 @@ clod/
 │   │   ├── prices.astro           # /prices
 │   │   ├── doctors.astro          # /doctors — листинг докторов
 │   │   ├── doctors/
-│   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д.
+│   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д. (+ Physician JSON-LD)
 │   │   ├── privacy-policy.astro   # /privacy-policy
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin — дашборд
@@ -128,31 +156,25 @@ clod/
 │   │       │   ├── event.js       # POST — приём событий трекера
 │   │       │   └── heartbeat.js   # POST — heartbeat сессий
 │   │       ├── auth/
-│   │       │   ├── login.js       # POST — вход в админку
+│   │       │   ├── login.js       # POST — вход (rate limiting: 5 попыток / 15 мин)
 │   │       │   └── logout.js      # POST — выход
 │   │       └── admin/
 │   │           ├── stats.js       # GET — агрегированная статистика
 │   │           ├── sessions.js    # GET — список сессий
 │   │           ├── logs.js        # GET — логи событий
 │   │           ├── doctors.js     # GET — список докторов
-│   │           └── doctors/[id].js # PUT — обновление доктора
-│   ├── components/
-│   │   ├── admin/                 # Компоненты админ-панели
-│   │   │   ├── LoginForm.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── DoctorManager.jsx
-│   │   │   ├── SessionsViewer.jsx
-│   │   │   └── LogsViewer.jsx
-│   │   └── ...                    # Публичные компоненты
+│   │           ├── doctors/[id].js # PUT — обновление доктора (с санитизацией)
+│   │           ├── doctors/[id]/certificates.js # DELETE — удаление сертификата
+│   │           └── upload/
+│   │               ├── photo.js   # POST — загрузка фото доктора
+│   │               └── certificates.js # POST — загрузка сертификатов
 │   ├── styles/
-│   │   └── global.css             # Tailwind + все clay-утилиты
+│   │   └── global.css             # Tailwind + все clay-утилиты + clay-banner-* классы
 │   └── env.d.ts                   # Astro type references
-├── public/
-│   ├── tracker.js                 # Клиентский трекер аналитики
 ├── db/                            # Astro DB
 │   ├── config.ts                  # Схема базы данных
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
-├── .env                           # Переменные окружения (ADMIN_PASSWORD)
+├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET)
 ├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
 ├── tailwind.config.js             # Tailwind тема (цвета, тени, радиусы)
 ├── postcss.config.js
@@ -387,6 +409,10 @@ integrations: [
 - `Header` с `client:load` (интерактивный)
 - `Footer` (статический)
 - `<slot />` для контента страниц
+- Open Graph / Twitter Card мета-теги
+- Canonical URL
+- JSON-LD `MedicalBusiness` structured data (на всех страницах)
+- JSON-LD `Physician` structured data (на страницах `/doctors/[slug]`)
 
 ---
 

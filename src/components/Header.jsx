@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 
 const navItems = [
@@ -16,16 +16,32 @@ const navItems = [
   { label: 'Цены', to: '/prices' },
 ]
 
+const SCROLL_THRESHOLD = 10
+const DROPDOWN_CLOSE_DELAY = 150
+
 export function Header({ currentPath = '/' }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const dropdownTimer = useRef(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    return () => { if (dropdownTimer.current) clearTimeout(dropdownTimer.current) }
+  }, [])
+
+  function handleDropdownBlur() {
+    dropdownTimer.current = setTimeout(() => setDropdownOpen(false), DROPDOWN_CLOSE_DELAY)
+  }
+
+  function handleDropdownFocus() {
+    if (dropdownTimer.current) clearTimeout(dropdownTimer.current)
+  }
 
   return (
     <header
@@ -34,6 +50,7 @@ export function Header({ currentPath = '/' }) {
         background: scrolled ? 'rgba(247,243,239,0.95)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
       }}
+      role="banner"
     >
       <div className="container-clay flex items-center justify-between gap-4">
         {/* Logo */}
@@ -62,7 +79,11 @@ export function Header({ currentPath = '/' }) {
                 <button
                   className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+                  onBlur={handleDropdownBlur}
+                  onFocus={handleDropdownFocus}
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
+                  aria-controls="nav-dropdown"
                 >
                   {item.label}
                   <ChevronDown
@@ -71,11 +92,12 @@ export function Header({ currentPath = '/' }) {
                   />
                 </button>
                 {dropdownOpen && (
-                  <div className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
+                  <div id="nav-dropdown" role="menu" className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
                     {item.children.map((child) => (
                       <a
                         key={child.to}
                         href={child.to}
+                        role="menuitem"
                         className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
                           currentPath === child.to
                             ? 'text-clay-mint bg-clay-mint-pale'

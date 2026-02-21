@@ -2,7 +2,14 @@ const COOKIE_NAME = 'admin_session'
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 function getSecret() {
-  return import.meta.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || ''
+  const secret =
+    import.meta.env.TOKEN_SECRET ||
+    import.meta.env.ADMIN_PASSWORD ||
+    process.env.TOKEN_SECRET ||
+    process.env.ADMIN_PASSWORD ||
+    ''
+  if (!secret) throw new Error('TOKEN_SECRET or ADMIN_PASSWORD environment variable is required')
+  return secret
 }
 
 async function hmacSign(data, secret) {
@@ -59,9 +66,34 @@ export async function isAuthenticated(request) {
 }
 
 export function buildSetCookie(token) {
-  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${TOKEN_TTL_MS / 1000}`
+  const isProduction = (import.meta.env.MODE || process.env.NODE_ENV) === 'production'
+  const secureFlag = isProduction ? '; Secure' : ''
+  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Strict; Path=/${secureFlag}; Max-Age=${TOKEN_TTL_MS / 1000}`
 }
 
 export function buildClearCookie() {
   return `${COOKIE_NAME}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`
+}
+
+const ALLOWED_HOSTS = [
+  'odintsovclinic.ru',
+  'www.odintsovclinic.ru',
+  'localhost:4321',
+  'localhost:3000',
+  '127.0.0.1:4321',
+]
+
+export function validateOrigin(request) {
+  const origin = request.headers.get('origin')
+  const referer = request.headers.get('referer')
+
+  const source = origin || referer
+  if (!source) return false
+
+  try {
+    const url = new URL(source)
+    return ALLOWED_HOSTS.includes(url.host)
+  } catch {
+    return false
+  }
 }

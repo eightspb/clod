@@ -6,11 +6,17 @@ import '../styles/global.css'
 interface Props {
   title?: string
   description?: string
+  ogImage?: string
+  ogType?: string
+  canonicalUrl?: string
 }
 
 const {
   title = 'Клиника Одинцова — Экспертная медицина',
   description = 'Клиника экспертной медицины в маммологии, гинекологии, эндокринологии и неврологии. Технология ВАБ — удаление образований за 30 минут без скальпеля и швов.',
+  ogImage = '/images/og-default.jpg',
+  ogType = 'website',
+  canonicalUrl = `https://odintsovclinic.ru${Astro.url.pathname}`,
 } = Astro.props
 
 const currentPath = Astro.url.pathname
@@ -22,14 +28,58 @@ const currentPath = Astro.url.pathname
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Клиника Одинцова" />
+    <meta property="og:locale" content="ru_RU" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- JSON-LD: MedicalBusiness -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "MedicalBusiness",
+      "name": "Клиника Одинцова",
+      "url": "https://odintsovclinic.ru",
+      "logo": "https://odintsovclinic.ru/images/og-default.jpg",
+      "telephone": "+78127482210",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "пр. Богатырский 22 к.1",
+        "addressLocality": "Санкт-Петербург",
+        "addressCountry": "RU"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 60.0028,
+        "longitude": 30.2153
+      },
+      "openingHours": ["Mo-Fr 09:00-20:00", "Sa-Su 10:00-18:00"],
+      "medicalSpecialty": ["Mammography", "Gynecology", "Endocrinology", "Neurology"],
+      "sameAs": [
+        "https://wa.me/79119258022",
+        "https://t.me/odintsovclinic"
+      ]
+    })} />
   </head>
   <body class="relative min-h-screen bg-clay-bg font-sans">
     <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->

@@ -1,24 +1,10 @@
 import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data'
-
-const RING_MAP = {
-  mint: 'avatar-ring-mint',
-  peach: 'avatar-ring-peach',
-  blue: 'avatar-ring-blue',
-  lavender: 'avatar-ring-lavender',
-}
+import { DoctorCard } from '../DoctorCard.jsx'
 
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /^эндокринолог/i.test(d.specialization)
-).map((doc) => {
-  const parts = doc.name.split(' ')
-  return {
-    ...doc,
-    initials: (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase(),
-    exp: `${doc.experienceYears} лет`,
-    ring: RING_MAP[doc.ringColor] || 'avatar-ring-blue',
-  }
-})
+)
 
 const features = [
   {
@@ -202,46 +188,7 @@ export function Endocrinology() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SPECIALTY_DOCTORS.map((doc) => (
-              <div key={doc.slug} className="clay clay-card p-6 flex flex-col relative overflow-visible">
-                <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style={{ background: '#FAC8B0' }} />
-                <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style={{ background: '#A8D8F4' }} />
-                <div className="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style={{ background: '#A0E4D4' }} />
-
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`${doc.ring} flex-shrink-0`}>
-                    {doc.photo
-                      ? <img src={doc.photo} alt={doc.name} className="w-48 h-48 rounded-full object-cover" loading="lazy" width="192" height="192" />
-                      : (
-                        <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                          <span className="text-6xl font-bold text-clay-muted">{doc.initials}</span>
-                        </div>
-                      )
-                    }
-                  </div>
-                  <div className="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0">
-                    <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
-                    <p className="text-sm font-extrabold text-clay-mint leading-none">{doc.exp}</p>
-                  </div>
-                </div>
-
-                <h4 className="font-bold text-clay-dark text-base leading-snug mb-2">{doc.name}</h4>
-
-                {doc.tagline && (
-                  <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1 line-clamp-5">{doc.tagline}</p>
-                )}
-
-                <div className="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
-                  <div className="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
-                    <p className="text-xs font-semibold text-clay-dark leading-tight truncate">{doc.specialization.split(',')[0]}</p>
-                    {doc.specialization.split(',')[1] && (
-                      <p className="text-xs text-clay-muted leading-tight truncate">{doc.specialization.split(',').slice(1).join(',').trim()}</p>
-                    )}
-                  </div>
-                  <a href={`/doctors/${doc.slug}`} className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0">
-                    Подробнее
-                  </a>
-                </div>
-              </div>
+              <DoctorCard key={doc.slug} doctor={doc} />
             ))}
           </div>
         </div>
@@ -263,7 +210,7 @@ export function Endocrinology() {
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
+              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>

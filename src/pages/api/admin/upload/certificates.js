@@ -1,7 +1,7 @@
 export const prerender = false
 
 import { db, Media, DoctorCertificate } from 'astro:db'
-import { isAuthenticated } from '../../../../lib/auth.js'
+import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
 import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -9,6 +9,12 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB per file
 
 export async function POST({ request }) {
+  if (!validateOrigin(request)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
   if (!await isAuthenticated(request)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,

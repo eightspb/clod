@@ -15,11 +15,30 @@ const doctor = getDoctorBySlug(slug)
 if (!doctor) {
   return Astro.redirect('/doctors')
 }
+
+const doctorUrl = `https://odintsovclinic.ru/doctors/${doctor.slug}`
+const physicianSchema = {
+  "@context": "https://schema.org",
+  "@type": "Physician",
+  "name": doctor.name,
+  "description": doctor.tagline || doctor.bio || '',
+  "medicalSpecialty": doctor.specialization,
+  "worksFor": {
+    "@type": "MedicalBusiness",
+    "name": "Клиника Одинцова",
+    "url": "https://odintsovclinic.ru"
+  },
+  "url": doctorUrl,
+  ...(doctor.photo ? { "image": `https://odintsovclinic.ru${doctor.photo}` } : {})
+}
 ---
 
 <Layout
   title={`${doctor.name} — Клиника Одинцова`}
   description={`${doctor.specialization}. Стаж ${doctor.experienceYears} лет. ${doctor.tagline}`}
+  canonicalUrl={doctorUrl}
+  ogType="profile"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(physicianSchema)} />
   <DoctorPage doctor={doctor} />
 </Layout>

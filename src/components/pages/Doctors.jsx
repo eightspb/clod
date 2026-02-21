@@ -1,4 +1,9 @@
+import { useState, useMemo } from 'react'
 import { DOCTORS } from '../../lib/doctors-data.js'
+import { matchesFilter } from '../../lib/constants.js'
+import { DoctorCard } from '../DoctorCard.jsx'
+import { CtaSection } from '../CtaSection.jsx'
+import { ErrorBoundary } from '../ErrorBoundary.jsx'
 
 const FILTER_TABS = [
   { id: 'all', label: 'Все доктора' },
@@ -14,23 +19,13 @@ const FILTER_BG = [
   'linear-gradient(145deg,#F4F0FB,#EBE4F7)',
 ]
 
-function matchesFilter(doctor, filterId) {
-  if (filterId === 'all') return true
-  const spec = doctor.specialization.toLowerCase()
-  if (filterId === 'mammology') return spec.includes('онколог') || spec.includes('хирург') || spec.includes('маммол')
-  if (filterId === 'gynecology') return spec.includes('гинекол') || spec.includes('акушер')
-  if (filterId === 'endocrinology') return spec.includes('эндокринол') || spec.includes('нутрицио')
-  return false
-}
-
-import { useState } from 'react'
-
 export function Doctors() {
   const [activeFilter, setActiveFilter] = useState('all')
 
-  const filtered = DOCTORS.filter((d) => matchesFilter(d, activeFilter))
+  const filtered = useMemo(() => DOCTORS.filter((d) => matchesFilter(d, activeFilter)), [activeFilter])
 
   return (
+    <ErrorBoundary>
     <div>
       {/* ── Заголовок ── */}
       <section className="section pb-0">
@@ -80,83 +75,9 @@ export function Doctors() {
       <section className="section">
         <div className="container-clay">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((doc) => {
-              const initials = doc.name.split(' ').slice(0, 2).map((w) => w[0]).join('')
-              const ringMap = {
-                mint: 'avatar-ring-mint',
-                peach: 'avatar-ring-peach',
-                blue: 'avatar-ring-blue',
-                lavender: 'avatar-ring-lavender',
-              }
-              const ring = ringMap[doc.ringColor] || 'avatar-ring-mint'
-
-              return (
-                <div
-                  key={doc.slug}
-                  className="clay clay-card p-6 flex flex-col relative overflow-visible group"
-                >
-                  {/* Декоративные шарики */}
-                  <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style={{ background: '#FAC8B0' }} />
-                  <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style={{ background: '#A8D8F4' }} />
-                  <div className="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style={{ background: '#A0E4D4' }} />
-
-                  {/* Верхняя строка: фото + стаж в правом углу */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`${ring} flex-shrink-0`}>
-                      {doc.photo
-                        ? (
-                          <img
-                            src={doc.photo}
-                            alt={doc.name}
-                            className="w-48 h-48 rounded-full object-cover"
-                            loading="lazy"
-                            width="192"
-                            height="192"
-                          />
-                        )
-                        : (
-                          <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                            <span className="text-6xl font-bold text-clay-muted">{initials}</span>
-                          </div>
-                        )
-                      }
-                    </div>
-                    <div className="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0">
-                      <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
-                      <p className="text-sm font-extrabold text-clay-mint leading-none">{doc.experienceYears} лет</p>
-                    </div>
-                  </div>
-
-                  {/* Имя */}
-                  <h4 className="font-bold text-clay-dark text-base leading-snug mb-2">{doc.name}</h4>
-
-                  {/* Bio — больше строк, как на главной */}
-                  {doc.tagline && (
-                    <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1 line-clamp-5">{doc.tagline}</p>
-                  )}
-
-                  {/* Специализация + кнопка */}
-                  <div className="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
-                    <div className="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
-                      <p className="text-xs font-semibold text-clay-dark leading-tight truncate">
-                        {doc.specialization.split(',')[0]}
-                      </p>
-                      {doc.specialization.split(',')[1] && (
-                        <p className="text-xs text-clay-muted leading-tight truncate">
-                          {doc.specialization.split(',').slice(1).join(',').trim()}
-                        </p>
-                      )}
-                    </div>
-                    <a
-                      href={`/doctors/${doc.slug}`}
-                      className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0"
-                    >
-                      Подробнее
-                    </a>
-                  </div>
-                </div>
-              )
-            })}
+            {filtered.map((doc) => (
+              <DoctorCard key={doc.slug} doctor={doc} />
+            ))}
           </div>
 
           {filtered.length === 0 && (
@@ -167,31 +88,12 @@ export function Doctors() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
-            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
-            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
-            <div className="relative">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-clay-dark mb-3">
-                Не знаете, к кому обратиться?
-              </h2>
-              <p className="text-clay-muted mb-6 max-w-lg mx-auto">
-                Позвоните нам — мы поможем выбрать нужного специалиста и запишем на удобное время
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <a href="/second-opinion" className="clay btn-clay-primary">
-                  Бесплатное второе мнение
-                </a>
-                <a href="tel:+78127482210" className="clay btn-clay-secondary">
-                  +7 (812) 748-22-10
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CtaSection
+        title="Не знаете, к кому обратиться?"
+        subtitle="Позвоните нам — мы поможем выбрать нужного специалиста и запишем на удобное время"
+        primaryLabel="Бесплатное второе мнение"
+      />
     </div>
+    </ErrorBoundary>
   )
 }

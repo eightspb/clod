@@ -87,7 +87,7 @@ export function SecondOpinion() {
                 <Phone size={16} />
                 Позвонить сейчас
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
+              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 Написать в WhatsApp
               </a>
@@ -193,7 +193,7 @@ export function SecondOpinion() {
                       <Phone size={16} />
                       Позвонить: +7 (812) 748-22-10
                     </a>
-                    <a href="https://wa.me/79119258022" className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                    <a href="https://wa.me/79119258022" className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors" target="_blank" rel="noopener noreferrer">
                       <MessageCircle size={16} />
                       Написать в WhatsApp
                     </a>

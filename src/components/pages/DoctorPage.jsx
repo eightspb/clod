@@ -1,4 +1,7 @@
 import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star } from 'lucide-react'
+import { RING_COLOR_MAP } from '../../lib/constants.js'
+import { CtaSection } from '../CtaSection.jsx'
+import { ErrorBoundary } from '../ErrorBoundary.jsx'
 
 export function DoctorPage({ doctor }) {
   if (!doctor) return null
@@ -9,15 +12,10 @@ export function DoctorPage({ doctor }) {
     .map((w) => w[0])
     .join('')
 
-  const ringColors = {
-    mint: 'avatar-ring-mint',
-    peach: 'avatar-ring-peach',
-    blue: 'avatar-ring-blue',
-    lavender: 'avatar-ring-lavender',
-  }
-  const ring = ringColors[doctor.ringColor] || 'avatar-ring-mint'
+  const ring = RING_COLOR_MAP[doctor.ringColor] || 'avatar-ring-mint'
 
   return (
+    <ErrorBoundary>
     <div>
       {/* ── Hero ── */}
       <section className="section pt-8 pb-0">
@@ -213,32 +211,12 @@ export function DoctorPage({ doctor }) {
         </section>
       )}
 
-      {/* ── CTA ── */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
-            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
-            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
-            <div className="relative">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-clay-dark mb-3">
-                Записаться к {doctor.dativeShortName || doctor.name}
-              </h2>
-              <p className="text-clay-muted mb-6 max-w-lg mx-auto">
-                Звоните или оставьте заявку — мы перезвоним и подберём удобное время
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <a href="/second-opinion" className="clay btn-clay-primary gap-2">
-                  <Phone size={16} />
-                  Онлайн-запись
-                </a>
-                <a href="tel:+78127482210" className="clay btn-clay-secondary gap-2">
-                  +7 (812) 748-22-10
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CtaSection
+        title={`Записаться к ${doctor.dativeShortName || doctor.name}`}
+        subtitle="Звоните или оставьте заявку — мы перезвоним и подберём удобное время"
+        primaryLabel="Онлайн-запись"
+      />
     </div>
+    </ErrorBoundary>
   )
 }
