@@ -1,11 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import Gynecology from '../components/pages/Gynecology.jsx'
+import { Gynecology } from '../components/pages/Gynecology.jsx'
+import { db, Service } from 'astro:db'
+import { eq } from 'astro:db'
+
+// Получаем услуги только для гинекологии
+const services = await db.select().from(Service).where(eq(Service.direction, 'Гинекология'));
 ---
 
 <Layout
   title="Гинекология — Клиника Одинцова"
   description="Бережная гинекология без боли и гипердиагностики. Осмотр, УЗИ малого таза и анализы за один приём. Результаты через 24 часа."
 >
-  <Gynecology />
+  <Gynecology servicesData={services} client:load />
 </Layout>

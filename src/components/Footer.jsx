@@ -43,7 +43,7 @@ export function Footer() {
         {/* Key facts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {facts.map((fact) => (
-            <div key={fact.title} className={`${fact.color} p-5`}>
+            <div key={fact.title} className={`clay ${fact.color} p-5`}>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center">
                   {fact.icon}
@@ -56,7 +56,7 @@ export function Footer() {
         </div>
 
         {/* Main footer */}
-        <div className="clay-card p-8">
+        <div className="clay clay-card p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Brand */}
             <div>
@@ -80,14 +80,14 @@ export function Footer() {
               <div className="flex gap-3">
                 <a
                   href="https://wa.me/78001234567"
-                  className="clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
+                  className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="WhatsApp"
                 >
                   <MessageCircle size={18} className="text-clay-mint" />
                 </a>
                 <a
                   href="https://t.me/klinika_odincova"
-                  className="clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
+                  className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="Telegram"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-clay-blue" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -153,7 +153,7 @@ export function Footer() {
                   </div>
                 </div>
               </div>
-              <a href="/second-opinion" className="btn-clay-primary mt-5 w-full justify-center text-sm py-3">
+              <a href="/second-opinion" className="clay btn-clay-primary mt-5 w-full justify-center text-sm py-3">
                 Записаться онлайн
               </a>
             </div>

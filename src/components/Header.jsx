@@ -30,14 +30,14 @@ export function Header({ currentPath = '/' }) {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-2' : 'py-4'}`}
       style={{
-        background: scrolled ? 'rgba(247,243,238,0.95)' : 'transparent',
+        background: scrolled ? 'rgba(247,243,239,0.95)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
       }}
     >
       <div className="container-clay flex items-center justify-between gap-4">
         {/* Logo */}
         <a href="/" className="flex-shrink-0">
-          <div className="clay-card flex items-center gap-2 px-5 py-2.5">
+          <div className="clay clay-card flex items-center gap-2 px-5 py-2.5">
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center"
               style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}
@@ -70,7 +70,7 @@ export function Header({ currentPath = '/' }) {
                   />
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute top-full mt-2 left-0 clay-card p-2 min-w-52 z-50">
+                  <div className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
                     {item.children.map((child) => (
                       <a
                         key={child.to}
@@ -112,14 +112,14 @@ export function Header({ currentPath = '/' }) {
             <Phone size={15} />
             8 800 123-45-67
           </a>
-          <a href="/second-opinion" className="btn-clay-primary text-sm py-2.5 px-5">
+          <a href="/second-opinion" className="clay btn-clay-primary text-sm py-2.5 px-5">
             Записаться
           </a>
         </div>
 
         {/* Mobile burger */}
         <button
-          className="lg:hidden clay-card p-2.5 rounded-2xl"
+          className="clay clay-card lg:hidden p-2.5 rounded-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Меню"
         >
@@ -133,7 +133,7 @@ export function Header({ currentPath = '/' }) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden mx-4 mt-3 clay-card p-4">
+        <div className="lg:hidden mx-4 mt-3 clay clay-card p-4">
           <nav className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
               Направления
@@ -160,12 +160,12 @@ export function Header({ currentPath = '/' }) {
             <div className="pt-3 flex flex-col gap-2">
               <a
                 href="tel:+78001234567"
-                className="flex items-center justify-center gap-2 btn-clay-secondary py-3 text-sm"
+                className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm"
               >
                 <Phone size={15} />
                 8 800 123-45-67
               </a>
-              <a href="/second-opinion" className="btn-clay-primary text-sm py-3 text-center">
+              <a href="/second-opinion" className="clay btn-clay-primary text-sm py-3 text-center">
                 Записаться онлайн
               </a>
             </div>

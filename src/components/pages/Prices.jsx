@@ -24,73 +24,96 @@ const principles = [
   },
 ]
 
-const priceCategories = [
-  {
-    title: 'Маммология',
-    color: 'clay-card-soft-mint',
-    accent: '#3AB89A',
-    icon: '🩺',
-    items: [
+export function Prices({ servicesData = [] }) {
+  const included = [
+    'Подготовка к процедуре',
+    'Местная анестезия',
+    'Все расходные материалы',
+    'Гистологическое исследование',
+    'Послеоперационное наблюдение',
+    'Снимок после процедуры',
+    'Консультация по результатам гистологии',
+    'Связь с врачом в мессенджере (2 недели)',
+  ]
+
+  // Группируем услуги по направлениям
+  const defaultCategories = [
+    {
+      title: 'Маммология',
+      color: 'clay-card-soft-mint',
+      accent: '#3AB89A',
+      icon: '🩺',
+      items: [],
+    },
+    {
+      title: 'Гинекология',
+      color: 'clay-card-soft-peach',
+      accent: '#D07858',
+      icon: '🌸',
+      items: [],
+    },
+    {
+      title: 'Эндокринология',
+      color: 'clay-card-soft-blue',
+      accent: '#4880B0',
+      icon: '⚡',
+      items: [],
+    },
+    {
+      title: 'Неврология',
+      color: 'clay-card-soft-lavender',
+      accent: '#7060A8',
+      icon: '🧠',
+      items: [],
+    },
+  ]
+
+  let priceCategories = defaultCategories
+
+  if (servicesData.length > 0) {
+    priceCategories = defaultCategories.map(cat => ({
+      ...cat,
+      items: servicesData
+        .filter(s => s.direction === cat.title)
+        .map(s => ({
+          name: s.title,
+          price: s.price === 0 ? '0 — бесплатно' : (s.price.toString().startsWith('от') ? s.price : `от ${s.price}`), // форматирование цены
+          rawPrice: s.price
+        }))
+        .sort((a, b) => a.rawPrice - b.rawPrice) // простая сортировка
+    }))
+  } else {
+    // Fallback if no db data
+    priceCategories[0].items = [
       { name: 'Консультация онколога-маммолога', price: '3 500' },
       { name: 'УЗИ молочных желёз', price: '2 500' },
       { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 25 000' },
       { name: 'ВАБ + гистология (всё включено)', price: 'от 35 000' },
       { name: 'Второе мнение по снимкам', price: '0 — бесплатно' },
-    ],
-  },
-  {
-    title: 'Гинекология',
-    color: 'clay-card-soft-peach',
-    accent: '#D07858',
-    icon: '🌸',
-    items: [
+    ]
+    priceCategories[1].items = [
       { name: 'Консультация гинеколога', price: '3 000' },
       { name: 'УЗИ органов малого таза', price: '2 500' },
       { name: 'Кольпоскопия', price: '3 500' },
       { name: 'ПЦР-диагностика ИППП (12 инфекций)', price: '4 800' },
       { name: 'Комплекс «Полный скрининг»', price: '8 900' },
-    ],
-  },
-  {
-    title: 'Эндокринология',
-    color: 'clay-card-soft-blue',
-    accent: '#4880B0',
-    icon: '⚡',
-    items: [
+    ]
+    priceCategories[2].items = [
       { name: 'Консультация эндокринолога', price: '3 500' },
       { name: 'Анализ на ТТГ, Т3, Т4 свободный', price: '2 200' },
       { name: 'Расширенный гормональный профиль', price: '7 400' },
       { name: 'Комплекс «Энергия и метаболизм»', price: '12 900' },
       { name: 'Повторная консультация + план', price: '2 500' },
-    ],
-  },
-  {
-    title: 'Неврология',
-    color: 'clay-card-soft-lavender',
-    accent: '#7060A8',
-    icon: '🧠',
-    items: [
+    ]
+    priceCategories[3].items = [
       { name: 'Консультация невролога', price: '3 500' },
       { name: 'Лечебная блокада (1 зона)', price: 'от 5 500' },
       { name: 'Блокада под УЗИ-навигацией', price: 'от 7 900' },
       { name: 'Курс лечебных блокад (3 процедуры)', price: 'от 18 000' },
       { name: 'МРТ позвоночника (1 отдел)', price: '4 200' },
-    ],
-  },
-]
+    ]
+  }
 
-const included = [
-  'Подготовка к процедуре',
-  'Местная анестезия',
-  'Все расходные материалы',
-  'Гистологическое исследование',
-  'Послеоперационное наблюдение',
-  'Снимок после процедуры',
-  'Консультация по результатам гистологии',
-  'Связь с врачом в мессенджере (2 недели)',
-]
-
-export function Prices() {
   return (
     <div>
       {/* HERO */}
@@ -116,11 +139,11 @@ export function Prices() {
               Никаких скрытых доплат в день процедуры. Цена, которую назвали — цена, которую заплатите.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                 Записаться на консультацию
                 <ArrowRight size={16} />
               </a>
-              <a href="tel:+78001234567" className="btn-clay-secondary gap-2">
+              <a href="tel:+78001234567" className="clay btn-clay-secondary gap-2">
                 <Phone size={16} />
                 Уточнить цену
               </a>
@@ -138,7 +161,7 @@ export function Prices() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {principles.map((p) => (
-              <div key={p.title} className={`${p.bg} p-7 flex flex-col relative overflow-hidden`}>
+              <div key={p.title} className={`clay ${p.bg} p-7 flex flex-col relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10">
                   <div className="inline-block px-3 py-1 rounded-full bg-white/25 text-white text-xs font-bold mb-4">{p.tag}</div>
@@ -154,7 +177,7 @@ export function Prices() {
       {/* ВАБ ALL INCLUSIVE */}
       <section className="pb-10">
         <div className="container-clay">
-          <div className="clay-card p-8 md:p-10">
+          <div className="clay clay-card p-8 md:p-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
                 <div className="stat-pill mb-4">Всё включено</div>
@@ -166,7 +189,7 @@ export function Prices() {
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 35 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Финальная цена, без доплат</p>
-                <a href="/second-opinion" className="btn-clay-primary gap-2">
+                <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                   Записаться на ВАБ
                   <ArrowRight size={16} />
                 </a>
@@ -175,7 +198,7 @@ export function Prices() {
                 <p className="text-sm font-semibold text-clay-dark mb-3">Что входит в стоимость:</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {included.map((item) => (
-                    <div key={item} className="flex items-center gap-2.5 clay-card px-3 py-2.5">
+                    <div key={item} className="clay clay-card flex items-center gap-2.5 px-3 py-2.5">
                       <CheckCircle size={15} className="text-clay-mint flex-shrink-0" />
                       <span className="text-xs font-medium text-clay-dark">{item}</span>
                     </div>
@@ -196,7 +219,7 @@ export function Prices() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {priceCategories.map((cat) => (
-              <div key={cat.title} className={`${cat.color} p-6`}>
+              <div key={cat.title} className={`clay ${cat.color} p-6`}>
                 <div className="flex items-center gap-3 mb-5">
                   <span className="text-2xl">{cat.icon}</span>
                   <h3 className="font-bold text-clay-dark text-lg">{cat.title}</h3>
@@ -224,7 +247,7 @@ export function Prices() {
       <section className="section">
         <div className="container-clay">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="clay-card p-6 flex items-start gap-4">
+            <div className="clay clay-card p-6 flex items-start gap-4">
               <div className="icon-circle-mint flex-shrink-0">
                 <Lock size={20} className="text-white" />
               </div>
@@ -235,7 +258,7 @@ export function Prices() {
                 </p>
               </div>
             </div>
-            <div className="clay-card p-6 flex items-start gap-4">
+            <div className="clay clay-card p-6 flex items-start gap-4">
               <div className="icon-circle-blue flex-shrink-0">
                 <Database size={20} className="text-white" />
               </div>
@@ -253,7 +276,7 @@ export function Prices() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card p-8 md:p-12 text-center relative overflow-hidden">
+          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
             <div className="blob-mint absolute -top-10 -right-10 w-40 h-40 opacity-40 pointer-events-none" />
             <div className="blob-peach absolute -bottom-10 -left-10 w-40 h-40 opacity-35 pointer-events-none" />
             <div className="relative z-10">
@@ -265,11 +288,11 @@ export function Prices() {
                 Ответим в WhatsApp в течение 2 минут и назовём точную стоимость для вашей ситуации.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href="tel:+78001234567" className="btn-clay-primary gap-2">
+                <a href="tel:+78001234567" className="clay btn-clay-primary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+                <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                   <MessageCircle size={16} />
                   WhatsApp
                 </a>
@@ -281,4 +304,3 @@ export function Prices() {
     </div>
   )
 }
-export default Prices

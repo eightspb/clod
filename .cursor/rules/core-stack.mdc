@@ -7,12 +7,18 @@ alwaysApply: true
 
 ## Stack
 - **Runtime**: Bun (not npm/yarn)
-- **Framework**: React 18 (JSX — no TypeScript)
-- **Bundler**: Vite 6
-- **Styling**: Tailwind CSS 3 + custom clay utility classes in `src/index.css`
-- **Routing**: React Router v6
+- **Framework**: Astro 4 + React 18 islands (JSX — no TypeScript)
+- **Routing**: Astro file-based routing (not React Router) — pages in `src/pages/*.astro`
+- **Styling**: Tailwind CSS 3 + custom clay utility classes in `src/styles/global.css`
+- **CSS library**: `claymorphism-css` (imported in global.css)
 - **Icons**: Lucide React
 - **Language**: JavaScript (`.jsx` files), Russian content
+
+## Architecture
+- Pages are `.astro` files in `src/pages/` — they import React components from `src/components/pages/`
+- Layout wrapper: `src/layouts/Layout.astro` — wraps all pages via `<slot />`
+- Only `Header.jsx` uses `client:load` (interactive); all other components are server-rendered (SSG)
+- Dev server runs at `localhost:4321` (Astro default)
 
 ## Key Principles
 - Write concise, functional, declarative code — avoid classes
@@ -29,9 +35,14 @@ alwaysApply: true
 - Avoid unnecessary curly braces in single-line conditionals
 - Use `if (condition) doSomething()` for simple guards
 
+## Documentation (README)
+- После любых изменений в проекте **обновлять файл README.md**, чтобы он отражал актуальное состояние (новые страницы, фичи, структура, команды и т.д.).
+- **Исключение**: если пользователь явно указывает, что работа тестовая/экспериментальная (например: «тестовая страница», «тестовый проект», «просто проверяем»), README обновлять не нужно.
+
 ## Running the project
 ```bash
-bun run dev      # start dev server at localhost:5173
+bun run dev      # start dev server at localhost:4321
 bun run build    # production build
 bun run preview  # preview build
 ```
+## Development is run in Windows in Cursor

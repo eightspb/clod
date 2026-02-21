@@ -1,4 +1,5 @@
 import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle } from 'lucide-react'
+import { ClayContactBanner } from '../ClayContactBanner'
 
 const services = [
   {
@@ -51,14 +52,29 @@ const whyItems = [
   { icon: <Heart size={20} className="text-white" />, bg: 'icon-circle-lavender', title: 'Без боли и стресса', desc: 'Тёплая атмосфера, подогретые гели, инструменты минимального размера.' },
 ]
 
-const doctors = [
-  { name: 'Одинцова Елена Петровна', spec: 'Маммолог-онколог', exp: '18 лет', ring: 'avatar-ring-peach', initials: 'ОЕ' },
-  { name: 'Смирнова Ирина Вадимовна', spec: 'Гинеколог', exp: '14 лет', ring: 'avatar-ring-blue', initials: 'СИ' },
-  { name: 'Козлов Андрей Михайлович', spec: 'Эндокринолог', exp: '16 лет', ring: 'avatar-ring-mint', initials: 'КА' },
-  { name: 'Волкова Наталья Сергеевна', spec: 'Невролог', exp: '12 лет', ring: 'avatar-ring-lavender', initials: 'ВН' },
-]
+export function Home({ doctorsData = [] }) {
+  // Имитируем старые данные для doctorsData (если они пришли из БД)
+  // В БД у нас есть: name, specialization, experienceYears
+  // Нам нужно сгенерировать initials и ring
+  const rings = ['avatar-ring-peach', 'avatar-ring-blue', 'avatar-ring-mint', 'avatar-ring-lavender']
+  
+  const doctors = doctorsData.length > 0 ? doctorsData.map((doc, i) => {
+    const parts = doc.name.split(' ')
+    const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase()
+    return {
+      name: doc.name,
+      spec: doc.specialization,
+      exp: `${doc.experienceYears} лет`,
+      ring: rings[i % rings.length],
+      initials
+    }
+  }) : [
+    { name: 'Одинцова Елена Петровна', spec: 'Маммолог-онколог', exp: '18 лет', ring: 'avatar-ring-peach', initials: 'ОЕ' },
+    { name: 'Смирнова Ирина Вадимовна', spec: 'Гинеколог', exp: '14 лет', ring: 'avatar-ring-blue', initials: 'СИ' },
+    { name: 'Козлов Андрей Михайлович', spec: 'Эндокринолог', exp: '16 лет', ring: 'avatar-ring-mint', initials: 'КА' },
+    { name: 'Волкова Наталья Сергеевна', spec: 'Невролог', exp: '12 лет', ring: 'avatar-ring-lavender', initials: 'ВН' },
+  ]
 
-export function Home() {
   return (
     <div>
       {/* ── HERO ── */}
@@ -84,11 +100,11 @@ export function Home() {
               Решаем сложные медицинские задачи в маммологии, гинекологии, эндокринологии и неврологии. Без госпитализации, без общего наркоза и без «лишних» диагнозов.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                 Записаться онлайн
                 <ArrowRight size={16} />
               </a>
-              <a href="/mammology" className="btn-clay-secondary">
+              <a href="/mammology" className="clay btn-clay-secondary">
                 Узнать о ВАБ
               </a>
             </div>
@@ -99,7 +115,7 @@ export function Home() {
       {/* ── ВАБ FLAGSHIP ── */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-mint p-8 md:p-12 relative overflow-hidden">
+          <div className="clay clay-card-mint p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
@@ -135,7 +151,7 @@ export function Home() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <a href="/mammology" className="btn-clay-white text-sm py-3">
+                <a href="/mammology" className="clay btn-clay-white text-sm py-3">
                   Подробнее о ВАБ
                   <ArrowRight size={14} />
                 </a>
@@ -158,7 +174,7 @@ export function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {services.map((s) => (
               <a key={s.to} href={s.to} className="group block">
-                <div className={`${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
+                <div className={`clay ${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`${s.iconBg} text-2xl`}>
@@ -169,7 +185,7 @@ export function Home() {
                         <h3 className="font-bold text-clay-dark text-lg leading-tight">{s.title}</h3>
                       </div>
                     </div>
-                    <div className="clay-card px-3 py-1.5 text-center">
+                    <div className="clay clay-card px-3 py-1.5 text-center">
                       <p className="font-extrabold text-clay-mint text-base leading-none">{s.stat}</p>
                       <p className="text-clay-muted text-xs">{s.statLabel}</p>
                     </div>
@@ -199,7 +215,7 @@ export function Home() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {whyItems.map((item) => (
-                  <div key={item.title} className="clay-card p-4 flex items-start gap-3">
+                  <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
                     <div className={item.bg}>{item.icon}</div>
                     <div>
                       <h4 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h4>
@@ -215,7 +231,7 @@ export function Home() {
                 { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж врачей', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
                 { val: '24ч', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'результаты анализов', desc: 'Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.' },
               ].map((s) => (
-                <div key={s.val} className={`${s.card} p-6`}>
+                <div key={s.val} className={`clay ${s.card} p-6`}>
                   <div className="flex items-start gap-4">
                     <div className={`text-4xl font-extrabold ${s.color} leading-none`}>{s.val}</div>
                     <div>
@@ -239,7 +255,7 @@ export function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {doctors.map((doc) => (
-              <div key={doc.name} className="clay-card p-5 flex flex-col items-center text-center">
+              <div key={doc.name} className="clay clay-card p-5 flex flex-col items-center text-center">
                 <div className={`${doc.ring} mb-4`}>
                   <div className="w-20 h-20 rounded-full bg-clay-bg flex items-center justify-center">
                     <span className="text-2xl font-bold text-clay-muted">{doc.initials}</span>
@@ -247,7 +263,7 @@ export function Home() {
                 </div>
                 <h4 className="font-bold text-clay-dark text-sm leading-tight mb-1">{doc.name}</h4>
                 <p className="text-clay-mint text-xs font-semibold mb-2">{doc.spec}</p>
-                <div className="clay-card-soft-mint px-3 py-1 rounded-full text-xs text-clay-mint font-semibold">
+                <div className="clay clay-card-soft-mint px-3 py-1 rounded-full text-xs text-clay-mint font-semibold">
                   Стаж {doc.exp}
                 </div>
               </div>
@@ -256,10 +272,13 @@ export function Home() {
         </div>
       </section>
 
+      {/* ── CLAY CONTACT BANNER ── */}
+      <ClayContactBanner />
+
       {/* ── CTA ── */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card p-8 md:p-12 text-center relative overflow-hidden">
+          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
             <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-50 pointer-events-none" />
             <div className="blob-mint absolute -bottom-10 -left-10 w-40 h-40 opacity-40 pointer-events-none" />
             <div className="relative z-10">
@@ -270,11 +289,11 @@ export function Home() {
                 Позвоните нам или напишите в мессенджер — поможем разобраться и направим к нужному специалисту.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href="tel:+78001234567" className="btn-clay-primary gap-2">
+                <a href="tel:+78001234567" className="clay btn-clay-primary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href="https://t.me/klinika_odincova" className="btn-clay-secondary gap-2">
+                <a href="https://t.me/klinika_odincova" className="clay btn-clay-secondary gap-2">
                   <MessageCircle size={16} />
                   Telegram
                 </a>
@@ -287,4 +306,3 @@ export function Home() {
   )
 }
 
-export default Home

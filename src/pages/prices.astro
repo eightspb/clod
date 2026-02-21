@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import Prices from '../components/pages/Prices.jsx'
+import { Prices } from '../components/pages/Prices.jsx'
+import { db, Service } from 'astro:db'
+
+const services = await db.select().from(Service);
 ---
 
 <Layout
   title="Цены и гарантии — Клиника Одинцова"
   description="Честные фиксированные цены без скрытых доплат. Прайс-лист на маммологию, гинекологию, эндокринологию и неврологию. ВАБ под ключ от 35 000 ₽."
 >
-  <Prices />
+  <Prices servicesData={services} client:load />
 </Layout>

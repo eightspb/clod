@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import Home from '../components/pages/Home.jsx'
+import { Home } from '../components/pages/Home.jsx'
+import { db, Doctor } from 'astro:db'
+
+const doctors = await db.select().from(Doctor);
 ---
 
 <Layout
   title="Клиника Одинцова — Экспертная медицина"
   description="Высокие технологии ВАБ и доказательный подход в маммологии, гинекологии, эндокринологии и неврологии. Удаление образований за 30 минут без скальпеля."
 >
-  <Home />
+  <Home doctorsData={doctors} client:load />
 </Layout>

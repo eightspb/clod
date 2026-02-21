@@ -84,11 +84,11 @@ export function Endocrinology() {
               Усталость, набор веса, выпадение волос — это не «норма современной жизни». За этим часто стоят конкретные цифры в анализах. Мы найдём их и исправим.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '10px 10px 24px hsl(205, 12%, 60%), inset -4px -4px 9px hsla(205, 25%, 42%, 0.65), inset 0px 7px 14px hsla(205, 60%, 88%, 0.5)' }}>
                 Записаться к эндокринологу
                 <ArrowRight size={16} />
               </a>
-              <a href="/prices" className="btn-clay-secondary">
+              <a href="/prices" className="clay btn-clay-secondary">
                 Посмотреть цены
               </a>
             </div>
@@ -99,7 +99,7 @@ export function Endocrinology() {
       {/* SYMPTOMS */}
       <section className="pb-8">
         <div className="container-clay">
-          <div className="clay-card-soft-blue p-6 md:p-8">
+          <div className="clay clay-card-soft-blue p-6 md:p-8">
             <h2 className="text-xl font-extrabold text-clay-dark mb-2">Узнаёте себя?</h2>
             <p className="text-clay-muted text-sm mb-5">Если у вас есть 3 и более из этих симптомов — это повод проверить гормональный и метаболический профиль</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -123,7 +123,7 @@ export function Endocrinology() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {features.map((f) => (
-              <div key={f.title} className={`${f.card} p-6 flex flex-col`}>
+              <div key={f.title} className={`clay ${f.card} p-6 flex flex-col`}>
                 <div className={`${f.bg} mb-4`}>{f.icon}</div>
                 <h3 className="font-bold text-clay-dark text-lg mb-1">{f.title}</h3>
                 <p className="text-clay-blue text-sm font-semibold mb-3">{f.subtitle}</p>
@@ -149,7 +149,7 @@ export function Endocrinology() {
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {conditions.map((c) => (
-                  <div key={c.name} className={`${c.color} p-4 flex items-center gap-2`}>
+                  <div key={c.name} className={`clay ${c.color} p-4 flex items-center gap-2`}>
                     <div className="w-2 h-2 rounded-full bg-clay-blue flex-shrink-0" />
                     <span className="text-sm font-semibold text-clay-dark">{c.name}</span>
                   </div>
@@ -164,7 +164,7 @@ export function Endocrinology() {
                 { n: '03', title: 'Индивидуальный план', desc: 'Медикаментозная коррекция + нутрициологическая поддержка. Без жёстких диет и лишних ограничений.' },
                 { n: '04', title: 'Контроль и корректировка', desc: 'Повторная сдача анализов через 6–8 недель. Корректируем дозировки. Вы всегда можете написать врачу.' },
               ].map((s) => (
-                <div key={s.n} className="clay-card flex items-start gap-4 p-4">
+                <div key={s.n} className="clay clay-card flex items-start gap-4 p-4">
                   <div className="num-badge text-sm w-8 h-8 flex-shrink-0">{s.n}</div>
                   <div>
                     <p className="font-semibold text-clay-dark text-sm mb-0.5">{s.title}</p>
@@ -180,7 +180,7 @@ export function Endocrinology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-soft-blue p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-blue p-8 md:p-12 text-center">
             <TrendingUp size={40} className="text-clay-blue mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы восстановить энергию?
@@ -189,11 +189,11 @@ export function Endocrinology() {
               Запишитесь на эндокринологическую консультацию. Первый шаг — анализ, второй — результат.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '5px 5px 16px rgba(104,184,228,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '10px 10px 24px hsl(205, 12%, 60%), inset -4px -4px 9px hsla(205, 25%, 42%, 0.65), inset 0px 7px 14px hsla(205, 60%, 88%, 0.5)' }}>
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>
@@ -204,4 +204,3 @@ export function Endocrinology() {
     </div>
   )
 }
-export default Endocrinology

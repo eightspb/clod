@@ -30,35 +30,39 @@ const features = [
   },
 ]
 
-const services = [
-  'Осмотр у гинеколога',
-  'УЗИ органов малого таза',
-  'Кольпоскопия',
-  'Мазок на флору и онкоцитологию',
-  'ПЦР-диагностика ИППП',
-  'Подбор контрацепции',
-  'Лечение кольпита и вагиноза',
-  'Гормональный скрининг',
-  'Подготовка к беременности',
-  'Лечение кисты яичника',
-]
+export function Gynecology({ servicesData = [] }) {
+  const myths = [
+    {
+      myth: '«У меня эрозия — нужно срочно прижигать»',
+      truth: 'Эктопия шейки матки — это физиологическая норма. Большинству пациентов лечение не требуется. Мы оцениваем под кольпоскопом и принимаем решение по реальным данным.',
+    },
+    {
+      myth: '«Нашли уреаплазму — нужно лечиться»',
+      truth: 'Уреаплазма — условно-патогенный микроорганизм. Лечение показано только при симптомах или при подготовке к беременности, но не «на всякий случай».',
+    },
+    {
+      myth: '«Кольпит лечат только антибиотиками»',
+      truth: 'Выбор терапии зависит от возбудителя. Мы всегда берём посев и назначаем лечение строго по результатам. Не угадываем — лечим точно.',
+    },
+  ]
 
-const myths = [
-  {
-    myth: '«У меня эрозия — нужно срочно прижигать»',
-    truth: 'Эктопия шейки матки — это физиологическая норма. Большинству пациентов лечение не требуется. Мы оцениваем под кольпоскопом и принимаем решение по реальным данным.',
-  },
-  {
-    myth: '«Нашли уреаплазму — нужно лечиться»',
-    truth: 'Уреаплазма — условно-патогенный микроорганизм. Лечение показано только при симптомах или при подготовке к беременности, но не «на всякий случай».',
-  },
-  {
-    myth: '«Кольпит лечат только антибиотиками»',
-    truth: 'Выбор терапии зависит от возбудителя. Мы всегда берём посев и назначаем лечение строго по результатам. Не угадываем — лечим точно.',
-  },
-]
+  const defaultServices = [
+    'Осмотр у гинеколога',
+    'УЗИ органов малого таза',
+    'Кольпоскопия',
+    'Мазок на флору и онкоцитологию',
+    'ПЦР-диагностика ИППП',
+    'Подбор контрацепции',
+    'Лечение кольпита и вагиноза',
+    'Гормональный скрининг',
+    'Подготовка к беременности',
+    'Лечение кисты яичника',
+  ]
 
-export function Gynecology() {
+  const services = servicesData.length > 0 
+    ? servicesData.map(s => s.title) 
+    : defaultServices
+
   return (
     <div>
       {/* HERO */}
@@ -88,11 +92,11 @@ export function Gynecology() {
               Ваши страхи нам понятны. В нашей клинике осмотр — это партнёрство, а не инквизиция. Мы уважаем вас, ваше тело и ваше время. И никогда не назначим лечение, если оно не нужно.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
               </a>
-              <a href="/prices" className="btn-clay-secondary">
+              <a href="/prices" className="clay btn-clay-secondary">
                 Посмотреть цены
               </a>
             </div>
@@ -110,7 +114,7 @@ export function Gynecology() {
               { val: '24ч', label: 'до получения результатов анализов' },
               { val: '1', label: 'визит для полного скрининга' },
             ].map((s) => (
-              <div key={s.label} className="clay-card p-4 text-center">
+              <div key={s.label} className="clay clay-card p-4 text-center">
                 <div className="text-3xl sm:text-4xl font-extrabold text-clay-peach leading-none mb-1.5">{s.val}</div>
                 <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
               </div>
@@ -128,7 +132,7 @@ export function Gynecology() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {features.map((f) => (
-              <div key={f.title} className={`${f.card} p-6 flex flex-col`}>
+              <div key={f.title} className={`clay ${f.card} p-6 flex flex-col`}>
                 <div className={`${f.bg} mb-4`}>{f.icon}</div>
                 <h3 className="font-bold text-clay-dark text-lg mb-1">{f.title}</h3>
                 <p className="text-clay-peach text-sm font-semibold mb-3">{f.subtitle}</p>
@@ -156,7 +160,7 @@ export function Gynecology() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {services.map((s) => (
-                  <div key={s} className="clay-card flex items-center gap-3 px-4 py-3">
+                  <div key={s} className="clay clay-card flex items-center gap-3 px-4 py-3">
                     <div className="w-2 h-2 rounded-full bg-clay-peach flex-shrink-0" />
                     <span className="text-sm font-medium text-clay-dark">{s}</span>
                   </div>
@@ -167,7 +171,7 @@ export function Gynecology() {
               <h2 className="text-2xl font-extrabold text-clay-dark mb-2">Развенчиваем мифы</h2>
               <p className="text-clay-muted text-sm mb-4">Страхи, с которыми к нам приходят — и правда, которую мы рассказываем</p>
               {myths.map((m, i) => (
-                <div key={i} className="clay-card p-5">
+                <div key={i} className="clay clay-card p-5">
                   <p className="font-semibold text-clay-dark text-sm mb-2">{m.myth}</p>
                   <p className="text-clay-muted text-sm leading-relaxed border-l-2 border-clay-peach pl-3">{m.truth}</p>
                 </div>
@@ -180,7 +184,7 @@ export function Gynecology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-soft-peach p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-peach p-8 md:p-12 text-center">
             <Star size={40} className="text-clay-peach mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Запишитесь на бережный осмотр
@@ -189,11 +193,11 @@ export function Gynecology() {
               Ответим в WhatsApp в течение 2 минут. Запись день в день — доступна по будням.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '5px 5px 16px rgba(240,160,128,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>
@@ -204,4 +208,3 @@ export function Gynecology() {
     </div>
   )
 }
-export default Gynecology

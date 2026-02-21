@@ -70,7 +70,7 @@ export function SecondOpinion() {
             ← Назад на главную
           </a>
           <div className="max-w-3xl">
-            <div className="clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
+            <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
               <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
               <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
             </div>
@@ -81,17 +81,17 @@ export function SecondOpinion() {
             <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
               Каждый третий пациент, приходящий к нам с направлением на операцию из другой клиники, в итоге решает проблему с помощью ВАБ за 30 минут.
             </p>
-            <div className="clay-card-soft-mint p-5 mb-8 max-w-xl">
+            <div className="clay clay-card-soft-mint p-5 mb-8 max-w-xl">
               <p className="text-clay-dark font-medium text-sm leading-relaxed">
                 Мы не заинтересованы в том, чтобы вы делали операцию. Нам важно, чтобы вы получили оптимальное решение — и это честно.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <a href="tel:+78001234567" className="btn-clay-primary gap-2">
+              <a href="tel:+78001234567" className="clay btn-clay-primary gap-2">
                 <Phone size={16} />
                 Позвонить сейчас
               </a>
-              <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 Написать в WhatsApp
               </a>
@@ -109,7 +109,7 @@ export function SecondOpinion() {
               { val: '0 ₽', desc: 'стоимость второго мнения — полностью бесплатно' },
               { val: '30 мин', desc: 'процедура ВАБ вместо полноценной операции' },
             ].map((s) => (
-              <div key={s.val} className="clay-card p-5 text-center">
+              <div key={s.val} className="clay clay-card p-5 text-center">
                 <div className="text-3xl sm:text-4xl font-extrabold text-clay-mint mb-1.5">{s.val}</div>
                 <p className="text-sm text-clay-muted leading-tight">{s.desc}</p>
               </div>
@@ -127,7 +127,7 @@ export function SecondOpinion() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((s) => (
-              <div key={s.n} className={`${s.card} p-6 flex flex-col relative`}>
+              <div key={s.n} className={`clay ${s.card} p-6 flex flex-col relative`}>
                 <div className="absolute top-4 right-4 text-5xl font-extrabold opacity-10 text-clay-dark leading-none">
                   {s.n}
                 </div>
@@ -147,12 +147,12 @@ export function SecondOpinion() {
       {/* GUARANTEES */}
       <section className="pb-10">
         <div className="container-clay">
-          <div className="clay-card p-6 md:p-8">
+          <div className="clay clay-card p-6 md:p-8">
             <h2 className="text-xl font-extrabold text-clay-dark mb-5">Наши гарантии</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {guarantees.map((g, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="clay-card p-2 rounded-2xl flex-shrink-0">{g.icon}</div>
+                  <div className="clay clay-card p-2 rounded-2xl flex-shrink-0">{g.icon}</div>
                   <p className="text-sm text-clay-muted leading-relaxed">{g.text}</p>
                 </div>
               ))}
@@ -169,7 +169,7 @@ export function SecondOpinion() {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-6">Часто задаваемые вопросы</h2>
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="clay-card p-5">
+                  <div key={i} className="clay clay-card p-5">
                     <h4 className="font-bold text-clay-dark text-sm mb-2 flex items-start gap-2">
                       <span className="text-clay-mint">—</span>
                       {faq.q}
@@ -180,7 +180,7 @@ export function SecondOpinion() {
               </div>
             </div>
             <div className="sticky top-24">
-              <div className="clay-card-mint p-8 relative overflow-hidden">
+              <div className="clay clay-card-mint p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10">
                   <div className="w-12 h-12 rounded-full bg-white/25 flex items-center justify-center mb-4">
@@ -193,7 +193,7 @@ export function SecondOpinion() {
                     Нам важно, чтобы вы приняли осознанное решение. Аудит заключения нашим онкологом-маммологом — без каких-либо условий.
                   </p>
                   <div className="space-y-3">
-                    <a href="tel:+78001234567" className="btn-clay-white w-full justify-center gap-2">
+                    <a href="tel:+78001234567" className="clay btn-clay-white w-full justify-center gap-2">
                       <Phone size={16} />
                       Позвонить: 8 800 123-45-67
                     </a>
@@ -214,4 +214,3 @@ export function SecondOpinion() {
     </div>
   )
 }
-export default SecondOpinion

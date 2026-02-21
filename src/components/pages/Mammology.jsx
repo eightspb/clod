@@ -85,11 +85,11 @@ export function Mammology() {
               Понимаем этот страх. Именно поэтому мы используем технологию ВАБ — вы остаётесь в сознании, разговариваете с врачом, а уже через 20 минут после процедуры едете домой.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
               </a>
-              <a href="/second-opinion" className="btn-clay-secondary">
+              <a href="/second-opinion" className="clay btn-clay-secondary">
                 Получить второе мнение
               </a>
             </div>
@@ -107,7 +107,7 @@ export function Mammology() {
               { val: '3', unit: 'см', label: 'Макс. размер опухоли' },
               { val: '10×', unit: '', label: 'Информативнее пункции' },
             ].map((s) => (
-              <div key={s.label} className="clay-card p-4 text-center">
+              <div key={s.label} className="clay clay-card p-4 text-center">
                 <div className="flex items-end justify-center gap-0.5">
                   <span className="text-3xl sm:text-4xl font-extrabold text-clay-mint leading-none">{s.val}</span>
                   {s.unit && <span className="text-lg font-bold text-clay-mint leading-none pb-0.5">{s.unit}</span>}
@@ -128,7 +128,7 @@ export function Mammology() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {features.map((f) => (
-              <div key={f.title} className={`${f.card} p-6`}>
+              <div key={f.title} className={`clay ${f.card} p-6`}>
                 <div className="flex items-start gap-4 mb-4">
                   <div className={f.bg}>{f.icon}</div>
                   <div>
@@ -160,7 +160,7 @@ export function Mammology() {
               </p>
               <div className="space-y-2.5">
                 {checks.map((item) => (
-                  <div key={item} className="clay-card flex items-center gap-3 px-4 py-3">
+                  <div key={item} className="clay clay-card flex items-center gap-3 px-4 py-3">
                     <CheckCircle size={18} className="text-clay-mint flex-shrink-0" />
                     <span className="text-sm font-medium text-clay-dark">{item}</span>
                   </div>
@@ -168,7 +168,7 @@ export function Mammology() {
               </div>
             </div>
             <div className="space-y-4">
-              <div className="clay-card-mint p-6 relative overflow-hidden">
+              <div className="clay clay-card-mint p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <h3 className="font-bold text-white text-xl mb-2">Бесплатное второе мнение</h3>
                 <p className="text-white/90 text-sm leading-relaxed mb-4">
@@ -177,11 +177,11 @@ export function Mammology() {
                 <div className="flex items-center gap-2 bg-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-bold">
                   Цена: 0 ₽
                 </div>
-                <a href="/second-opinion" className="btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
+                <a href="/second-opinion" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
                   Получить второе мнение
                 </a>
               </div>
-              <div className="clay-card p-6">
+              <div className="clay clay-card p-6">
                 <h3 className="font-bold text-clay-dark text-lg mb-4">Как проходит процедура</h3>
                 <div className="space-y-4">
                   {steps.map((s) => (
@@ -203,7 +203,7 @@ export function Mammology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-soft-mint p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-mint p-8 md:p-12 text-center">
             <Clock size={40} className="text-clay-mint mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы решить вопрос раз и навсегда?
@@ -212,11 +212,11 @@ export function Mammology() {
               Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в WhatsApp в течение 2 минут.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="btn-clay-primary gap-2">
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>
@@ -227,4 +227,3 @@ export function Mammology() {
     </div>
   )
 }
-export default Mammology

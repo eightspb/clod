@@ -88,11 +88,11 @@ export function Neurology() {
               Боль — это сигнал, а не ваш постоянный спутник жизни. В 80% случаев причину можно устранить без операции. Мы помогаем вернуться к активной жизни за 1–3 визита.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '10px 10px 24px hsl(260, 12%, 60%), inset -4px -4px 9px hsla(260, 25%, 42%, 0.65), inset 0px 7px 14px hsla(260, 60%, 88%, 0.5)' }}>
                 Записаться к неврологу
                 <ArrowRight size={16} />
               </a>
-              <a href="/prices" className="btn-clay-secondary">
+              <a href="/prices" className="clay btn-clay-secondary">
                 Посмотреть цены
               </a>
             </div>
@@ -110,7 +110,7 @@ export function Neurology() {
               { val: '50%', label: 'снижение частоты мигреней за месяц' },
               { val: '0', label: 'таблеток «на всякий случай»' },
             ].map((s) => (
-              <div key={s.label} className="clay-card p-4 text-center">
+              <div key={s.label} className="clay clay-card p-4 text-center">
                 <div className="text-3xl sm:text-4xl font-extrabold text-clay-lavender leading-none mb-1.5">{s.val}</div>
                 <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
               </div>
@@ -128,7 +128,7 @@ export function Neurology() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {features.map((f) => (
-              <div key={f.title} className={`${f.card} p-6 flex flex-col`}>
+              <div key={f.title} className={`clay ${f.card} p-6 flex flex-col`}>
                 <div className={`${f.bg} mb-4`}>{f.icon}</div>
                 <h3 className="font-bold text-clay-dark text-lg mb-1">{f.title}</h3>
                 <p className="text-clay-lavender text-sm font-semibold mb-3">{f.subtitle}</p>
@@ -154,7 +154,7 @@ export function Neurology() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {conditions.map((c) => (
-                  <div key={c.name} className="clay-card flex items-center gap-3 px-4 py-3">
+                  <div key={c.name} className="clay clay-card flex items-center gap-3 px-4 py-3">
                     <span className="text-lg flex-shrink-0">{c.icon}</span>
                     <span className="text-sm font-medium text-clay-dark">{c.name}</span>
                   </div>
@@ -165,7 +165,7 @@ export function Neurology() {
               <h2 className="text-2xl font-extrabold text-clay-dark mb-2">Честные ответы на страхи</h2>
               <p className="text-clay-muted text-sm mb-4">Что говорят пациенты на первом приёме — и что отвечаем мы</p>
               {myths.map((m, i) => (
-                <div key={i} className="clay-card p-5">
+                <div key={i} className="clay clay-card p-5">
                   <p className="font-semibold text-clay-dark text-sm mb-2">{m.myth}</p>
                   <p className="text-clay-muted text-sm leading-relaxed border-l-2 border-clay-lavender pl-3">{m.truth}</p>
                 </div>
@@ -178,7 +178,7 @@ export function Neurology() {
       {/* BLOCKADE SPOTLIGHT */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-lavender p-8 md:p-12 relative overflow-hidden">
+          <div className="clay clay-card-lavender p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -222,7 +222,7 @@ export function Neurology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-soft-lavender p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-lavender p-8 md:p-12 text-center">
             <Brain size={40} className="text-clay-lavender mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы вернуться к жизни без боли?
@@ -231,11 +231,11 @@ export function Neurology() {
               Запишитесь к нашему неврологу. Разберёмся в причине и предложим конкретный план.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '5px 5px 16px rgba(168,152,216,0.42), -3px -3px 8px rgba(255,255,255,0.5)' }}>
+              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #CCC0EC, #A898D8)', boxShadow: '10px 10px 24px hsl(260, 12%, 60%), inset -4px -4px 9px hsla(260, 25%, 42%, 0.65), inset 0px 7px 14px hsla(260, 60%, 88%, 0.5)' }}>
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/78001234567" className="btn-clay-secondary gap-2">
+              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>
@@ -246,4 +246,3 @@ export function Neurology() {
     </div>
   )
 }
-export default Neurology
