@@ -178,7 +178,12 @@ clod/
 ├── db/                            # Astro DB
 │   ├── config.ts                  # Схема базы данных
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
-├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET)
+├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
+├── docker-compose.yml             # Docker Compose: app + nginx + certbot
+├── nginx.conf                     # Nginx: HTTPS reverse proxy (финальный)
+├── nginx.bootstrap.conf           # Nginx: только HTTP (для первичного получения SSL)
+├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
+├── .env.example                   # Шаблон переменных окружения
 ├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
 ├── tailwind.config.js             # Tailwind тема (цвета, тени, радиусы)
 ├── postcss.config.js
@@ -427,6 +432,74 @@ integrations: [
 - Canonical URL
 - JSON-LD `MedicalBusiness` structured data (на всех страницах)
 - JSON-LD `Physician` structured data (на страницах `/doctors/[slug]`)
+
+---
+
+## Docker-деплой на VPS
+
+### Файлы конфигурации
+
+| Файл | Назначение |
+|---|---|
+| `Dockerfile` | Multi-stage сборка: builder (bun install + build) → runner (slim, node entry.mjs) |
+| `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
+| `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
+| `nginx.conf` | Финальная конфигурация Nginx с HTTPS (используется после получения сертификата) |
+| `nginx.bootstrap.conf` | Временная конфигурация только с HTTP — для первичного получения SSL-сертификата |
+| `.env.example` | Шаблон переменных окружения для production |
+
+### Переменные окружения (`.env` на сервере)
+
+| Переменная | Описание |
+|---|---|
+| `ADMIN_PASSWORD` | Пароль для входа в админ-панель |
+| `TOKEN_SECRET` | Секрет для HMAC-подписи токенов |
+| `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу: `file:/data/db.sqlite` |
+
+### Первый деплой (Bootstrap HTTPS)
+
+> DNS домена должен указывать на IP сервера до шага 3.
+
+```bash
+# 1. Установить Docker на сервере
+apt install docker.io docker-compose-plugin
+
+# 2. Клонировать репозиторий
+git clone <repo> /srv/clod && cd /srv/clod
+
+# 3. Создать .env из шаблона и заполнить
+cp .env.example .env
+
+# 4. Запустить Nginx в bootstrap-режиме (только HTTP)
+cp nginx.bootstrap.conf nginx.conf
+docker compose up -d nginx
+
+# 5. Получить SSL-сертификат
+docker compose run --rm certbot certonly \
+  --webroot -w /var/www/certbot \
+  -d odintsovclinic.ru -d www.odintsovclinic.ru \
+  --email admin@odintsovclinic.ru --agree-tos --no-eff-email
+
+# 6. Переключить на финальный nginx.conf (с HTTPS) и поднять весь стек
+git checkout nginx.conf
+docker compose up -d --build
+```
+
+### Обновление (деплой новой версии)
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+### Автообновление SSL-сертификата
+
+Certbot-контейнер проверяет сертификат каждые 12 часов автоматически.
+Для применения обновлённого сертификата добавьте cron на хосте:
+
+```
+0 3 * * * docker compose -f /srv/clod/docker-compose.yml exec nginx nginx -s reload
+```
 
 ---
 
