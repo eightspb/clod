@@ -172,7 +172,7 @@ export function Prices({ servicesData = [] }) {
       </section>
 
       {/* ВАБ ALL INCLUSIVE */}
-      <section className="pb-10">
+      <section className="section">
         <div className="container-clay">
           <div className="clay clay-card p-8 md:p-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">

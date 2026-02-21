@@ -97,7 +97,7 @@ export function SecondOpinion() {
       </section>
 
       {/* STAT BANNER */}
-      <section className="pb-10">
+      <section className="section">
         <div className="container-clay">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
@@ -141,7 +141,7 @@ export function SecondOpinion() {
       </section>
 
       {/* GUARANTEES */}
-      <section className="pb-10">
+      <section className="section">
         <div className="container-clay">
           <div className="clay clay-card p-6 md:p-8">
             <h2 className="text-xl font-extrabold text-clay-dark mb-5">Наши гарантии</h2>

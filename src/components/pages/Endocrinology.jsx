@@ -113,7 +113,7 @@ export function Endocrinology() {
       </section>
 
       {/* SYMPTOMS */}
-      <section className="pb-8">
+      <section className="section">
         <div className="container-clay">
           <div className="clay clay-card-soft-blue p-6 md:p-8">
             <h2 className="text-xl font-extrabold text-clay-dark mb-2">Узнаёте себя?</h2>

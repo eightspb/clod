@@ -121,7 +121,7 @@ export function Gynecology({ servicesData = [] }) {
       </section>
 
       {/* STATS */}
-      <section className="pb-8">
+      <section className="section">
         <div className="container-clay">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
