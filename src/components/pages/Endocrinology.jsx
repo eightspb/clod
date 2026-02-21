@@ -59,10 +59,6 @@ export function Endocrinology() {
     <div>
       {/* HERO */}
       <section className="relative overflow-hidden pt-8 pb-20">
-        <div className="blob-blue absolute -top-12 -right-12 w-72 h-72 opacity-60 pointer-events-none" />
-        <div className="blob-peach absolute bottom-0 -left-10 w-56 h-56 opacity-45 pointer-events-none" />
-        <div className="orb w-5 h-5 top-28 left-1/3 opacity-55" style={{ background: 'linear-gradient(145deg, #CCC0EC, #B4A4DC)' }} />
-        <div className="orb w-4 h-4 bottom-20 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAE0A0, #F0C870)' }} />
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">

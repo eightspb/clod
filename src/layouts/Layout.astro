@@ -31,11 +31,132 @@ const currentPath = Astro.url.pathname
       rel="stylesheet"
     />
   </head>
-  <body class="min-h-screen bg-clay-bg font-sans">
+  <body class="relative min-h-screen bg-clay-bg font-sans">
+    <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->
+    <div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
+      <div class="blob-mint absolute w-80 h-80 opacity-40" style="top:-60px;right:-60px" />
+      <div class="blob-peach absolute w-64 h-64 opacity-32" style="bottom:-40px;left:-60px" />
+      <div class="blob-blue absolute w-52 h-52 opacity-25" style="bottom:15%;right:-30px" />
+      <div class="blob-lavender absolute w-48 h-48 opacity-28" style="top:20%;left:38%" />
+    </div>
+    <!-- Маленькие orb: прокручиваются со страницей + параллакс через JS -->
+    <div id="orb-layer" aria-hidden="true" class="absolute top-0 left-0 w-full pointer-events-none" style="z-index:-1;height:100%">
+      <div class="orb absolute w-5 h-5 opacity-50" data-speed="0.3" style="top:8vh;left:22%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="orb absolute w-7 h-7 opacity-38" data-speed="0.5" style="top:16vh;right:28%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
+      <div class="orb absolute w-3 h-3 opacity-55" data-speed="0.2" style="top:26vh;left:62%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
+      <div class="orb absolute w-6 h-6 opacity-42" data-speed="0.6" style="top:38vh;left:8%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
+      <div class="orb absolute w-4 h-4 opacity-48" data-speed="0.4" style="top:50vh;right:18%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="orb absolute w-8 h-8 opacity-32" data-speed="0.25" style="top:62vh;left:48%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
+      <div class="orb absolute w-3 h-3 opacity-50" data-speed="0.55" style="top:74vh;right:40%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
+      <div class="orb absolute w-5 h-5 opacity-40" data-speed="0.35" style="top:88vh;left:72%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
+      <div class="orb absolute w-4 h-4 opacity-45" data-speed="0.45" style="top:105vh;right:55%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="orb absolute w-6 h-6 opacity-36" data-speed="0.3" style="top:120vh;left:15%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
+      <div class="orb absolute w-3 h-3 opacity-50" data-speed="0.5" style="top:138vh;right:22%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
+      <div class="orb absolute w-5 h-5 opacity-40" data-speed="0.2" style="top:155vh;left:52%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
+      <div class="orb absolute w-7 h-7 opacity-34" data-speed="0.6" style="top:172vh;right:35%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="orb absolute w-4 h-4 opacity-46" data-speed="0.4" style="top:190vh;left:28%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
+      <div class="orb absolute w-3 h-3 opacity-52" data-speed="0.28" style="top:210vh;right:12%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
+      <div class="orb absolute w-6 h-6 opacity-38" data-speed="0.48" style="top:228vh;left:68%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
+      <div class="orb absolute w-5 h-5 opacity-44" data-speed="0.35" style="top:248vh;right:42%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="orb absolute w-4 h-4 opacity-40" data-speed="0.55" style="top:268vh;left:10%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
+    </div>
     <Header currentPath={currentPath} client:load />
-    <main>
+    <main class="relative" style="z-index:1">
       <slot />
     </main>
     <Footer />
+
+    <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+      <button
+        id="font-increase"
+        aria-label="Увеличить шрифт"
+        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-lg font-bold text-clay-text hover:bg-clay-pink hover:text-white transition-all duration-200 select-none"
+      >A+</button>
+      <button
+        id="font-reset"
+        aria-label="Сбросить размер шрифта"
+        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-xs font-semibold text-clay-muted hover:bg-clay-bg transition-all duration-200 select-none"
+      >A</button>
+      <button
+        id="font-decrease"
+        aria-label="Уменьшить шрифт"
+        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-sm font-bold text-clay-text hover:bg-clay-pink hover:text-white transition-all duration-200 select-none"
+      >A−</button>
+    </div>
+
+    <script>
+      const STORAGE_KEY = 'clod-font-size'
+      const MIN = 90
+      const MAX = 130
+      const STEP = 5
+      const DEFAULT = 100
+
+      function applySize(size) {
+        document.documentElement.style.fontSize = size + '%'
+        localStorage.setItem(STORAGE_KEY, size)
+      }
+
+      function getSize() {
+        const saved = localStorage.getItem(STORAGE_KEY)
+        return saved ? parseInt(saved, 10) : DEFAULT
+      }
+
+      applySize(getSize())
+
+      document.getElementById('font-increase').addEventListener('click', () => {
+        const next = Math.min(getSize() + STEP, MAX)
+        applySize(next)
+      })
+
+      document.getElementById('font-decrease').addEventListener('click', () => {
+        const next = Math.max(getSize() - STEP, MIN)
+        applySize(next)
+      })
+
+      document.getElementById('font-reset').addEventListener('click', () => {
+        applySize(DEFAULT)
+      })
+    </script>
+
+    <script>
+      // Параллакс для орбов: каждый орб движется медленнее скролла
+      // Базовая позиция фиксируется при загрузке, затем top = basePx + scrollY * (1 - speed)
+      // speed=1 → движется вместе со страницей (нет параллакса)
+      // speed=0 → не движется вообще (как fixed)
+      // speed=0.3-0.6 → заметный мягкий параллакс
+      (function () {
+        var vh = window.innerHeight
+        var orbs = document.querySelectorAll('#orb-layer .orb[data-speed]')
+        if (!orbs.length) return
+
+        // Считываем базовые позиции из vh-значений в px один раз
+        var basePositions = []
+        orbs.forEach(function (orb, i) {
+          var topStyle = orb.style.top // e.g. "8vh"
+          var basePx = parseFloat(topStyle) / 100 * vh
+          basePositions[i] = basePx
+          // Переключаемся на px чтобы JS мог управлять
+          orb.style.top = basePx + 'px'
+        })
+
+        var ticking = false
+        function updateOrbs() {
+          var scrollY = window.scrollY
+          orbs.forEach(function (orb, i) {
+            var speed = parseFloat(orb.getAttribute('data-speed')) || 0.5
+            // Орб движется медленнее: при скролле вниз на 100px орб уходит вниз только на speed*100px
+            var newTop = basePositions[i] + scrollY * speed
+            orb.style.top = newTop + 'px'
+          })
+          ticking = false
+        }
+
+        window.addEventListener('scroll', function () {
+          if (ticking) return
+          ticking = true
+          requestAnimationFrame(updateOrbs)
+        }, { passive: true })
+      })()
+    </script>
   </body>
 </html>

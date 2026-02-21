@@ -21,12 +21,12 @@
   /* ── Global claymorphism-css variable defaults ── */
   :root {
     --hue: 140;
-    --clay-border-radius: 32px;
+    --clay-border-radius: 18px;
     --clay-background: #FFFCF8;
     /* These reference --hue so each element's --hue override is picked up lazily */
-    --clay-shadow-outset: 34px 34px 68px hsl(var(--hue), 10%, 60%);
-    --clay-shadow-inset-primary: -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7);
-    --clay-shadow-inset-secondary: 0px 14px 28px hsl(var(--hue), 20%, 95%);
+    --clay-shadow-outset: 0px 6px 16px hsl(var(--hue), 10%, 74%);
+    --clay-shadow-inset-primary: -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15);
+    --clay-shadow-inset-secondary: 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 }
 
@@ -38,23 +38,23 @@
   .clay-card {
     --hue: 140;
     --clay-background: #FFFCF8;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-lg {
     --hue: 140;
     --clay-background: #FFFCF8;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 8px 20px hsl(var(--hue), 10%, 72%),
+      inset -2px -2px 5px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 8px hsl(var(--hue), 20%, 97%);
   }
 
   /* ─────────────────────────────
@@ -63,56 +63,56 @@
   .clay-card-mint {
     --hue: 155;
     --clay-background: linear-gradient(145deg, #72D8BC, #48C8A4);
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-peach {
     --hue: 18;
     --clay-background: linear-gradient(145deg, #FAC0A8, #F0A888);
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-blue {
     --hue: 205;
     --clay-background: linear-gradient(145deg, #9CD4F0, #70BCE4);
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-lavender {
     --hue: 260;
     --clay-background: linear-gradient(145deg, #CCC0EC, #B4A4DC);
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-yellow {
     --hue: 43;
     --clay-background: linear-gradient(145deg, #FAE0A0, #F0C870);
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   /* ─────────────────────────────
@@ -121,45 +121,45 @@
   .clay-card-soft-mint {
     --hue: 155;
     --clay-background: #e8f5f0;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-soft-peach {
     --hue: 18;
     --clay-background: #fce8df;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-soft-blue {
     --hue: 205;
     --clay-background: #dff0fc;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   .clay-card-soft-lavender {
     --hue: 260;
     --clay-background: #ede8f5;
-    border-radius: 32px;
+    border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      34px 34px 68px hsl(var(--hue), 10%, 60%),
-      inset -8px -8px 16px hsla(var(--hue), 20%, 55%, 0.7),
-      inset 0px 14px 28px hsl(var(--hue), 20%, 95%);
+      0px 6px 16px hsl(var(--hue), 10%, 74%),
+      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
+      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
   }
 
   /* ─────────────────────────────
@@ -440,9 +440,9 @@
     border-radius: 48% 52% 54% 46% / 62% 58% 42% 38%;
     background: linear-gradient(160deg, #C4ECE0, #9CD8C4, #B4E2D2);
     box-shadow:
-      24px 24px 56px hsl(162, 12%, 58%),
-      inset -8px -8px 18px hsla(162, 25%, 45%, 0.3),
-      inset 0px 12px 26px hsla(162, 50%, 93%, 0.55);
+      10px 10px 24px hsl(162, 12%, 76%),
+      inset -3px -3px 7px hsla(162, 25%, 45%, 0.18),
+      inset 0px 4px 10px hsla(162, 50%, 95%, 0.4);
   }
 
   .clay-title-3d {
@@ -801,12 +801,13 @@
     flex-direction: column;
     min-height: 336px;
     padding: 14px 14px 14px;
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
     border: 1px solid rgba(223, 216, 207, 0.9);
     background: linear-gradient(162deg, #fcfaf7, #f5f1ec);
     box-shadow:
-      0px 12px 20px rgba(105, 93, 82, 0.17),
+      0px 8px 18px rgba(105, 93, 82, 0.18),
+      0px 2px 4px rgba(105, 93, 82, 0.08),
       0px 1px 0px rgba(255, 255, 255, 0.55) inset;
   }
 

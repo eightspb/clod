@@ -67,10 +67,6 @@ export function Gynecology({ servicesData = [] }) {
     <div>
       {/* HERO */}
       <section className="relative overflow-hidden pt-8 pb-20">
-        <div className="blob-peach absolute -top-12 -right-12 w-72 h-72 opacity-60 pointer-events-none" />
-        <div className="blob-mint absolute bottom-0 -left-10 w-56 h-56 opacity-50 pointer-events-none" />
-        <div className="orb w-5 h-5 top-28 left-1/3 opacity-55" style={{ background: 'linear-gradient(145deg, #A8D8F4, #78BCE8)' }} />
-        <div className="orb w-4 h-4 bottom-20 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }} />
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">

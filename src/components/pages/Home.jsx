@@ -1,5 +1,23 @@
-import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { ClayContactBanner } from '../ClayContactBanner'
+
+const heroSlides = [
+  {
+    badge: 'Принимаем пациентов сегодня',
+    title: <>Клиника экспертной медицины:{' '}<span className="text-clay-mint">высокие технологии</span> ВАБ и доказательный подход</>,
+    desc: 'Решаем сложные медицинские задачи в маммологии, гинекологии, эндокринологии и неврологии. Без госпитализации, без общего наркоза и без «лишних» диагнозов.',
+    primaryBtn: { label: 'Записаться онлайн', href: '/second-opinion' },
+    secondaryBtn: { label: 'Узнать о ВАБ', href: '/mammology' },
+  },
+  {
+    badge: 'Вакуумная биопсия',
+    title: <><span className="text-clay-mint">Удаление фиброаденомы</span> методом ВАБ</>,
+    desc: 'Передовые технологии вакуумной аспирационной биопсии (ВАБ) для точной диагностики и удаления образований молочных желёз без шрамов.',
+    primaryBtn: { label: 'Записаться на ВАБ', href: '/second-opinion' },
+    secondaryBtn: { label: 'Подробнее о процедуре', href: '/mammology' },
+  },
+]
 
 const services = [
   {
@@ -53,6 +71,33 @@ const whyItems = [
 ]
 
 export function Home({ doctorsData = [] }) {
+  const [activeSlide, setActiveSlide] = useState(0)
+  const [sliderHeight, setSliderHeight] = useState(0)
+  const slideRefs = useRef([])
+
+  useEffect(() => {
+    const heights = slideRefs.current.map((el) => el?.offsetHeight ?? 0)
+    setSliderHeight(Math.max(...heights))
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [])
+
+  function goToSlide(idx) {
+    setActiveSlide(idx)
+  }
+
+  function prevSlide() {
+    setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
+  }
+
+  function nextSlide() {
+    setActiveSlide((prev) => (prev + 1) % heroSlides.length)
+  }
   // Имитируем старые данные для doctorsData (если они пришли из БД)
   // В БД у нас есть: name, specialization, experienceYears
   // Нам нужно сгенерировать initials и ring
@@ -77,37 +122,83 @@ export function Home({ doctorsData = [] }) {
 
   return (
     <div>
-      {/* ── HERO ── */}
+      {/* ── HERO SLIDER ── */}
       <section className="relative overflow-hidden pt-8 pb-20 md:pt-12 md:pb-28">
-        <div className="blob-mint absolute -top-16 -right-16 w-72 h-72 md:w-96 md:h-96 opacity-70 pointer-events-none" />
-        <div className="blob-peach absolute -bottom-10 -left-10 w-56 h-56 opacity-60 pointer-events-none" />
-        <div className="blob-blue absolute top-1/2 -left-20 w-40 h-40 opacity-40 pointer-events-none" />
-        <div className="orb w-4 h-4 top-24 left-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #FAC8B0, #F0A888)' }} />
-        <div className="orb w-6 h-6 bottom-32 right-1/3 opacity-50" style={{ background: 'linear-gradient(145deg, #A8D8F4, #78BCE8)' }} />
-        <div className="orb w-3 h-3 top-1/3 right-1/4 opacity-60" style={{ background: 'linear-gradient(145deg, #CCC0EC, #B4A4DC)' }} />
 
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 text-clay-mint" style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}>
-              <span className="w-2 h-2 rounded-full bg-clay-mint animate-pulse" />
-              Принимаем пациентов сегодня
+          {/* Слайды с фиксированной высотой — переключение через opacity/visibility */}
+          <div className="relative" style={{ height: sliderHeight > 0 ? `${sliderHeight}px` : 'auto' }}>
+            {heroSlides.map((slide, idx) => (
+              <div
+                key={idx}
+                ref={(el) => { slideRefs.current[idx] = el }}
+                className="max-w-3xl transition-opacity duration-500"
+                style={{
+                  opacity: activeSlide === idx ? 1 : 0,
+                  position: sliderHeight > 0 ? 'absolute' : 'relative',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  pointerEvents: activeSlide === idx ? 'auto' : 'none',
+                  visibility: activeSlide === idx ? 'visible' : 'hidden',
+                }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 text-clay-mint" style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}>
+                  <span className="w-2 h-2 rounded-full bg-clay-mint animate-pulse" />
+                  {slide.badge}
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-clay-dark leading-tight mb-6">
+                  {slide.title}
+                </h1>
+                <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-8 max-w-2xl">
+                  {slide.desc}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a href={slide.primaryBtn.href} className="clay btn-clay-primary gap-2">
+                    {slide.primaryBtn.label}
+                    <ArrowRight size={16} />
+                  </a>
+                  <a href={slide.secondaryBtn.href} className="clay btn-clay-secondary">
+                    {slide.secondaryBtn.label}
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Навигация */}
+          <div className="flex items-center gap-4 mt-10">
+            <button
+              onClick={prevSlide}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+              aria-label="Предыдущий слайд"
+            >
+              <ChevronLeft size={16} className="text-clay-mint" />
+            </button>
+            <div className="flex items-center gap-2">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => goToSlide(idx)}
+                  aria-label={`Слайд ${idx + 1}`}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: activeSlide === idx ? '24px' : '8px',
+                    height: '8px',
+                    background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
+                  }}
+                />
+              ))}
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-clay-dark leading-tight mb-6">
-              Клиника экспертной медицины:{' '}
-              <span className="text-clay-mint">высокие технологии</span> ВАБ и доказательный подход
-            </h1>
-            <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-8 max-w-2xl">
-              Решаем сложные медицинские задачи в маммологии, гинекологии, эндокринологии и неврологии. Без госпитализации, без общего наркоза и без «лишних» диагнозов.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
-                Записаться онлайн
-                <ArrowRight size={16} />
-              </a>
-              <a href="/mammology" className="clay btn-clay-secondary">
-                Узнать о ВАБ
-              </a>
-            </div>
+            <button
+              onClick={nextSlide}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+              aria-label="Следующий слайд"
+            >
+              <ChevronRight size={16} className="text-clay-mint" />
+            </button>
           </div>
         </div>
       </section>
