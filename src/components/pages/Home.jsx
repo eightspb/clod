@@ -3,6 +3,9 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { ClayContactBanner } from '../ClayContactBanner'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
+import { FILTER_TABS_SHORT, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'
+import { SERVICES, WHY_ITEMS } from '../../lib/clinic-info.js'
+import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
 
 const heroSlides = [
@@ -50,56 +53,7 @@ const heroSlides = [
   },
 ]
 
-const services = [
-  {
-    icon: '🩺',
-    color: 'clay-card-soft-mint',
-    iconBg: 'icon-circle-mint',
-    tag: 'Флагман',
-    title: 'Маммология и ВАБ',
-    desc: 'Удаление новообразований груди за 30 минут через прокол 2 мм. Без скальпеля, без наркоза, без швов.',
-    stat: '30 мин',
-    statLabel: 'процедура',
-    to: '/mammology',
-  },
-  {
-    icon: '🌸',
-    color: 'clay-card-soft-peach',
-    iconBg: 'icon-circle-peach',
-    title: 'Гинекология',
-    desc: 'Бережный осмотр без боли. 0% гипердиагностики — лечим только то, что требует лечения.',
-    stat: '95%',
-    statLabel: 'комфорт',
-    to: '/gynecology',
-  },
-  {
-    icon: '⚡',
-    color: 'clay-card-soft-blue',
-    iconBg: 'icon-circle-blue',
-    title: 'Эндокринология',
-    desc: 'Точная настройка метаболизма по данным анализов. Возвращаем энергию и контроль над весом.',
-    stat: '14 дней',
-    statLabel: 'до результата',
-    to: '/endocrinology',
-  },
-  {
-    icon: '🧠',
-    color: 'clay-card-soft-lavender',
-    iconBg: 'icon-circle-lavender',
-    title: 'Неврология',
-    desc: 'Жизнь без мигреней и боли в спине. Устраняем причину за 1–3 визита без гор таблеток.',
-    stat: '1–3',
-    statLabel: 'визита',
-    to: '/neurology',
-  },
-]
-
-const whyItems = [
-  { icon: <Shield size={20} className="text-white" />, bg: 'icon-circle-mint', title: 'Доказательная медицина', desc: 'Не назначаем лечение без показаний. Только то, что действительно нужно.' },
-  { icon: <Zap size={20} className="text-white" />, bg: 'icon-circle-peach', title: 'Высокие технологии', desc: 'Оборудование последнего поколения. Технология ВАБ EnCor Enspire (США).' },
-  { icon: <Clock size={20} className="text-white" />, bg: 'icon-circle-blue', title: 'Сервис без ожидания', desc: 'Запись день в день. Ответ администратора в WhatsApp за 2 минуты.' },
-  { icon: <Heart size={20} className="text-white" />, bg: 'icon-circle-lavender', title: 'Без боли и стресса', desc: 'Тёплая атмосфера, подогретые гели, инструменты минимального размера.' },
-]
+const WHY_ICONS = { Shield, Zap, Clock, Heart }
 
 function HeroVisualVab() {
   return (
@@ -236,24 +190,6 @@ function HeroVisualEcosystem() {
   )
 }
 
-const FILTER_TABS = [
-  { id: 'all', label: 'Все' },
-  { id: 'mammology', label: 'Онкологи-маммологи' },
-  { id: 'gynecology', label: 'Гинекологи' },
-  { id: 'endocrinology', label: 'Эндокринологи' },
-]
-
-const FILTER_COLORS = ['clay-card-soft-mint', 'clay-card-soft-peach', 'clay-card-soft-blue', 'clay-card-soft-lavender']
-const FILTER_BG = ['#E8F8F4', '#FDF0EA', '#EAF4FC', '#F0EDF9']
-
-function matchesFilter(spec, filterId) {
-  if (filterId === 'all') return true
-  const s = spec.toLowerCase()
-  if (filterId === 'mammology') return s.includes('онколог-маммолог')
-  if (filterId === 'gynecology') return s.includes('гинеколог')
-  if (filterId === 'endocrinology') return s.includes('эндокринолог')
-  return false
-}
 
 export function Home({ doctorsData = [] }) {
   const [activeSlide, setActiveSlide] = useState(0)
@@ -292,7 +228,7 @@ export function Home({ doctorsData = [] }) {
   }
 
   const filteredDoctors = useMemo(
-    () => doctorsData.filter((doc) => matchesFilter(doc.specialization, activeFilter)),
+    () => doctorsData.filter((doc) => matchesFilter(doc, activeFilter)),
     [doctorsData, activeFilter]
   )
 
@@ -487,7 +423,7 @@ export function Home({ doctorsData = [] }) {
             <p className="text-clay-muted max-w-xl mx-auto">Комплексная помощь по четырём ключевым направлениям — от диагностики до результата</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {services.map((s) => (
+            {SERVICES.map((s) => (
               <a key={s.to} href={s.to} className="group block">
                 <div className={`clay ${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
                   <div className="flex items-start justify-between mb-4">
@@ -529,15 +465,18 @@ export function Home({ doctorsData = [] }) {
                 Мы не просто лечим — мы помогаем вам принимать осознанные решения. Доказательная медицина, современные технологии и уважение к вашему времени.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {whyItems.map((item) => (
-                  <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
-                    <div className={item.bg}>{item.icon}</div>
-                    <div>
-                      <h4 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h4>
-                      <p className="text-clay-muted text-xs leading-relaxed">{item.desc}</p>
+                {WHY_ITEMS.map((item) => {
+                  const Icon = WHY_ICONS[item.iconName]
+                  return (
+                    <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
+                      <div className={item.bg}><Icon size={20} className="text-white" /></div>
+                      <div>
+                        <h4 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h4>
+                        <p className="text-clay-muted text-xs leading-relaxed">{item.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
             <div className="space-y-4">
@@ -571,7 +510,7 @@ export function Home({ doctorsData = [] }) {
 
           {/* Фильтр-таблетки */}
           <div className="flex flex-wrap gap-2 justify-center mb-8">
-            {FILTER_TABS.map((tab, i) => {
+            {FILTER_TABS_SHORT.map((tab, i) => {
               const isActive = activeFilter === tab.id
               return (
                 <button
@@ -583,7 +522,7 @@ export function Home({ doctorsData = [] }) {
                     color: '#fff',
                     boxShadow: '8px 8px 20px hsl(155,12%,60%), inset -3px -3px 8px hsla(155,25%,42%,0.6), inset 0px 6px 12px hsla(155,60%,88%,0.5)',
                   } : {
-                    background: FILTER_BG[i % FILTER_BG.length],
+                    background: FILTER_BG_FLAT[i % FILTER_BG_FLAT.length],
                     color: '#3D4A44',
                     boxShadow: '6px 6px 16px hsl(0,0%,72%), inset -3px -3px 7px hsla(0,0%,55%,0.18), inset 0px 5px 10px hsla(0,0%,100%,0.7)',
                   }}
@@ -632,11 +571,11 @@ export function Home({ doctorsData = [] }) {
                 Позвоните нам или напишите в мессенджер — поможем разобраться и направим к нужному специалисту.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href="tel:+78127482210" className="clay btn-clay-primary gap-2">
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href="https://t.me/odintsovclinic" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                   <MessageCircle size={16} />
                   Telegram
                 </a>

@@ -131,7 +131,11 @@ clod/
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
 │   ├── lib/
 │   │   ├── auth.js                # HMAC-авторизация (токены, cookie, CSRF validateOrigin)
-│   │   ├── constants.js           # Общие константы: контакты, RING_COLOR_MAP, matchesFilter
+│   │   ├── constants.js           # UI-константы: ICON_SIZES, RING_COLOR_MAP
+│   │   ├── contacts.js            # Контактные данные: телефоны, адрес, часы, мессенджеры
+│   │   ├── nav.js                 # Навигация: DIRECTIONS, NAV_ITEMS, FOOTER_LINKS
+│   │   ├── filters.js             # Фильтры докторов: FILTER_TABS, FILTER_BG, matchesFilter
+│   │   ├── clinic-info.js         # Данные клиники: CLINIC_FACTS, SERVICES, WHY_ITEMS
 │   │   └── doctors-data.js        # Статические данные 9 докторов клиники
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
@@ -208,6 +212,16 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/privacy-policy` | `privacy-policy.astro` | `PrivacyPolicy.jsx` |
 
 Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля: `slug`, `name`, `specialization`, `experienceYears`, `ringColor`, `tagline`, `bio`, `helpsWith[]`, `education[]`, `reviews[]`.
+
+### Централизованные данные (`src/lib/`)
+
+| Файл | Экспорты | Используется в |
+|---|---|---|
+| `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `WHATSAPP_URL`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
+| `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
+| `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `Home` |
+| `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `Home` |
+| `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
 
 ### Админ-панель (SSR — серверные)
 

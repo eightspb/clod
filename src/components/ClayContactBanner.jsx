@@ -1,3 +1,5 @@
+import { PHONE_NUMBER, TELEGRAM_URL } from '../lib/contacts.js'
+
 function Donut({ style: posStyle }) {
   return (
     <div
@@ -27,7 +29,7 @@ const CLOUD_PUFFS = [
 function CloudButton() {
   return (
     <a
-      href="tel:+78127482210"
+      href={`tel:${PHONE_NUMBER}`}
       className="relative inline-block cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"
       style={{ width: '185px', height: '80px' }}
     >
@@ -57,7 +59,7 @@ function CloudButton() {
 function TelegramButton() {
   return (
     <a
-      href="https://t.me/odintsovclinic"
+      href={TELEGRAM_URL}
       target="_blank"
       rel="noopener noreferrer"
       className="clay-banner-telegram-btn inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"

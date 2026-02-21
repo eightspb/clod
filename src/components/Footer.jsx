@@ -1,40 +1,12 @@
-import { Phone, MapPin, Clock, MessageCircle, Award, Star, Zap } from 'lucide-react'
+import { Phone, MapPin, Clock, MessageCircle, Award, Zap } from 'lucide-react'
+import {
+  PHONE_NUMBER, PHONE_DISPLAY, PHONE_NUMBER_2, PHONE_DISPLAY_2,
+  WHATSAPP_URL, TELEGRAM_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND,
+} from '../lib/contacts.js'
+import { FOOTER_LINKS } from '../lib/nav.js'
+import { CLINIC_FACTS } from '../lib/clinic-info.js'
 
-const facts = [
-  {
-    icon: <Zap size={22} className="text-white" />,
-    color: 'clay-card-mint',
-    title: 'Технология ВАБ',
-    desc: 'Xishan DK-B-MS — самое деликатное удаление образований без скальпеля',
-  },
-  {
-    icon: <Award size={22} className="text-white" />,
-    color: 'clay-card-peach',
-    title: 'Опытные доктора',
-    desc: 'Средний стаж — 15 лет. Только доказательная медицина без гипердиагностики',
-  },
-  {
-    icon: <Clock size={22} className="text-white" />,
-    color: 'clay-card-blue',
-    title: 'Быстрый сервис',
-    desc: 'Запись день в день. Ответ администратора в WhatsApp за 2 минуты',
-  },
-  {
-    icon: <MapPin size={22} className="text-white" />,
-    color: 'clay-card-lavender',
-    title: 'Удобное расположение',
-    desc: 'Санкт-Петербург, пр. Богатырский 22 к.1. Рядом с метро «Коменданский проспект», «Старая деревня»',
-  },
-]
-
-const links = [
-  { label: 'Маммология и ВАБ', to: '/mammology' },
-  { label: 'Гинекология', to: '/gynecology' },
-  { label: 'Эндокринология', to: '/endocrinology' },
-  { label: 'Неврология', to: '/neurology' },
-  { label: 'Второе мнение', to: '/second-opinion' },
-  { label: 'Цены и гарантии', to: '/prices' },
-]
+const FACT_ICONS = { Zap, Award, Clock, MapPin }
 
 export function Footer() {
   return (
@@ -42,17 +14,20 @@ export function Footer() {
       <div className="container-clay">
         {/* Key facts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {facts.map((fact) => (
-            <div key={fact.title} className={`clay ${fact.color} p-5`}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center">
-                  {fact.icon}
+          {CLINIC_FACTS.map((fact) => {
+            const Icon = FACT_ICONS[fact.iconName]
+            return (
+              <div key={fact.title} className={`clay ${fact.color} p-5`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center">
+                    <Icon size={22} className="text-white" />
+                  </div>
                 </div>
+                <h4 className="font-bold text-white text-sm mb-1.5">{fact.title}</h4>
+                <p className="text-white/85 text-xs leading-relaxed">{fact.desc}</p>
               </div>
-              <h4 className="font-bold text-white text-sm mb-1.5">{fact.title}</h4>
-              <p className="text-white/85 text-xs leading-relaxed">{fact.desc}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Main footer */}
@@ -79,7 +54,7 @@ export function Footer() {
               </p>
               <div className="flex gap-3">
                 <a
-                  href="https://wa.me/79119258022"
+                  href={WHATSAPP_URL}
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="WhatsApp"
                   target="_blank"
@@ -88,7 +63,7 @@ export function Footer() {
                   <MessageCircle size={18} className="text-clay-mint" />
                 </a>
                 <a
-                  href="https://t.me/odintsovclinic"
+                  href={TELEGRAM_URL}
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="Telegram"
                   target="_blank"
@@ -106,7 +81,7 @@ export function Footer() {
             <div>
               <h4 className="font-bold text-clay-dark mb-4 text-sm">Направления и услуги</h4>
               <ul className="flex flex-col gap-2">
-                {links.map((link) => (
+                {FOOTER_LINKS.map((link) => (
                   <li key={link.to}>
                     <a
                       href={link.to}
@@ -129,11 +104,11 @@ export function Footer() {
                   </div>
                   <div className="flex flex-col gap-1">
                     <p className="text-xs text-clay-muted">Телефон</p>
-                    <a href="tel:+78127482210" className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
-                      +7 (812) 748-22-10
+                    <a href={`tel:${PHONE_NUMBER}`} className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
+                      {PHONE_DISPLAY}
                     </a>
-                    <a href="tel:+79119258022" className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
-                      +7 (911) 925-80-22
+                    <a href={`tel:${PHONE_NUMBER_2}`} className="text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors">
+                      {PHONE_DISPLAY_2}
                     </a>
                   </div>
                 </div>
@@ -156,8 +131,8 @@ export function Footer() {
                   </div>
                   <div>
                     <p className="text-xs text-clay-muted">Часы работы</p>
-                    <p className="text-sm font-semibold text-clay-dark">Пн–Пт: 9:00–20:00</p>
-                    <p className="text-sm font-semibold text-clay-dark">Сб–Вс: 10:00–18:00</p>
+                    <p className="text-sm font-semibold text-clay-dark">{HOURS_WEEKDAY}</p>
+                    <p className="text-sm font-semibold text-clay-dark">{HOURS_WEEKEND}</p>
                   </div>
                 </div>
               </div>

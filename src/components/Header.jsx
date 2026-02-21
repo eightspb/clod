@@ -1,20 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
-
-const navItems = [
-  {
-    label: 'Направления',
-    children: [
-      { label: 'Маммология и ВАБ', to: '/mammology' },
-      { label: 'Гинекология', to: '/gynecology' },
-      { label: 'Эндокринология', to: '/endocrinology' },
-      { label: 'Неврология', to: '/neurology' },
-    ],
-  },
-  { label: 'Доктора', to: '/doctors' },
-  { label: 'Второе мнение', to: '/second-opinion' },
-  { label: 'Цены', to: '/prices' },
-]
+import { NAV_ITEMS } from '../lib/nav.js'
+import { PHONE_NUMBER, PHONE_DISPLAY } from '../lib/contacts.js'
 
 const SCROLL_THRESHOLD = 10
 const DROPDOWN_CLOSE_DELAY = 150
@@ -73,7 +60,7 @@ export function Header({ currentPath = '/' }) {
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-1">
-          {navItems.map((item) =>
+          {NAV_ITEMS.map((item) =>
             item.children ? (
               <div key={item.label} className="relative">
                 <button
@@ -129,11 +116,11 @@ export function Header({ currentPath = '/' }) {
         {/* CTA + phone */}
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href="tel:+78127482210"
+            href={`tel:${PHONE_NUMBER}`}
             className="flex items-center gap-2 text-sm font-medium text-clay-text hover:text-clay-mint transition-colors"
           >
             <Phone size={15} />
-            +7 (812) 748-22-10
+            {PHONE_DISPLAY}
           </a>
           <a href="/second-opinion" className="clay btn-clay-primary text-sm py-2.5 px-5">
             Записаться
@@ -161,7 +148,7 @@ export function Header({ currentPath = '/' }) {
             <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
               Направления
             </p>
-            {navItems[0].children.map((child) => (
+            {NAV_ITEMS[0].children.map((child) => (
               <a
                 key={child.to}
                 href={child.to}
@@ -171,7 +158,7 @@ export function Header({ currentPath = '/' }) {
               </a>
             ))}
             <div className="my-1 border-t border-clay-mint-pale" />
-            {navItems.slice(1).map((item) => (
+            {NAV_ITEMS.slice(1).map((item) => (
               <a
                 key={item.to}
                 href={item.to}
@@ -182,11 +169,11 @@ export function Header({ currentPath = '/' }) {
             ))}
             <div className="pt-3 flex flex-col gap-2">
               <a
-                href="tel:+78127482210"
+                href={`tel:${PHONE_NUMBER}`}
                 className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm"
               >
                 <Phone size={15} />
-                +7 (812) 748-22-10
+                {PHONE_DISPLAY}
               </a>
               <a href="/second-opinion" className="clay btn-clay-primary text-sm py-3 text-center">
                 Записаться онлайн

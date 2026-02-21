@@ -1,23 +1,9 @@
 import { useState, useMemo } from 'react'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { matchesFilter } from '../../lib/constants.js'
+import { FILTER_TABS, FILTER_BG, matchesFilter } from '../../lib/filters.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
-
-const FILTER_TABS = [
-  { id: 'all', label: 'Все доктора' },
-  { id: 'mammology', label: 'Маммология' },
-  { id: 'gynecology', label: 'Гинекология' },
-  { id: 'endocrinology', label: 'Эндокринология' },
-]
-
-const FILTER_BG = [
-  'linear-gradient(145deg,#F0F9F6,#E4F5F0)',
-  'linear-gradient(145deg,#FEF4EF,#FDE8DF)',
-  'linear-gradient(145deg,#EFF6FD,#E2EFF9)',
-  'linear-gradient(145deg,#F4F0FB,#EBE4F7)',
-]
 
 export function Doctors() {
   const [activeFilter, setActiveFilter] = useState('all')

@@ -1,5 +1,5 @@
 import { Phone } from 'lucide-react'
-import { PHONE_NUMBER, PHONE_DISPLAY } from '../lib/constants.js'
+import { PHONE_NUMBER, PHONE_DISPLAY } from '../lib/contacts.js'
 
 export function CtaSection({
   title = 'Записаться на приём',
