@@ -88,7 +88,7 @@ export function DoctorsTest() {
 
       <div className="container-clay relative z-10">
         {/* Blob title */}
-        <ClayBlobTitle>Наши врачи</ClayBlobTitle>
+        <ClayBlobTitle>Наши доктора</ClayBlobTitle>
 
         {/* Filter pills */}
         <div className="mb-12">

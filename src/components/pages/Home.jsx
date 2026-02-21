@@ -39,7 +39,7 @@ const heroSlides = [
     desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, жизнь без мигреней. Атмосфера пятизвёздочного отеля, а не больницы.',
     stats: [
       { val: '0%', unit: '', label: 'гипердиагностики' },
-      { val: '15+', unit: '', label: 'лет стаж врачей' },
+      { val: '15+', unit: '', label: 'лет стаж докторов' },
       { val: '1–3', unit: '', label: 'визита до результата' },
     ],
     primaryBtn: { label: 'Выбрать специалиста', href: '/gynecology' },
@@ -181,7 +181,7 @@ function HeroVisualOpinion() {
         <p className="text-xs text-clay-muted mt-2">Доказательный подход к классификации</p>
       </div>
       <div className="flex flex-col gap-2">
-        {['Загрузить МРТ / УЗИ', 'Загрузить заключение врача', 'Получить экспертное мнение'].map((step, i) => (
+        {['Загрузить МРТ / УЗИ', 'Загрузить заключение доктора', 'Получить экспертное мнение'].map((step, i) => (
           <div key={step} className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: '#4EC8A8' }}>
               {i + 1}
@@ -555,7 +555,7 @@ export function Home({ doctorsData = [] }) {
             <div className="space-y-4">
               {[
                 { val: '1/3', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'пациентов избегают операции', desc: 'Каждый третий пациент, пришедший с направлением на операцию из другой клиники, решает проблему с помощью ВАБ за 30 минут.' },
-                { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж врачей', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
+                { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж докторов', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
                 { val: '24ч', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'результаты анализов', desc: 'Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.' },
               ].map((s) => (
                 <div key={s.val} className={`clay ${s.card} p-6`}>
@@ -577,7 +577,7 @@ export function Home({ doctorsData = [] }) {
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Наши врачи</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Наши доктора</h2>
             <p className="text-clay-muted">Онкологи-маммологи, гинекологи и эндокринологи — все владеют УЗИ</p>
           </div>
 
@@ -606,7 +606,7 @@ export function Home({ doctorsData = [] }) {
             })}
           </div>
 
-          {/* Карточки врачей */}
+          {/* Карточки докторов */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.map((doc) => (
               <div key={doc.name} className="clay clay-card p-6 flex flex-col relative overflow-visible group">
@@ -662,13 +662,13 @@ export function Home({ doctorsData = [] }) {
 
           {filteredDoctors.length === 0 && (
             <div className="text-center py-12 text-clay-muted">
-              Врачи по выбранному направлению не найдены
+              Доктора по выбранному направлению не найдены
             </div>
           )}
 
           <div className="text-center mt-8">
             <a href="/doctors" className="clay btn-clay-secondary gap-2">
-              Все врачи клиники
+              Все доктора клиники
               <ChevronRight size={16} />
             </a>
           </div>

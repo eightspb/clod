@@ -11,13 +11,13 @@ const User = defineTable({
   }
 });
 
-// 2. Профили врачей
+// 2. Профили докторов
 const Doctor = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
     userId: column.text({ references: () => User.columns.id }),
     name: column.text(),
-    slug: column.text({ optional: true }), // URL-slug для страницы врача на odintsovclinic.ru
+    slug: column.text({ optional: true }), // URL-slug для страницы доктора на odintsovclinic.ru
     specialization: column.text(),
     experienceYears: column.number(),
     bio: column.text(),
@@ -80,7 +80,7 @@ const Media = defineTable({
   }
 });
 
-// 7. Сертификаты врачей (набор изображений)
+// 7. Сертификаты докторов (набор изображений)
 const DoctorCertificate = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),

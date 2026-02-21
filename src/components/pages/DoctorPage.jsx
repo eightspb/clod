@@ -27,7 +27,7 @@ export function DoctorPage({ doctor }) {
             className="inline-flex items-center gap-2 text-clay-muted text-sm font-medium mb-6 hover:text-clay-mint transition-colors"
           >
             <ArrowLeft size={16} />
-            Все врачи
+            Все доктора
           </a>
 
           <div className="clay clay-card p-6 md:p-10 relative overflow-hidden">
@@ -97,12 +97,12 @@ export function DoctorPage({ doctor }) {
         </div>
       </section>
 
-      {/* ── О враче ── */}
+      {/* ── О докторе ── */}
       {doctor.aboutDoctor && (
         <section className="section">
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
-              <h2 className="text-xl font-extrabold text-clay-dark mb-4">О враче</h2>
+              <h2 className="text-xl font-extrabold text-clay-dark mb-4">О докторе</h2>
               <div className="text-clay-muted leading-relaxed space-y-3">
                 {doctor.aboutDoctor.split('\n').filter(Boolean).map((para, i) => (
                   <p key={i}>{para}</p>

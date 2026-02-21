@@ -68,7 +68,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | Дашборд | `/admin` | Статистика, графики, лента событий |
 | Сессии | `/admin/sessions` | Активные сессии с авто-обновлением |
 | Логи | `/admin/logs` | Все события с фильтрами и пагинацией |
-| Врачи | `/admin/doctors` | Редактирование данных врачей |
+| Доктора | `/admin/doctors` | Редактирование данных докторов |
 
 ---
 
@@ -88,9 +88,10 @@ clod/
 │   │   │   ├── Neurology.jsx
 │   │   │   ├── SecondOpinion.jsx
 │   │   │   ├── Prices.jsx
-│   │   │   ├── Doctors.jsx        # Листинг всех врачей с фильтрами
-│   │   │   └── DoctorPage.jsx     # Страница отдельного врача
-│   │   ├── doctors-demo/          # Демо-компоненты карточек врачей
+│   │   │   ├── Doctors.jsx        # Листинг всех докторов с фильтрами
+│   │   │   ├── DoctorPage.jsx     # Страница отдельного доктора
+│   │   │   └── PrivacyPolicy.jsx  # Политика конфиденциальности
+│   │   ├── doctors-demo/          # Демо-компоненты карточек докторов
 │   │   │   ├── DoctorClayCard.jsx
 │   │   │   ├── DoctorDirectionFilters.jsx
 │   │   │   └── DoctorsClayTitle.jsx
@@ -103,7 +104,7 @@ clod/
 │   ├── lib/
 │   │   ├── auth.js                # HMAC-авторизация (токены, cookie)
 │   │   ├── tracker.js             # Источник клиентского трекера (копируется в public/)
-│   │   └── doctors-data.js        # Статические данные 9 врачей клиники
+│   │   └── doctors-data.js        # Статические данные 9 докторов клиники
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
 │   │   ├── mammology.astro        # /mammology
@@ -112,9 +113,10 @@ clod/
 │   │   ├── neurology.astro        # /neurology
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── prices.astro           # /prices
-│   │   ├── doctors.astro          # /doctors — листинг врачей
+│   │   ├── doctors.astro          # /doctors — листинг докторов
 │   │   ├── doctors/
 │   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д.
+│   │   ├── privacy-policy.astro   # /privacy-policy
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin — дашборд
 │   │   │   ├── login.astro        # /admin/login
@@ -132,8 +134,8 @@ clod/
 │   │           ├── stats.js       # GET — агрегированная статистика
 │   │           ├── sessions.js    # GET — список сессий
 │   │           ├── logs.js        # GET — логи событий
-│   │           ├── doctors.js     # GET — список врачей
-│   │           └── doctors/[id].js # PUT — обновление врача
+│   │           ├── doctors.js     # GET — список докторов
+│   │           └── doctors/[id].js # PUT — обновление доктора
 │   ├── components/
 │   │   ├── admin/                 # Компоненты админ-панели
 │   │   │   ├── LoginForm.jsx
@@ -181,8 +183,9 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/prices` | `prices.astro` | `Prices.jsx` |
 | `/doctors` | `doctors.astro` | `Doctors.jsx` |
 | `/doctors/[slug]` | `doctors/[slug].astro` | `DoctorPage.jsx` |
+| `/privacy-policy` | `privacy-policy.astro` | `PrivacyPolicy.jsx` |
 
-Данные врачей хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 врачами). Каждый врач имеет поля: `slug`, `name`, `specialization`, `experienceYears`, `ringColor`, `tagline`, `bio`, `helpsWith[]`, `education[]`, `reviews[]`.
+Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля: `slug`, `name`, `specialization`, `experienceYears`, `ringColor`, `tagline`, `bio`, `helpsWith[]`, `education[]`, `reviews[]`.
 
 ### Админ-панель (SSR — серверные)
 
@@ -192,7 +195,7 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/admin` | Дашборд: статистика, графики, лента событий |
 | `/admin/sessions` | Активные сессии с авто-обновлением каждые 10с |
 | `/admin/logs` | Логи всех событий с фильтрами и пагинацией |
-| `/admin/doctors` | Редактирование данных врачей |
+| `/admin/doctors` | Редактирование данных докторов |
 
 ---
 

@@ -1,7 +1,7 @@
 import { DOCTORS } from '../../lib/doctors-data.js'
 
 const FILTER_TABS = [
-  { id: 'all', label: 'Все врачи' },
+  { id: 'all', label: 'Все доктора' },
   { id: 'mammology', label: 'Маммология' },
   { id: 'gynecology', label: 'Гинекология' },
   { id: 'endocrinology', label: 'Эндокринология' },
@@ -39,7 +39,7 @@ export function Doctors() {
             <span className="text-sm font-semibold text-clay-mint">Наша команда</span>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark mb-4">
-            Врачи клиники Одинцова
+            Доктора клиники Одинцова
           </h1>
           <p className="text-clay-muted text-lg max-w-2xl mx-auto">
             Онкологи-маммологи, гинекологи и эндокринологи — все владеют УЗИ и работают в единой команде
@@ -91,17 +91,16 @@ export function Doctors() {
               const ring = ringMap[doc.ringColor] || 'avatar-ring-mint'
 
               return (
-                <a
+                <div
                   key={doc.slug}
-                  href={`/doctors/${doc.slug}`}
-                  className="clay clay-card p-6 flex flex-col relative overflow-visible group hover:scale-[1.02] transition-transform duration-200"
+                  className="clay clay-card p-6 flex flex-col relative overflow-visible group"
                 >
                   {/* Декоративные шарики */}
                   <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style={{ background: '#FAC8B0' }} />
                   <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style={{ background: '#A8D8F4' }} />
                   <div className="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style={{ background: '#A0E4D4' }} />
 
-                  {/* Верхняя строка: фото + стаж */}
+                  {/* Верхняя строка: фото + стаж в правом углу */}
                   <div className="flex items-start justify-between mb-4">
                     <div className={`${ring} flex-shrink-0`}>
                       {doc.photo
@@ -109,15 +108,15 @@ export function Doctors() {
                           <img
                             src={doc.photo}
                             alt={doc.name}
-                            className="w-24 h-24 rounded-full object-cover"
+                            className="w-48 h-48 rounded-full object-cover"
                             loading="lazy"
-                            width="96"
-                            height="96"
+                            width="192"
+                            height="192"
                           />
                         )
                         : (
-                          <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                            <span className="text-3xl font-bold text-clay-muted">{initials}</span>
+                          <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+                            <span className="text-6xl font-bold text-clay-muted">{initials}</span>
                           </div>
                         )
                       }
@@ -129,16 +128,14 @@ export function Doctors() {
                   </div>
 
                   {/* Имя */}
-                  <h2 className="font-bold text-clay-dark text-base leading-snug mb-2 group-hover:text-clay-mint transition-colors">
-                    {doc.name}
-                  </h2>
+                  <h4 className="font-bold text-clay-dark text-base leading-snug mb-2">{doc.name}</h4>
 
-                  {/* Краткое описание */}
+                  {/* Bio — больше строк, как на главной */}
                   {doc.tagline && (
-                    <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1 line-clamp-3">{doc.tagline}</p>
+                    <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1 line-clamp-5">{doc.tagline}</p>
                   )}
 
-                  {/* Специализация + ссылка */}
+                  {/* Специализация + кнопка */}
                   <div className="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
                     <div className="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
                       <p className="text-xs font-semibold text-clay-dark leading-tight truncate">
@@ -150,18 +147,21 @@ export function Doctors() {
                         </p>
                       )}
                     </div>
-                    <span className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0">
+                    <a
+                      href={`/doctors/${doc.slug}`}
+                      className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0"
+                    >
                       Подробнее
-                    </span>
+                    </a>
                   </div>
-                </a>
+                </div>
               )
             })}
           </div>
 
           {filtered.length === 0 && (
             <div className="text-center py-12 text-clay-muted">
-              Врачи по выбранному направлению не найдены
+              Доктора по выбранному направлению не найдены
             </div>
           )}
         </div>

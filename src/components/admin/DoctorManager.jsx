@@ -116,7 +116,7 @@ function PhotoUpload({ doctor, onPhotoUpdated }) {
 
   return (
     <div>
-      <label style={labelStyle}>Фотография врача</label>
+      <label style={labelStyle}>Фотография доктора</label>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
         {/* Avatar preview */}
         <div
@@ -141,7 +141,7 @@ function PhotoUpload({ doctor, onPhotoUpdated }) {
           {previewUrl ? (
             <img
               src={previewUrl}
-              alt="Фото врача"
+              alt="Фото доктора"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
@@ -519,7 +519,7 @@ function EditForm({ doctor, onSave, onCancel }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', margin: 0 }}>
-            Редактировать врача
+            Редактировать доктора
           </h3>
           <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '22px', lineHeight: 1 }}>×</button>
         </div>
@@ -613,7 +613,7 @@ export function DoctorManager() {
       const data = await res.json()
       setDoctors(data.doctors || [])
     } catch {
-      setError('Не удалось загрузить врачей')
+      setError('Не удалось загрузить докторов')
     } finally {
       setLoading(false)
     }
@@ -709,7 +709,7 @@ export function DoctorManager() {
           </tbody>
         </table>
         {doctors.length === 0 && (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Врачи не найдены</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Доктора не найдены</div>
         )}
       </div>
     </div>

@@ -5,12 +5,12 @@ const facts = [
     icon: <Zap size={22} className="text-white" />,
     color: 'clay-card-mint',
     title: 'Технология ВАБ',
-    desc: 'EnCor Enspire (США) — самое деликатное удаление образований без скальпеля',
+    desc: 'Xishan DK-B-MS — самое деликатное удаление образований без скальпеля',
   },
   {
     icon: <Award size={22} className="text-white" />,
     color: 'clay-card-peach',
-    title: 'Опытные врачи',
+    title: 'Опытные доктора',
     desc: 'Средний стаж — 15 лет. Только доказательная медицина без гипердиагностики',
   },
   {
@@ -168,7 +168,7 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 px-2">
           <p className="text-xs text-clay-muted">© 2026 ООО «Клиника Одинцова». Все права защищены.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
+            <a href="/privacy-policy" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
               Политика конфиденциальности
             </a>
             <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">

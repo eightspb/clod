@@ -11,7 +11,7 @@ const navItems = [
       { label: 'Неврология', to: '/neurology' },
     ],
   },
-  { label: 'Врачи', to: '/doctors' },
+  { label: 'Доктора', to: '/doctors' },
   { label: 'Второе мнение', to: '/second-opinion' },
   { label: 'Цены', to: '/prices' },
 ]

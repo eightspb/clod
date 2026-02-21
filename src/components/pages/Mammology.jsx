@@ -45,7 +45,7 @@ const features = [
     card: 'clay-card-soft-blue',
     title: 'Полная безопасность',
     subtitle: 'Местная анестезия — вы в сознании',
-    desc: 'Местная анестезия позволяет вам разговаривать с врачом в процессе. Процедура длится 30 минут. Уже через 20 минут после её окончания вы уедете домой за рулём.',
+    desc: 'Местная анестезия позволяет вам разговаривать с доктором в процессе. Процедура длится 30 минут. Уже через 20 минут после её окончания вы уедете домой за рулём.',
     detail: 'Уехать домой через 20 минут',
   },
   {
@@ -98,7 +98,7 @@ export function Mammology() {
               «Боюсь шрамов и того, что под наркозом что-то пойдёт не так»
             </p>
             <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl">
-              Понимаем этот страх. Именно поэтому мы используем технологию ВАБ — вы остаётесь в сознании, разговариваете с врачом, а уже через 20 минут после процедуры едете домой.
+              Понимаем этот страх. Именно поэтому мы используем технологию ВАБ — вы остаётесь в сознании, разговариваете с доктором, а уже через 20 минут после процедуры едете домой.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="/second-opinion" className="clay btn-clay-primary gap-2">
@@ -220,7 +220,7 @@ export function Mammology() {
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Врачи-маммологи клиники</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Доктора-маммологи клиники</h2>
             <p className="text-clay-muted">Специалисты, которые проведут консультацию и процедуру</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
