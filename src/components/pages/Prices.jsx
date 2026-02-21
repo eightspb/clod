@@ -140,7 +140,7 @@ export function Prices({ servicesData = [] }) {
                 Записаться на консультацию
                 <ArrowRight size={16} />
               </a>
-              <a href="tel:+78001234567" className="clay btn-clay-secondary gap-2">
+              <a href="tel:+78127482210" className="clay btn-clay-secondary gap-2">
                 <Phone size={16} />
                 Уточнить цену
               </a>
@@ -285,11 +285,11 @@ export function Prices({ servicesData = [] }) {
                 Ответим в WhatsApp в течение 2 минут и назовём точную стоимость для вашей ситуации.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href="tel:+78001234567" className="clay btn-clay-primary gap-2">
+                <a href="tel:+78127482210" className="clay btn-clay-primary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
+                <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
                   <MessageCircle size={16} />
                   WhatsApp
                 </a>

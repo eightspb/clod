@@ -106,11 +106,11 @@ export function Header({ currentPath = '/' }) {
         {/* CTA + phone */}
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href="tel:+78001234567"
+            href="tel:+78127482210"
             className="flex items-center gap-2 text-sm font-medium text-clay-text hover:text-clay-mint transition-colors"
           >
             <Phone size={15} />
-            8 800 123-45-67
+            +7 (812) 748-22-10
           </a>
           <a href="/second-opinion" className="clay btn-clay-primary text-sm py-2.5 px-5">
             Записаться
@@ -159,11 +159,11 @@ export function Header({ currentPath = '/' }) {
             ))}
             <div className="pt-3 flex flex-col gap-2">
               <a
-                href="tel:+78001234567"
+                href="tel:+78127482210"
                 className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm"
               >
                 <Phone size={15} />
-                8 800 123-45-67
+                +7 (812) 748-22-10
               </a>
               <a href="/second-opinion" className="clay btn-clay-primary text-sm py-3 text-center">
                 Записаться онлайн

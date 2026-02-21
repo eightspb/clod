@@ -23,7 +23,7 @@ const facts = [
     icon: <MapPin size={22} className="text-white" />,
     color: 'clay-card-lavender',
     title: 'Удобное расположение',
-    desc: 'г. Москва, ул. Одинцовская, 8. Бесплатная парковка для пациентов',
+    desc: 'Санкт-Петербург, пр. Богатырский 22 к. 1, пом. 38Н. Рядом с метро «Старая деревня»',
   },
 ]
 
@@ -79,14 +79,14 @@ export function Footer() {
               </p>
               <div className="flex gap-3">
                 <a
-                  href="https://wa.me/78001234567"
+                  href="https://wa.me/79119258022"
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="WhatsApp"
                 >
                   <MessageCircle size={18} className="text-clay-mint" />
                 </a>
                 <a
-                  href="https://t.me/klinika_odincova"
+                  href="https://t.me/odintsovclinic"
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
                   aria-label="Telegram"
                 >
@@ -119,14 +119,25 @@ export function Footer() {
             <div>
               <h4 className="font-bold text-clay-dark mb-4 text-sm">Контакты</h4>
               <div className="flex flex-col gap-3">
-                <a href="tel:+78001234567" className="flex items-center gap-3 group">
+                <a href="tel:+78127482210" className="flex items-center gap-3 group">
                   <div className="icon-circle-mint w-9 h-9 text-sm">
                     <Phone size={15} className="text-white" />
                   </div>
                   <div>
                     <p className="text-xs text-clay-muted">Телефон</p>
                     <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">
-                      8 800 123-45-67
+                      +7 (812) 748-22-10
+                    </p>
+                  </div>
+                </a>
+                <a href="tel:+79119258022" className="flex items-center gap-3 group">
+                  <div className="icon-circle-mint w-9 h-9 text-sm">
+                    <Phone size={15} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-clay-muted">Телефон 2</p>
+                    <p className="text-sm font-semibold text-clay-dark group-hover:text-clay-mint transition-colors">
+                      +7 (911) 925-80-22
                     </p>
                   </div>
                 </a>
@@ -137,9 +148,9 @@ export function Footer() {
                   <div>
                     <p className="text-xs text-clay-muted">Адрес</p>
                     <p className="text-sm font-semibold text-clay-dark">
-                      г. Москва,
+                      Санкт-Петербург,
                       <br />
-                      ул. Одинцовская, 8
+                      пр. Богатырский 22 к. 1, пом. 38Н
                     </p>
                   </div>
                 </div>
@@ -149,7 +160,8 @@ export function Footer() {
                   </div>
                   <div>
                     <p className="text-xs text-clay-muted">Часы работы</p>
-                    <p className="text-sm font-semibold text-clay-dark">Пн–Сб: 8:00–20:00</p>
+                    <p className="text-sm font-semibold text-clay-dark">Пн–Пт: 9:00–20:00</p>
+                    <p className="text-sm font-semibold text-clay-dark">Сб–Вс: 10:00–18:00</p>
                   </div>
                 </div>
               </div>
@@ -162,7 +174,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 px-2">
-          <p className="text-xs text-clay-muted">© 2025 Клиника Одинцова. Все права защищены.</p>
+          <p className="text-xs text-clay-muted">© 2026 ООО «Клиника Одинцова». Все права защищены.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
               Политика конфиденциальности

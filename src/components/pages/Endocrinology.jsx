@@ -189,7 +189,7 @@ export function Endocrinology() {
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
+              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>

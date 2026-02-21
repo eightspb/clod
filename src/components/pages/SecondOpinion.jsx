@@ -83,11 +83,11 @@ export function SecondOpinion() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <a href="tel:+78001234567" className="clay btn-clay-primary gap-2">
+              <a href="tel:+78127482210" className="clay btn-clay-primary gap-2">
                 <Phone size={16} />
                 Позвонить сейчас
               </a>
-              <a href="https://wa.me/78001234567" className="clay btn-clay-secondary gap-2">
+              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2">
                 <MessageCircle size={16} />
                 Написать в WhatsApp
               </a>
@@ -189,11 +189,11 @@ export function SecondOpinion() {
                     Нам важно, чтобы вы приняли осознанное решение. Аудит заключения нашим онкологом-маммологом — без каких-либо условий.
                   </p>
                   <div className="space-y-3">
-                    <a href="tel:+78001234567" className="clay btn-clay-white w-full justify-center gap-2">
+                    <a href="tel:+78127482210" className="clay btn-clay-white w-full justify-center gap-2">
                       <Phone size={16} />
-                      Позвонить: 8 800 123-45-67
+                      Позвонить: +7 (812) 748-22-10
                     </a>
-                    <a href="https://wa.me/78001234567" className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                    <a href="https://wa.me/79119258022" className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
                       <MessageCircle size={16} />
                       Написать в WhatsApp
                     </a>

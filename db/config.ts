@@ -17,6 +17,7 @@ const Doctor = defineTable({
     id: column.text({ primaryKey: true }),
     userId: column.text({ references: () => User.columns.id }),
     name: column.text(),
+    slug: column.text({ optional: true }), // URL-slug для страницы врача на odintsovclinic.ru
     specialization: column.text(),
     experienceYears: column.number(),
     bio: column.text(),

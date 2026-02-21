@@ -39,7 +39,7 @@ function Sphere({ style: posStyle }) {
 function CloudButton() {
   return (
     <a
-      href="tel:+78001234567"
+      href="tel:+78127482210"
       className="relative inline-block cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"
       style={{ width: '185px', height: '80px' }}
     >
@@ -95,7 +95,7 @@ function CloudButton() {
 function TelegramButton() {
   return (
     <a
-      href="https://t.me/klinika_odincova"
+      href="https://t.me/odintsovclinic"
       className="inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"
       style={{
         padding: '17px 42px',
