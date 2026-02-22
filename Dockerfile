@@ -17,19 +17,20 @@ RUN bun run astro build --remote
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-RUN groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs appuser
+RUN mkdir -p /data
 
-COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:nodejs /app/package.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+COPY scripts ./scripts
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+
+RUN chmod +x /app/docker-entrypoint.sh
 
 ENV HOST=0.0.0.0
 ENV PORT=4321
 ENV NODE_ENV=production
 
-USER appuser
-
 EXPOSE 4321
 
-CMD ["node", "./dist/server/entry.mjs"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

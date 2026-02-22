@@ -37,7 +37,7 @@
   }
 
   function debugLog(hypothesisId, location, message, data) {
-    fetch('http://127.0.0.1:7460/ingest/7cf089c7-4d6e-431f-b961-980290614486',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'42da84'},body:JSON.stringify({sessionId:'42da84',runId:'run1',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(function () {})
+    fetch('http://127.0.0.1:7460/ingest/7cf089c7-4d6e-431f-b961-980290614486',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'42da84'},body:JSON.stringify({sessionId:'42da84',runId:'post-fix',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(function () {})
   }
 
   function send(url, data, beacon) {
