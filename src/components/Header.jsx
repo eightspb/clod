@@ -165,30 +165,30 @@ export function Header({ currentPath = '/' }) {
             className="lg:hidden mx-4 mt-3 clay clay-card p-4 relative z-[70]"
             onClick={(e) => e.stopPropagation()}
           >
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-0.5">
               {NAV_ITEMS.map((item) =>
                 item.children ? (
                   <div key={item.label}>
-                    <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
+                    <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-1.5">
                       {item.label}
                     </p>
                     {item.children.map((child) => (
                       <a
                         key={child.to}
                         href={child.to}
-                        className="block px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
+                        className="block px-4 py-2 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
                         onClick={() => setMobileOpen(false)}
                       >
                         {child.label}
                       </a>
                     ))}
-                    <div className="my-1 border-t border-clay-mint-pale" />
+                    <div className="my-0.5 border-t border-clay-mint-pale" />
                   </div>
                 ) : (
                   <a
                     key={item.to}
                     href={item.to}
-                    className="px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
+                    className="px-4 py-2 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
                     onClick={() => setMobileOpen(false)}
                   >
                     {item.label}

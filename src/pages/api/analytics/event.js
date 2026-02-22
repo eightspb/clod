@@ -3,6 +3,10 @@ export const prerender = false
 import { db, AnalyticsSession, PageView, EventLog } from 'astro:db'
 import { eq } from 'astro:db'
 
+function debugLog(hypothesisId, location, message, data) {
+  fetch('http://127.0.0.1:7460/ingest/7cf089c7-4d6e-431f-b961-980290614486',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'42da84'},body:JSON.stringify({sessionId:'42da84',runId:'run1',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(() => {})
+}
+
 function getClientIp(request) {
   return (
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -15,6 +19,15 @@ export async function POST({ request }) {
   try {
     const body = await request.json()
     const { type, sessionId, visitorId, data } = body
+    // #region agent log
+    debugLog('H1', 'src/pages/api/analytics/event.js:POST:parsed', 'Incoming analytics payload parsed', {
+      type: type || null,
+      hasSessionId: !!sessionId,
+      hasVisitorId: !!visitorId,
+      hasData: !!data,
+      dataKeys: data && typeof data === 'object' ? Object.keys(data).slice(0, 8) : [],
+    })
+    // #endregion
 
     if (!sessionId || !visitorId) {
       return new Response(JSON.stringify({ error: 'Missing sessionId or visitorId' }), {
@@ -25,6 +38,12 @@ export async function POST({ request }) {
 
     const ip = getClientIp(request)
     const now = new Date()
+    // #region agent log
+    debugLog('H2', 'src/pages/api/analytics/event.js:POST:branch', 'Analytics branch selected', {
+      type: type || null,
+      ipKnown: ip !== 'unknown',
+    })
+    // #endregion
 
     if (type === 'session_start') {
       try {
@@ -172,6 +191,13 @@ export async function POST({ request }) {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
+    // #region agent log
+    debugLog('H3', 'src/pages/api/analytics/event.js:POST:catch', 'Analytics handler threw error', {
+      errorName: err?.name || null,
+      errorCode: err?.code || null,
+      errorMessage: err?.message || null,
+    })
+    // #endregion
     console.error('[analytics/event]', err)
     return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,

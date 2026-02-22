@@ -36,17 +36,53 @@
     })
   }
 
+  function debugLog(hypothesisId, location, message, data) {
+    fetch('http://127.0.0.1:7460/ingest/7cf089c7-4d6e-431f-b961-980290614486',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'42da84'},body:JSON.stringify({sessionId:'42da84',runId:'run1',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(function () {})
+  }
+
   function send(url, data, beacon) {
     var json = JSON.stringify(data)
+    // #region agent log
+    debugLog('H1', 'public/tracker.js:send:start', 'About to send analytics payload', {
+      url: url,
+      type: data && data.type ? data.type : null,
+      beacon: !!beacon,
+      hasSessionId: !!(data && data.sessionId),
+      hasVisitorId: !!(data && data.visitorId),
+    })
+    // #endregion
     if (beacon && navigator.sendBeacon) {
-      navigator.sendBeacon(url, new Blob([json], { type: 'application/json' }))
+      var beaconResult = navigator.sendBeacon(url, new Blob([json], { type: 'application/json' }))
+      // #region agent log
+      debugLog('H2', 'public/tracker.js:send:beacon', 'sendBeacon result', {
+        url: url,
+        type: data && data.type ? data.type : null,
+        beaconResult: beaconResult,
+      })
+      // #endregion
     } else {
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: json,
         keepalive: true,
+      }).then(function (response) {
+        // #region agent log
+        debugLog('H3', 'public/tracker.js:send:response', 'Fetch analytics response', {
+          url: url,
+          type: data && data.type ? data.type : null,
+          status: response.status,
+          ok: response.ok,
+        })
+        // #endregion
       }).catch(function (err) {
+        // #region agent log
+        debugLog('H4', 'public/tracker.js:send:catch', 'Fetch analytics failed before response', {
+          url: url,
+          type: data && data.type ? data.type : null,
+          error: err && err.message ? err.message : String(err),
+        })
+        // #endregion
         if (typeof console !== 'undefined') console.warn('[tracker] send failed:', err)
       })
     }
