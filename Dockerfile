@@ -10,13 +10,18 @@ RUN bun run build
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 --ingroup nodejs appuser
+
+COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
+COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:nodejs /app/package.json ./
 
 ENV HOST=0.0.0.0
 ENV PORT=4321
 ENV NODE_ENV=production
+
+USER appuser
 
 EXPOSE 4321
 
