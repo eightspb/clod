@@ -353,7 +353,7 @@
   /* ─────────────────────────────
      LAYOUT HELPERS
   ───────────────────────────── */
-  .section        { @apply py-16 md:py-24; }
+  .section        { @apply py-10 md:py-14; }
   .container-clay { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8; }
 
   /* ─────────────────────────────

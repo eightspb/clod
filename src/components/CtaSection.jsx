@@ -13,7 +13,7 @@ export function CtaSection({
   return (
     <section className="section">
       <div className="container-clay">
-        <div className={`clay ${cardClass} p-8 md:p-12 text-center relative overflow-hidden`}>
+        <div className={`clay ${cardClass} p-6 md:p-8 text-center relative overflow-hidden`}>
           <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
           <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
           <div className="relative">

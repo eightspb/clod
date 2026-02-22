@@ -61,7 +61,7 @@ export function SecondOpinion() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -79,7 +79,7 @@ export function SecondOpinion() {
             <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
               Каждый третий пациент, приходящий к нам с направлением на операцию из другой клиники, в итоге решает проблему с помощью ВАБ за 30 минут.
             </p>
-            <div className="clay clay-card-soft-mint p-5 mb-8 max-w-xl">
+            <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
               <p className="text-clay-dark font-medium text-sm leading-relaxed">
                 Мы не заинтересованы в том, чтобы вы делали операцию. Нам важно, чтобы вы получили оптимальное решение — и это честно.
               </p>
@@ -119,7 +119,7 @@ export function SecondOpinion() {
       {/* STEPS */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Как это работает</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Три простых шага до ясности и спокойствия</p>
           </div>

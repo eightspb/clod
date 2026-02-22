@@ -25,10 +25,10 @@ const SPECIALTIES = [
 
 export function Licenses() {
   return (
-    <div className="container-clay pb-20">
+    <div className="container-clay pb-12">
 
       {/* Hero */}
-      <section className="pt-8 pb-12">
+      <section className="pt-6 pb-8">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
             <Shield size={15} className="text-clay-teal" />
@@ -46,8 +46,8 @@ export function Licenses() {
       </section>
 
       {/* Лицензии */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold text-clay-text mb-6">Лицензия на медицинскую деятельность</h2>
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold text-clay-text mb-5">Лицензия на медицинскую деятельность</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {LICENSE_ITEMS.map((item) => (
             <div key={item.number} className={`clay-card ${item.color} p-6 flex gap-4`}>
@@ -85,8 +85,8 @@ export function Licenses() {
       </section>
 
       {/* Специальности */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold text-clay-text mb-6">Лицензированные виды деятельности</h2>
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold text-clay-text mb-5">Лицензированные виды деятельности</h2>
         <div className="clay-card p-6 md:p-8">
           <ul className="grid sm:grid-cols-2 gap-3">
             {SPECIALTIES.map((spec) => (
@@ -100,7 +100,7 @@ export function Licenses() {
       </section>
 
       {/* Сертификаты врачей */}
-      <section className="mb-16">
+      <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-4">Сертификаты и аккредитации врачей</h2>
         <p className="text-clay-muted leading-relaxed mb-6">
           Каждый врач клиники регулярно проходит повышение квалификации и подтверждает свою аккредитацию

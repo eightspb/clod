@@ -89,7 +89,7 @@ export function Endocrinology() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -107,7 +107,7 @@ export function Endocrinology() {
             <p className="text-lg text-clay-muted font-medium mb-3">
               «Я постоянно устаю и набираю вес, а доктора говорят, что я просто мало сплю»
             </p>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
               Усталость, набор веса, выпадение волос — это не «норма современной жизни». За этим часто стоят конкретные цифры в анализах. Мы найдём их и исправим.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -144,7 +144,7 @@ export function Endocrinology() {
       {/* FEATURES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Наш подход к лечению</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Три принципа, которые дают реальный результат</p>
           </div>
@@ -280,12 +280,12 @@ export function Endocrinology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-soft-blue p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-blue p-6 md:p-8 text-center">
             <TrendingUp size={40} className="text-clay-blue mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы восстановить энергию?
             </h2>
-            <p className="text-clay-muted mb-8 max-w-md mx-auto">
+            <p className="text-clay-muted mb-5 max-w-md mx-auto">
               Запишитесь на эндокринологическую консультацию. Первый шаг — анализ, второй — результат.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

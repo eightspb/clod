@@ -20,7 +20,7 @@ export function FaqSection({ items = [], title = 'Частые вопросы' }
   }
 
   return (
-    <section className="mb-16">
+    <section className="mb-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

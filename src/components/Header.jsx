@@ -32,14 +32,15 @@ export function Header({ currentPath = '/' }) {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-2' : 'py-4'}`}
+      className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-1' : 'py-2'}`}
       style={{
         background: scrolled ? 'rgba(247,243,239,0.95)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
       }}
       role="banner"
     >
-      <div className="container-clay flex items-center justify-between gap-4">
+      {/* Top row: Logo + Phone + CTA */}
+      <div className="container-clay flex items-center justify-between gap-4 pb-1">
         {/* Logo */}
         <a href="/" className="flex-shrink-0">
           <div className="clay clay-card flex items-center gap-2 px-5 py-2.5">
@@ -58,62 +59,7 @@ export function Header({ currentPath = '/' }) {
           </div>
         </a>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {NAV_ITEMS.map((item) =>
-            item.children ? (
-              <div key={item.label} className="relative">
-                <button
-                  className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  onBlur={handleDropdownBlur}
-                  onFocus={handleDropdownFocus}
-                  aria-expanded={dropdownOpen}
-                  aria-haspopup="true"
-                  aria-controls="nav-dropdown"
-                >
-                  {item.label}
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {dropdownOpen && (
-                  <div id="nav-dropdown" role="menu" className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
-                    {item.children.map((child) => (
-                      <a
-                        key={child.to}
-                        href={child.to}
-                        role="menuitem"
-                        className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
-                          currentPath === child.to
-                            ? 'text-clay-mint bg-clay-mint-pale'
-                            : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
-                        }`}
-                      >
-                        {child.label}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <a
-                key={item.to}
-                href={item.to}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
-                  currentPath === item.to
-                    ? 'text-clay-mint'
-                    : 'text-clay-text hover:text-clay-mint'
-                }`}
-              >
-                {item.label}
-              </a>
-            )
-          )}
-        </nav>
-
-        {/* CTA + phone */}
+        {/* Phone + CTA (desktop) */}
         <div className="hidden lg:flex items-center gap-3">
           <a
             href={`tel:${PHONE_NUMBER}`}
@@ -141,6 +87,65 @@ export function Header({ currentPath = '/' }) {
             <Menu size={20} className="text-clay-dark" />
           )}
         </button>
+      </div>
+
+      {/* Bottom row: Desktop Nav */}
+      <div className="hidden lg:block border-t border-clay-mint-pale/60">
+        <div className="container-clay">
+          <nav className="flex items-center justify-between gap-0.5 py-1">
+            {NAV_ITEMS.map((item) =>
+              item.children ? (
+                <div key={item.label} className="relative">
+                  <button
+                    className="flex items-center gap-1 px-3 py-2 rounded-full text-base font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onBlur={handleDropdownBlur}
+                    onFocus={handleDropdownFocus}
+                    aria-expanded={dropdownOpen}
+                    aria-haspopup="true"
+                    aria-controls="nav-dropdown"
+                  >
+                    {item.label}
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {dropdownOpen && (
+                    <div id="nav-dropdown" role="menu" className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
+                      {item.children.map((child) => (
+                        <a
+                          key={child.to}
+                          href={child.to}
+                          role="menuitem"
+                          className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
+                            currentPath === child.to
+                              ? 'text-clay-mint bg-clay-mint-pale'
+                              : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
+                          }`}
+                        >
+                          {child.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <a
+                  key={item.to}
+                  href={item.to}
+                  className={`px-3 py-2 rounded-full text-base font-medium transition-colors duration-200 ${
+                    currentPath === item.to
+                      ? 'text-clay-mint'
+                      : 'text-clay-text hover:text-clay-mint'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              )
+            )}
+          </nav>
+        </div>
       </div>
 
       {/* Mobile Menu */}

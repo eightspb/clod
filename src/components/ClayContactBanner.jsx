@@ -75,7 +75,7 @@ export function ClayContactBanner() {
   return (
     <section className="section">
       <div className="container-clay">
-        <div className="clay-banner-bg relative rounded-[28px] px-8 py-12 sm:py-14 flex flex-col items-center gap-8">
+        <div className="clay-banner-bg relative rounded-[28px] px-8 py-8 sm:py-10 flex flex-col items-center gap-6">
           <Donut style={{ top: '16px', left: '16px' }} />
           <Sphere style={{ top: '20px', right: '60px' }} />
           <Donut style={{ top: '14px', right: '16px' }} />

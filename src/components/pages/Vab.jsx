@@ -98,10 +98,10 @@ const FAQ_ITEMS = [
 
 export function Vab() {
   return (
-    <div className="container-clay pb-20">
+    <div className="container-clay pb-12">
 
       {/* Hero */}
-      <section className="pt-8 pb-12 text-center">
+      <section className="pt-6 pb-8 text-center">
         <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
           <Zap size={15} className="text-clay-teal" />
           Флагманская технология клиники
@@ -131,7 +131,7 @@ export function Vab() {
       </section>
 
       {/* Ключевые факты */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
           { value: '30 мин', label: 'длительность процедуры' },
           { value: '2 мм', label: 'размер прокола' },
@@ -146,8 +146,8 @@ export function Vab() {
       </section>
 
       {/* Показания */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold text-clay-text mb-6">Когда показана процедура ВАБ</h2>
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold text-clay-text mb-5">Когда показана процедура ВАБ</h2>
         <div className="clay-card p-6 md:p-8">
           <ul className="grid sm:grid-cols-2 gap-3">
             {INDICATIONS.map((item) => (
@@ -161,9 +161,9 @@ export function Vab() {
       </section>
 
       {/* Как проходит */}
-      <section className="mb-16">
+      <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">Как проходит процедура ВАБ</h2>
-        <p className="text-clay-muted mb-8">Пошагово — от консультации до выхода домой</p>
+        <p className="text-clay-muted mb-5">Пошагово — от консультации до выхода домой</p>
         <div className="grid md:grid-cols-2 gap-4">
           {STEPS.map((step) => (
             <div key={step.num} className="clay-card p-5 flex gap-4">
@@ -178,7 +178,7 @@ export function Vab() {
       </section>
 
       {/* Оборудование */}
-      <section className="mb-16">
+      <section className="mb-10">
         <div className="clay-card-mint p-6 md:p-8">
           <div className="flex items-start gap-4">
             <div className="icon-circle-mint shrink-0">
@@ -211,7 +211,7 @@ export function Vab() {
       </section>
 
       {/* ВАБ vs Операция */}
-      <section className="mb-16">
+      <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">ВАБ или операция: в чём разница</h2>
         <p className="text-clay-muted mb-6">
           В большинстве случаев ВАБ полностью заменяет традиционную секторальную резекцию молочной железы
@@ -244,7 +244,7 @@ export function Vab() {
       </section>
 
       {/* Цены */}
-      <section className="mb-16">
+      <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
         <p className="text-clay-muted mb-6">Фиксированные цены без скрытых доплат</p>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -284,7 +284,7 @@ export function Vab() {
       </section>
 
       {/* Наши врачи */}
-      <section className="mb-16">
+      <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">Доктора, выполняющие ВАБ</h2>
         <p className="text-clay-muted mb-6">Онкологи-маммологи с опытом от 12 лет</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

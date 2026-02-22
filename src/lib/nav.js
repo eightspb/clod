@@ -7,9 +7,9 @@ export const DIRECTIONS = [
 ]
 
 export const NAV_ITEMS = [
+  { label: 'О клинике',     to: '/about' },
   { label: 'Направления', children: DIRECTIONS },
   { label: 'Доктора',       to: '/doctors' },
-  { label: 'О клинике',     to: '/about' },
   { label: 'Второе мнение', to: '/second-opinion' },
   { label: 'Цены',          to: '/prices' },
   { label: 'Блог',          to: '/blog' },

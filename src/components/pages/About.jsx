@@ -79,7 +79,7 @@ export function About() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
         <div className="blob-mint absolute -top-32 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="container-clay relative z-10">
@@ -95,7 +95,7 @@ export function About() {
               О клинике{' '}
               <span className="text-clay-mint">Одинцова</span>
             </h1>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl text-lg">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
               Экспертная медицина в маммологии, гинекологии, эндокринологии и неврологии. Мы помогаем принимать осознанные решения о здоровье.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -153,7 +153,7 @@ export function About() {
       {/* ADVANTAGES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
               Наши преимущества
             </h2>
@@ -183,7 +183,7 @@ export function About() {
       {/* EQUIPMENT */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
               Оборудование и технологии
             </h2>
@@ -221,7 +221,7 @@ export function About() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-mint p-8 md:p-12 text-center relative overflow-hidden">
+          <div className="clay clay-card-mint p-6 md:p-8 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
@@ -229,7 +229,7 @@ export function About() {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
                 Готовы записаться?
               </h2>
-              <p className="text-white/90 text-lg mb-8 max-w-xl mx-auto">
+              <p className="text-white/90 text-lg mb-5 max-w-xl mx-auto">
                 Позвоните нам или оставьте заявку — ответим в течение 15 минут и подберём удобное время.
               </p>
               <div className="flex flex-wrap justify-center gap-4">

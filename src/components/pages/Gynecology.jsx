@@ -97,7 +97,7 @@ export function Gynecology({ servicesData = [] }) {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -115,7 +115,7 @@ export function Gynecology({ servicesData = [] }) {
             <p className="text-lg text-clay-muted font-medium mb-3">
               «Боюсь, что будут стыдить, сделают больно или найдут инфекции, которых нет»
             </p>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
               Ваши страхи нам понятны. В нашей клинике осмотр — это партнёрство, а не инквизиция. Мы уважаем вас, ваше тело и ваше время. И никогда не назначим лечение, если оно не нужно.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -153,7 +153,7 @@ export function Gynecology({ servicesData = [] }) {
       {/* FEATURES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Что делает нас особенными</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Три принципа, которые отличают нашу гинекологию</p>
           </div>
@@ -284,12 +284,12 @@ export function Gynecology({ servicesData = [] }) {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-soft-peach p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-peach p-6 md:p-8 text-center">
             <Star size={40} className="text-clay-peach mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Запишитесь на бережный осмотр
             </h2>
-            <p className="text-clay-muted mb-8 max-w-md mx-auto">
+            <p className="text-clay-muted mb-5 max-w-md mx-auto">
               Ответим в WhatsApp в течение 2 минут. Запись день в день — доступна по будням.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

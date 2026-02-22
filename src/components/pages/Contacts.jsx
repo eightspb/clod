@@ -46,13 +46,13 @@ const METRO_STATIONS = [
 
 export function Contacts() {
   return (
-    <div className="container-clay pb-20">
+    <div className="container-clay pb-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
       />
 
-      <section className="pt-8 pb-10">
+      <section className="pt-6 pb-6">
         <h1 className="text-3xl md:text-4xl font-bold text-clay-text mb-3 speakable">
           Контакты клиники в Санкт-Петербурге
         </h1>
@@ -61,7 +61,7 @@ export function Contacts() {
         </p>
       </section>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-10">
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
 
         {/* Адрес */}
         <div className="clay-card p-6">
@@ -167,8 +167,8 @@ export function Contacts() {
       </div>
 
       {/* Как добраться */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-5">Как добраться</h2>
+      <section className="mb-6">
+        <h2 className="text-2xl font-bold text-clay-text mb-4">Как добраться</h2>
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
           {METRO_STATIONS.map((station) => (
             <div key={station.name} className="clay-card p-4 text-center">
@@ -189,8 +189,8 @@ export function Contacts() {
       </section>
 
       {/* Карта */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-5">Карта</h2>
+      <section className="mb-6">
+        <h2 className="text-2xl font-bold text-clay-text mb-4">Карта</h2>
         <div className="clay-card overflow-hidden" style={{ height: '400px' }}>
           <iframe
             src="https://yandex.ru/map-widget/v1/?ll=30.215300%2C60.002800&z=16&pt=30.215300%2C60.002800,pm2rdm~&l=map"

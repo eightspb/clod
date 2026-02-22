@@ -100,7 +100,7 @@ function ReviewsSection() {
   return (
     <section className="section">
       <div className="container-clay">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
             Отзывы пациентов
           </h2>
@@ -153,12 +153,12 @@ function AppointmentFormSection() {
   return (
     <section id="appointment-form" className="section">
       <div className="container-clay">
-        <div className="clay clay-card p-8 md:p-12 relative overflow-hidden max-w-2xl mx-auto">
+          <div className="clay clay-card p-6 md:p-8 relative overflow-hidden max-w-2xl mx-auto">
           <div className="blob-mint absolute -top-10 -right-10 w-40 h-40 opacity-30 pointer-events-none" />
           <div className="blob-peach absolute -bottom-10 -left-10 w-32 h-32 opacity-25 pointer-events-none" />
           <div className="relative z-10">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-3" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
                 <Phone size={12} />
                 Запись онлайн
               </div>
@@ -425,7 +425,7 @@ export function Home({ doctorsData = [] }) {
         <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-blue absolute top-1/3 -right-40 w-72 h-72 opacity-10 pointer-events-none" style={{ zIndex: 0 }} />
 
-        <div className="container-clay relative z-10 py-12 md:py-20">
+        <div className="container-clay relative z-10 py-8 md:py-14">
           {/* Слайды */}
           <div className="relative" style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
             {heroSlides.map((slide, idx) => (
@@ -468,12 +468,12 @@ export function Home({ doctorsData = [] }) {
                       </div>
                     )}
 
-                    <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-8 max-w-lg" style={{ lineHeight: '1.75' }}>
+                    <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg" style={{ lineHeight: '1.75' }}>
                       {slide.desc}
                     </p>
 
                     {/* CTA кнопки */}
-                    <div className="flex flex-wrap gap-3 mb-10">
+                    <div className="flex flex-wrap gap-3 mb-6">
                       <a href={slide.primaryBtn.href} className="clay btn-clay-primary gap-2">
                         {slide.primaryBtn.label}
                         <ArrowRight size={16} />
@@ -555,7 +555,7 @@ export function Home({ doctorsData = [] }) {
       {/* ── ВАБ FLAGSHIP ── */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-mint p-8 md:p-12 relative overflow-hidden">
+          <div className="clay clay-card-mint p-6 md:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
@@ -565,7 +565,7 @@ export function Home({ doctorsData = [] }) {
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
                 Удаление образований в груди за 30 минут
               </h2>
-              <p className="text-white/90 text-lg mb-8">Без скальпеля и швов. Прокол 2 мм полностью заживает за 2 месяца.</p>
+              <p className="text-white/90 text-lg mb-5">Без скальпеля и швов. Прокол 2 мм полностью заживает за 2 месяца.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div className="bg-white/20 rounded-2xl p-5 backdrop-blur-sm">
                   <div className="flex items-start gap-3">
@@ -607,7 +607,7 @@ export function Home({ doctorsData = [] }) {
       {/* ── SERVICES ── */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Направления клиники</h2>
             <p className="text-clay-muted max-w-xl mx-auto">Комплексная помощь по ключевым направлениям — от диагностики до результата</p>
           </div>
@@ -755,14 +755,14 @@ export function Home({ doctorsData = [] }) {
       {/* ── CTA ── */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
+          <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
             <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-50 pointer-events-none" />
             <div className="blob-mint absolute -bottom-10 -left-10 w-40 h-40 opacity-40 pointer-events-none" />
             <div className="relative z-10">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
                 Не знаете, к кому обратиться?
               </h2>
-              <p className="text-clay-muted text-lg mb-8 max-w-xl mx-auto">
+              <p className="text-clay-muted text-lg mb-5 max-w-xl mx-auto">
                 Позвоните нам или напишите в мессенджер — поможем разобраться и направим к нужному специалисту.
               </p>
               <div className="flex flex-wrap justify-center gap-4">

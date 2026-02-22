@@ -87,7 +87,7 @@ export function Neurology() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -105,7 +105,7 @@ export function Neurology() {
             <p className="text-lg text-clay-muted font-medium mb-3">
               «Устал пить обезболивающие, боюсь, что грыжа — это приговор и нужна операция»
             </p>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
               Боль — это сигнал, а не ваш постоянный спутник жизни. В 80% случаев причину можно устранить без операции. Мы помогаем вернуться к активной жизни за 1–3 визита.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -143,7 +143,7 @@ export function Neurology() {
       {/* FEATURES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Наш подход к лечению боли</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Точность, эффективность и честность на каждом этапе</p>
           </div>
@@ -199,7 +199,7 @@ export function Neurology() {
       {/* BLOCKADE SPOTLIGHT */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-lavender p-8 md:p-12 relative overflow-hidden">
+          <div className="clay clay-card-lavender p-6 md:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -301,12 +301,12 @@ export function Neurology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-soft-lavender p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-lavender p-6 md:p-8 text-center">
             <Brain size={40} className="text-clay-lavender mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы вернуться к жизни без боли?
             </h2>
-            <p className="text-clay-muted mb-8 max-w-md mx-auto">
+            <p className="text-clay-muted mb-5 max-w-md mx-auto">
               Запишитесь к нашему неврологу. Разберёмся в причине и предложим конкретный план.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

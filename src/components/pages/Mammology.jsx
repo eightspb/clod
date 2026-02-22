@@ -94,7 +94,7 @@ export function Mammology() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -112,7 +112,7 @@ export function Mammology() {
             <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium">
               «Боюсь шрамов и того, что под наркозом что-то пойдёт не так»
             </p>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
               Понимаем этот страх. Именно поэтому мы используем технологию ВАБ — вы остаётесь в сознании, разговариваете с доктором, а уже через 20 минут после процедуры едете домой.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -153,7 +153,7 @@ export function Mammology() {
       {/* FEATURES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">4 причины выбрать ВАБ</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Технология, которая навсегда меняет представление о хирургии молочной железы</p>
           </div>
@@ -307,12 +307,12 @@ export function Mammology() {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-soft-mint p-8 md:p-12 text-center">
+          <div className="clay clay-card-soft-mint p-6 md:p-8 text-center">
             <Clock size={40} className="text-clay-mint mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
               Готовы решить вопрос раз и навсегда?
             </h2>
-            <p className="text-clay-muted mb-8 max-w-md mx-auto">
+            <p className="text-clay-muted mb-5 max-w-md mx-auto">
               Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в WhatsApp в течение 2 минут.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

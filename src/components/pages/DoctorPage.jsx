@@ -29,7 +29,7 @@ export function DoctorPage({ doctor }) {
             Все доктора
           </a>
 
-          <div className="clay clay-card p-6 md:p-10 relative overflow-hidden">
+          <div className="clay clay-card p-5 md:p-8 relative overflow-hidden">
             {/* Декоративные блобы */}
             <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
             <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />

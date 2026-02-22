@@ -112,10 +112,10 @@ const SECTIONS = [
 
 export function PrivacyPolicy() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
 
       {/* Hero */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-clay-border shadow-sm mb-5">
           <Shield size={16} className="text-clay-mint" />
           <span className="text-sm font-medium text-clay-muted">Защита данных</span>
@@ -129,7 +129,7 @@ export function PrivacyPolicy() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="clay clay-card-mint p-5 flex flex-col gap-2">
           <Lock size={20} className="text-white opacity-90" />
           <p className="text-white font-semibold text-sm leading-snug">Надёжное шифрование данных</p>
@@ -180,7 +180,7 @@ export function PrivacyPolicy() {
       </div>
 
       {/* Contact block */}
-      <div className="clay clay-card-mint mt-8 p-6 sm:p-8">
+      <div className="clay clay-card-mint mt-6 p-5 sm:p-6">
         <h2 className="text-xl font-bold text-white mb-2">9. Контакты</h2>
         <p className="text-white/90 text-sm sm:text-base mb-5 leading-relaxed">
           По вопросам обработки персональных данных, реализации ваших прав или отзыва согласия обращайтесь к нам:

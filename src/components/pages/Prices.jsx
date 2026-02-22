@@ -118,7 +118,7 @@ export function Prices({ servicesData = [] }) {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-20">
+      <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
           <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
@@ -133,7 +133,7 @@ export function Prices({ servicesData = [] }) {
               Честная медицина:{' '}
               <span className="text-clay-mint">фиксированная цена</span> и полная прозрачность
             </h1>
-            <p className="text-clay-muted leading-relaxed mb-8 max-w-2xl text-lg">
+            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
               Никаких скрытых доплат в день процедуры. Цена, которую назвали — цена, которую заплатите.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -153,13 +153,13 @@ export function Prices({ servicesData = [] }) {
       {/* PRINCIPLES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Три принципа прозрачности</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Наша политика в ценообразовании</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {principles.map((p) => (
-              <div key={p.title} className={`clay ${p.bg} p-7 flex flex-col relative overflow-hidden`}>
+              <div key={p.title} className={`clay ${p.bg} p-5 flex flex-col relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10">
                   <div className="inline-block px-3 py-1 rounded-full bg-white/25 text-white text-xs font-bold mb-4">{p.tag}</div>
@@ -175,7 +175,7 @@ export function Prices({ servicesData = [] }) {
       {/* ВАБ ALL INCLUSIVE */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card p-8 md:p-10">
+          <div className="clay clay-card p-6 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
                 <div className="stat-pill mb-4">Всё включено</div>
@@ -211,7 +211,7 @@ export function Prices({ servicesData = [] }) {
       {/* PRICE TABLES */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Прайс-лист</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Актуальные цены на все направления. Финальную стоимость уточняйте на консультации.</p>
           </div>
@@ -274,12 +274,12 @@ export function Prices({ servicesData = [] }) {
       {/* PAYMENT METHODS */}
       <section className="section">
         <div className="container-clay">
-          <div className="text-center mb-10">
+          <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Способы оплаты</h2>
             <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат — принимаем все основные способы оплаты</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="clay clay-card-soft-mint p-7 flex flex-col gap-4">
+            <div className="clay clay-card-soft-mint p-5 flex flex-col gap-4">
               <div className="icon-circle-mint">
                 <CreditCard size={20} className="text-white" />
               </div>
@@ -299,7 +299,7 @@ export function Prices({ servicesData = [] }) {
               </div>
             </div>
 
-            <div className="clay clay-card-soft-blue p-7 flex flex-col gap-4">
+            <div className="clay clay-card-soft-blue p-5 flex flex-col gap-4">
               <div className="icon-circle-blue">
                 <Shield size={20} className="text-white" />
               </div>
@@ -319,7 +319,7 @@ export function Prices({ servicesData = [] }) {
               </div>
             </div>
 
-            <div className="clay clay-card-soft-peach p-7 flex flex-col gap-4">
+            <div className="clay clay-card-soft-peach p-5 flex flex-col gap-4">
               <div className="icon-circle-peach">
                 <Clock size={20} className="text-white" />
               </div>
@@ -345,7 +345,7 @@ export function Prices({ servicesData = [] }) {
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card p-8 md:p-12 text-center relative overflow-hidden">
+          <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
             <div className="blob-mint absolute -top-10 -right-10 w-40 h-40 opacity-40 pointer-events-none" />
             <div className="blob-peach absolute -bottom-10 -left-10 w-40 h-40 opacity-35 pointer-events-none" />
             <div className="relative z-10">
@@ -353,7 +353,7 @@ export function Prices({ servicesData = [] }) {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
                 Остались вопросы по ценам?
               </h2>
-              <p className="text-clay-muted mb-8 max-w-md mx-auto">
+              <p className="text-clay-muted mb-5 max-w-md mx-auto">
                 Ответим в WhatsApp в течение 2 минут и назовём точную стоимость для вашей ситуации.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
