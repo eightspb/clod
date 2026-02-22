@@ -2,7 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
-Disallow: /doctors-demo
-Disallow: /doctors-test
 
 Sitemap: https://odintsovclinic.ru/sitemap.xml

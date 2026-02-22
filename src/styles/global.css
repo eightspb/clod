@@ -1490,3 +1490,8 @@
   border-top: 2px dashed #d4ede9;
   margin: 2.5rem 0;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .blob-mint, .blob-peach, .blob-blue, .blob-lavender,
+  .orb { animation: none !important; transition: none !important; }
+}

@@ -164,6 +164,8 @@ clod/
 │   │   ├── doctors/
 │   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д. (+ Physician JSON-LD)
 │   │   ├── privacy-policy.astro   # /privacy-policy
+│   │   ├── licenses.astro         # /licenses — лицензии и сертификаты клиники
+│   │   ├── 404.astro              # Кастомная страница 404
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin — дашборд
 │   │   │   ├── login.astro        # /admin/login
@@ -234,6 +236,8 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/blog` | `blog/index.astro` | — (Astro) |
 | `/blog/[slug]` | `blog/[slug].astro` | — (Astro + Content Collections) |
 | `/privacy-policy` | `privacy-policy.astro` | `PrivacyPolicy.jsx` |
+| `/licenses` | `licenses.astro` | `Licenses.jsx` |
+| `/404` | `404.astro` | — (Astro) |
 
 Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля:
 

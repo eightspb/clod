@@ -102,7 +102,12 @@ const currentPath = Astro.url.pathname
           "closes": "18:00"
         }
       ],
-      "medicalSpecialty": ["Mammography", "Gynecology", "Endocrinology", "Neurology"],
+      "medicalSpecialty": ["Oncology", "Gynecology", "Endocrinology", "Neurology"],
+      "areaServed": {
+        "@type": "City",
+        "name": "Санкт-Петербург",
+        "@id": "https://www.wikidata.org/wiki/Q656"
+      },
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "4.9",
@@ -124,6 +129,9 @@ const currentPath = Astro.url.pathname
     })} />
   </head>
   <body class="relative min-h-screen bg-clay-bg font-sans">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-clay-teal focus:text-white focus:rounded-xl focus:font-semibold focus:shadow-lg">
+      Перейти к содержимому
+    </a>
     <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->
     <div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
       <div class="blob-mint absolute w-80 h-80 opacity-40" style="top:-60px;right:-60px" />
@@ -153,7 +161,7 @@ const currentPath = Astro.url.pathname
       <div class="orb absolute w-4 h-4 opacity-40" data-speed="0.55" style="top:268vh;left:10%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
     </div>
     <Header currentPath={currentPath} client:load />
-    <main class="relative" style="z-index:1">
+    <main id="main-content" class="relative" style="z-index:1">
       <slot />
     </main>
     <Footer />

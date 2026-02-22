@@ -13,3 +13,13 @@ export const RING_COLOR_MAP = {
   blue: 'avatar-ring-blue',
   lavender: 'avatar-ring-lavender',
 }
+
+export const SITE_URL = 'https://odintsovclinic.ru'
+export const SITE_NAME = 'Клиника Одинцова'
+
+export const DMS_COMPANIES = [
+  'Ренессанс',
+  'АльфаСтрахование',
+  'ВСК',
+  'РЕСО-Гарантия',
+]

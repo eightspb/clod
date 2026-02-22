@@ -2,6 +2,18 @@
 import Layout from '../layouts/Layout.astro'
 import { Endocrinology } from '../components/pages/Endocrinology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+
+const specialtySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalClinic',
+  name: 'Клиника Одинцова — Эндокринология',
+  medicalSpecialty: 'Endocrinology',
+  availableService: {
+    '@type': 'MedicalProcedure',
+    name: 'Диагностика и лечение эндокринных заболеваний',
+  },
+  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
+}
 ---
 
 <Layout
@@ -9,6 +21,7 @@ import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
   description="Эндокринология на основе данных: усталость, вес, гормоны. Комплексный анализ ферритина, витаминов и гормонального профиля. Результат через 14 дней."
   keywords="эндокринолог Санкт-Петербург, эндокринолог СПб, щитовидная железа лечение СПб, гипотиреоз лечение СПб, гормоны анализы СПб, эндокринолог Комендантский проспект"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология' }]} />
   <Endocrinology />
 </Layout>

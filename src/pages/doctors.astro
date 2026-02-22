@@ -2,6 +2,22 @@
 import Layout from '../layouts/Layout.astro'
 import { Doctors } from '../components/pages/Doctors.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { DOCTORS } from '../lib/doctors-data.js'
+
+const doctorsSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Врачи Клиники Одинцова',
+  description: 'Онкологи-маммологи, гинекологи, эндокринологи и неврологи клиники Одинцова в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/doctors',
+  numberOfItems: DOCTORS.length,
+  itemListElement: DOCTORS.map((doctor, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    url: `https://odintsovclinic.ru/doctors/${doctor.slug}`,
+    name: doctor.name,
+  })),
+}
 ---
 
 <Layout
@@ -9,6 +25,7 @@ import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
   description="Онкологи-маммологи, гинекологи и эндокринологи клиники Одинцова. Все доктора владеют УЗИ и работают в единой команде."
   keywords="врачи клиника Одинцова, онколог-маммолог СПб, гинеколог СПб, эндокринолог СПб, невролог СПб, доктор Одинцов, врачи маммологи Санкт-Петербург"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(doctorsSchema)} />
   <BreadcrumbNav items={[{ label: 'Врачи' }]} />
   <Doctors client:load />
 </Layout>

@@ -132,6 +132,8 @@ export function Header({ currentPath = '/' }) {
           className="clay clay-card lg:hidden p-2.5 rounded-2xl"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Меню"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-menu"
         >
           {mobileOpen ? (
             <X size={20} className="text-clay-dark" />
@@ -143,7 +145,7 @@ export function Header({ currentPath = '/' }) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden mx-4 mt-3 clay clay-card p-4">
+        <div id="mobile-menu" className="lg:hidden mx-4 mt-3 clay clay-card p-4">
           <nav className="flex flex-col gap-1">
             <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
               Направления

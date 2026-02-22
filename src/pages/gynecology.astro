@@ -5,8 +5,19 @@ import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { db, Service } from 'astro:db'
 import { eq } from 'astro:db'
 
-// Получаем услуги только для гинекологии
 const services = await db.select().from(Service).where(eq(Service.direction, 'Гинекология'));
+
+const specialtySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalClinic',
+  name: 'Клиника Одинцова — Гинекология',
+  medicalSpecialty: 'Gynecology',
+  availableService: {
+    '@type': 'MedicalProcedure',
+    name: 'Гинекологический осмотр и УЗИ малого таза',
+  },
+  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
+}
 ---
 
 <Layout
@@ -14,6 +25,7 @@ const services = await db.select().from(Service).where(eq(Service.direction, 'Г
   description="Бережная гинекология без боли и гипердиагностики. Осмотр, УЗИ малого таза и анализы за один приём. Результаты через 24 часа."
   keywords="гинеколог Санкт-Петербург, гинеколог СПб, гинеколог Комендантский проспект, гинеколог Старая Деревня, УЗИ малого таза СПб, гинеколог-эндокринолог СПб, женское здоровье СПб"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология' }]} />
   <Gynecology servicesData={services} client:load />
 </Layout>

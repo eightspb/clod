@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout
+  title="Страница не найдена — Клиника Одинцова"
+  description="Страница не найдена. Вернитесь на главную страницу Клиники Одинцова."
+>
+  <div class="container-clay py-20 text-center">
+
+    <div class="max-w-lg mx-auto">
+
+      {/* Декоративный элемент */}
+      <div class="relative inline-block mb-8">
+        <div class="blob-mint absolute inset-0 opacity-30 scale-150" />
+        <div class="clay clay-card-soft-mint w-32 h-32 rounded-full flex items-center justify-center mx-auto relative">
+          <span class="text-5xl font-extrabold text-clay-teal">404</span>
+        </div>
+      </div>
+
+      <h1 class="text-3xl md:text-4xl font-bold text-clay-text mb-4">
+        Страница не найдена
+      </h1>
+      <p class="text-lg text-clay-muted leading-relaxed mb-8">
+        Возможно, страница была перемещена или удалена. Воспользуйтесь навигацией,
+        чтобы найти нужную информацию.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center mb-12">
+        <a href="/" class="btn-clay-primary inline-flex items-center gap-2">
+          На главную
+        </a>
+        <a href="/doctors" class="btn-clay-secondary inline-flex items-center gap-2">
+          Наши врачи
+        </a>
+      </div>
+
+      {/* Быстрые ссылки */}
+      <div class="clay-card p-6">
+        <p class="text-sm font-semibold text-clay-text mb-4">Популярные разделы</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[
+            { label: 'Маммология', href: '/mammology' },
+            { label: 'ВАБ', href: '/vab' },
+            { label: 'Гинекология', href: '/gynecology' },
+            { label: 'Эндокринология', href: '/endocrinology' },
+            { label: 'Неврология', href: '/neurology' },
+            { label: 'Второе мнение', href: '/second-opinion' },
+          ].map((link) => (
+            <a
+              href={link.href}
+              class="clay-card-soft-mint clay-card px-3 py-2.5 text-sm font-medium text-clay-text hover:text-clay-teal transition-colors text-center rounded-2xl"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</Layout>

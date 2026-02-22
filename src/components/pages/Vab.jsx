@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
-import { WHATSAPP_URL } from '../../lib/contacts.js'
+import { WHATSAPP_URL, PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
+import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 
@@ -294,22 +295,7 @@ export function Vab() {
       </section>
 
       {/* FAQ */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold text-clay-text mb-6">Частые вопросы о ВАБ</h2>
-        <div className="space-y-3">
-          {FAQ_ITEMS.map((item) => (
-            <details key={item.question} className="clay-card group">
-              <summary className="flex items-center justify-between p-5 cursor-pointer list-none font-medium text-clay-text select-none">
-                {item.question}
-                <span className="text-clay-teal text-xl font-light group-open:rotate-45 transition-transform duration-200 shrink-0 ml-3">+</span>
-              </summary>
-              <div className="px-5 pb-5 text-clay-muted leading-relaxed text-sm">
-                {item.answer}
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
+      <FaqSection items={FAQ_ITEMS} title="Частые вопросы о ВАБ" />
 
       {/* CTA */}
       <section className="clay-card-mint p-8 text-center">
@@ -328,9 +314,9 @@ export function Vab() {
             <MessageCircle size={18} />
             Написать в WhatsApp
           </a>
-          <a href="tel:+78127482210" className="btn-clay-secondary inline-flex items-center gap-2">
+          <a href={`tel:${PHONE_NUMBER}`} className="btn-clay-secondary inline-flex items-center gap-2">
             <Clock size={18} />
-            +7 (812) 748-22-10
+            {PHONE_DISPLAY}
           </a>
         </div>
       </section>

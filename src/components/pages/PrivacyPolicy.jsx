@@ -1,4 +1,5 @@
 import { Shield, Lock, Eye, UserCheck, Database, Phone, MapPin, Mail } from 'lucide-react'
+import { PHONE_NUMBER, PHONE_DISPLAY, PHONE_NUMBER_2, PHONE_DISPLAY_2, ADDRESS } from '../../lib/contacts.js'
 
 const SECTIONS = [
   {
@@ -189,8 +190,8 @@ export function PrivacyPolicy() {
             <Phone size={18} className="text-white flex-shrink-0" />
             <div>
               <p className="text-white/70 text-xs">Телефон</p>
-              <a href="tel:+78127482210" className="text-white font-semibold text-sm block hover:text-white/80 transition-colors">+7 (812) 748-22-10</a>
-              <a href="tel:+79119258022" className="text-white font-semibold text-sm block hover:text-white/80 transition-colors">+7 (911) 925-80-22</a>
+              <a href={`tel:${PHONE_NUMBER}`} className="text-white font-semibold text-sm block hover:text-white/80 transition-colors">{PHONE_DISPLAY}</a>
+              <a href={`tel:${PHONE_NUMBER_2}`} className="text-white font-semibold text-sm block hover:text-white/80 transition-colors">{PHONE_DISPLAY_2}</a>
             </div>
           </div>
           <a
@@ -207,7 +208,7 @@ export function PrivacyPolicy() {
             <MapPin size={18} className="text-white flex-shrink-0" />
             <div>
               <p className="text-white/70 text-xs">Адрес</p>
-              <p className="text-white font-semibold text-sm">Санкт-Петербург, пр. Богатырский 22 к.1</p>
+              <p className="text-white font-semibold text-sm">{ADDRESS}</p>
             </div>
           </div>
         </div>

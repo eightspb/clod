@@ -1,5 +1,5 @@
 import { ChevronRight, Home } from 'lucide-react'
-import { ICON_SIZES } from '../lib/constants.js'
+import { ICON_SIZES, SITE_URL } from '../lib/constants.js'
 
 /**
  * BreadcrumbNav — хлебные крошки с BreadcrumbList JSON-LD
@@ -15,7 +15,7 @@ export function BreadcrumbNav({ items = [] }) {
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      ...(item.href ? { item: `https://odintsovclinic.ru${item.href}` } : {}),
+      ...(item.href ? { item: `${SITE_URL}${item.href}` } : {}),
     })),
   }
 

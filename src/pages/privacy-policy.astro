@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { PrivacyPolicy } from '../components/pages/PrivacyPolicy.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 ---
 
 <Layout
   title="Политика конфиденциальности — Клиника Одинцова"
   description="Политика конфиденциальности и порядок обработки персональных данных в Клинике Одинцова."
+  keywords="политика конфиденциальности, персональные данные, клиника Одинцова"
 >
+  <BreadcrumbNav items={[{ label: 'Политика конфиденциальности' }]} />
   <PrivacyPolicy />
 </Layout>

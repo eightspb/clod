@@ -1,4 +1,5 @@
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle } from 'lucide-react'
+import { WHATSAPP_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
@@ -319,7 +320,7 @@ export function Mammology() {
                 Записаться на ВАБ
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>

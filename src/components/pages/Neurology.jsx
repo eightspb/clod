@@ -1,4 +1,5 @@
 import { ArrowRight, Brain, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users } from 'lucide-react'
+import { WHATSAPP_URL } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 
 const NEUROLOGY_FAQ = [
@@ -313,7 +314,7 @@ export function Neurology() {
                 Записаться
                 <ArrowRight size={16} />
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp
               </a>

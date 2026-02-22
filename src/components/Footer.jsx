@@ -80,18 +80,20 @@ export function Footer() {
             {/* Nav links */}
             <div>
               <h4 className="font-bold text-clay-dark mb-4 text-sm">Направления и услуги</h4>
-              <ul className="flex flex-col gap-2">
-                {FOOTER_LINKS.map((link) => (
-                  <li key={link.to}>
-                    <a
-                      href={link.to}
-                      className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <nav aria-label="Навигация по сайту">
+                <ul className="flex flex-col gap-2">
+                  {FOOTER_LINKS.map((link) => (
+                    <li key={link.to}>
+                      <a
+                        href={link.to}
+                        className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </div>
 
             {/* Contact */}
@@ -119,9 +121,7 @@ export function Footer() {
                   <div>
                     <p className="text-xs text-clay-muted">Адрес</p>
                     <p className="text-sm font-semibold text-clay-dark">
-                      Санкт-Петербург,
-                      <br />
-                      пр. Богатырский 22 к.1
+                      {ADDRESS}
                     </p>
                   </div>
                 </div>
@@ -150,7 +150,7 @@ export function Footer() {
             <a href="/privacy-policy" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
               Политика конфиденциальности
             </a>
-            <a href="#" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
+            <a href="/licenses" className="text-xs text-clay-muted hover:text-clay-mint transition-colors">
               Лицензии
             </a>
           </div>

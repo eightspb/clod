@@ -1,4 +1,6 @@
 import { ArrowRight, CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
+import { PHONE_NUMBER, PHONE_DISPLAY, WHATSAPP_URL } from '../../lib/contacts.js'
+import { FaqSection } from '../FaqSection.jsx'
 
 const steps = [
   {
@@ -38,20 +40,20 @@ const guarantees = [
 
 const faqs = [
   {
-    q: 'Что взять с собой?',
-    a: 'Снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники. Если есть результаты анализов или биопсии — берите тоже.',
+    question: 'Что взять с собой?',
+    answer: 'Снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники. Если есть результаты анализов или биопсии — берите тоже.',
   },
   {
-    q: 'Мне точно не придётся платить за консультацию?',
-    a: 'Именно так. Второе мнение по вопросу показаний к операции — полностью бесплатно. Нам важно, чтобы вы приняли осознанное решение. Если понадобятся дополнительные обследования — скажем об этом честно и назовём стоимость заранее.',
+    question: 'Мне точно не придётся платить за консультацию?',
+    answer: 'Именно так. Второе мнение по вопросу показаний к операции — полностью бесплатно. Нам важно, чтобы вы приняли осознанное решение. Если понадобятся дополнительные обследования — скажем об этом честно и назовём стоимость заранее.',
   },
   {
-    q: 'Что если ВАБ мне не подходит?',
-    a: 'Скажем об этом прямо. Если операция действительно необходима — дадим рекомендацию по специалистам и учреждениям с хорошей репутацией. Мы не удерживаем пациентов ради выручки.',
+    question: 'Что если ВАБ мне не подходит?',
+    answer: 'Скажем об этом прямо. Если операция действительно необходима — дадим рекомендацию по специалистам и учреждениям с хорошей репутацией. Мы не удерживаем пациентов ради выручки.',
   },
   {
-    q: 'Сколько времени занимает весь процесс?',
-    a: 'Консультация — 30–40 минут. Если по результатам решаете делать ВАБ — процедура занимает ещё 30 минут. Итого можно уйти домой через 1,5–2 часа с решённым вопросом.',
+    question: 'Сколько времени занимает весь процесс?',
+    answer: 'Консультация — 30–40 минут. Если по результатам решаете делать ВАБ — процедура занимает ещё 30 минут. Итого можно уйти домой через 1,5–2 часа с решённым вопросом.',
   },
 ]
 
@@ -83,11 +85,11 @@ export function SecondOpinion() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <a href="tel:+78127482210" className="clay btn-clay-primary gap-2">
+              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
                 <Phone size={16} />
                 Позвонить сейчас
               </a>
-              <a href="https://wa.me/79119258022" className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 Написать в WhatsApp
               </a>
@@ -162,18 +164,7 @@ export function SecondOpinion() {
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-6">Часто задаваемые вопросы</h2>
-              <div className="space-y-4">
-                {faqs.map((faq, i) => (
-                  <div key={i} className="clay clay-card p-5">
-                    <h4 className="font-bold text-clay-dark text-sm mb-2 flex items-start gap-2">
-                      <span className="text-clay-mint">—</span>
-                      {faq.q}
-                    </h4>
-                    <p className="text-clay-muted text-sm leading-relaxed">{faq.a}</p>
-                  </div>
-                ))}
-              </div>
+              <FaqSection items={faqs} title="Часто задаваемые вопросы" />
             </div>
             <div className="sticky top-24">
               <div className="clay clay-card-mint p-8 relative overflow-hidden">
@@ -189,11 +180,11 @@ export function SecondOpinion() {
                     Нам важно, чтобы вы приняли осознанное решение. Аудит заключения нашим онкологом-маммологом — без каких-либо условий.
                   </p>
                   <div className="space-y-3">
-                    <a href="tel:+78127482210" className="clay btn-clay-white w-full justify-center gap-2">
+                    <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-white w-full justify-center gap-2">
                       <Phone size={16} />
-                      Позвонить: +7 (812) 748-22-10
+                      Позвонить: {PHONE_DISPLAY}
                     </a>
-                    <a href="https://wa.me/79119258022" className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors" target="_blank" rel="noopener noreferrer">
+                    <a href={WHATSAPP_URL} className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors" target="_blank" rel="noopener noreferrer">
                       <MessageCircle size={16} />
                       Написать в WhatsApp
                     </a>

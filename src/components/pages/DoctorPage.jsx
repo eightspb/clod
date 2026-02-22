@@ -1,5 +1,6 @@
 import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star, BookOpen, Tv, ExternalLink } from 'lucide-react'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
+import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
 
@@ -85,8 +86,8 @@ export function DoctorPage({ doctor }) {
                     <Phone size={16} />
                     Записаться на приём
                   </a>
-                  <a href="tel:+78127482210" className="clay btn-clay-secondary gap-2">
-                    +7 (812) 748-22-10
+                  <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
+                    {PHONE_DISPLAY}
                   </a>
                 </div>
 
@@ -242,22 +243,27 @@ export function DoctorPage({ doctor }) {
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {doctor.tvLinks.map((tv, i) => (
-                  <a
-                    key={i}
-                    href={tv.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="clay clay-card-soft-peach p-4 rounded-2xl hover:shadow-md transition-shadow group"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="text-xs font-semibold text-clay-muted">{tv.channel}</span>
-                      <ExternalLink size={14} className="text-clay-muted flex-shrink-0 group-hover:text-clay-mint transition-colors" />
+                {doctor.tvLinks.map((tv, i) => {
+                  const content = (
+                    <>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="text-xs font-semibold text-clay-muted">{tv.channel}</span>
+                        {tv.url && <ExternalLink size={14} className="text-clay-muted flex-shrink-0 group-hover:text-clay-mint transition-colors" />}
+                      </div>
+                      <p className="text-sm font-semibold text-clay-dark leading-snug mb-2">{tv.title}</p>
+                      <span className="text-xs text-clay-muted">{tv.year}</span>
+                    </>
+                  )
+                  return tv.url ? (
+                    <a key={i} href={tv.url} target="_blank" rel="noopener noreferrer" className="clay clay-card-soft-peach p-4 rounded-2xl hover:shadow-md transition-shadow group">
+                      {content}
+                    </a>
+                  ) : (
+                    <div key={i} className="clay clay-card-soft-peach p-4 rounded-2xl">
+                      {content}
                     </div>
-                    <p className="text-sm font-semibold text-clay-dark leading-snug mb-2">{tv.title}</p>
-                    <span className="text-xs text-clay-muted">{tv.year}</span>
-                  </a>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Licenses } from '../components/pages/Licenses.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+---
+
+<Layout
+  title="Лицензии и сертификаты — Клиника Одинцова"
+  description="Лицензия на медицинскую деятельность и сертификаты врачей Клиники Одинцова в Санкт-Петербурге."
+  keywords="лицензия клиника Одинцова, медицинская лицензия СПб, сертификаты врачей"
+>
+  <BreadcrumbNav items={[{ label: 'Лицензии' }]} />
+  <Licenses />
+</Layout>
