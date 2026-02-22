@@ -235,16 +235,6 @@ const currentPath = Astro.url.pathname
     <script src="/tracker.js" is:inline></script>
 
     <script>
-      // #region agent log
-      window.addEventListener('load', function () {
-        var preloadLatin = document.querySelector('link[rel="preload"][href="/fonts/inter-var-latin.woff2"]')
-        var preloadCyr = document.querySelector('link[rel="preload"][href="/fonts/inter-var-cyrillic.woff2"]')
-        var bodyText = (document.body && (document.body.innerText || document.body.textContent)) || ''
-        var hasLatinChars = /[A-Za-z]/.test(bodyText)
-        fetch('http://127.0.0.1:7460/ingest/7cf089c7-4d6e-431f-b961-980290614486',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'42da84'},body:JSON.stringify({sessionId:'42da84',runId:'run1',hypothesisId:'H5',location:'src/layouts/Layout.astro:font-preload-check',message:'Font preload usage context',data:{hasLatinChars:hasLatinChars,hasPreloadLatin:!!preloadLatin,hasPreloadCyr:!!preloadCyr,lang:document.documentElement.lang || null},timestamp:Date.now()})}).catch(function () {})
-      });
-      // #endregion
-
       // Параллакс для орбов: слой fixed, орбы смещаются через translateY
       // При скролле вниз орб сдвигается вверх на scrollY * (1 - speed)
       // speed=1 → орб движется вместе со страницей (полный параллакс)
