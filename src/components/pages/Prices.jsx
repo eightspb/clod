@@ -88,8 +88,8 @@ export function Prices({ servicesData = [] }) {
     priceCategories[0].items = [
       { name: 'Консультация онколога-маммолога', price: '3 500' },
       { name: 'УЗИ молочных желёз', price: '2 500' },
-      { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 25 000' },
-      { name: 'ВАБ + гистология (всё включено)', price: 'от 35 000' },
+      { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 80 000' },
+      { name: 'ВАБ + гистология (всё включено)', price: 'от 85 000' },
       { name: 'Второе мнение по снимкам', price: '0 - бесплатно' },
     ]
     priceCategories[1].items = [
@@ -185,7 +185,7 @@ export function Prices({ servicesData = [] }) {
                 <p className="text-clay-muted leading-relaxed mb-4">
                   Стоимость процедуры ВАБ включает всё - от подготовки до получения результата гистологии. Никаких сюрпризов в день оплаты.
                 </p>
-                <div className="text-4xl font-extrabold text-clay-mint mb-1">от 35 000 ₽</div>
+                <div className="text-4xl font-extrabold text-clay-mint mb-1">от 80 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Финальная цена, без доплат</p>
                 <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                   Записаться на ВАБ

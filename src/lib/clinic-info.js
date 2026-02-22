@@ -82,7 +82,7 @@ export const SERVICES = [
 
 export const WHY_ITEMS = [
   { iconName: 'Shield',  bg: 'icon-circle-mint',     title: 'Доказательная медицина', desc: 'Не назначаем лечение без показаний. Только то, что действительно нужно.' },
-  { iconName: 'Zap',     bg: 'icon-circle-peach',    title: 'Высокие технологии',     desc: 'Оборудование последнего поколения. Технология ВАБ EnCor Enspire (США).' },
+  { iconName: 'Zap',     bg: 'icon-circle-peach',    title: 'Высокие технологии',     desc: 'Оборудование последнего поколения. Технология ВАБ Xishan (Сишань).' },
   { iconName: 'Clock',   bg: 'icon-circle-blue',     title: 'Сервис без ожидания',    desc: 'Запись день в день. Ответ администратора в WhatsApp за 2 минуты.' },
   { iconName: 'Heart',   bg: 'icon-circle-lavender', title: 'Без боли и стресса',     desc: 'Тёплая атмосфера, подогретые гели, инструменты минимального размера.' },
 ]
