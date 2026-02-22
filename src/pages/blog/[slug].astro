@@ -1,0 +1,259 @@
+---
+import { getCollection, getEntry } from 'astro:content'
+import Layout from '../../layouts/Layout.astro'
+import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
+import { DOCTORS } from '../../lib/doctors-data.js'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog')
+  return posts.map((post) => ({ params: { slug: post.slug } }))
+}
+
+const { slug } = Astro.params
+const post = await getEntry('blog', slug)
+if (!post) return Astro.redirect('/blog')
+
+const { Content } = await post.render()
+
+const author = post.data.authorSlug
+  ? DOCTORS.find((d) => d.slug === post.data.authorSlug)
+  : null
+
+const formattedDate = post.data.publishDate.toLocaleDateString('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+})
+
+const updatedDate = post.data.updatedDate
+  ? post.data.updatedDate.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalWebPage',
+  headline: post.data.title,
+  description: post.data.description,
+  url: `https://odintsovclinic.ru/blog/${post.slug}`,
+  datePublished: post.data.publishDate.toISOString(),
+  ...(post.data.updatedDate && { dateModified: post.data.updatedDate.toISOString() }),
+  author: author
+    ? {
+        '@type': 'Physician',
+        name: author.name,
+        url: `https://odintsovclinic.ru/doctors/${author.slug}`,
+        jobTitle: author.specialization,
+        worksFor: {
+          '@type': 'MedicalBusiness',
+          name: 'Клиника Одинцова',
+          url: 'https://odintsovclinic.ru',
+        },
+      }
+    : {
+        '@type': 'Organization',
+        name: 'Клиника Одинцова',
+        url: 'https://odintsovclinic.ru',
+      },
+  publisher: {
+    '@type': 'MedicalBusiness',
+    name: 'Клиника Одинцова',
+    url: 'https://odintsovclinic.ru',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://odintsovclinic.ru/images/logo.svg',
+    },
+  },
+  medicalAudience: {
+    '@type': 'MedicalAudience',
+    audienceType: 'Patient',
+  },
+  ...(post.data.image && {
+    image: {
+      '@type': 'ImageObject',
+      url: `https://odintsovclinic.ru${post.data.image}`,
+      description: post.data.imageAlt ?? post.data.title,
+    },
+  }),
+  inLanguage: 'ru',
+  isPartOf: {
+    '@type': 'Blog',
+    name: 'Блог Клиники Одинцова',
+    url: 'https://odintsovclinic.ru/blog',
+  },
+}
+
+const breadcrumbItems = [
+  { label: 'Блог', href: '/blog' },
+  { label: post.data.title },
+]
+---
+
+<Layout
+  title={`${post.data.title} | Клиника Одинцова`}
+  description={post.data.description}
+  keywords={post.data.keywords}
+  ogType="article"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+
+  <BreadcrumbNav items={breadcrumbItems} />
+
+  <div class="container-clay pb-20">
+    <div class="blog-article-layout">
+
+      <!-- Основной контент -->
+      <article class="blog-article-main">
+        <header class="mb-10">
+          <div class="flex flex-wrap items-center gap-3 mb-5">
+            <span class="blog-category-badge">
+              {post.data.category}
+            </span>
+            {post.data.tags.map((tag) => (
+              <span class="text-xs text-clay-muted bg-gray-100 px-2.5 py-1 rounded-full">
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-clay-text leading-tight mb-5">
+            {post.data.title}
+          </h1>
+
+          <p class="blog-lead">
+            {post.data.description}
+          </p>
+
+          <div class="blog-meta">
+            {author ? (
+              <a href={`/doctors/${author.slug}`} class="flex items-center gap-2.5 hover:text-clay-teal transition-colors no-underline">
+                <img
+                  src={author.photo}
+                  alt={author.name}
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                  class="rounded-full object-cover w-9 h-9 ring-2 ring-white shadow-sm"
+                />
+                <div>
+                  <span class="block font-semibold text-clay-text text-sm leading-tight">{author.name}</span>
+                  <span class="block text-xs text-clay-muted leading-tight">{author.specialization}</span>
+                </div>
+              </a>
+            ) : (
+              <span class="font-medium text-clay-text text-sm">{post.data.author}</span>
+            )}
+            <span class="blog-meta-dot">·</span>
+            <time datetime={post.data.publishDate.toISOString()} class="text-sm text-clay-muted">{formattedDate}</time>
+            {updatedDate && (
+              <>
+                <span class="blog-meta-dot">·</span>
+                <span class="text-sm text-clay-muted">Обновлено: {updatedDate}</span>
+              </>
+            )}
+            {post.data.readingTime && (
+              <>
+                <span class="blog-meta-dot">·</span>
+                <span class="text-sm text-clay-muted flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {post.data.readingTime} мин
+                </span>
+              </>
+            )}
+          </div>
+        </header>
+
+        <div class="prose-clay">
+          <Content />
+        </div>
+
+        <footer class="mt-14 pt-10 border-t border-gray-100">
+          {author && (
+            <div class="blog-author-card">
+              <img
+                src={author.photo}
+                alt={author.name}
+                width="72"
+                height="72"
+                loading="lazy"
+                class="rounded-full object-cover w-[72px] h-[72px] shrink-0 ring-2 ring-white shadow"
+              />
+              <div>
+                <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-1">Автор статьи</p>
+                <a href={`/doctors/${author.slug}`} class="text-lg font-bold text-clay-text hover:text-clay-teal transition-colors no-underline block leading-tight mb-1">
+                  {author.name}
+                </a>
+                <p class="text-sm text-clay-muted">{author.specialization} · Стаж {author.experienceYears} лет</p>
+                {author.degree && <p class="text-sm text-clay-muted mt-0.5">{author.degree}</p>}
+              </div>
+            </div>
+          )}
+
+          <div class="clay-card clay-card-mint p-8 md:p-10 text-center mt-8">
+            <h2 class="text-xl font-bold text-white mb-3">Остались вопросы?</h2>
+            <p class="text-white/85 mb-6 max-w-md mx-auto">
+              Запишитесь на консультацию к специалисту — получите персональный ответ на вашу ситуацию.
+            </p>
+            <a href="/#appointment" class="btn-clay-white inline-block">
+              Записаться на приём
+            </a>
+          </div>
+
+          <div class="mt-8 text-center">
+            <a href="/blog" class="text-clay-teal hover:underline text-sm font-medium">
+              ← Все статьи блога
+            </a>
+          </div>
+        </footer>
+      </article>
+
+      <!-- Боковая панель -->
+      <aside class="blog-article-sidebar">
+        {author && (
+          <div class="clay-card p-5 mb-5">
+            <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Автор</p>
+            <a href={`/doctors/${author.slug}`} class="flex items-center gap-3 no-underline group">
+              <img
+                src={author.photo}
+                alt={author.name}
+                width="48"
+                height="48"
+                loading="lazy"
+                class="rounded-full object-cover w-12 h-12 shrink-0"
+              />
+              <div>
+                <span class="block font-semibold text-clay-text group-hover:text-clay-teal transition-colors text-sm leading-snug">{author.name}</span>
+                <span class="block text-xs text-clay-muted mt-0.5">{author.specialization}</span>
+                <span class="block text-xs text-clay-muted">Стаж {author.experienceYears} лет</span>
+              </div>
+            </a>
+          </div>
+        )}
+
+        <div class="clay-card clay-card-soft-mint p-5 mb-5">
+          <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Запись на приём</p>
+          <p class="text-sm text-clay-muted mb-4 leading-relaxed">Получите консультацию специалиста по вашей ситуации</p>
+          <a href="/#appointment" class="btn-clay-primary block text-center text-sm py-2.5">
+            Записаться
+          </a>
+        </div>
+
+        <div class="clay-card p-5">
+          <p class="text-xs font-medium text-clay-muted uppercase tracking-wide mb-3">Категория</p>
+          <span class="blog-category-badge">{post.data.category}</span>
+          {post.data.tags.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              {post.data.tags.map((tag) => (
+                <span class="text-xs text-clay-muted bg-gray-100 px-2 py-0.5 rounded-full">#{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</Layout>

@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { Endocrinology } from '../components/pages/Endocrinology.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 ---
 
 <Layout
-  title="Эндокринология — Клиника Одинцова"
+  title="Эндокринология в Санкт-Петербурге — гормоны, щитовидная железа, вес | Клиника Одинцова"
   description="Эндокринология на основе данных: усталость, вес, гормоны. Комплексный анализ ферритина, витаминов и гормонального профиля. Результат через 14 дней."
+  keywords="эндокринолог Санкт-Петербург, эндокринолог СПб, щитовидная железа лечение СПб, гипотиреоз лечение СПб, гормоны анализы СПб, эндокринолог Комендантский проспект"
 >
+  <BreadcrumbNav items={[{ label: 'Эндокринология' }]} />
   <Endocrinology />
 </Layout>

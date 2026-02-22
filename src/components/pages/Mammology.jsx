@@ -1,6 +1,34 @@
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { FaqSection } from '../FaqSection.jsx'
+
+const MAMMOLOGY_FAQ = [
+  {
+    question: 'Что лечит маммолог?',
+    answer: 'Маммолог занимается диагностикой и лечением заболеваний молочных желёз: фиброаденомы, кисты, мастопатии, внутрипротоковые папилломы, а также ранней диагностикой рака молочной железы. В нашей клинике маммологи — онкологи-хирурги, владеющие УЗИ и технологией ВАБ.',
+  },
+  {
+    question: 'Как часто нужно ходить к маммологу?',
+    answer: 'Женщинам до 40 лет рекомендуется профилактический осмотр маммолога раз в год. После 40 лет — раз в год с маммографией. При наличии образований или наследственной предрасположенности — раз в 6 месяцев.',
+  },
+  {
+    question: 'Чем отличается ВАБ от обычной биопсии?',
+    answer: 'Обычная биопсия (ТАБ) берёт лишь несколько клеток иглой для анализа. ВАБ — это полное удаление образования через прокол 2 мм под вакуумным контролем. То есть ВАБ одновременно является и диагностикой, и лечением.',
+  },
+  {
+    question: 'Нужно ли удалять фиброаденому?',
+    answer: 'Не всегда. Небольшие стабильные фиброаденомы можно наблюдать. Удаление показано при росте образования, размере более 2 см, болевых ощущениях или тревоге пациентки. В нашей клинике мы честно говорим, когда наблюдение предпочтительнее вмешательства.',
+  },
+  {
+    question: 'Можно ли записаться без направления?',
+    answer: 'Да. Направление от врача не нужно. Вы можете записаться напрямую через WhatsApp или по телефону. На первичной консультации врач проведёт осмотр и УЗИ.',
+  },
+  {
+    question: 'Принимаете ли вы ДМС?',
+    answer: 'Да. Мы работаем с ДМС следующих страховых компаний: Ренессанс, АльфаСтрахование, ВСК, РЕСО-Гарантия. Уточните наличие вашей страховки у администратора.',
+  },
+]
 
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /онколог-маммолог/i.test(d.specialization)
@@ -77,8 +105,8 @@ export function Mammology() {
               Флагманская услуга
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Удаление новообразований груди через прокол{' '}
-              <span className="text-clay-mint">2 мм</span>: эстетика и точность
+              Маммология в Санкт-Петербурге:{' '}
+              <span className="text-clay-mint">удаление новообразований</span> через прокол 2 мм
             </h1>
             <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium">
               «Боюсь шрамов и того, что под наркозом что-то пойдёт не так»
@@ -217,6 +245,64 @@ export function Mammology() {
         </div>
       </section>
 
+      {/* PRICES */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на маммологию в СПб</h2>
+            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {[
+              { name: 'Первичная консультация онколога-маммолога', price: 'от 3 500 ₽' },
+              { name: 'УЗИ молочных желёз', price: 'от 2 500 ₽' },
+              { name: 'ВАБ (вакуумная аспирационная биопсия) под ключ', price: 'от 35 000 ₽' },
+              { name: 'Второе мнение онколога-маммолога', price: 'Бесплатно' },
+            ].map((item) => (
+              <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
+                <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
+                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{item.price}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <a href="/prices" className="clay btn-clay-secondary text-sm">
+              Полный прайс-лист →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* INTERNAL LINKS */}
+      <section className="section">
+        <div className="container-clay">
+          <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="/vab" className="clay clay-card-soft-mint p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Zap size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">ВАБ — подробнее о процедуре</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Как проходит, показания, сравнение с операцией, цены</p>
+              </div>
+            </a>
+            <a href="/doctors" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <CheckCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Наши врачи-маммологи</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Онкологи-хирурги с опытом более 20 лет</p>
+              </div>
+            </a>
+            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Бесплатное второе мнение</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Назначили операцию? Проверим, нужна ли она</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
@@ -241,6 +327,10 @@ export function Mammology() {
           </div>
         </div>
       </section>
+
+      <div className="container-clay">
+        <FaqSection items={MAMMOLOGY_FAQ} title="Частые вопросы о маммологии" />
+      </div>
     </div>
   )
 }

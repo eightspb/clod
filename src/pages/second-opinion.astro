@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { SecondOpinion } from '../components/pages/SecondOpinion.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 ---
 
 <Layout
-  title="Бесплатное второе мнение — Клиника Одинцова"
+  title="Бесплатное второе мнение онколога-маммолога в СПб — Клиника Одинцова"
   description="Сомневаетесь в необходимости операции? Наш онколог-маммолог бесплатно проверит ваш диагноз. Каждый третий пациент избегает операции с помощью ВАБ."
+  keywords="второе мнение маммолог СПб, второе мнение онколог Санкт-Петербург, нужна ли операция на груди, проверить диагноз маммолог, бесплатная консультация маммолог СПб"
 >
+  <BreadcrumbNav items={[{ label: 'Бесплатное второе мнение' }]} />
   <SecondOpinion />
 </Layout>

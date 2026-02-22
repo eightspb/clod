@@ -6,6 +6,7 @@ import '../styles/global.css'
 interface Props {
   title?: string
   description?: string
+  keywords?: string
   ogImage?: string
   ogType?: string
   canonicalUrl?: string
@@ -14,6 +15,7 @@ interface Props {
 const {
   title = 'Клиника Одинцова — Экспертная медицина',
   description = 'Клиника экспертной медицины в маммологии, гинекологии, эндокринологии и неврологии. Технология ВАБ — удаление образований за 30 минут без скальпеля и швов.',
+  keywords = 'клиника Одинцова, маммолог Санкт-Петербург, ВАБ СПб, гинеколог СПб, эндокринолог СПб, невролог СПб',
   ogImage = '/images/og-default.jpg',
   ogType = 'website',
   canonicalUrl = `https://odintsovclinic.ru${Astro.url.pathname}`,
@@ -28,14 +30,21 @@ const currentPath = Astro.url.pathname
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
 
+    <!-- GEO -->
+    <meta name="geo.region" content="RU-SPE" />
+    <meta name="geo.placename" content="Санкт-Петербург" />
+    <meta name="geo.position" content="60.0028;30.2153" />
+    <meta name="ICBM" content="60.0028, 30.2153" />
+
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={`https://odintsovclinic.ru${ogImage}`} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Клиника Одинцова" />
@@ -45,27 +54,31 @@ const currentPath = Astro.url.pathname
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={`https://odintsovclinic.ru${ogImage}`} />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Шрифт Inter — самохостинг (без внешнего CDN) -->
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 
     <!-- JSON-LD: MedicalBusiness -->
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "MedicalBusiness",
       "name": "Клиника Одинцова",
+      "alternateName": "Клиника доктора Одинцова",
       "url": "https://odintsovclinic.ru",
       "logo": "https://odintsovclinic.ru/images/og-default.jpg",
+      "image": "https://odintsovclinic.ru/images/og-default.jpg",
       "telephone": "+78127482210",
+      "email": "info@odintsovclinic.ru",
+      "priceRange": "$$",
+      "currenciesAccepted": "RUB",
+      "paymentAccepted": "Наличные, банковская карта, ДМС",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "пр. Богатырский 22 к.1",
+        "streetAddress": "пр. Богатырский, д. 22, к. 1",
         "addressLocality": "Санкт-Петербург",
+        "postalCode": "197374",
+        "addressRegion": "Санкт-Петербург",
         "addressCountry": "RU"
       },
       "geo": {
@@ -73,12 +86,41 @@ const currentPath = Astro.url.pathname
         "latitude": 60.0028,
         "longitude": 30.2153
       },
+      "hasMap": "https://yandex.ru/maps/-/CHdGkBYD",
       "openingHours": ["Mo-Fr 09:00-20:00", "Sa-Su 10:00-18:00"],
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+          "opens": "09:00",
+          "closes": "20:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Saturday","Sunday"],
+          "opens": "10:00",
+          "closes": "18:00"
+        }
+      ],
       "medicalSpecialty": ["Mammography", "Gynecology", "Endocrinology", "Neurology"],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "200",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
       "sameAs": [
         "https://wa.me/79119258022",
-        "https://t.me/odintsovclinic"
-      ]
+        "https://t.me/odintsovclinic",
+        "https://prodoctorov.ru/spb/lpu/130932-klinika-odincova/",
+        "https://2gis.ru/spb/firm/70000001062793440",
+        "https://yandex.ru/maps/org/klinika_odincova/1127907054/"
+      ],
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": ["h1", ".speakable"]
+      }
     })} />
   </head>
   <body class="relative min-h-screen bg-clay-bg font-sans">
@@ -89,8 +131,8 @@ const currentPath = Astro.url.pathname
       <div class="blob-blue absolute w-52 h-52 opacity-25" style="bottom:15%;right:-30px" />
       <div class="blob-lavender absolute w-48 h-48 opacity-28" style="top:20%;left:38%" />
     </div>
-    <!-- Маленькие orb: прокручиваются со страницей + параллакс через JS -->
-    <div id="orb-layer" aria-hidden="true" class="absolute top-0 left-0 w-full pointer-events-none" style="z-index:-1;height:100%">
+    <!-- Маленькие orb: fixed-слой, параллакс через JS (translateY) -->
+    <div id="orb-layer" aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
       <div class="orb absolute w-5 h-5 opacity-50" data-speed="0.3" style="top:8vh;left:22%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
       <div class="orb absolute w-7 h-7 opacity-38" data-speed="0.5" style="top:16vh;right:28%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
       <div class="orb absolute w-3 h-3 opacity-55" data-speed="0.2" style="top:26vh;left:62%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
@@ -171,34 +213,21 @@ const currentPath = Astro.url.pathname
     <script src="/tracker.js" is:inline></script>
 
     <script>
-      // Параллакс для орбов: каждый орб движется медленнее скролла
-      // Базовая позиция фиксируется при загрузке, затем top = basePx + scrollY * (1 - speed)
-      // speed=1 → движется вместе со страницей (нет параллакса)
-      // speed=0 → не движется вообще (как fixed)
-      // speed=0.3-0.6 → заметный мягкий параллакс
+      // Параллакс для орбов: слой fixed, орбы смещаются через translateY
+      // При скролле вниз орб сдвигается вверх на scrollY * (1 - speed)
+      // speed=1 → орб движется вместе со страницей (полный параллакс)
+      // speed=0 → орб не движется (как статичный fixed)
+      // speed=0.3-0.6 → мягкий параллакс
       (function () {
-        var vh = window.innerHeight
         var orbs = document.querySelectorAll('#orb-layer .orb[data-speed]')
         if (!orbs.length) return
-
-        // Считываем базовые позиции из vh-значений в px один раз
-        var basePositions = []
-        orbs.forEach(function (orb, i) {
-          var topStyle = orb.style.top // e.g. "8vh"
-          var basePx = parseFloat(topStyle) / 100 * vh
-          basePositions[i] = basePx
-          // Переключаемся на px чтобы JS мог управлять
-          orb.style.top = basePx + 'px'
-        })
 
         var ticking = false
         function updateOrbs() {
           var scrollY = window.scrollY
-          orbs.forEach(function (orb, i) {
+          orbs.forEach(function (orb) {
             var speed = parseFloat(orb.getAttribute('data-speed')) || 0.5
-            // Орб движется медленнее: при скролле вниз на 100px орб уходит вниз только на speed*100px
-            var newTop = basePositions[i] + scrollY * speed
-            orb.style.top = newTop + 'px'
+            orb.style.transform = 'translateY(' + (scrollY * speed) + 'px)'
           })
           ticking = false
         }

@@ -1,6 +1,30 @@
-import { ArrowRight, Heart, CheckCircle, Star, Clock, MessageCircle, Smile } from 'lucide-react'
+import { ArrowRight, Heart, CheckCircle, Star, Clock, MessageCircle, Smile, Users } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { FaqSection } from '../FaqSection.jsx'
+
+const GYNECOLOGY_FAQ = [
+  {
+    question: 'Что входит в первичный приём гинеколога?',
+    answer: 'На первичном приёме гинеколог проводит осмотр, УЗИ малого таза, при необходимости берёт мазки и назначает анализы. Всё — за один визит. Результаты базовых анализов готовы через 24 часа.',
+  },
+  {
+    question: 'Нужно ли лечить эрозию шейки матки?',
+    answer: 'В большинстве случаев — нет. То, что раньше называли «эрозией», чаще всего является эктопией — нормальным вариантом строения шейки матки. Лечение требуется только при подтверждённой дисплазии по результатам кольпоскопии и биопсии.',
+  },
+  {
+    question: 'Нужно ли лечить уреаплазму?',
+    answer: 'Нет, если нет симптомов. Уреаплазма — условно-патогенный микроорганизм, который присутствует у большинства здоровых женщин. Лечение назначается только при наличии воспаления, жалоб или при планировании беременности.',
+  },
+  {
+    question: 'Как часто нужно ходить к гинекологу?',
+    answer: 'Профилактический осмотр — раз в год. При наличии хронических заболеваний, планировании беременности или жалобах — по назначению врача.',
+  },
+  {
+    question: 'Можно ли прийти на приём во время менструации?',
+    answer: 'Для экстренных жалоб — да. Для планового осмотра и взятия мазков лучше прийти на 5–7 день цикла. Уточните у администратора при записи.',
+  },
+]
 
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /^гинеколог/i.test(d.specialization)
@@ -84,8 +108,8 @@ export function Gynecology({ servicesData = [] }) {
               Бережная гинекология
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Бережная гинекология:{' '}
-              <span className="text-clay-peach">экспертный осмотр</span> без боли и «запугивания»
+              Гинекология в Санкт-Петербурге:{' '}
+              <span className="text-clay-peach">бережный осмотр</span> без боли и «запугивания»
             </h1>
             <p className="text-lg text-clay-muted font-medium mb-3">
               «Боюсь, что будут стыдить, сделают больно или найдут инфекции, которых нет»
@@ -198,6 +222,64 @@ export function Gynecology({ servicesData = [] }) {
         </div>
       </section>
 
+      {/* PRICES */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на гинекологию в СПб</h2>
+            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {[
+              { name: 'Первичная консультация гинеколога', price: 'от 3 500 ₽' },
+              { name: 'УЗИ органов малого таза', price: 'от 2 500 ₽' },
+              { name: 'Кольпоскопия', price: 'от 3 000 ₽' },
+              { name: 'ПЦР-диагностика ИППП (расширенная)', price: 'от 4 500 ₽' },
+            ].map((item) => (
+              <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
+                <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
+                <span className="font-bold text-sm whitespace-nowrap" style={{ color: '#C07050' }}>{item.price}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <a href="/prices" className="clay btn-clay-secondary text-sm">
+              Полный прайс-лист →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* INTERNAL LINKS */}
+      <section className="section">
+        <div className="container-clay">
+          <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="/doctors" className="clay clay-card-soft-peach p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Users size={20} className="mt-0.5 flex-shrink-0" style={{ color: '#C07050' }} />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Наши гинекологи</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и опытом от 10 лет</p>
+              </div>
+            </a>
+            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <CheckCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все гинекологические услуги</p>
+              </div>
+            </a>
+            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <MessageCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
@@ -222,6 +304,10 @@ export function Gynecology({ servicesData = [] }) {
           </div>
         </div>
       </section>
+
+      <div className="container-clay">
+        <FaqSection items={GYNECOLOGY_FAQ} title="Частые вопросы о гинекологии" />
+      </div>
     </div>
   )
 }

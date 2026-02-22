@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro'
 import { DoctorPage } from '../../components/pages/DoctorPage.jsx'
+import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { DOCTORS, getDoctorBySlug } from '../../lib/doctors-data.js'
 
 export function getStaticPaths() {
@@ -17,28 +18,57 @@ if (!doctor) {
 }
 
 const doctorUrl = `https://odintsovclinic.ru/doctors/${doctor.slug}`
+
+const sameAsLinks = [
+  ...(doctor.proDoctorovUrl ? [doctor.proDoctorovUrl] : []),
+]
+
+const hasCredential = doctor.education
+  ? doctor.education.map((edu) => ({
+      "@type": "EducationalOccupationalCredential",
+      "name": edu.description,
+      "dateCreated": edu.year,
+    }))
+  : []
+
 const physicianSchema = {
   "@context": "https://schema.org",
   "@type": "Physician",
   "name": doctor.name,
   "description": doctor.tagline || doctor.bio || '',
   "medicalSpecialty": doctor.specialization,
+  ...(doctor.degree ? { "honorificSuffix": doctor.degree } : {}),
+  "knowsAbout": doctor.helpsWith || [],
   "worksFor": {
     "@type": "MedicalBusiness",
     "name": "Клиника Одинцова",
-    "url": "https://odintsovclinic.ru"
+    "url": "https://odintsovclinic.ru",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "пр. Богатырский, д. 22, к. 1",
+      "addressLocality": "Санкт-Петербург",
+      "postalCode": "197374",
+      "addressCountry": "RU"
+    }
   },
   "url": doctorUrl,
-  ...(doctor.photo ? { "image": `https://odintsovclinic.ru${doctor.photo}` } : {})
+  ...(doctor.photo ? { "image": `https://odintsovclinic.ru${doctor.photo}` } : {}),
+  ...(sameAsLinks.length > 0 ? { "sameAs": sameAsLinks } : {}),
+  ...(hasCredential.length > 0 ? { "hasCredential": hasCredential } : {}),
+  ...(doctor.publications && doctor.publications.length > 0 ? {
+    "publishingPrinciples": doctor.publications.map((p) => p.title).join('; ')
+  } : {}),
 }
 ---
 
 <Layout
-  title={`${doctor.name} — Клиника Одинцова`}
+  title={`${doctor.name} — ${doctor.specialization} в СПб | Клиника Одинцова`}
   description={`${doctor.specialization}. Стаж ${doctor.experienceYears} лет. ${doctor.tagline}`}
+  keywords={`${doctor.name}, ${doctor.specialization} Санкт-Петербург, ${doctor.specialization} СПб, клиника Одинцова врачи`}
   canonicalUrl={doctorUrl}
   ogType="profile"
 >
   <script type="application/ld+json" set:html={JSON.stringify(physicianSchema)} />
+  <BreadcrumbNav items={[{ label: 'Врачи', href: '/doctors' }, { label: doctor.name }]} />
   <DoctorPage doctor={doctor} />
 </Layout>

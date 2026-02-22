@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { Neurology } from '../components/pages/Neurology.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 ---
 
 <Layout
-  title="Неврология — Клиника Одинцова"
+  title="Неврология в Санкт-Петербурге — лечение боли в спине и мигреней | Клиника Одинцова"
   description="Лечение боли в спине, мигреней и грыжи позвоночника без операции. Лечебные блокады под УЗИ-навигацией. Результат за 1–3 визита."
+  keywords="невролог Санкт-Петербург, невролог СПб, лечение мигрени СПб, боль в спине лечение СПб, грыжа позвоночника лечение без операции, блокада позвоночника СПб, невролог Комендантский проспект"
 >
+  <BreadcrumbNav items={[{ label: 'Неврология' }]} />
   <Neurology />
 </Layout>

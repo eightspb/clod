@@ -402,7 +402,7 @@ export function Home({ doctorsData = [] }) {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <a href="/mammology" className="clay btn-clay-white text-sm py-3">
+                <a href="/vab" className="clay btn-clay-white text-sm py-3">
                   Подробнее о ВАБ
                   <ArrowRight size={14} />
                 </a>
@@ -420,7 +420,7 @@ export function Home({ doctorsData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Направления клиники</h2>
-            <p className="text-clay-muted max-w-xl mx-auto">Комплексная помощь по четырём ключевым направлениям — от диагностики до результата</p>
+            <p className="text-clay-muted max-w-xl mx-auto">Комплексная помощь по ключевым направлениям — от диагностики до результата</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {SERVICES.map((s) => (

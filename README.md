@@ -105,6 +105,8 @@ clod/
 │   │   │   ├── Gynecology.jsx
 │   │   │   ├── Endocrinology.jsx
 │   │   │   ├── Neurology.jsx
+│   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры
+│   │   │   ├── Contacts.jsx       # Страница контактов с картой
 │   │   │   ├── SecondOpinion.jsx
 │   │   │   ├── Prices.jsx
 │   │   │   ├── Doctors.jsx        # Листинг всех докторов с фильтрами
@@ -137,6 +139,14 @@ clod/
 │   │   ├── filters.js             # Фильтры докторов: FILTER_TABS, FILTER_BG, matchesFilter
 │   │   ├── clinic-info.js         # Данные клиники: CLINIC_FACTS, SERVICES, WHY_ITEMS
 │   │   └── doctors-data.js        # Статические данные 9 докторов клиники
+│   ├── content/                   # Astro Content Collections
+│   │   ├── config.ts              # Схема коллекций (blog: title, description, author, tags…)
+│   │   └── blog/                  # Markdown-статьи блога
+│   │       ├── vab-ili-operatsiya.md
+│   │       ├── chto-takoe-fibroadenoma.md
+│   │       ├── kak-izbezhat-operatsii-na-grudi.md
+│   │       ├── mammografiya-ili-uzi.md
+│   │       └── gipotireoz-simptomy-lechenie.md
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
 │   │   ├── mammology.astro        # /mammology
@@ -145,6 +155,11 @@ clod/
 │   │   ├── neurology.astro        # /neurology
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── prices.astro           # /prices
+│   │   ├── vab.astro              # /vab — ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
+│   │   ├── contacts.astro         # /contacts — контакты с картой
+│   │   ├── blog/
+│   │   │   ├── index.astro        # /blog — список статей (ItemList JSON-LD)
+│   │   │   └── [slug].astro       # /blog/vab-ili-operatsiya и т.д. (MedicalWebPage + Article JSON-LD)
 │   │   ├── doctors.astro          # /doctors — листинг докторов
 │   │   ├── doctors/
 │   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д. (+ Physician JSON-LD)
@@ -173,7 +188,7 @@ clod/
 │   │               ├── photo.js   # POST — загрузка фото доктора
 │   │               └── certificates.js # POST — загрузка сертификатов
 │   ├── styles/
-│   │   └── global.css             # Tailwind + все clay-утилиты + clay-banner-* классы
+│   │   └── global.css             # Tailwind + все clay-утилиты + clay-banner-* + prose-clay (блог)
 │   └── env.d.ts                   # Astro type references
 ├── db/                            # Astro DB
 │   ├── config.ts                  # Схема базы данных
@@ -210,13 +225,37 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/gynecology` | `gynecology.astro` | `Gynecology.jsx` |
 | `/endocrinology` | `endocrinology.astro` | `Endocrinology.jsx` |
 | `/neurology` | `neurology.astro` | `Neurology.jsx` |
+| `/vab` | `vab.astro` | `Vab.jsx` |
+| `/contacts` | `contacts.astro` | `Contacts.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
 | `/prices` | `prices.astro` | `Prices.jsx` |
 | `/doctors` | `doctors.astro` | `Doctors.jsx` |
 | `/doctors/[slug]` | `doctors/[slug].astro` | `DoctorPage.jsx` |
+| `/blog` | `blog/index.astro` | — (Astro) |
+| `/blog/[slug]` | `blog/[slug].astro` | — (Astro + Content Collections) |
 | `/privacy-policy` | `privacy-policy.astro` | `PrivacyPolicy.jsx` |
 
-Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля: `slug`, `name`, `specialization`, `experienceYears`, `ringColor`, `tagline`, `bio`, `helpsWith[]`, `education[]`, `reviews[]`.
+Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля:
+
+| Поле | Тип | Описание |
+|---|---|---|
+| `slug` | string | URL-идентификатор (`/doctors/odintsov`) |
+| `name` | string | Полное имя |
+| `degree` | string? | Учёная степень (напр. `д.м.н.`) — используется в `honorificSuffix` Physician JSON-LD |
+| `specialization` | string | Специализация |
+| `experienceYears` | number | Стаж в годах |
+| `ringColor` | string | Цвет кольца аватара (`mint`, `peach`, `blue`, `lavender`) |
+| `tagline` | string | Краткое описание для карточки |
+| `bio` | string | Слово доктора (от первого лица) |
+| `aboutDoctor` | string | Описание от третьего лица |
+| `helpsWith[]` | string[] | Список направлений помощи |
+| `education[]` | `{year, description}[]` | Образование и повышение квалификации |
+| `reviews[]` | `{text, author?}[]` | Отзывы пациентов |
+| `proDoctorovUrl` | string? | Ссылка на профиль на ПроДокторов (E-E-A-T + `sameAs` в JSON-LD) |
+| `publications[]` | `{title, year, type, note?}[]` | Научные публикации и диссертации (только у Одинцова) |
+| `tvLinks[]` | `{title, channel, url, year}[]` | Ссылки на TV-выступления (только у Одинцова) |
+
+`DoctorPage.jsx` отображает секции «Научные публикации и патенты» и «Выступления в СМИ» при наличии соответствующих данных.
 
 ### Централизованные данные (`src/lib/`)
 
@@ -432,6 +471,52 @@ integrations: [
 - Canonical URL
 - JSON-LD `MedicalBusiness` structured data (на всех страницах)
 - JSON-LD `Physician` structured data (на страницах `/doctors/[slug]`)
+
+---
+
+## SEO & GEO оптимизация
+
+### Реализованные улучшения
+
+| Задача | Статус | Описание |
+|---|---|---|
+| A1 — Sitemap | ✅ | `@astrojs/sitemap` автогенерация, удалён хардкодный `public/sitemap.xml` |
+| A2 — GEO-метатеги | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
+| A3 — Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
+| A4 — JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `aggregateRating`, `sameAs`, полный `PostalAddress` |
+| A5 — BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
+| A6 — Самохостинг шрифтов | ✅ | Inter woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">` |
+| B1 — Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
+| B2 — FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
+| B3 — Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
+| B4 — Блог | ✅ | 5 статей, `ItemList` + `MedicalWebPage` JSON-LD |
+| B5 — Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
+
+### Блог (`/blog`)
+
+Блог реализован через **Astro Content Collections** (`src/content/blog/`):
+
+- Статьи в формате Markdown с frontmatter (title, description, keywords, publishDate, author, category, tags)
+- Схема коллекции в `src/content/config.ts`
+- `/blog` — листинг статей с `ItemList` JSON-LD
+- `/blog/[slug]` — статья с `MedicalWebPage` JSON-LD (author = Physician, medicalAudience = Patient)
+- Автор статьи связывается с данными из `doctors-data.js` по `authorSlug`
+- Стили для контента статей: класс `.prose-clay` в `global.css` (кастомные заголовки с акцентом, стилизованные списки, таблицы с закруглёнными углами)
+- Layout страницы статьи: двухколоночный grid (`blog-article-layout`) — основной контент + sticky боковая панель с автором и кнопкой записи (на десктопе ≥1024px)
+- Контейнер статьи: `container-clay` (max-w-6xl) вместо узкого max-w-3xl
+
+**Приоритетные статьи:**
+- `vab-ili-operatsiya` — ВАБ или операция при фиброаденоме
+- `chto-takoe-fibroadenoma` — Фиброаденома: причины, симптомы, лечение
+- `kak-izbezhat-operatsii-na-grudi` — Как избежать операции на молочной железе
+- `mammografiya-ili-uzi` — Маммография или УЗИ: что выбрать
+- `gipotireoz-simptomy-lechenie` — Гипотиреоз: симптомы, диагностика и лечение
+
+**Добавление новой статьи:**
+1. Создать файл `src/content/blog/slug-statyi.md`
+2. Заполнить frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
+3. Написать контент в Markdown
+4. Статья автоматически появится на `/blog` и `/blog/slug-statyi`
 
 ---
 

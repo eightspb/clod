@@ -1,6 +1,30 @@
-import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle } from 'lucide-react'
+import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle, Users } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { FaqSection } from '../FaqSection.jsx'
+
+const ENDOCRINOLOGY_FAQ = [
+  {
+    question: 'Какие симптомы говорят о проблемах с щитовидной железой?',
+    answer: 'Усталость без причины, набор веса при обычном питании, выпадение волос, зябкость, запоры, депрессия — могут указывать на гипотиреоз. Раздражительность, потливость, учащённое сердцебиение, похудение — на гипертиреоз. Для точного диагноза нужны анализы на ТТГ, Т3, Т4.',
+  },
+  {
+    question: 'Какие анализы нужно сдать эндокринологу?',
+    answer: 'На первичный приём достаточно прийти без анализов — врач назначит нужные. Стандартный скрининг включает ТТГ, Т4 свободный, ферритин, витамин D, общий анализ крови. При подозрении на диабет — глюкоза и HbA1c.',
+  },
+  {
+    question: 'Можно ли похудеть с помощью эндокринолога?',
+    answer: 'Если причина лишнего веса — гормональный дисбаланс (гипотиреоз, инсулинорезистентность, дефицит витамина D), то коррекция этих нарушений помогает нормализовать вес. Эндокринолог не занимается диетологией как таковой, но устраняет метаболические причины набора веса.',
+  },
+  {
+    question: 'Как часто нужно проверять щитовидную железу?',
+    answer: 'Здоровым людям — раз в 2–3 года. При выявленных нарушениях (гипотиреоз, узлы) — раз в 6–12 месяцев по назначению врача. Женщинам при планировании беременности — обязательно.',
+  },
+  {
+    question: 'Нужно ли принимать йод для профилактики?',
+    answer: 'Не всегда. Бесконтрольный приём йода при некоторых заболеваниях щитовидной железы (аутоиммунный тиреоидит) может навредить. Решение о приёме йода должен принимать врач на основании анализов.',
+  },
+]
 
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /^эндокринолог/i.test(d.specialization)
@@ -76,7 +100,7 @@ export function Endocrinology() {
               Эндокринология
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Эндокринология на основе данных:{' '}
+              Эндокринология в Санкт-Петербурге:{' '}
               <span className="text-clay-blue">верните контроль</span> над своим телом
             </h1>
             <p className="text-lg text-clay-muted font-medium mb-3">
@@ -194,6 +218,64 @@ export function Endocrinology() {
         </div>
       </section>
 
+      {/* PRICES */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на эндокринологию в СПб</h2>
+            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {[
+              { name: 'Первичная консультация эндокринолога', price: 'от 3 500 ₽' },
+              { name: 'Повторная консультация с разбором анализов', price: 'от 2 500 ₽' },
+              { name: 'УЗИ щитовидной железы', price: 'от 2 000 ₽' },
+              { name: 'Комплексный гормональный скрининг', price: 'от 5 000 ₽' },
+            ].map((item) => (
+              <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
+                <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
+                <span className="text-clay-blue font-bold text-sm whitespace-nowrap">{item.price}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <a href="/prices" className="clay btn-clay-secondary text-sm">
+              Полный прайс-лист →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* INTERNAL LINKS */}
+      <section className="section">
+        <div className="container-clay">
+          <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="/doctors" className="clay clay-card-soft-blue p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Users size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Наши эндокринологи</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и опытом от 10 лет</p>
+              </div>
+            </a>
+            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <CheckCircle size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все эндокринологические услуги</p>
+              </div>
+            </a>
+            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <MessageCircle size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
@@ -218,6 +300,10 @@ export function Endocrinology() {
           </div>
         </div>
       </section>
+
+      <div className="container-clay">
+        <FaqSection items={ENDOCRINOLOGY_FAQ} title="Частые вопросы об эндокринологии" />
+      </div>
     </div>
   )
 }

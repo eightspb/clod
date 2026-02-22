@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { Gynecology } from '../components/pages/Gynecology.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { db, Service } from 'astro:db'
 import { eq } from 'astro:db'
 
@@ -9,8 +10,10 @@ const services = await db.select().from(Service).where(eq(Service.direction, 'Г
 ---
 
 <Layout
-  title="Гинекология — Клиника Одинцова"
+  title="Гинекология в Санкт-Петербурге — приём без боли и гипердиагностики | Клиника Одинцова"
   description="Бережная гинекология без боли и гипердиагностики. Осмотр, УЗИ малого таза и анализы за один приём. Результаты через 24 часа."
+  keywords="гинеколог Санкт-Петербург, гинеколог СПб, гинеколог Комендантский проспект, гинеколог Старая Деревня, УЗИ малого таза СПб, гинеколог-эндокринолог СПб, женское здоровье СПб"
 >
+  <BreadcrumbNav items={[{ label: 'Гинекология' }]} />
   <Gynecology servicesData={services} client:load />
 </Layout>

@@ -1,11 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { Doctors } from '../components/pages/Doctors.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 ---
 
 <Layout
-  title="Доктора — Клиника Одинцова"
+  title="Врачи клиники Одинцова — онкологи-маммологи, гинекологи, эндокринологи в СПб"
   description="Онкологи-маммологи, гинекологи и эндокринологи клиники Одинцова. Все доктора владеют УЗИ и работают в единой команде."
+  keywords="врачи клиника Одинцова, онколог-маммолог СПб, гинеколог СПб, эндокринолог СПб, невролог СПб, доктор Одинцов, врачи маммологи Санкт-Петербург"
 >
+  <BreadcrumbNav items={[{ label: 'Врачи' }]} />
   <Doctors client:load />
 </Layout>

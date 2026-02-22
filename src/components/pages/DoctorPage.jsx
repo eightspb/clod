@@ -1,4 +1,4 @@
-import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star } from 'lucide-react'
+import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star, BookOpen, Tv, ExternalLink } from 'lucide-react'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
@@ -89,6 +89,21 @@ export function DoctorPage({ doctor }) {
                     +7 (812) 748-22-10
                   </a>
                 </div>
+
+                {/* Ссылка на ProDoctorov */}
+                {doctor.proDoctorovUrl && (
+                  <div className="mt-4">
+                    <a
+                      href={doctor.proDoctorovUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-clay-muted hover:text-clay-mint transition-colors"
+                    >
+                      <ExternalLink size={12} />
+                      Профиль на ПроДокторов
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -171,6 +186,77 @@ export function DoctorPage({ doctor }) {
                       <p className="text-sm text-clay-dark leading-relaxed">{item.description}</p>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Публикации ── */}
+      {doctor.publications && doctor.publications.length > 0 && (
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+                <div className="icon-circle-mint flex-shrink-0">
+                  <BookOpen size={18} className="text-white" />
+                </div>
+                Научные публикации и патенты
+              </h2>
+
+              <div className="space-y-3">
+                {doctor.publications.map((pub, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0 min-w-[52px]">
+                      <p className="text-xs font-extrabold text-clay-mint leading-none">{pub.year}</p>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="text-sm text-clay-dark leading-relaxed">{pub.title}</p>
+                      {pub.note && (
+                        <p className="text-xs text-clay-muted mt-0.5">{pub.note}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-clay-muted mt-5 pt-4 border-t border-gray-100">
+                Всего: 4 патента РФ, 12 рационализаторских предложений, 68 печатных работ
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── TV-выступления ── */}
+      {doctor.tvLinks && doctor.tvLinks.length > 0 && (
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+                <div className="icon-circle-peach flex-shrink-0">
+                  <Tv size={18} className="text-white" />
+                </div>
+                Выступления в СМИ
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {doctor.tvLinks.map((tv, i) => (
+                  <a
+                    key={i}
+                    href={tv.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="clay clay-card-soft-peach p-4 rounded-2xl hover:shadow-md transition-shadow group"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span className="text-xs font-semibold text-clay-muted">{tv.channel}</span>
+                      <ExternalLink size={14} className="text-clay-muted flex-shrink-0 group-hover:text-clay-mint transition-colors" />
+                    </div>
+                    <p className="text-sm font-semibold text-clay-dark leading-snug mb-2">{tv.title}</p>
+                    <span className="text-xs text-clay-muted">{tv.year}</span>
+                  </a>
                 ))}
               </div>
             </div>

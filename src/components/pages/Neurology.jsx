@@ -1,4 +1,28 @@
-import { ArrowRight, Brain, Target, BookOpen, CheckCircle, MessageCircle, Zap } from 'lucide-react'
+import { ArrowRight, Brain, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users } from 'lucide-react'
+import { FaqSection } from '../FaqSection.jsx'
+
+const NEUROLOGY_FAQ = [
+  {
+    question: 'Что лечит невролог?',
+    answer: 'Невролог занимается диагностикой и лечением заболеваний нервной системы: мигрени, головные боли напряжения, боль в спине и шее, грыжа межпозвонкового диска, радикулит, онемение конечностей, головокружения.',
+  },
+  {
+    question: 'Можно ли вылечить грыжу позвоночника без операции?',
+    answer: 'В большинстве случаев — да. Более 90% пациентов с грыжей диска не нуждаются в операции. Лечебные блокады под УЗИ-навигацией, физиотерапия и правильно подобранная программа реабилитации позволяют устранить боль и вернуться к активной жизни.',
+  },
+  {
+    question: 'Что такое лечебная блокада?',
+    answer: 'Лечебная блокада — это введение обезболивающего и противовоспалительного препарата точно в очаг боли под контролем УЗИ. Эффект ощущается уже через несколько часов. Процедура занимает 15–20 минут и проводится амбулаторно.',
+  },
+  {
+    question: 'Как быстро проходит мигрень после лечения?',
+    answer: 'При правильно подобранной терапии частота и интенсивность мигреней снижается уже через 4–6 недель. Мы используем международные протоколы лечения мигрени, включая современные профилактические препараты.',
+  },
+  {
+    question: 'Нужно ли МРТ перед приёмом невролога?',
+    answer: 'Нет, МРТ не обязательно для первичного приёма. Врач проведёт неврологический осмотр и при необходимости направит на нужные исследования. Если у вас уже есть снимки — возьмите их с собой.',
+  },
+]
 
 const features = [
   {
@@ -74,8 +98,8 @@ export function Neurology() {
               Неврология и центр лечения боли
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Жизнь без боли в спине, шее и голове.{' '}
-              <span className="text-clay-lavender">Без вечных курсов</span> массажа
+              Неврология в Санкт-Петербурге:{' '}
+              <span className="text-clay-lavender">жизнь без боли</span> в спине, шее и голове
             </h1>
             <p className="text-lg text-clay-muted font-medium mb-3">
               «Устал пить обезболивающие, боюсь, что грыжа — это приговор и нужна операция»
@@ -215,6 +239,64 @@ export function Neurology() {
         </div>
       </section>
 
+      {/* PRICES */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на неврологию в СПб</h2>
+            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {[
+              { name: 'Первичная консультация невролога', price: 'от 3 500 ₽' },
+              { name: 'Повторная консультация', price: 'от 2 500 ₽' },
+              { name: 'Лечебная блокада под УЗИ-навигацией', price: 'от 5 000 ₽' },
+              { name: 'Комплексное лечение мигрени (курс)', price: 'от 12 000 ₽' },
+            ].map((item) => (
+              <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
+                <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
+                <span className="text-clay-lavender font-bold text-sm whitespace-nowrap">{item.price}</span>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <a href="/prices" className="clay btn-clay-secondary text-sm">
+              Полный прайс-лист →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* INTERNAL LINKS */}
+      <section className="section">
+        <div className="container-clay">
+          <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <a href="/doctors" className="clay clay-card-soft-lavender p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Users size={20} className="text-clay-lavender mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Наши неврологи</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Специалисты по боли с опытом лечения по европейским протоколам</p>
+              </div>
+            </a>
+            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <CheckCircle size={20} className="text-clay-lavender mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все неврологические услуги</p>
+              </div>
+            </a>
+            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <MessageCircle size={20} className="text-clay-lavender mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section">
         <div className="container-clay">
@@ -239,6 +321,10 @@ export function Neurology() {
           </div>
         </div>
       </section>
+
+      <div className="container-clay">
+        <FaqSection items={NEUROLOGY_FAQ} title="Частые вопросы о неврологии" />
+      </div>
     </div>
   )
 }
