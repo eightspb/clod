@@ -202,6 +202,7 @@ clod/
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
 ├── nginx.conf                     # Nginx: HTTPS reverse proxy (финальный)
 ├── nginx.bootstrap.conf           # Nginx: только HTTP (для первичного получения SSL)
+├── nginx.no-domain.conf           # Nginx: доступ по IP без домена (только HTTP)
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
 ├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
@@ -539,6 +540,8 @@ integrations: [
 
 ## Docker-деплой на VPS
 
+**Пошаговая инструкция по деплою на Beget VPS (Ubuntu) из GitHub:** см. [DEPLOY-BEGET.md](./DEPLOY-BEGET.md) — создание VPS, установка Docker, клонирование репозитория, настройка `.env`, получение SSL (Let's Encrypt) и обновление сайта.
+
 ### Файлы конфигурации
 
 | Файл | Назначение |
@@ -548,6 +551,7 @@ integrations: [
 | `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
 | `nginx.conf` | Финальная конфигурация Nginx с HTTPS (используется после получения сертификата) |
 | `nginx.bootstrap.conf` | Временная конфигурация только с HTTP — для первичного получения SSL-сертификата |
+| `nginx.no-domain.conf` | Конфиг для доступа по IP без домена (только HTTP, без SSL) |
 | `.env.example` | Шаблон переменных окружения для production |
 
 ### Переменные окружения (`.env` на сервере)
