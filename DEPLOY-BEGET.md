@@ -288,7 +288,7 @@ docker compose logs app -f
 bun run deploy
 ```
 
-Скрипт подключится к серверу по `ssh clod`, выполнит `git pull` и `docker compose up -d --build` в каталоге `/srv/clod`. Либо запустите напрямую:
+Скрипт подключится к серверу по `ssh clod`, выполнит `git pull`, `docker compose up -d --build` и перезагрузку Nginx (`nginx -s reload`) для сброса кэша. Либо запустите напрямую:
 
 ```powershell
 .\scripts\deploy.ps1
@@ -302,9 +302,10 @@ bun run deploy
 cd /srv/clod
 git pull
 docker compose up -d --build
+docker compose exec -T nginx nginx -s reload
 ```
 
-Сборка пересоберёт образ и перезапустит контейнер приложения. Nginx и certbot продолжат работать без изменений.
+Сборка пересоберёт образ и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое — сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.
 
 ---
 

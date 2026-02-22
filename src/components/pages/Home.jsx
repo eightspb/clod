@@ -441,19 +441,24 @@ export function Home({ doctorsData = [] }) {
         <div className="container-clay relative z-10 py-8 md:py-14">
           {/* Слайды */}
           <div className="relative" style={{ minHeight: useEqualHeight && sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
-            {heroSlides.map((slide, idx) => (
+            {heroSlides.map((slide, idx) => {
+              const isActive = activeSlide === idx
+              if (!useEqualHeight && !isActive) {
+                return <div key={idx} ref={(el) => { slideRefs.current[idx] = el }} style={{ display: 'none' }} />
+              }
+              return (
               <div
                 key={idx}
                 ref={(el) => { slideRefs.current[idx] = el }}
                 className="transition-opacity duration-500"
                 style={{
-                  opacity: activeSlide === idx ? 1 : 0,
+                  opacity: isActive ? 1 : 0,
                   position: useEqualHeight && sliderHeight > 0 ? 'absolute' : 'relative',
                   top: 0,
                   left: 0,
                   width: '100%',
-                  pointerEvents: activeSlide === idx ? 'auto' : 'none',
-                  visibility: activeSlide === idx ? 'visible' : 'hidden',
+                  pointerEvents: isActive ? 'auto' : 'none',
+                  visibility: isActive ? 'visible' : 'hidden',
                 }}
               >
                 <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
@@ -521,7 +526,8 @@ export function Home({ doctorsData = [] }) {
                   </div>
                 </div>
               </div>
-            ))}
+            )
+            })}
           </div>
 
           {/* Навигация */}

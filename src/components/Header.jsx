@@ -41,7 +41,7 @@ export function Header({ currentPath = '/' }) {
       role="banner"
     >
       {/* Top row: Logo + Phone + CTA */}
-      <div className="container-clay flex items-center justify-between gap-4 pb-1 relative z-50">
+      <div className="container-clay flex items-center justify-between gap-4 pb-1 relative z-[80]">
         {/* Logo */}
         <a href="/" className="flex-shrink-0">
           <div className="clay clay-card flex items-center gap-2 px-5 py-2.5">
@@ -152,38 +152,49 @@ export function Header({ currentPath = '/' }) {
       {/* Mobile Menu: overlay (tap outside to close) + panel */}
       {mobileOpen && (
         <>
-          <button
-            type="button"
-            className="lg:hidden fixed inset-0 bg-black/20 z-30 cursor-default"
+          <div
+            role="button"
+            tabIndex={-1}
+            className="lg:hidden fixed inset-0 bg-black/20 z-[60] cursor-default"
             aria-label="Закрыть меню"
             onClick={() => setMobileOpen(false)}
+            onKeyDown={(e) => e.key === 'Escape' && setMobileOpen(false)}
           />
-          <div id="mobile-menu" className="lg:hidden mx-4 mt-3 clay clay-card p-4 relative z-40">
+          <div
+            id="mobile-menu"
+            className="lg:hidden mx-4 mt-3 clay clay-card p-4 relative z-[70]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <nav className="flex flex-col gap-1">
-              <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
-                Направления
-              </p>
-              {NAV_ITEMS[0].children.map((child) => (
-                <a
-                  key={child.to}
-                  href={child.to}
-                  className="px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {child.label}
-                </a>
-              ))}
-              <div className="my-1 border-t border-clay-mint-pale" />
-              {NAV_ITEMS.slice(1).map((item) => (
-                <a
-                  key={item.to}
-                  href={item.to}
-                  className="px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {NAV_ITEMS.map((item) =>
+                item.children ? (
+                  <div key={item.label}>
+                    <p className="text-xs font-semibold text-clay-muted uppercase tracking-wider px-3 py-2">
+                      {item.label}
+                    </p>
+                    {item.children.map((child) => (
+                      <a
+                        key={child.to}
+                        href={child.to}
+                        className="block px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        {child.label}
+                      </a>
+                    ))}
+                    <div className="my-1 border-t border-clay-mint-pale" />
+                  </div>
+                ) : (
+                  <a
+                    key={item.to}
+                    href={item.to}
+                    className="px-4 py-3 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
               <div className="pt-3 flex flex-col gap-2">
                 <a
                   href={`tel:${PHONE_NUMBER}`}
