@@ -2,8 +2,8 @@ import { ChevronRight, Home } from 'lucide-react'
 import { ICON_SIZES, SITE_URL } from '../lib/constants.js'
 
 /**
- * BreadcrumbNav — хлебные крошки с BreadcrumbList JSON-LD
- * @param {Array<{label: string, href?: string}>} items — массив крошек; последний элемент — текущая страница (без href)
+ * BreadcrumbNav - хлебные крошки с BreadcrumbList JSON-LD
+ * @param {Array<{label: string, href?: string}>} items - массив крошек; последний элемент - текущая страница (без href)
  */
 export function BreadcrumbNav({ items = [] }) {
   const allItems = [{ label: 'Главная', href: '/' }, ...items]

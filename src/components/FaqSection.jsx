@@ -1,7 +1,7 @@
 /**
- * FaqSection — FAQ-аккордеон с автогенерацией FAQPage JSON-LD
+ * FaqSection - FAQ-аккордеон с автогенерацией FAQPage JSON-LD
  * @param {Array<{question: string, answer: string}>} items
- * @param {string} title — заголовок секции (по умолчанию "Частые вопросы")
+ * @param {string} title - заголовок секции (по умолчанию "Частые вопросы")
  */
 export function FaqSection({ items = [], title = 'Частые вопросы' }) {
   if (!items.length) return null

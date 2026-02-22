@@ -211,7 +211,7 @@ export function Dashboard() {
                   {evt.page}
                 </span>
                 <span style={{ color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
-                  {evt.target || '—'}
+                  {evt.target || '-'}
                 </span>
               </div>
             ))}

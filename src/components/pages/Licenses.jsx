@@ -116,7 +116,7 @@ export function Licenses() {
       <section className="clay-card-soft-mint clay-card p-8 text-center">
         <h2 className="text-xl font-bold text-clay-text mb-3">Есть вопросы о документах?</h2>
         <p className="text-clay-muted mb-6 max-w-lg mx-auto">
-          Свяжитесь с нами — предоставим полный пакет документов по запросу.
+          Свяжитесь с нами - предоставим полный пакет документов по запросу.
         </p>
         <a href="/contacts" className="btn-clay-primary inline-flex items-center gap-2">
           Связаться с клиникой

@@ -6,7 +6,7 @@ export const ICON_SIZES = {
   lg: 22,
 }
 
-// Doctor ring color CSS class mapping — used in Doctors.jsx, DoctorPage.jsx, specialty pages
+// Doctor ring color CSS class mapping - used in Doctors.jsx, DoctorPage.jsx, specialty pages
 export const RING_COLOR_MAP = {
   mint: 'avatar-ring-mint',
   peach: 'avatar-ring-peach',

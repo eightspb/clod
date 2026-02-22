@@ -180,11 +180,11 @@ export function Contacts() {
           ))}
         </div>
         <div className="clay-card p-5 text-sm text-clay-muted leading-relaxed">
-          <strong className="text-clay-text">На автомобиле:</strong> со стороны КАД — съезд на Богатырский проспект.
+          <strong className="text-clay-text">На автомобиле:</strong> со стороны КАД - съезд на Богатырский проспект.
           Парковка бесплатная во дворе дома 22 к.1.
           <br /><br />
-          <strong className="text-clay-text">На общественном транспорте:</strong> от метро «Комендантский проспект» — автобусы 93, 183 до остановки «Богатырский пр., 22».
-          От метро «Старая Деревня» — маршрутка К-252.
+          <strong className="text-clay-text">На общественном транспорте:</strong> от метро «Комендантский проспект» - автобусы 93, 183 до остановки «Богатырский пр., 22».
+          От метро «Старая Деревня» - маршрутка К-252.
         </div>
       </section>
 
@@ -197,7 +197,7 @@ export function Contacts() {
             width="100%"
             height="100%"
             frameBorder="0"
-            title="Карта — Клиника Одинцова, пр. Богатырский 22 к.1"
+            title="Карта - Клиника Одинцова, пр. Богатырский 22 к.1"
             loading="lazy"
             allowFullScreen
           />

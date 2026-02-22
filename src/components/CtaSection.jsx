@@ -3,7 +3,7 @@ import { PHONE_NUMBER, PHONE_DISPLAY } from '../lib/contacts.js'
 
 export function CtaSection({
   title = 'Записаться на приём',
-  subtitle = 'Звоните или оставьте заявку — мы перезвоним и подберём удобное время',
+  subtitle = 'Звоните или оставьте заявку - мы перезвоним и подберём удобное время',
   primaryLabel = 'Записаться онлайн',
   primaryHref = '/second-opinion',
   secondaryLabel = PHONE_DISPLAY,

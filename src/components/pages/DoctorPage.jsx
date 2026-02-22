@@ -305,7 +305,7 @@ export function DoctorPage({ doctor }) {
 
       <CtaSection
         title={`Записаться к ${doctor.dativeShortName || doctor.name}`}
-        subtitle="Звоните или оставьте заявку — мы перезвоним и подберём удобное время"
+        subtitle="Звоните или оставьте заявку - мы перезвоним и подберём удобное время"
         primaryLabel="Онлайн-запись"
       />
     </div>

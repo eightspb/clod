@@ -6,21 +6,21 @@ const principles = [
     icon: <Shield size={24} className="text-white" />,
     bg: 'clay-card-mint',
     title: 'Без доплат',
-    desc: 'Если в плане лечения ВАБ указана сумма — она финальная. В неё включены расходные материалы, анестезия, гистологическое исследование и послеоперационное наблюдение.',
+    desc: 'Если в плане лечения ВАБ указана сумма - она финальная. В неё включены расходные материалы, анестезия, гистологическое исследование и послеоперационное наблюдение.',
     tag: 'Гарантия',
   },
   {
     icon: <Database size={24} className="text-white" />,
     bg: 'clay-card-blue',
     title: 'Цифровая история',
-    desc: 'Все ваши протоколы, снимки и анализы хранятся в защищённом облаке. Доступ к ним — из любой точки мира через личный кабинет 24/7.',
+    desc: 'Все ваши протоколы, снимки и анализы хранятся в защищённом облаке. Доступ к ним - из любой точки мира через личный кабинет 24/7.',
     tag: 'Личный кабинет',
   },
   {
     icon: <MessageCircle size={24} className="text-white" />,
     bg: 'clay-card-peach',
     title: 'Прямая связь',
-    desc: 'После процедур лечащий доктор остаётся на связи в мессенджере. Любой вопрос о вашем состоянии — ответ в тот же день, без промежуточных звонков в колл-центр.',
+    desc: 'После процедур лечащий доктор остаётся на связи в мессенджере. Любой вопрос о вашем состоянии - ответ в тот же день, без промежуточных звонков в колл-центр.',
     tag: 'Врач в мессенджере',
   },
 ]
@@ -78,7 +78,7 @@ export function Prices({ servicesData = [] }) {
         .filter(s => s.direction === cat.title)
         .map(s => ({
           name: s.title,
-          price: s.price === 0 ? '0 — бесплатно' : (s.price.toString().startsWith('от') ? s.price : `от ${s.price}`), // форматирование цены
+          price: s.price === 0 ? '0 - бесплатно' : (s.price.toString().startsWith('от') ? s.price : `от ${s.price}`), // форматирование цены
           rawPrice: s.price
         }))
         .sort((a, b) => a.rawPrice - b.rawPrice) // простая сортировка
@@ -90,7 +90,7 @@ export function Prices({ servicesData = [] }) {
       { name: 'УЗИ молочных желёз', price: '2 500' },
       { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 25 000' },
       { name: 'ВАБ + гистология (всё включено)', price: 'от 35 000' },
-      { name: 'Второе мнение по снимкам', price: '0 — бесплатно' },
+      { name: 'Второе мнение по снимкам', price: '0 - бесплатно' },
     ]
     priceCategories[1].items = [
       { name: 'Консультация гинеколога', price: '3 000' },
@@ -134,7 +134,7 @@ export function Prices({ servicesData = [] }) {
               <span className="text-clay-mint">фиксированная цена</span> и полная прозрачность
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
-              Никаких скрытых доплат в день процедуры. Цена, которую назвали — цена, которую заплатите.
+              Никаких скрытых доплат в день процедуры. Цена, которую назвали - цена, которую заплатите.
             </p>
             <div className="flex flex-wrap gap-3">
               <a href="/second-opinion" className="clay btn-clay-primary gap-2">
@@ -183,7 +183,7 @@ export function Prices({ servicesData = [] }) {
                   ВАБ «под ключ»
                 </h2>
                 <p className="text-clay-muted leading-relaxed mb-4">
-                  Стоимость процедуры ВАБ включает всё — от подготовки до получения результата гистологии. Никаких сюрпризов в день оплаты.
+                  Стоимость процедуры ВАБ включает всё - от подготовки до получения результата гистологии. Никаких сюрпризов в день оплаты.
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 35 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Финальная цена, без доплат</p>
@@ -263,7 +263,7 @@ export function Prices({ servicesData = [] }) {
               <div>
                 <h3 className="font-bold text-clay-dark mb-2">Личный кабинет</h3>
                 <p className="text-clay-muted text-sm leading-relaxed">
-                  Все протоколы, снимки и анализы доступны онлайн 24/7. Делитесь с другими специалистами одной ссылкой — без распечаток.
+                  Все протоколы, снимки и анализы доступны онлайн 24/7. Делитесь с другими специалистами одной ссылкой - без распечаток.
                 </p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export function Prices({ servicesData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Способы оплаты</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат — принимаем все основные способы оплаты</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат - принимаем все основные способы оплаты</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="clay clay-card-soft-mint p-5 flex flex-col gap-4">

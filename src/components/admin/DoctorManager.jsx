@@ -85,7 +85,7 @@ export function DoctorManager() {
                       {doc.certificates.length}
                     </span>
                   ) : (
-                    <span style={{ color: '#cbd5e1', fontSize: '12px' }}>—</span>
+                    <span style={{ color: '#cbd5e1', fontSize: '12px' }}>-</span>
                   )}
                 </td>
                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>

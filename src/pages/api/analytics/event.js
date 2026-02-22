@@ -42,7 +42,7 @@ export async function POST({ request }) {
           lastActiveAt: now,
         })
       } catch (e) {
-        // Already exists (race with page_enter) — update with richer data
+        // Already exists (race with page_enter) - update with richer data
         if (e.code === 'SQLITE_CONSTRAINT') {
           await db
             .update(AnalyticsSession)

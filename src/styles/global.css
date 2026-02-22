@@ -4,12 +4,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* cyrillic-ext */
 @font-face {
   font-family: 'Inter';
-  src: url('/fonts/inter-var.woff2') format('woff2');
+  src: url('/fonts/inter-var-cyrillic-ext.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-var-cyrillic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-var-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @layer base {
@@ -171,7 +191,7 @@
   }
 
   /* ─────────────────────────────
-     BUTTONS — pill shape
+     BUTTONS - pill shape
   ───────────────────────────── */
   .btn-clay-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full text-white font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
@@ -455,7 +475,7 @@
   /* ─────────────────────────────
      AVATAR RINGS
   ───────────────────────────── */
-  /* Базовые стили тора — общие для всех цветов */
+  /* Базовые стили тора - общие для всех цветов */
   .avatar-ring-peach,
   .avatar-ring-blue,
   .avatar-ring-mint,
@@ -465,7 +485,7 @@
     padding: 14px;
   }
 
-  /* Псевдоэлемент — внутренняя тень тора (дно колодца) */
+  /* Псевдоэлемент - внутренняя тень тора (дно колодца) */
   .avatar-ring-peach::after,
   .avatar-ring-blue::after,
   .avatar-ring-mint::after,
@@ -474,7 +494,7 @@
     position: absolute;
     inset: 14px;
     border-radius: 50%;
-    /* Тень внутри отверстия — создаёт глубину */
+    /* Тень внутри отверстия - создаёт глубину */
     box-shadow:
       inset 0px 6px 18px hsla(0, 0%, 0%, 0.35),
       inset 0px 2px 6px hsla(0, 0%, 0%, 0.2),
@@ -528,7 +548,7 @@
       inset 0px -6px 14px hsla(260, 35%, 30%, 0.55);
   }
 
-  /* Фото — утоплено на дно тора */
+  /* Фото - утоплено на дно тора */
   .avatar-ring-peach img,
   .avatar-ring-blue img,
   .avatar-ring-mint img,
@@ -1445,7 +1465,7 @@
 .prose-clay blockquote p {
   margin-bottom: 0;
 }
-/* Специальные блоки — важная информация через > **Заголовок:** */
+/* Специальные блоки - важная информация через > **Заголовок:** */
 .prose-clay p:has(strong:first-child) {
   background: #fafffe;
   border: 1px solid #d4ede9;

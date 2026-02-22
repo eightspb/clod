@@ -99,7 +99,7 @@ export async function DELETE({ request, params }) {
         const filePath = join(process.cwd(), 'public', media.url)
         await unlink(filePath)
       } catch {
-        // File may not exist on disk — ignore
+        // File may not exist on disk - ignore
       }
     }
 

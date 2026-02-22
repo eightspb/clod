@@ -1,7 +1,7 @@
 import { defineMiddleware } from 'astro:middleware'
 
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
-// Fonts are self-hosted (/fonts/inter-var.woff2) — no external font CDN on public pages.
+// Fonts are self-hosted (/fonts/inter-var.woff2) - no external font CDN on public pages.
 // tracker.js makes fetch calls only to same-origin /api/* endpoints.
 // Astro hydration and inline scripts require 'unsafe-inline' for script-src.
 const CSP_DIRECTIVES = [

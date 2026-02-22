@@ -213,11 +213,11 @@ export function LogsViewer() {
                       {log.page || '/'}
                     </td>
                     <td style={{ padding: '8px 14px', color: '#374151', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {log.target || '—'}
+                      {log.target || '-'}
                     </td>
-                    <td style={{ padding: '8px 14px', fontFamily: 'monospace', color: '#94a3b8' }}>{log.ip || '—'}</td>
+                    <td style={{ padding: '8px 14px', fontFamily: 'monospace', color: '#94a3b8' }}>{log.ip || '-'}</td>
                     <td style={{ padding: '8px 14px', color: '#94a3b8', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {log.details ? log.details.slice(0, 60) : '—'}
+                      {log.details ? log.details.slice(0, 60) : '-'}
                     </td>
                   </tr>
                   {expanded === log.id && (

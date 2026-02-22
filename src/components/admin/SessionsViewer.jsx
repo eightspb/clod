@@ -26,7 +26,7 @@ function fmtDuration(sec) {
 }
 
 function parseUA(ua) {
-  if (!ua) return '—'
+  if (!ua) return '-'
   if (ua.includes('Chrome')) return 'Chrome'
   if (ua.includes('Firefox')) return 'Firefox'
   if (ua.includes('Safari')) return 'Safari'
@@ -122,16 +122,16 @@ export function SessionsViewer() {
                   }}
                 >
                   <td style={{ padding: '10px 14px' }}><OnlineBadge isOnline={s.isOnline} /></td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#374151' }}>{s.ip || '—'}</td>
+                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#374151' }}>{s.ip || '-'}</td>
                   <td style={{ padding: '10px 14px', color: '#374151' }}>{parseUA(s.userAgent)}</td>
                   <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#1e293b', fontWeight: '500' }}>{s.currentPage || '/'}</td>
                   <td style={{ padding: '10px 14px', color: '#64748b' }}>
                     {new Date(s.startedAt).toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td style={{ padding: '10px 14px', color: '#374151' }}>{fmtDuration(s.durationSeconds)}</td>
-                  <td style={{ padding: '10px 14px', color: '#64748b' }}>{s.language || '—'}</td>
+                  <td style={{ padding: '10px 14px', color: '#64748b' }}>{s.language || '-'}</td>
                   <td style={{ padding: '10px 14px', color: '#64748b' }}>
-                    {s.screenWidth && s.screenHeight ? `${s.screenWidth}×${s.screenHeight}` : '—'}
+                    {s.screenWidth && s.screenHeight ? `${s.screenWidth}×${s.screenHeight}` : '-'}
                   </td>
                 </tr>
                 {expanded === s.id && (
@@ -140,9 +140,9 @@ export function SessionsViewer() {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', fontSize: '12px' }}>
                         <div><span style={{ color: '#94a3b8' }}>Session ID: </span><span style={{ fontFamily: 'monospace', color: '#374151' }}>{s.id}</span></div>
                         <div><span style={{ color: '#94a3b8' }}>Visitor ID: </span><span style={{ fontFamily: 'monospace', color: '#374151' }}>{s.visitorId}</span></div>
-                        <div><span style={{ color: '#94a3b8' }}>Referrer: </span><span style={{ color: '#374151' }}>{s.referrer || '—'}</span></div>
+                        <div><span style={{ color: '#94a3b8' }}>Referrer: </span><span style={{ color: '#374151' }}>{s.referrer || '-'}</span></div>
                         <div><span style={{ color: '#94a3b8' }}>Последняя активность: </span><span style={{ color: '#374151' }}>{new Date(s.lastActiveAt).toLocaleString('ru')}</span></div>
-                        <div style={{ gridColumn: '1 / -1' }}><span style={{ color: '#94a3b8' }}>User-Agent: </span><span style={{ color: '#374151', wordBreak: 'break-all' }}>{s.userAgent || '—'}</span></div>
+                        <div style={{ gridColumn: '1 / -1' }}><span style={{ color: '#94a3b8' }}>User-Agent: </span><span style={{ color: '#374151', wordBreak: 'break-all' }}>{s.userAgent || '-'}</span></div>
                       </div>
                     </td>
                   </tr>
