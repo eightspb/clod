@@ -1,6 +1,10 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        ASTRO_DB_REMOTE_URL: ${ASTRO_DB_REMOTE_URL}
+        ASTRO_DB_APP_TOKEN: ${ASTRO_DB_APP_TOKEN}
     restart: unless-stopped
     env_file:
       - .env
