@@ -12,7 +12,7 @@ ARG ASTRO_DB_APP_TOKEN
 RUN echo "ASTRO_DB_REMOTE_URL=${ASTRO_DB_REMOTE_URL}" >> .env \
  && echo "ASTRO_DB_APP_TOKEN=${ASTRO_DB_APP_TOKEN}" >> .env
 
-RUN bun run build
+RUN bun run astro build --remote
 
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
