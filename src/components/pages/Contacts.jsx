@@ -18,10 +18,10 @@ const localBusinessSchema = {
   },
   geo: {
     '@type': 'GeoCoordinates',
-    latitude: 60.0028,
-    longitude: 30.2153,
+    latitude: 60.001014,
+    longitude: 30.251746,
   },
-  hasMap: 'https://yandex.ru/maps/-/CHdGkBYD',
+  hasMap: 'https://yandex.ru/maps/?pt=30.251746,60.001014&z=16&l=map',
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
@@ -78,7 +78,7 @@ export function Contacts() {
             </div>
           </div>
           <a
-            href="https://yandex.ru/maps/-/CHdGkBYD"
+            href="https://yandex.ru/maps/?pt=30.251746,60.001014&z=16&l=map"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-clay-secondary text-sm inline-flex items-center gap-2 mt-2"
@@ -193,7 +193,7 @@ export function Contacts() {
         <h2 className="text-2xl font-bold text-clay-text mb-4">Карта</h2>
         <div className="clay-card overflow-hidden" style={{ height: '400px' }}>
           <iframe
-            src="https://yandex.ru/map-widget/v1/?ll=30.215300%2C60.002800&z=16&pt=30.215300%2C60.002800,pm2rdm~&l=map"
+            src="https://yandex.ru/map-widget/v1/?ll=30.251746%2C60.001014&z=16&pt=30.251746%2C60.001014,pm2rdm~&l=map"
             width="100%"
             height="100%"
             frameBorder="0"
