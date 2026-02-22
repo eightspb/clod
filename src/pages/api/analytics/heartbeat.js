@@ -4,9 +4,11 @@ import { db, AnalyticsSession } from 'astro:db'
 import { eq } from 'astro:db'
 
 export async function POST({ request }) {
+  let debugSessionId = null
   try {
     const body = await request.json()
     const { sessionId, page } = body
+    debugSessionId = sessionId || null
 
     if (!sessionId) {
       return new Response(JSON.stringify({ error: 'Missing sessionId' }), {
@@ -27,7 +29,19 @@ export async function POST({ request }) {
     })
   } catch (err) {
     console.error('[analytics/heartbeat]', err)
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
+    const isDebugSession = request.headers.get('x-debug-session-id') === '42da84'
+    const errorPayload = isDebugSession
+      ? {
+          error: 'Internal error',
+          debug: {
+            sessionId: debugSessionId,
+            name: err?.name || null,
+            code: err?.code || null,
+            message: err?.message || null,
+          },
+        }
+      : { error: 'Internal error' }
+    return new Response(JSON.stringify(errorPayload), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

@@ -63,18 +63,24 @@
     } else {
       fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Debug-Session-Id': '42da84',
+        },
         body: json,
         keepalive: true,
       }).then(function (response) {
-        // #region agent log
-        debugLog('H3', 'public/tracker.js:send:response', 'Fetch analytics response', {
-          url: url,
-          type: data && data.type ? data.type : null,
-          status: response.status,
-          ok: response.ok,
+        response.text().then(function (responseBody) {
+          // #region agent log
+          debugLog('H3', 'public/tracker.js:send:response', 'Fetch analytics response', {
+            url: url,
+            type: data && data.type ? data.type : null,
+            status: response.status,
+            ok: response.ok,
+            bodySnippet: (responseBody || '').slice(0, 220),
+          })
+          // #endregion
         })
-        // #endregion
       }).catch(function (err) {
         // #region agent log
         debugLog('H4', 'public/tracker.js:send:catch', 'Fetch analytics failed before response', {
