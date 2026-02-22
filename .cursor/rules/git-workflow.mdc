@@ -1,0 +1,16 @@
+---
+description: Git workflow standards for the project
+alwaysApply: true
+---
+
+# Git Workflow Rules
+
+## Commit and Push Policy
+
+All commits and pushes to GitHub **must be performed exclusively through Cursor**.
+
+- Do not use command line `git commit` or `git push`
+- Do not use GitHub Desktop or other Git clients
+- Always use Cursor's Git integration for all Git operations
+
+This ensures consistency in commit messages, proper staging, and maintains the project's development workflow within the IDE environment.
