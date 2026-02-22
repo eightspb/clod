@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star, User, Send } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { ClayContactBanner } from '../ClayContactBanner'
 import { DoctorCard } from '../DoctorCard.jsx'
@@ -54,6 +54,189 @@ const heroSlides = [
 ]
 
 const WHY_ICONS = { Shield, Zap, Clock, Heart }
+
+const REVIEWS = [
+  {
+    id: 1,
+    name: 'Анна Петрова',
+    date: '12 января 2025',
+    rating: 5,
+    text: 'Обратилась с направлением на операцию из другой клиники. Здесь сделали ВАБ за 30 минут — никакого разреза, никаких швов. Уже через день вышла на работу. Доктор объяснила всё доступно, без лишних страхов.',
+  },
+  {
+    id: 2,
+    name: 'Марина Соколова',
+    date: '3 февраля 2025',
+    rating: 5,
+    text: 'Наконец-то нашла гинеколога, который слушает. Никакого давления, никакой гипердиагностики. Составили чёткий план лечения, всё объяснили. Атмосфера как в хорошем отеле — спокойно и уютно.',
+  },
+  {
+    id: 3,
+    name: 'Елена Кузнецова',
+    date: '18 февраля 2025',
+    rating: 5,
+    text: 'Эндокринолог помогла разобраться с гормональным дисбалансом, который мучил меня три года. Уже после первого визита почувствовала разницу. Результаты анализов приходят в мессенджер — очень удобно.',
+  },
+  {
+    id: 4,
+    name: 'Ольга Иванова',
+    date: '5 марта 2025',
+    rating: 5,
+    text: 'Невролог избавил от хронических мигреней за 2 визита. Блокады под УЗИ-навигацией — совершенно безболезненно. Впервые за годы сплю нормально. Рекомендую всем, кто устал от бесполезных таблеток.',
+  },
+]
+
+function StarRating({ count = 5 }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: count }).map((_, i) => (
+        <Star key={i} size={14} fill="#F0A888" style={{ color: '#F0A888' }} />
+      ))}
+    </div>
+  )
+}
+
+function ReviewsSection() {
+  return (
+    <section className="section">
+      <div className="container-clay">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+            Отзывы пациентов
+          </h2>
+          <p className="text-clay-muted max-w-xl mx-auto">
+            Реальные истории людей, которые выбрали доказательную медицину
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {REVIEWS.map((review) => (
+            <div key={review.id} className="clay clay-card p-6 flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="icon-circle-peach flex-shrink-0">
+                    <User size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-clay-dark text-sm">{review.name}</p>
+                    <p className="text-xs text-clay-muted">{review.date}</p>
+                  </div>
+                </div>
+                <StarRating count={review.rating} />
+              </div>
+              <p className="text-clay-muted text-sm leading-relaxed flex-1">{review.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function AppointmentFormSection() {
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (!name.trim() || !phone.trim()) return
+    setIsSubmitting(true)
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setIsSubmitted(true)
+      setName('')
+      setPhone('')
+    }, 800)
+  }
+
+  return (
+    <section id="appointment-form" className="section">
+      <div className="container-clay">
+        <div className="clay clay-card p-8 md:p-12 relative overflow-hidden max-w-2xl mx-auto">
+          <div className="blob-mint absolute -top-10 -right-10 w-40 h-40 opacity-30 pointer-events-none" />
+          <div className="blob-peach absolute -bottom-10 -left-10 w-32 h-32 opacity-25 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
+                <Phone size={12} />
+                Запись онлайн
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-2">
+                Записаться на приём
+              </h2>
+              <p className="text-clay-muted">
+                Оставьте контакты — перезвоним в течение 15 минут
+              </p>
+            </div>
+
+            {isSubmitted ? (
+              <div className="clay clay-card-soft-mint p-6 text-center">
+                <CheckCircle size={40} className="text-clay-mint mx-auto mb-3" />
+                <p className="font-bold text-clay-dark text-lg mb-1">Заявка принята!</p>
+                <p className="text-clay-muted text-sm">Мы перезвоним вам в течение 15 минут в рабочее время.</p>
+                <button
+                  onClick={() => setIsSubmitted(false)}
+                  className="mt-4 text-sm text-clay-mint font-semibold hover:underline"
+                >
+                  Отправить ещё одну заявку
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="appt-name" className="text-sm font-semibold text-clay-dark">
+                    Ваше имя
+                  </label>
+                  <input
+                    id="appt-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Например, Анна"
+                    required
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted outline-none focus:ring-2 focus:ring-clay-mint/30 w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="appt-phone" className="text-sm font-semibold text-clay-dark">
+                    Телефон
+                  </label>
+                  <input
+                    id="appt-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+7 (___) ___-__-__"
+                    required
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted outline-none focus:ring-2 focus:ring-clay-mint/30 w-full"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !name.trim() || !phone.trim()}
+                  className="clay btn-clay-primary gap-2 justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>Отправляем...</>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      Записаться
+                    </>
+                  )}
+                </button>
+                <p className="text-xs text-clay-muted text-center">
+                  Нажимая кнопку, вы соглашаетесь с обработкой персональных данных
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function HeroVisualVab() {
   return (
@@ -562,6 +745,12 @@ export function Home({ doctorsData = [] }) {
       </section>
 
 
+
+      {/* ── REVIEWS ── */}
+      <ReviewsSection />
+
+      {/* ── APPOINTMENT FORM ── */}
+      <AppointmentFormSection />
 
       {/* ── CTA ── */}
       <section className="section">

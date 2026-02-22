@@ -2,6 +2,70 @@
 import Layout from '../layouts/Layout.astro'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { Contacts } from '../components/pages/Contacts.jsx'
+
+const contactsSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalClinic',
+  name: 'Клиника Одинцова',
+  alternateName: 'Клиника доктора Одинцова',
+  url: 'https://odintsovclinic.ru',
+  logo: 'https://odintsovclinic.ru/images/og-default.jpg',
+  image: 'https://odintsovclinic.ru/images/og-default.jpg',
+  telephone: '+78127482210',
+  email: 'info@odintsovclinic.ru',
+  priceRange: '$$',
+  currenciesAccepted: 'RUB',
+  paymentAccepted: 'Наличные, банковская карта, ДМС',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'пр. Богатырский, д. 22, к. 1',
+    addressLocality: 'Санкт-Петербург',
+    postalCode: '197374',
+    addressRegion: 'Санкт-Петербург',
+    addressCountry: 'RU',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 60.0028,
+    longitude: 30.2153,
+  },
+  hasMap: 'https://yandex.ru/maps/-/CHdGkBYD',
+  openingHours: ['Mo-Fr 09:00-20:00', 'Sa-Su 10:00-18:00'],
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '09:00',
+      closes: '20:00',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Saturday', 'Sunday'],
+      opens: '10:00',
+      closes: '18:00',
+    },
+  ],
+  medicalSpecialty: ['Oncology', 'Gynecology', 'Endocrinology', 'Neurology'],
+  areaServed: {
+    '@type': 'City',
+    name: 'Санкт-Петербург',
+    '@id': 'https://www.wikidata.org/wiki/Q656',
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.9',
+    reviewCount: '200',
+    bestRating: '5',
+    worstRating: '1',
+  },
+  sameAs: [
+    'https://wa.me/79119258022',
+    'https://t.me/odintsovclinic',
+    'https://prodoctorov.ru/spb/lpu/130932-klinika-odincova/',
+    'https://2gis.ru/spb/firm/70000001062793440',
+    'https://yandex.ru/maps/org/klinika_odincova/1127907054/',
+  ],
+}
 ---
 
 <Layout
@@ -10,6 +74,7 @@ import { Contacts } from '../components/pages/Contacts.jsx'
   keywords="контакты клиника Одинцова, адрес маммолог СПб, Богатырский проспект 22, маммолог Комендантский проспект, маммолог Старая Деревня, как добраться клиника Одинцова"
   canonicalUrl="https://odintsovclinic.ru/contacts"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(contactsSchema)} />
   <BreadcrumbNav items={[{ label: 'Контакты' }]} />
   <Contacts />
 </Layout>

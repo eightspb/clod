@@ -5,6 +5,98 @@ import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { db, Service } from 'astro:db'
 
 const services = await db.select().from(Service);
+
+const pricesSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Прайс-лист Клиники Одинцова',
+  description: 'Цены на медицинские услуги: маммология, гинекология, эндокринология, неврология',
+  url: 'https://odintsovclinic.ru/prices',
+  numberOfItems: 20,
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Вакуумная аспирационная биопсия (ВАБ) — всё включено',
+        description: 'Удаление новообразований молочной железы через прокол 2 мм. Включает анестезию, расходные материалы, гистологию и послеоперационное наблюдение.',
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        followup: 'Консультация по результатам гистологии, связь с доктором 2 недели',
+        offers: {
+          '@type': 'Offer',
+          price: '35000',
+          priceCurrency: 'RUB',
+          priceSpecification: { '@type': 'PriceSpecification', minPrice: '35000', priceCurrency: 'RUB' },
+          seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
+        },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Консультация онколога-маммолога',
+        offers: { '@type': 'Offer', price: '3500', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'УЗИ молочных желёз',
+        offers: { '@type': 'Offer', price: '2500', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 4,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Консультация гинеколога',
+        offers: { '@type': 'Offer', price: '3000', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 5,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'УЗИ органов малого таза',
+        offers: { '@type': 'Offer', price: '2500', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 6,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Консультация эндокринолога',
+        offers: { '@type': 'Offer', price: '3500', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 7,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Консультация невролога',
+        offers: { '@type': 'Offer', price: '3500', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 8,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: 'Второе мнение по снимкам',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'RUB', seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' } },
+      },
+    },
+  ],
+}
 ---
 
 <Layout
@@ -12,6 +104,7 @@ const services = await db.select().from(Service);
   description="Честные фиксированные цены без скрытых доплат. Прайс-лист на маммологию, гинекологию, эндокринологию и неврологию. ВАБ под ключ от 35 000 ₽."
   keywords="цены клиника Одинцова, стоимость ВАБ СПб, цена маммолог СПб, прайс гинеколог СПб, сколько стоит ВАБ, стоимость удаления фиброаденомы СПб"
 >
+  <script type="application/ld+json" set:html={JSON.stringify(pricesSchema)} />
   <BreadcrumbNav items={[{ label: 'Цены' }]} />
   <Prices servicesData={services} client:load />
 </Layout>

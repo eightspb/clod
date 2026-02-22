@@ -38,16 +38,8 @@ export function Doctors() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveFilter(tab.id)}
-                  className="inline-flex items-center justify-center rounded-full text-sm font-semibold px-6 py-2.5 cursor-pointer transition-all duration-200 select-none"
-                  style={isActive ? {
-                    background: 'linear-gradient(145deg, #68D8B8, #44C4A0)',
-                    color: '#fff',
-                    boxShadow: '8px 8px 20px hsl(155,12%,60%), inset -3px -3px 8px hsla(155,25%,42%,0.6), inset 0px 6px 12px hsla(155,60%,88%,0.5)',
-                  } : {
-                    background: FILTER_BG[i % FILTER_BG.length],
-                    color: '#3D4A44',
-                    boxShadow: '6px 6px 16px hsl(0,0%,72%), inset -3px -3px 7px hsla(0,0%,55%,0.18), inset 0px 5px 10px hsla(0,0%,100%,0.7)',
-                  }}
+                  className={`pill-filter font-semibold px-6 py-2.5${isActive ? ' active' : ''}`}
+                  style={isActive ? undefined : { background: FILTER_BG[i % FILTER_BG.length] }}
                 >
                   {tab.label}
                 </button>

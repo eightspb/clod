@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
+import { StickyCTA } from '../components/StickyCTA.jsx'
 import '../styles/global.css'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   description?: string
   keywords?: string
   ogImage?: string
+  ogImageAlt?: string
   ogType?: string
   canonicalUrl?: string
 }
@@ -17,6 +19,7 @@ const {
   description = 'Клиника экспертной медицины в маммологии, гинекологии, эндокринологии и неврологии. Технология ВАБ — удаление образований за 30 минут без скальпеля и швов.',
   keywords = 'клиника Одинцова, маммолог Санкт-Петербург, ВАБ СПб, гинеколог СПб, эндокринолог СПб, невролог СПб',
   ogImage = '/images/og-default.jpg',
+  ogImageAlt = '',
   ogType = 'website',
   canonicalUrl = `https://odintsovclinic.ru${Astro.url.pathname}`,
 } = Astro.props
@@ -45,6 +48,9 @@ const currentPath = Astro.url.pathname
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={`https://odintsovclinic.ru${ogImage}`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt || title} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Клиника Одинцова" />
@@ -56,8 +62,14 @@ const currentPath = Astro.url.pathname
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`https://odintsovclinic.ru${ogImage}`} />
 
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="ru" href={canonicalUrl} />
+    <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+
     <!-- Шрифт Inter — самохостинг (без внешнего CDN) -->
     <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <slot name="head" />
 
     <!-- JSON-LD: MedicalBusiness -->
     <script type="application/ld+json" set:html={JSON.stringify({
@@ -103,11 +115,11 @@ const currentPath = Astro.url.pathname
         }
       ],
       "medicalSpecialty": ["Oncology", "Gynecology", "Endocrinology", "Neurology"],
-      "areaServed": {
-        "@type": "City",
-        "name": "Санкт-Петербург",
-        "@id": "https://www.wikidata.org/wiki/Q656"
-      },
+      "areaServed": [
+        {"@type": "City", "name": "Санкт-Петербург"},
+        {"@type": "AdministrativeArea", "name": "Ленинградская область"},
+        {"@type": "AdministrativeArea", "name": "Приморский район"}
+      ],
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "4.9",
@@ -165,6 +177,7 @@ const currentPath = Astro.url.pathname
       <slot />
     </main>
     <Footer />
+    <StickyCTA client:load />
 
     <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
       <button

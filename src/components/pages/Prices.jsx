@@ -1,4 +1,4 @@
-import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star } from 'lucide-react'
+import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, CreditCard, Clock } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY, WHATSAPP_URL } from '../../lib/contacts.js'
 
 const principles = [
@@ -265,6 +265,77 @@ export function Prices({ servicesData = [] }) {
                 <p className="text-clay-muted text-sm leading-relaxed">
                   Все протоколы, снимки и анализы доступны онлайн 24/7. Делитесь с другими специалистами одной ссылкой — без распечаток.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PAYMENT METHODS */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Способы оплаты</h2>
+            <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат — принимаем все основные способы оплаты</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="clay clay-card-soft-mint p-7 flex flex-col gap-4">
+              <div className="icon-circle-mint">
+                <CreditCard size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-clay-dark text-lg mb-2">Наличные и карты</h3>
+                <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                  Принимаем наличные и банковские карты любых платёжных систем: Visa, Mastercard, МИР. Оплата в день процедуры или по счёту.
+                </p>
+                <div className="space-y-2">
+                  {['Наличные рубли', 'Банковские карты', 'Оплата по QR-коду', 'Безналичный расчёт'].map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <CheckCircle size={14} className="text-clay-mint flex-shrink-0" />
+                      <span className="text-sm text-clay-dark">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="clay clay-card-soft-blue p-7 flex flex-col gap-4">
+              <div className="icon-circle-blue">
+                <Shield size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-clay-dark text-lg mb-2">ДМС</h3>
+                <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                  Работаем с полисами добровольного медицинского страхования ведущих страховых компаний. Уточните наличие вашей страховой при записи.
+                </p>
+                <div className="space-y-2">
+                  {['СОГАЗ', 'Ингосстрах', 'АльфаСтрахование', 'ВСК и другие'].map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <CheckCircle size={14} style={{ color: '#4880B0' }} className="flex-shrink-0" />
+                      <span className="text-sm text-clay-dark">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="clay clay-card-soft-peach p-7 flex flex-col gap-4">
+              <div className="icon-circle-peach">
+                <Clock size={20} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-clay-dark text-lg mb-2">Рассрочка</h3>
+                <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                  Разделите стоимость лечения на удобные платежи без переплат. Рассрочка доступна для процедур от 10 000 ₽ через партнёрские банки.
+                </p>
+                <div className="space-y-2">
+                  {['От 0% переплаты', 'Срок до 12 месяцев', 'Решение за 5 минут', 'Без первоначального взноса'].map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <CheckCircle size={14} style={{ color: '#D07858' }} className="flex-shrink-0" />
+                      <span className="text-sm text-clay-dark">{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

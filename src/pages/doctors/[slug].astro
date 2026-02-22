@@ -43,10 +43,11 @@ const physicianSchema = {
     "@type": "MedicalBusiness",
     "name": "Клиника Одинцова",
     "url": "https://odintsovclinic.ru",
-    "address": {
+      "address": {
       "@type": "PostalAddress",
       "streetAddress": "пр. Богатырский, д. 22, к. 1",
       "addressLocality": "Санкт-Петербург",
+      "addressRegion": "Санкт-Петербург",
       "postalCode": "197374",
       "addressCountry": "RU"
     }
@@ -67,6 +68,8 @@ const physicianSchema = {
   keywords={`${doctor.name}, ${doctor.specialization} Санкт-Петербург, ${doctor.specialization} СПб, клиника Одинцова врачи`}
   canonicalUrl={doctorUrl}
   ogType="profile"
+  ogImage={doctor.photo}
+  ogImageAlt={doctor.name}
 >
   <script type="application/ld+json" set:html={JSON.stringify(physicianSchema)} />
   <BreadcrumbNav items={[{ label: 'Врачи', href: '/doctors' }, { label: doctor.name }]} />

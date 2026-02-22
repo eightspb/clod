@@ -13,6 +13,19 @@ const specialtySchema = {
     name: 'Диагностика и лечение эндокринных заболеваний',
   },
   isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'пр. Богатырский, д. 22, к. 1',
+    addressLocality: 'Санкт-Петербург',
+    postalCode: '197374',
+    addressRegion: 'Санкт-Петербург',
+    addressCountry: 'RU',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 60.0028,
+    longitude: 30.2153,
+  },
 }
 ---
 

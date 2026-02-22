@@ -100,7 +100,8 @@ clod/
 │   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
 │   ├── components/
 │   │   ├── pages/                 # React-компоненты страниц
-│   │   │   ├── Home.jsx
+│   │   │   ├── Home.jsx           # Главная: герой-слайдер, услуги, доктора, отзывы, форма записи
+│   │   │   ├── About.jsx          # Страница "О клинике": история, преимущества, оборудование
 │   │   │   ├── Mammology.jsx
 │   │   │   ├── Gynecology.jsx
 │   │   │   ├── Endocrinology.jsx
@@ -123,6 +124,7 @@ clod/
 │   │   │   └── LogsViewer.jsx
 │   │   ├── Header.jsx             # Навигация (client:load, мобильное меню)
 │   │   ├── Footer.jsx             # Подвал сайта
+│   │   ├── StickyCTA.jsx          # Фиксированная панель внизу экрана (только mobile, md:hidden)
 │   │   ├── ClayContactBanner.jsx  # Баннер с контактами
 │   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора
 │   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
@@ -149,6 +151,7 @@ clod/
 │   │       └── gipotireoz-simptomy-lechenie.md
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
+│   │   ├── about.astro            # /about — О клинике (история, преимущества, оборудование)
 │   │   ├── mammology.astro        # /mammology
 │   │   ├── gynecology.astro       # /gynecology
 │   │   ├── endocrinology.astro    # /endocrinology
@@ -223,6 +226,7 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | Маршрут | Astro-файл | React-компонент |
 |---|---|---|
 | `/` | `index.astro` | `Home.jsx` |
+| `/about` | `about.astro` | `About.jsx` |
 | `/mammology` | `mammology.astro` | `Mammology.jsx` |
 | `/gynecology` | `gynecology.astro` | `Gynecology.jsx` |
 | `/endocrinology` | `endocrinology.astro` | `Endocrinology.jsx` |
@@ -471,7 +475,7 @@ integrations: [
 - `Header` с `client:load` (интерактивный)
 - `Footer` (статический)
 - `<slot />` для контента страниц
-- Open Graph / Twitter Card мета-теги
+- Open Graph / Twitter Card мета-теги (включая `og:image:width`, `og:image:height`, `og:image:alt`)
 - Canonical URL
 - JSON-LD `MedicalBusiness` structured data (на всех страницах)
 - JSON-LD `Physician` structured data (на страницах `/doctors/[slug]`)
@@ -495,6 +499,15 @@ integrations: [
 | B3 — Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
 | B4 — Блог | ✅ | 5 статей, `ItemList` + `MedicalWebPage` JSON-LD |
 | B5 — Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
+| C1 — ogImage на страницах врачей | ✅ | Фото врача передаётся как `ogImage` в `Layout.astro` для страниц `/doctors/[slug]` |
+| C2 — ogImage на страницах блога | ✅ | Изображение статьи из frontmatter передаётся как `ogImage` для `/blog/[slug]` |
+| C3 — OG расширенные теги | ✅ | `og:image:width` (1200), `og:image:height` (630), `og:image:alt` добавлены в `Layout.astro` |
+| C4 — addressRegion в Physician schema | ✅ | `"addressRegion": "Санкт-Петербург"` добавлен в `worksFor.address` JSON-LD врачей |
+| E19 — Форма записи на главной | ✅ | `AppointmentFormSection` в `Home.jsx`: поля Имя + Телефон, валидация, состояние успеха |
+| E20 — Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 карточки с именем, звёздами, текстом и датой |
+| E22 — Страница О клинике | ✅ | `/about` — история, преимущества (6 пунктов с иконками), оборудование (4 пункта), CTA |
+| E24 — Способы оплаты на /prices | ✅ | Секция "Способы оплаты" в `Prices.jsx`: наличные/карты, ДМС, рассрочка |
+| E25 — Sticky CTA на мобильных | ✅ | `StickyCTA.jsx` в `Layout.astro`: "Позвонить" + "Записаться", `md:hidden` |
 
 ### Блог (`/blog`)
 

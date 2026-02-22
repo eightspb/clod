@@ -9,6 +9,7 @@ export const DIRECTIONS = [
 export const NAV_ITEMS = [
   { label: 'Направления', children: DIRECTIONS },
   { label: 'Доктора',       to: '/doctors' },
+  { label: 'О клинике',     to: '/about' },
   { label: 'Второе мнение', to: '/second-opinion' },
   { label: 'Цены',          to: '/prices' },
   { label: 'Блог',          to: '/blog' },
@@ -17,6 +18,7 @@ export const NAV_ITEMS = [
 
 export const FOOTER_LINKS = [
   ...DIRECTIONS,
+  { label: 'О клинике',        to: '/about' },
   { label: 'Второе мнение',    to: '/second-opinion' },
   { label: 'Цены и гарантии',  to: '/prices' },
   { label: 'Блог',             to: '/blog' },

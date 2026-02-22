@@ -97,7 +97,18 @@ const breadcrumbItems = [
   description={post.data.description}
   keywords={post.data.keywords}
   ogType="article"
+  ogImage={post.data.image}
+  ogImageAlt={post.data.imageAlt || post.data.title}
 >
+  <Fragment slot="head">
+    <meta property="article:published_time" content={post.data.publishDate.toISOString()} />
+    <meta property="article:modified_time" content={post.data.updatedDate ? post.data.updatedDate.toISOString() : post.data.publishDate.toISOString()} />
+    <meta property="article:author" content={author ? author.name : (post.data.author || 'Клиника Одинцова')} />
+    {post.data.tags.map((tag) => (
+      <meta property="article:tag" content={tag} />
+    ))}
+  </Fragment>
+
   <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
 
   <BreadcrumbNav items={breadcrumbItems} />
