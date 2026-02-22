@@ -36,6 +36,7 @@ export function Header({ currentPath = '/' }) {
       style={{
         background: scrolled ? 'rgba(247,243,239,0.95)' : 'transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.12)' : 'none',
       }}
       role="banner"
     >
@@ -90,7 +91,7 @@ export function Header({ currentPath = '/' }) {
       </div>
 
       {/* Bottom row: Desktop Nav */}
-      <div className="hidden lg:block border-t border-clay-mint-pale/60">
+      <div className="hidden lg:block">
         <div className="container-clay">
           <nav className="flex items-center justify-between gap-0.5 py-1">
             {NAV_ITEMS.map((item) =>

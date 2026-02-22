@@ -337,25 +337,25 @@
   }
 
   .blob-mint {
-    background: linear-gradient(145deg, #A8E4D4, #78D4BC);
+    background: linear-gradient(145deg, rgba(168,228,212,0.5), rgba(120,212,188,0.5));
     border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
     animation: blob-breathe-a 9s ease-in-out infinite;
     will-change: border-radius, transform;
   }
   .blob-peach {
-    background: linear-gradient(145deg, #FADCC8, #F8C4B0);
+    background: linear-gradient(145deg, rgba(250,220,200,0.5), rgba(248,196,176,0.5));
     border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
     animation: blob-breathe-b 11s ease-in-out infinite;
     will-change: border-radius, transform;
   }
   .blob-blue {
-    background: linear-gradient(145deg, #C0DCEE, #A8CCE4);
+    background: linear-gradient(145deg, rgba(192,220,238,0.5), rgba(168,204,228,0.5));
     border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
     animation: blob-breathe-c 13s ease-in-out infinite;
     will-change: border-radius, transform;
   }
   .blob-lavender {
-    background: linear-gradient(145deg, #DDD5F0, #CCC0E8);
+    background: linear-gradient(145deg, rgba(221,213,240,0.5), rgba(204,192,232,0.5));
     border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
     animation: blob-breathe-d 10s ease-in-out infinite;
     will-change: border-radius, transform;

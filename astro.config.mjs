@@ -9,6 +9,11 @@ export default defineConfig({
   site: 'https://odintsovclinic.ru',
   output: 'hybrid',
   adapter: node({ mode: 'standalone' }),
+  vite: {
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
+  },
   integrations: [
     react(),
     tailwind({ applyBaseStyles: false }),

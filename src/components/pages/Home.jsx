@@ -421,7 +421,7 @@ export function Home({ doctorsData = [] }) {
       {/* ── HERO SLIDER ── */}
       <section className="relative overflow-hidden">
         {/* Фоновые блобы */}
-        <div className="blob-mint absolute -top-32 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
+        <div className="blob-mint absolute top-12 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-blue absolute top-1/3 -right-40 w-72 h-72 opacity-10 pointer-events-none" style={{ zIndex: 0 }} />
 

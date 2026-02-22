@@ -4,21 +4,29 @@ import { defineMiddleware } from 'astro:middleware'
 // Fonts are self-hosted (/fonts/inter-var.woff2) - no external font CDN on public pages.
 // tracker.js makes fetch calls only to same-origin /api/* endpoints.
 // Astro hydration and inline scripts require 'unsafe-inline' for script-src.
-const CSP_DIRECTIVES = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "font-src 'self'",
-  "img-src 'self' data: https:",
-  "frame-src https://yandex.ru",
-  "connect-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-].join('; ')
+// In dev, connect-src allows Cursor debug ingest (127.0.0.1:7460).
+function getCspDirectives() {
+  const connectSrc = import.meta.env.DEV
+    ? "'self' http://127.0.0.1:7460"
+    : "'self'"
+  return [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
+    "img-src 'self' data: https:",
+    "frame-src https://yandex.ru",
+    `connect-src ${connectSrc}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+}
 
 const SECURITY_HEADERS = {
-  'Content-Security-Policy': CSP_DIRECTIVES,
+  get 'Content-Security-Policy'() {
+    return getCspDirectives()
+  },
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',
