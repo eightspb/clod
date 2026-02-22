@@ -374,11 +374,24 @@ function HeroVisualEcosystem() {
 }
 
 
+const LG_BREAKPOINT = 1024
+
 export function Home({ doctorsData = [] }) {
   const [activeSlide, setActiveSlide] = useState(0)
   const [sliderHeight, setSliderHeight] = useState(0)
+  const [useEqualHeight, setUseEqualHeight] = useState(false)
   const slideRefs = useRef([])
   const [activeFilter, setActiveFilter] = useState('all')
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`)
+    function update() {
+      setUseEqualHeight(mq.matches)
+    }
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     const updateHeight = () => {
@@ -427,7 +440,7 @@ export function Home({ doctorsData = [] }) {
 
         <div className="container-clay relative z-10 py-8 md:py-14">
           {/* Слайды */}
-          <div className="relative" style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
+          <div className="relative" style={{ minHeight: useEqualHeight && sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
             {heroSlides.map((slide, idx) => (
               <div
                 key={idx}
@@ -435,7 +448,7 @@ export function Home({ doctorsData = [] }) {
                 className="transition-opacity duration-500"
                 style={{
                   opacity: activeSlide === idx ? 1 : 0,
-                  position: sliderHeight > 0 ? 'absolute' : 'relative',
+                  position: useEqualHeight && sliderHeight > 0 ? 'absolute' : 'relative',
                   top: 0,
                   left: 0,
                   width: '100%',
@@ -443,19 +456,19 @@ export function Home({ doctorsData = [] }) {
                   visibility: activeSlide === idx ? 'visible' : 'hidden',
                 }}
               >
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
                   {/* ── Левая колонка: текст ── */}
                   <div>
-                    {/* Плашка доверия */}
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.1)', border: '1px solid rgba(78,200,168,0.25)', color: '#2BA888' }}>
-                      <CheckCircle size={12} />
-                      {slide.trustBadge}
-                    </div>
-
-                    {/* Смысловой вектор */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-5 text-clay-muted" style={{ background: 'rgba(61,74,68,0.06)' }}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-clay-mint animate-pulse" />
-                      {slide.badge}
+                    {/* Верхние плашки — всегда друг под другом */}
+                    <div className="flex flex-col gap-2 w-fit mb-5">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.1)', border: '1px solid rgba(78,200,168,0.25)', color: '#2BA888' }}>
+                        <CheckCircle size={12} />
+                        {slide.trustBadge}
+                      </div>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-clay-muted" style={{ background: 'rgba(61,74,68,0.06)' }}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-clay-mint animate-pulse" />
+                        {slide.badge}
+                      </div>
                     </div>
 
                     {activeSlide === idx ? (
@@ -567,25 +580,25 @@ export function Home({ doctorsData = [] }) {
               </h2>
               <p className="text-white/90 text-lg mb-5">Без скальпеля и швов. Прокол 2 мм полностью заживает за 2 месяца.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div className="bg-white/20 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="bg-white/40 rounded-2xl p-5 backdrop-blur-sm border border-white/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center flex-shrink-0">
                       <Zap size={18} className="text-white" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white mb-1">Технология ВАБ</h4>
-                      <p className="text-white/85 text-sm leading-relaxed">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции.</p>
+                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции.</p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white/20 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="bg-white/40 rounded-2xl p-5 backdrop-blur-sm border border-white/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center flex-shrink-0">
                       <Shield size={18} className="text-white" />
                     </div>
                     <div>
                       <h4 className="font-bold text-white mb-1">Бесплатное второе мнение</h4>
-                      <p className="text-white/85 text-sm leading-relaxed">Если вам уже назначили операцию - мы перепроверим диагноз. Каждый 3-й случай решается с ВАБ.</p>
+                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Если вам уже назначили операцию - мы перепроверим диагноз. Каждый 3-й случай решается с ВАБ.</p>
                     </div>
                   </div>
                 </div>

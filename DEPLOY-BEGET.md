@@ -35,6 +35,48 @@ ssh root@ВАШ_IP_АДРЕС
 
 При первом входе подтвердите отпечаток хоста (`yes`). Введите пароль root.
 
+### 1.2.1. Вход по SSH-ключу (рекомендуется)
+
+Чтобы подключаться без пароля по ключу:
+
+1. **На вашем ПК используется ключ** (например, созданный для Beget):
+   - Приватный ключ: `%USERPROFILE%\.ssh\id_ed25519_beget`
+   - Публичный ключ: `%USERPROFILE%\.ssh\id_ed25519_beget.pub`
+
+2. **Один раз подключитесь по паролю** (см. 1.2), затем на сервере выполните:
+
+```bash
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+echo "ВСТАВЬТЕ_СЮДА_СОДЕРЖИМОЕ_ФАЙЛА_id_ed25519_beget.pub" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Содержимое `id_ed25519_beget.pub` можно скопировать с ПК одной командой (PowerShell, подставьте свой IP):
+
+```powershell
+Get-Content $env:USERPROFILE\.ssh\id_ed25519_beget.pub
+```
+
+Скопируйте вывод и вставьте его в `echo "..."` на сервере (одной строкой, в кавычках).
+
+3. **Подключение с ПК по ключу:**
+
+```powershell
+ssh -i $env:USERPROFILE\.ssh\id_ed25519_beget root@ВАШ_IP_АДРЕС
+```
+
+Чтобы не указывать `-i` каждый раз, добавьте в `%USERPROFILE%\.ssh\config`:
+
+```
+Host clod
+    HostName ВАШ_IP_АДРЕС
+    User root
+    IdentityFile ~/.ssh/id_ed25519_beget
+```
+
+После этого подключение к VPS: **`ssh clod`**.
+
 ### 1.3. Базовая настройка Ubuntu (рекомендуется)
 
 ```bash
@@ -83,7 +125,7 @@ apt install -y git
 **Публичный репозиторий** — достаточно клонировать по HTTPS:
 
 ```bash
-git clone https://github.com/ВАШ_ЛОГИН/ИМЯ_РЕПОЗИТОРИЯ.git /srv/clod
+git clone https://github.com/eightspb/clod.git /srv/clod
 cd /srv/clod
 ```
 
@@ -236,7 +278,25 @@ docker compose logs app -f
 
 ## Часть 5. Обновление сайта (деплой новой версии из GitHub)
 
-Когда в репозитории есть новые коммиты:
+Подключение к VPS: **`ssh clod`** (хост `clod` настраивается в `~/.ssh/config`, см. п. 1.2.1).
+
+### 5.1. С ПК одной командой (скрипт)
+
+После пуша изменений в GitHub выполните в корне проекта:
+
+```bash
+bun run deploy
+```
+
+Скрипт подключится к серверу по `ssh clod`, выполнит `git pull` и `docker compose up -d --build` в каталоге `/srv/clod`. Либо запустите напрямую:
+
+```powershell
+.\scripts\deploy.ps1
+```
+
+### 5.2. Вручную на сервере
+
+Если вы уже подключены к VPS (`ssh clod`):
 
 ```bash
 cd /srv/clod
@@ -306,12 +366,13 @@ docker compose down -v
 
 | Действие | Команды |
 |----------|--------|
-| Подключиться к серверу | `ssh root@ВАШ_IP` |
-| Обновить сайт из GitHub | `cd /srv/clod && git pull && docker compose up -d --build` |
+| Подключиться к серверу | `ssh clod` |
+| Обновить сайт с ПК (скрипт) | `bun run deploy` |
+| Обновить сайт на сервере | `cd /srv/clod && git pull && docker compose up -d --build` |
 | Посмотреть логи | `cd /srv/clod && docker compose logs -f` |
 | Перезагрузить Nginx | `cd /srv/clod && docker compose exec nginx nginx -s reload` |
 | Остановить всё | `cd /srv/clod && docker compose down` |
 
 ---
 
-Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS и обновляется из GitHub по `git pull` + `docker compose up -d --build`.
+Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS. Обновление: с ПК — `bun run deploy` (скрипт подключается по `ssh clod` и выполняет `git pull` + `docker compose up -d --build`).
