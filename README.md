@@ -101,7 +101,7 @@ clod/
 │   ├── components/
 │   │   ├── pages/                 # React-компоненты страниц
 │   │   │   ├── Home.jsx           # Главная: герой-слайдер, услуги, доктора, отзывы, форма записи
-│   │   │   ├── About.jsx          # Страница "О клинике": история, преимущества, оборудование
+│   │   │   ├── About.jsx          # Страница "О клинике": миссия, руководство, документы, преимущества, оборудование
 │   │   │   ├── Mammology.jsx
 │   │   │   ├── Gynecology.jsx
 │   │   │   ├── Endocrinology.jsx
@@ -151,7 +151,7 @@ clod/
 │   │       └── gipotireoz-simptomy-lechenie.md
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
-│   │   ├── about.astro            # /about — О клинике (история, преимущества, оборудование)
+│   │   ├── about.astro            # /about — О клинике (миссия, руководство, документы, преимущества, оборудование)
 │   │   ├── mammology.astro        # /mammology
 │   │   ├── gynecology.astro       # /gynecology
 │   │   ├── endocrinology.astro    # /endocrinology
@@ -506,7 +506,7 @@ integrations: [
 | C4 — addressRegion в Physician schema | ✅ | `"addressRegion": "Санкт-Петербург"` добавлен в `worksFor.address` JSON-LD врачей |
 | E19 — Форма записи на главной | ✅ | `AppointmentFormSection` в `Home.jsx`: поля Имя + Телефон, валидация, состояние успеха |
 | E20 — Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 карточки с именем, звёздами, текстом и датой |
-| E22 — Страница О клинике | ✅ | `/about` — история, преимущества (6 пунктов с иконками), оборудование (4 пункта), CTA |
+| E22 — Страница О клинике | ✅ | `/about` — миссия (приветствие главврача), руководство (3 человека), документы (лицензия, СОУТ, реквизиты), преимущества (6 пунктов), оборудование (4 пункта), CTA |
 | E24 — Способы оплаты на /prices | ✅ | Секция "Способы оплаты" в `Prices.jsx`: наличные/карты, ДМС, рассрочка |
 | E25 — Sticky CTA на мобильных | ✅ | `StickyCTA.jsx` в `Layout.astro`: "Позвонить" + "Записаться", `md:hidden` |
 
