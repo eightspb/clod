@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db, AnalyticsSession, PageView, EventLog } from 'astro:db'
+import { db as analyticsDb, AnalyticsSession, PageView, EventLog } from 'astro:db'
 import { eq } from 'astro:db'
 
 function debugLog(hypothesisId, location, message, data) {
@@ -49,7 +49,7 @@ export async function POST({ request }) {
 
     if (type === 'session_start') {
       try {
-        await db.insert(AnalyticsSession).values({
+        await analyticsDb.insert(AnalyticsSession).values({
           id: sessionId,
           visitorId,
           ip,
@@ -65,7 +65,7 @@ export async function POST({ request }) {
       } catch (e) {
         // Already exists (race with page_enter) - update with richer data
         if (e.code === 'SQLITE_CONSTRAINT') {
-          await db
+          await analyticsDb
             .update(AnalyticsSession)
             .set({
               userAgent: data.userAgent || undefined,
@@ -83,7 +83,7 @@ export async function POST({ request }) {
     } else if (type === 'page_enter') {
       // Ensure session exists (handles race between session_start and page_enter)
       try {
-        await db.insert(AnalyticsSession).values({
+        await analyticsDb.insert(AnalyticsSession).values({
           id: sessionId,
           visitorId,
           ip,
@@ -98,7 +98,7 @@ export async function POST({ request }) {
         })
       } catch (e) {
         if (e.code === 'SQLITE_CONSTRAINT') {
-          await db
+          await analyticsDb
             .update(AnalyticsSession)
             .set({ currentPage: data.page, lastActiveAt: now })
             .where(eq(AnalyticsSession.id, sessionId))
@@ -107,7 +107,7 @@ export async function POST({ request }) {
         }
       }
 
-      await db.insert(PageView).values({
+      await analyticsDb.insert(PageView).values({
         id: crypto.randomUUID(),
         sessionId,
         page: data.page,
@@ -115,7 +115,7 @@ export async function POST({ request }) {
         duration: null,
       })
 
-      await db.insert(EventLog).values({
+      await analyticsDb.insert(EventLog).values({
         id: crypto.randomUUID(),
         sessionId,
         eventType: 'navigation',
@@ -125,19 +125,19 @@ export async function POST({ request }) {
         createdAt: now,
       })
     } else if (type === 'page_leave') {
-      await db
+      await analyticsDb
         .update(AnalyticsSession)
         .set({ lastActiveAt: now })
         .where(eq(AnalyticsSession.id, sessionId))
 
       if (data.pageViewId && data.duration != null) {
-        await db
+        await analyticsDb
           .update(PageView)
           .set({ duration: data.duration })
           .where(eq(PageView.id, data.pageViewId))
       }
 
-      await db.insert(EventLog).values({
+      await analyticsDb.insert(EventLog).values({
         id: crypto.randomUUID(),
         sessionId,
         eventType: 'page_leave',
@@ -147,12 +147,12 @@ export async function POST({ request }) {
         createdAt: now,
       })
     } else if (type === 'click') {
-      await db
+      await analyticsDb
         .update(AnalyticsSession)
         .set({ lastActiveAt: now })
         .where(eq(AnalyticsSession.id, sessionId))
 
-      await db.insert(EventLog).values({
+      await analyticsDb.insert(EventLog).values({
         id: crypto.randomUUID(),
         sessionId,
         eventType: 'click',
@@ -168,14 +168,14 @@ export async function POST({ request }) {
         createdAt: now,
       })
     } else if (type === 'batch') {
-      await db
+      await analyticsDb
         .update(AnalyticsSession)
         .set({ lastActiveAt: now })
         .where(eq(AnalyticsSession.id, sessionId))
 
       if (Array.isArray(data.events)) {
         for (const evt of data.events) {
-          await db.insert(EventLog).values({
+          await analyticsDb.insert(EventLog).values({
             id: crypto.randomUUID(),
             sessionId,
             eventType: evt.type || 'unknown',

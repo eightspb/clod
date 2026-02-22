@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db, AnalyticsSession } from 'astro:db'
+import { db as analyticsDb, AnalyticsSession } from 'astro:db'
 import { eq } from 'astro:db'
 
 export async function POST({ request }) {
@@ -18,7 +18,7 @@ export async function POST({ request }) {
     }
 
     const now = new Date()
-    await db
+    await analyticsDb
       .update(AnalyticsSession)
       .set({ lastActiveAt: now, currentPage: page || undefined })
       .where(eq(AnalyticsSession.id, sessionId))
