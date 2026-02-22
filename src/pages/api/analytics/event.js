@@ -210,6 +210,7 @@ export async function POST({ request }) {
             name: err?.name || null,
             code: err?.code || null,
             message: err?.message || null,
+            stack: err?.stack || null,
           },
         }
       : { error: 'Internal error' }
