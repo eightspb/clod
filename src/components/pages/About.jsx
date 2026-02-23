@@ -276,12 +276,36 @@ export function About() {
             <div>
               <h3 className="font-bold text-clay-dark mb-3">Контакты контролирующих организаций</h3>
               <ul className="list-disc list-inside text-clay-muted space-y-1">
-                <li>Министерство здравоохранения РФ</li>
-                <li>Федеральная служба по надзору в сфере здравоохранения</li>
-                <li>Федеральная служба по надзору в сфере защиты прав потребителей и благополучия человека</li>
-                <li>Территориальный фонд обязательного медицинского страхования</li>
-                <li>Территориальный орган Росздравнадзора по Санкт-Петербургу и Ленинградской области</li>
-                <li>Управление Роспотребнадзора по городу Санкт-Петербургу</li>
+                <li>
+                  <a href="https://minzdrav.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Министерство здравоохранения РФ
+                  </a>
+                </li>
+                <li>
+                  <a href="https://roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Федеральная служба по надзору в сфере здравоохранения
+                  </a>
+                </li>
+                <li>
+                  <a href="https://rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Федеральная служба по надзору в сфере защиты прав потребителей и благополучия человека
+                  </a>
+                </li>
+                <li>
+                  <a href="https://spboms.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Территориальный фонд обязательного медицинского страхования
+                  </a>
+                </li>
+                <li>
+                  <a href="https://78reg.roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Территориальный орган Росздравнадзора по Санкт-Петербургу и Ленинградской области
+                  </a>
+                </li>
+                <li>
+                  <a href="https://78.rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
+                    Управление Роспотребнадзора по городу Санкт-Петербургу
+                  </a>
+                </li>
               </ul>
             </div>
             <div className="clay clay-card-soft-mint p-5 mt-6">
