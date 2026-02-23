@@ -1,4 +1,4 @@
-# Клиника Одинцова — Project README
+# Клиника Одинцова - Project README
 
 > Сайт клиники экспертной медицины. Быстрый контекст для AI-агентов и разработчиков.
 
@@ -17,7 +17,7 @@
 | Язык | JavaScript (`.jsx` файлы), контент на русском |
 | Роутинг | File-based routing Astro (не React Router) |
 
-> Нет TypeScript в компонентах. `.jsx` файлы — чистый JS.
+> Нет TypeScript в компонентах. `.jsx` файлы - чистый JS.
 
 ---
 
@@ -46,17 +46,17 @@ bun run preview  # превью собранного билда
 
 ### Покрытие тестами
 
-- **Юнит-тесты (Vitest)**: 56 тестов в `src/lib/*.test.js`, `src/components/*.test.jsx` — полное покрытие: nav, contacts, filters, auth (validateOrigin, cookie), upload-validation (doctorId, extension), DoctorCard, CtaSection
-- **E2E-тесты (Playwright)**: 7 тестов в `e2e/` — главная страница, навигация, blog
+- **Юнит-тесты (Vitest)**: 56 тестов в `src/lib/*.test.js`, `src/components/*.test.jsx` - полное покрытие: nav, contacts, filters, auth (validateOrigin, cookie), upload-validation (doctorId, extension), DoctorCard, CtaSection
+- **E2E-тесты (Playwright)**: 7 тестов в `e2e/` - главная страница, навигация, blog
 
 ### GitHub Actions CI
 
 При push/PR в `main` или `develop` выполняются:
 
-1. **Lint** — ESLint
-2. **Unit tests** — Vitest (56 тестов)
-3. **Build** — `astro build`
-4. **E2E** — Playwright (Chromium)
+1. **Lint** - ESLint
+2. **Unit tests** - Vitest (56 тестов)
+3. **Build** - `astro build`
+4. **E2E** - Playwright (Chromium)
 
 ### Конфигурация
 
@@ -73,9 +73,9 @@ bun run preview  # превью собранного билда
 
 Проект использует **Astro hybrid mode** (SSG + SSR):
 
-- Публичные страницы — статически пре-рендерятся (SSG)
-- Админ-панель и API — серверный рендеринг (SSR) через `@astrojs/node`
-- Интерактивные части — React `.jsx`-компоненты с директивой `client:load`
+- Публичные страницы - статически пре-рендерятся (SSG)
+- Админ-панель и API - серверный рендеринг (SSR) через `@astrojs/node`
+- Интерактивные части - React `.jsx`-компоненты с директивой `client:load`
 - Лейаут оборачивает все страницы через `<slot />`
 
 ```
@@ -99,11 +99,11 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ### Безопасность
 
-- **Security headers** — добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
-- **Rate limiting** — login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
-- **CSRF-защита** — проверка заголовка `Origin`/`Referer` на всех state-changing API
-- **Санитизация** — валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
-- **Разделение секретов** — `TOKEN_SECRET` для HMAC (fallback на `ADMIN_PASSWORD`), `Secure` cookie в production
+- **Security headers** - добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
+- **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
+- **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
+- **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
+- **Разделение секретов** - `TOKEN_SECRET` для HMAC (fallback на `ADMIN_PASSWORD`), `Secure` cookie в production
 
 ### Переменные окружения (`.env`)
 
@@ -114,7 +114,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ### Админ-панель
 
-Доступна по адресу `/admin/login`. Защита — одним паролем из `.env` (`ADMIN_PASSWORD`).
+Доступна по адресу `/admin/login`. Защита - одним паролем из `.env` (`ADMIN_PASSWORD`).
 
 | Раздел | URL | Описание |
 |---|---|---|
@@ -195,47 +195,47 @@ clod/
 │   │       └── ... и еще 11 новых статей
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
-│   │   ├── about.astro            # /about — О клинике (миссия, руководство, документы, преимущества, оборудование)
+│   │   ├── about.astro            # /about - О клинике (миссия, руководство, документы, преимущества, оборудование)
 │   │   ├── mammology.astro        # /mammology
 │   │   ├── gynecology.astro       # /gynecology
 │   │   ├── endocrinology.astro    # /endocrinology
 │   │   ├── neurology.astro        # /neurology
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── prices.astro           # /prices
-│   │   ├── vab.astro              # /vab — ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
-│   │   ├── contacts.astro         # /contacts — контакты с картой
+│   │   ├── vab.astro              # /vab - ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
+│   │   ├── contacts.astro         # /contacts - контакты с картой
 │   │   ├── blog/
-│   │   │   ├── index.astro        # /blog — список статей (ItemList JSON-LD)
+│   │   │   ├── index.astro        # /blog - список статей (ItemList JSON-LD)
 │   │   │   └── [slug].astro       # /blog/vab-ili-operatsiya и т.д. (MedicalWebPage + Article JSON-LD)
-│   │   ├── doctors.astro          # /doctors — листинг докторов
+│   │   ├── doctors.astro          # /doctors - листинг докторов
 │   │   ├── doctors/
 │   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д. (+ Physician JSON-LD)
 │   │   ├── privacy-policy.astro   # /privacy-policy
-│   │   ├── licenses.astro         # /licenses — лицензии и сертификаты клиники
+│   │   ├── licenses.astro         # /licenses - лицензии и сертификаты клиники
 │   │   ├── 404.astro              # Кастомная страница 404
 │   │   ├── admin/                 # Админ-панель (SSR)
-│   │   │   ├── index.astro        # /admin — дашборд
+│   │   │   ├── index.astro        # /admin - дашборд
 │   │   │   ├── login.astro        # /admin/login
 │   │   │   ├── doctors.astro      # /admin/doctors
 │   │   │   ├── sessions.astro     # /admin/sessions
 │   │   │   └── logs.astro         # /admin/logs
 │   │   └── api/                   # API-эндпоинты (SSR)
 │   │       ├── analytics/
-│   │       │   ├── event.js       # POST — приём событий трекера
-│   │       │   └── heartbeat.js   # POST — heartbeat сессий
+│   │       │   ├── event.js       # POST - приём событий трекера
+│   │       │   └── heartbeat.js   # POST - heartbeat сессий
 │   │       ├── auth/
-│   │       │   ├── login.js       # POST — вход (rate limiting: 5 попыток / 15 мин)
-│   │       │   └── logout.js      # POST — выход
+│   │       │   ├── login.js       # POST - вход (rate limiting: 5 попыток / 15 мин)
+│   │       │   └── logout.js      # POST - выход
 │   │       └── admin/
-│   │           ├── stats.js       # GET — агрегированная статистика
-│   │           ├── sessions.js    # GET — список сессий
-│   │           ├── logs.js        # GET — логи событий
-│   │           ├── doctors.js     # GET — список докторов
-│   │           ├── doctors/[id].js # PUT — обновление доктора (с санитизацией)
-│   │           ├── doctors/[id]/certificates.js # DELETE — удаление сертификата
+│   │           ├── stats.js       # GET - агрегированная статистика
+│   │           ├── sessions.js    # GET - список сессий
+│   │           ├── logs.js        # GET - логи событий
+│   │           ├── doctors.js     # GET - список докторов
+│   │           ├── doctors/[id].js # PUT - обновление доктора (с санитизацией)
+│   │           ├── doctors/[id]/certificates.js # DELETE - удаление сертификата
 │   │           └── upload/
-│   │               ├── photo.js   # POST — загрузка фото доктора
-│   │               └── certificates.js # POST — загрузка сертификатов
+│   │               ├── photo.js   # POST - загрузка фото доктора
+│   │               └── certificates.js # POST - загрузка сертификатов
 │   ├── test/
 │   │   └── setup.js              # Vitest setup (jest-dom, cleanup)
 │   ├── styles/
@@ -269,9 +269,9 @@ clod/
 
 ## Роутинг
 
-Astro file-based routing — каждый `.astro`-файл в `src/pages/` = отдельный маршрут.
+Astro file-based routing - каждый `.astro`-файл в `src/pages/` = отдельный маршрут.
 
-### Публичные страницы (SSG — статические)
+### Публичные страницы (SSG - статические)
 
 | Маршрут | Astro-файл | React-компонент |
 |---|---|---|
@@ -287,11 +287,11 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `/prices` | `prices.astro` | `Prices.jsx` |
 | `/doctors` | `doctors.astro` | `Doctors.jsx` |
 | `/doctors/[slug]` | `doctors/[slug].astro` | `DoctorPage.jsx` |
-| `/blog` | `blog/index.astro` | — (Astro) |
-| `/blog/[slug]` | `blog/[slug].astro` | — (Astro + Content Collections) |
+| `/blog` | `blog/index.astro` | - (Astro) |
+| `/blog/[slug]` | `blog/[slug].astro` | - (Astro + Content Collections) |
 | `/privacy-policy` | `privacy-policy.astro` | `PrivacyPolicy.jsx` |
 | `/licenses` | `licenses.astro` | `Licenses.jsx` |
-| `/404` | `404.astro` | — (Astro) |
+| `/404` | `404.astro` | - (Astro) |
 
 Данные докторов хранятся в `src/lib/doctors-data.js` (статический массив `DOCTORS` с 9 докторами). Каждый доктор имеет поля:
 
@@ -299,7 +299,7 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 |---|---|---|
 | `slug` | string | URL-идентификатор (`/doctors/odintsov`) |
 | `name` | string | Полное имя |
-| `degree` | string? | Учёная степень (напр. `д.м.н.`) — используется в `honorificSuffix` Physician JSON-LD |
+| `degree` | string? | Учёная степень (напр. `д.м.н.`) - используется в `honorificSuffix` Physician JSON-LD |
 | `specialization` | string | Специализация |
 | `experienceYears` | number | Стаж в годах |
 | `ringColor` | string | Цвет кольца аватара (`mint`, `peach`, `blue`, `lavender`) |
@@ -325,7 +325,7 @@ Astro file-based routing — каждый `.astro`-файл в `src/pages/` = о
 | `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `Home` |
 | `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
 
-### Админ-панель (SSR — серверные)
+### Админ-панель (SSR - серверные)
 
 | Маршрут | Описание |
 |---|---|
@@ -355,16 +355,16 @@ Hero реализован как **трёхслайдовый слайдер** �
 
 ### Слайды
 
-1. **ВАБ (Флагман)** — альтернатива операции. Визуал: сравнение прокола 2 мм vs разреза 5 см.
-2. **Второе мнение** — для тех, кому уже назначили операцию. Визуал: BI-RADS классификация, шаги загрузки документов.
-3. **Экосистема** — гинекология, эндокринология, неврология. Визуал: три направления с тегами результата.
+1. **ВАБ (Флагман)** - альтернатива операции. Визуал: сравнение прокола 2 мм vs разреза 5 см.
+2. **Второе мнение** - для тех, кому уже назначили операцию. Визуал: BI-RADS классификация, шаги загрузки документов.
+3. **Экосистема** - гинекология, эндокринология, неврология. Визуал: три направления с тегами результата.
 
 ### Визуальные подкомпоненты
 
 ```
-HeroVisualVab()       — сравнение размеров прокола (прогресс-бары)
-HeroVisualOpinion()   — интерфейс BI-RADS + шаги загрузки документов
-HeroVisualEcosystem() — карточки трёх направлений с тегами
+HeroVisualVab()       - сравнение размеров прокола (прогресс-бары)
+HeroVisualOpinion()   - интерфейс BI-RADS + шаги загрузки документов
+HeroVisualEcosystem() - карточки трёх направлений с тегами
 ```
 
 ---
@@ -392,60 +392,60 @@ HeroVisualEcosystem() — карточки трёх направлений с т
 
 **Карточки:**
 ```
-clay-card              — белая карточка с clay-тенью
-clay-card-lg           — то же, крупнее
-clay-card-mint         — тил-карточка (градиент)
-clay-card-peach        — персиковая карточка
-clay-card-blue         — синяя карточка
-clay-card-lavender     — лавандовая карточка
-clay-card-soft-mint    — пастельный тил (бледный)
-clay-card-soft-peach   — пастельный персик
-clay-card-soft-blue    — пастельный синий
-clay-card-soft-lavender — пастельный лавандовый
+clay-card              - белая карточка с clay-тенью
+clay-card-lg           - то же, крупнее
+clay-card-mint         - тил-карточка (градиент)
+clay-card-peach        - персиковая карточка
+clay-card-blue         - синяя карточка
+clay-card-lavender     - лавандовая карточка
+clay-card-soft-mint    - пастельный тил (бледный)
+clay-card-soft-peach   - пастельный персик
+clay-card-soft-blue    - пастельный синий
+clay-card-soft-lavender - пастельный лавандовый
 ```
 
 **Кнопки:**
 ```
-btn-clay-primary   — основная кнопка (тил, pill-форма)
-btn-clay-secondary — вторичная кнопка (белая)
-btn-clay-white     — белая кнопка
-pill-filter        — фильтр-таблетка
+btn-clay-primary   - основная кнопка (тил, pill-форма)
+btn-clay-secondary - вторичная кнопка (белая)
+btn-clay-white     - белая кнопка
+pill-filter        - фильтр-таблетка
 ```
 
 **Иконки и декор:**
 ```
-icon-circle-mint/peach/blue/lavender/yellow — цветной круг под иконку
-blob-mint/peach/blue/lavender              — органические blob-фигуры (фон)
-orb                                         — декоративный шар
+icon-circle-mint/peach/blue/lavender/yellow - цветной круг под иконку
+blob-mint/peach/blue/lavender              - органические blob-фигуры (фон)
+orb                                         - декоративный шар
 ```
 
 **Бейджи и статистика:**
 ```
-num-badge   — нумерованный шаг
-stat-pill   — маленький stat-лейбл
+num-badge   - нумерованный шаг
+stat-pill   - маленький stat-лейбл
 ```
 
 **Аватары:**
 ```
-avatar-ring-peach/blue/mint/lavender — цветное кольцо вокруг аватара
+avatar-ring-peach/blue/mint/lavender - цветное кольцо вокруг аватара
 ```
 
 **Лейаут:**
 ```
-section          — секция с вертикальными отступами
-container-clay   — контейнер с горизонтальными отступами
+section          - секция с вертикальными отступами
+container-clay   - контейнер с горизонтальными отступами
 ```
 
 ### Тени (`tailwind.config.js` → `boxShadow`)
 
 ```
-shadow-clay          — нейтральная clay-тень
-shadow-clay-sm       — маленькая
-shadow-clay-lg       — большая
-shadow-clay-mint     — тил-тень
-shadow-clay-peach    — персиковая тень
-shadow-clay-blue     — синяя тень
-shadow-clay-lavender — лавандовая тень
+shadow-clay          - нейтральная clay-тень
+shadow-clay-sm       - маленькая
+shadow-clay-lg       - большая
+shadow-clay-mint     - тил-тень
+shadow-clay-peach    - персиковая тень
+shadow-clay-blue     - синяя тень
+shadow-clay-lavender - лавандовая тень
 ```
 
 > Правило: **никогда не использовать `box-shadow` inline**, если есть готовый clay-класс.
@@ -457,12 +457,12 @@ shadow-clay-lavender — лавандовая тень
 ### Компоненты
 
 ```jsx
-// ✅ Правильно — function, named export, RORO
+// ✅ Правильно - function, named export, RORO
 export function ClayCard({ title, children, variant = 'default' }) {
   return <div className="clay-card">{children}</div>
 }
 
-// ❌ Неправильно — const, default export
+// ❌ Неправильно - const, default export
 const ClayCard = (props) => { ... }
 export default ClayCard
 ```
@@ -500,7 +500,7 @@ const [errorMessage, setErrorMessage] = useState('')
 
 ## Принципы разработки
 
-- Функциональный, декларативный стиль — без классов
+- Функциональный, декларативный стиль - без классов
 - Без точек с запятой
 - Директории в `kebab-case` (`components/clay-card`, `pages/second-opinion`)
 - Мобильный-first: Tailwind breakpoints `sm:` → `md:` → `lg:`
@@ -538,26 +538,26 @@ integrations: [
 
 | Задача | Статус | Описание |
 |---|---|---|
-| A1 — Sitemap | ✅ | `@astrojs/sitemap` автогенерация, удалён хардкодный `public/sitemap.xml` |
-| A2 — GEO-метатеги | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
-| A3 — Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
-| A4 — JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `aggregateRating`, `sameAs`, полный `PostalAddress` |
-| A5 — BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
-| A6 — Самохостинг шрифтов | ✅ | Inter woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">` |
-| B1 — Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
-| B2 — FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
-| B3 — Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
-| B4 — Блог | ✅ | 5 статей, `ItemList` + `MedicalWebPage` JSON-LD |
-| B5 — Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
-| C1 — ogImage на страницах врачей | ✅ | Фото врача передаётся как `ogImage` в `Layout.astro` для страниц `/doctors/[slug]` |
-| C2 — ogImage на страницах блога | ✅ | Изображение статьи из frontmatter передаётся как `ogImage` для `/blog/[slug]` |
-| C3 — OG расширенные теги | ✅ | `og:image:width` (1200), `og:image:height` (630), `og:image:alt` добавлены в `Layout.astro` |
-| C4 — addressRegion в Physician schema | ✅ | `"addressRegion": "Санкт-Петербург"` добавлен в `worksFor.address` JSON-LD врачей |
-| E19 — Форма записи на главной | ✅ | `AppointmentFormSection` в `Home.jsx`: поля Имя + Телефон, валидация, состояние успеха |
-| E20 — Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 карточки с именем, звёздами, текстом и датой |
-| E22 — Страница О клинике | ✅ | `/about` — миссия (приветствие главврача), руководство (3 человека), документы (лицензия, СОУТ, реквизиты), преимущества (6 пунктов), оборудование (4 пункта), CTA |
-| E24 — Способы оплаты на /prices | ✅ | Секция "Способы оплаты" в `Prices.jsx`: наличные/карты, ДМС, рассрочка |
-| E25 — Sticky CTA на мобильных | ✅ | `StickyCTA.jsx` в `Layout.astro`: "Позвонить" + "Записаться", `md:hidden` |
+| A1 - Sitemap | ✅ | `@astrojs/sitemap` автогенерация, удалён хардкодный `public/sitemap.xml` |
+| A2 - GEO-метатеги | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
+| A3 - Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
+| A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `aggregateRating`, `sameAs`, полный `PostalAddress` |
+| A5 - BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
+| A6 - Самохостинг шрифтов | ✅ | Inter woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">` |
+| B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
+| B2 - FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
+| B3 - Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
+| B4 - Блог | ✅ | 5 статей, `ItemList` + `MedicalWebPage` JSON-LD |
+| B5 - Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
+| C1 - ogImage на страницах врачей | ✅ | Фото врача передаётся как `ogImage` в `Layout.astro` для страниц `/doctors/[slug]` |
+| C2 - ogImage на страницах блога | ✅ | Изображение статьи из frontmatter передаётся как `ogImage` для `/blog/[slug]` |
+| C3 - OG расширенные теги | ✅ | `og:image:width` (1200), `og:image:height` (630), `og:image:alt` добавлены в `Layout.astro` |
+| C4 - addressRegion в Physician schema | ✅ | `"addressRegion": "Санкт-Петербург"` добавлен в `worksFor.address` JSON-LD врачей |
+| E19 - Форма записи на главной | ✅ | `AppointmentFormSection` в `Home.jsx`: поля Имя + Телефон, валидация, состояние успеха |
+| E20 - Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 карточки с именем, звёздами, текстом и датой |
+| E22 - Страница О клинике | ✅ | `/about` - миссия (приветствие главврача), руководство (3 человека), документы (лицензия, СОУТ, реквизиты), преимущества (6 пунктов), оборудование (4 пункта), CTA |
+| E24 - Способы оплаты на /prices | ✅ | Секция "Способы оплаты" в `Prices.jsx`: наличные/карты, ДМС, рассрочка |
+| E25 - Sticky CTA на мобильных | ✅ | `StickyCTA.jsx` в `Layout.astro`: "Позвонить" + "Записаться", `md:hidden` |
 
 ### Блог (`/blog`)
 
@@ -565,44 +565,44 @@ integrations: [
 
 - Статьи в формате Markdown с frontmatter (title, description, keywords, publishDate, author, category, tags)
 - Схема коллекции в `src/content/config.ts`
-- `/blog` — листинг статей с `ItemList` JSON-LD
-- `/blog/[slug]` — статья с `MedicalWebPage` JSON-LD (author = Physician, medicalAudience = Patient)
+- `/blog` - листинг статей с `ItemList` JSON-LD
+- `/blog/[slug]` - статья с `MedicalWebPage` JSON-LD (author = Physician, medicalAudience = Patient)
 - Автор статьи связывается с данными из `doctors-data.js` по `authorSlug`
 - Стили для контента статей: класс `.prose-clay` в `global.css` (кастомные заголовки с акцентом, стилизованные списки, таблицы с закруглёнными углами)
-- Layout страницы статьи: двухколоночный grid (`blog-article-layout`) — основной контент + sticky боковая панель с автором и кнопкой записи (на десктопе ≥1024px)
+- Layout страницы статьи: двухколоночный grid (`blog-article-layout`) - основной контент + sticky боковая панель с автором и кнопкой записи (на десктопе ≥1024px)
 - Контейнер статьи: `container-clay` (max-w-6xl) вместо узкого max-w-3xl
 
 **Приоритетные статьи:**
-- `vab-ili-operatsiya` — ВАБ или операция при фиброаденоме
-- `chto-takoe-fibroadenoma` — Фиброаденома: причины, симптомы, лечение
-- `kak-izbezhat-operatsii-na-grudi` — Как избежать операции на молочной железе
-- `mammografiya-ili-uzi` — Маммография или УЗИ: что выбрать
-- `gipotireoz-simptomy-lechenie` — Гипотиреоз: симптомы, диагностика и лечение
+- `vab-ili-operatsiya` - ВАБ или операция при фиброаденоме
+- `chto-takoe-fibroadenoma` - Фиброаденома: причины, симптомы, лечение
+- `kak-izbezhat-operatsii-na-grudi` - Как избежать операции на молочной железе
+- `mammografiya-ili-uzi` - Маммография или УЗИ: что выбрать
+- `gipotireoz-simptomy-lechenie` - Гипотиреоз: симптомы, диагностика и лечение
 
 **Недавно добавленные статьи:**
-- `fibroadenoma-chastye-voprosy` — Фиброаденома. Частые вопросы
-- `rannyaya-diagnostika-raka-grudi` — Ранняя диагностика рака груди
-- `kista-molochnoy-zhelezy` — Киста молочной железы: причины, симптомы, лечение
-- `eroziya-sheyki-matki` — Эрозия шейки матки. Мифы и правда
-- `15-pravil-grudnogo-vskarmlivaniya` — 15 правил грудного вскармливания
-- `mylnaya-opera-o-kistoznoy-mastopatii` — Мыльная опера о кистозной мастопатии
-- `simptomy-gipotireoza-i-gipertireoza` — Симптомы ГИПОтиреоза и ГИПЕРтиреоза
-- `tonkoigolnaya-punktsionnaya-biopsiya` — Тонкоигольная пункционная биопсия молочных желёз
-- `kak-prokhodit-priem-ginekologa` — Как проходит приём гинеколога
-- `kak-podgotovitsya-k-priemu-ginekologa` — Как подготовиться к приёму гинеколога
-- `kak-podgotovitsya-k-priemu-endokrinologa` — Как подготовиться к приёму эндокринолога
+- `fibroadenoma-chastye-voprosy` - Фиброаденома. Частые вопросы
+- `rannyaya-diagnostika-raka-grudi` - Ранняя диагностика рака груди
+- `kista-molochnoy-zhelezy` - Киста молочной железы: причины, симптомы, лечение
+- `eroziya-sheyki-matki` - Эрозия шейки матки. Мифы и правда
+- `15-pravil-grudnogo-vskarmlivaniya` - 15 правил грудного вскармливания
+- `mylnaya-opera-o-kistoznoy-mastopatii` - Мыльная опера о кистозной мастопатии
+- `simptomy-gipotireoza-i-gipertireoza` - Симптомы ГИПОтиреоза и ГИПЕРтиреоза
+- `tonkoigolnaya-punktsionnaya-biopsiya` - Тонкоигольная пункционная биопсия молочных желёз
+- `kak-prokhodit-priem-ginekologa` - Как проходит приём гинеколога
+- `kak-podgotovitsya-k-priemu-ginekologa` - Как подготовиться к приёму гинеколога
+- `kak-podgotovitsya-k-priemu-endokrinologa` - Как подготовиться к приёму эндокринолога
 
 **SEO/GEO на страницах блога:**
 - Meta: title, description, keywords, canonical URL
 - GEO: `geo.region`, `geo.placename`, `geo.position`, `ICBM` (из Layout)
 - Open Graph: og:type=article, og:image, article:published_time, article:modified_time, article:author, article:section, article:tag
 - JSON-LD: MedicalWebPage с keywords, spatialCoverage (Санкт-Петербург), author=Physician
-- Fallback: при отсутствии keywords — автогенерация из category + title + «СПб, Санкт-Петербург»
+- Fallback: при отсутствии keywords - автогенерация из category + title + «СПб, Санкт-Петербург»
 
 **Добавление новой статьи:**
 1. Создать файл `src/content/blog/slug-statyi.md`
 2. Заполнить frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
-3. Для GEO: включить в keywords «СПб» и «Санкт-Петербург» (при отсутствии — fallback сработает автоматически)
+3. Для GEO: включить в keywords «СПб» и «Санкт-Петербург» (при отсутствии - fallback сработает автоматически)
 4. Написать контент в Markdown
 5. Статья автоматически появится на `/blog` и `/blog/slug-statyi`
 
@@ -610,7 +610,7 @@ integrations: [
 
 ## Docker-деплой на VPS
 
-**Пошаговая инструкция по деплою на Beget VPS (Ubuntu) из GitHub:** см. [DEPLOY-BEGET.md](./DEPLOY-BEGET.md) — создание VPS, установка Docker, клонирование репозитория, настройка `.env`, получение SSL (Let's Encrypt) и обновление сайта.
+**Пошаговая инструкция по деплою на Beget VPS (Ubuntu) из GitHub:** см. [DEPLOY-BEGET.md](./DEPLOY-BEGET.md) - создание VPS, установка Docker, клонирование репозитория, настройка `.env`, получение SSL (Let's Encrypt) и обновление сайта.
 
 ### Файлы конфигурации
 
@@ -620,7 +620,7 @@ integrations: [
 | `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
 | `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
 | `nginx.conf` | Финальная конфигурация Nginx с HTTPS (используется после получения сертификата) |
-| `nginx.bootstrap.conf` | Временная конфигурация только с HTTP — для первичного получения SSL-сертификата |
+| `nginx.bootstrap.conf` | Временная конфигурация только с HTTP - для первичного получения SSL-сертификата |
 | `nginx.no-domain.conf` | Конфиг для доступа по IP без домена (только HTTP, без SSL) |
 | `.env.example` | Шаблон переменных окружения для production |
 

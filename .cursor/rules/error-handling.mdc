@@ -7,7 +7,7 @@ alwaysApply: false
 # Error Handling & Validation
 
 ## Guard Clauses First
-Handle errors and edge cases at the top of functions — happy path goes last.
+Handle errors and edge cases at the top of functions - happy path goes last.
 
 ```jsx
 // ✅ GOOD
@@ -29,7 +29,7 @@ function DoctorCard({ doctor }) {
 ```
 
 ## Early Returns Over Else
-Avoid `else` after a `return` — use if-return pattern.
+Avoid `else` after a `return` - use if-return pattern.
 
 ```jsx
 // ✅ GOOD
@@ -61,7 +61,7 @@ const [errorMessage, setErrorMessage] = useState('')
 
 ## Async Calls
 ```jsx
-// ✅ GOOD — explicit error boundary
+// ✅ GOOD - explicit error boundary
 async function submitAppointment(data) {
   setIsLoading(true)
   try {

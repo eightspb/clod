@@ -51,6 +51,8 @@ export default [
       'src/components/admin/**',
       'src/middleware.js',
       'src/lib/tracker.js',
+      'coverage/**',
+      '.astro/**',
     ],
   },
 ]

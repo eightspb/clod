@@ -1,7 +1,7 @@
-# push.ps1 — быстрый коммит и пуш на GitHub
+# push.ps1 - быстрый коммит и пуш на GitHub
 # Использование (из папки проекта):
-#   .\push.ps1                        — коммит с датой/временем
-#   .\push.ps1 "Описание изменений"   — коммит с вашим сообщением
+#   .\push.ps1                        - коммит с датой/временем
+#   .\push.ps1 "Описание изменений"   - коммит с вашим сообщением
 #
 # Первый раз нужно запустить вручную в обычном терминале:
 #   git push -u origin main
@@ -17,7 +17,7 @@ if (-not $Message) {
 }
 
 Write-Host ""
-Write-Host ">>> Клиника Одинцова — Push to GitHub" -ForegroundColor Cyan
+Write-Host ">>> Клиника Одинцова - Push to GitHub" -ForegroundColor Cyan
 Write-Host ">>> Commit: $Message" -ForegroundColor Yellow
 Write-Host ""
 

@@ -3,25 +3,25 @@ description: Project tech stack and core development principles for Клиник
 alwaysApply: true
 ---
 
-# Клиника Одинцова — Tech Stack & Core Principles
+# Клиника Одинцова - Tech Stack & Core Principles
 
 ## Stack
 - **Runtime**: Bun (not npm/yarn)
-- **Framework**: Astro 4 + React 18 islands (JSX — no TypeScript)
-- **Routing**: Astro file-based routing (not React Router) — pages in `src/pages/*.astro`
+- **Framework**: Astro 4 + React 18 islands (JSX - no TypeScript)
+- **Routing**: Astro file-based routing (not React Router) - pages in `src/pages/*.astro`
 - **Styling**: Tailwind CSS 3 + custom clay utility classes in `src/styles/global.css`
 - **CSS library**: `claymorphism-css` (imported in global.css)
 - **Icons**: Lucide React
 - **Language**: JavaScript (`.jsx` files), Russian content
 
 ## Architecture
-- Pages are `.astro` files in `src/pages/` — they import React components from `src/components/pages/`
-- Layout wrapper: `src/layouts/Layout.astro` — wraps all pages via `<slot />`
+- Pages are `.astro` files in `src/pages/` - they import React components from `src/components/pages/`
+- Layout wrapper: `src/layouts/Layout.astro` - wraps all pages via `<slot />`
 - Only `Header.jsx` uses `client:load` (interactive); all other components are server-rendered (SSG)
 - Dev server runs at `localhost:4321` (Astro default)
 
 ## Key Principles
-- Write concise, functional, declarative code — avoid classes
+- Write concise, functional, declarative code - avoid classes
 - Prefer iteration and modularization over duplication
 - Use descriptive variable names with auxiliary verbs (`isLoading`, `hasError`, `canSubmit`)
 - Use lowercase with dashes for directories (`components/clay-card`, `pages/second-opinion`)
@@ -29,7 +29,7 @@ alwaysApply: true
 - Use the **RORO pattern** (Receive an Object, Return an Object) for functions with multiple params
 
 ## JavaScript Style
-- Use `function` keyword for components and pure functions — not `const`
+- Use `function` keyword for components and pure functions - not `const`
 - Omit semicolons
 - File structure order: exported component → subcomponents → helpers → static content
 - Avoid unnecessary curly braces in single-line conditionals

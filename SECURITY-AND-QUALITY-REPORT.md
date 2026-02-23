@@ -8,11 +8,11 @@
 
 ## ✅ ВЫПОЛНЕННЫЕ ИСПРАВЛЕНИЯ (23.02.2025)
 
-1. **Debug-код удалён** — из `middleware.js` и `AdminLayout.astro`
-2. **Валидация doctorId и защита от path traversal** — новый `src/lib/upload-utils.js`, проверка в `photo.js` и `certificates.js`
-3. **Rate limiting для аналитики** — `/api/analytics/event` (100 req/min) и `/api/analytics/heartbeat` (120 req/min)
-4. **Overrides minimatch** — `>=10.2.1` в package.json (исправляет ReDoS)
-5. **Content API** — `post.render()` заменён на `render(post)` в `blog/[slug].astro` (совместимость с Astro 4.16)
+1. **Debug-код удалён** - из `middleware.js` и `AdminLayout.astro`
+2. **Валидация doctorId и защита от path traversal** - новый `src/lib/upload-utils.js`, проверка в `photo.js` и `certificates.js`
+3. **Rate limiting для аналитики** - `/api/analytics/event` (100 req/min) и `/api/analytics/heartbeat` (120 req/min)
+4. **Overrides minimatch** - `>=10.2.1` в package.json (исправляет ReDoS)
+5. **Content API** - `post.render()` заменён на `render(post)` в `blog/[slug].astro` (совместимость с Astro 4.16)
 
 ---
 
@@ -64,13 +64,13 @@
 | **@astrojs/node** | Moderate | Open redirect (trailing slash) |
 | **@astrojs/node** | Moderate | Несанкционированные изображения в /_image |
 | **minimatch** | High | ReDoS через паттерны |
-| **esbuild** | Moderate | Dev server — чтение ответов (актуально только в dev) |
+| **esbuild** | Moderate | Dev server - чтение ответов (актуально только в dev) |
 
 **Рекомендация:** 
 ```bash
 bun update
 ```
-Обновить Astro до версии с исправлениями (5.15.9+ или последний 4.x с backport-патчами). Перед обновлением — проверить changelog и breaking changes.
+Обновить Astro до версии с исправлениями (5.15.9+ или последний 4.x с backport-патчами). Перед обновлением - проверить changelog и breaking changes.
 
 ---
 
@@ -100,10 +100,10 @@ const filename = `${doctorId}-cert-${Date.now()}-...` // certificates.js
 **Файл:** `src/pages/api/analytics/event.js`
 
 - Нет CSRF (приемлемо для аналитики с того же origin)
-- Нет rate limiting — можно заспамить БД
-- Нет проверки `Origin` — сторонние сайты могут слать события
+- Нет rate limiting - можно заспамить БД
+- Нет проверки `Origin` - сторонние сайты могут слать события
 
-**Рекомендация:** Добавить rate limiting (например, по IP: 100 req/min). Опционально — проверять `Origin`/`Referer` для приёма только с odintsovclinic.ru.
+**Рекомендация:** Добавить rate limiting (например, по IP: 100 req/min). Опционально - проверять `Origin`/`Referer` для приёма только с odintsovclinic.ru.
 
 ---
 
@@ -171,7 +171,7 @@ const ALLOWED_HOSTS = [...DEFAULT_HOSTS, ...extraHosts]
 
 #### 2.1.1 Debug-код
 
-См. раздел 1.1.1 — тот же debug-код влияет и на качество: лишняя логика, логирование в production.
+См. раздел 1.1.1 - тот же debug-код влияет и на качество: лишняя логика, логирование в production.
 
 ---
 
@@ -207,7 +207,7 @@ setTimeout(() => {
 
 В `AdminLayout.astro` подключены Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`), тогда как в публичном Layout используется самохостинг Inter.
 
-**Рекомендация:** Для единообразия и скорости — подключить те же самохостинг-шрифты и в админке.
+**Рекомендация:** Для единообразия и скорости - подключить те же самохостинг-шрифты и в админке.
 
 ---
 
@@ -217,8 +217,8 @@ setTimeout(() => {
 
 Два предупреждения в coverage:
 ```
-coverage/block-navigation.js:1 — Unused eslint-disable directive
-coverage/lcov-report/block-navigation.js:1 — Unused eslint-disable directive
+coverage/block-navigation.js:1 - Unused eslint-disable directive
+coverage/lcov-report/block-navigation.js:1 - Unused eslint-disable directive
 ```
 
 **Рекомендация:** Исключить `coverage/` из ESLint или поправить directive. Также можно добавить `coverage/` в `.eslintignore`.
@@ -232,7 +232,7 @@ coverage/lcov-report/block-navigation.js:1 — Unused eslint-disable directive
 dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
 ```
 
-`JSON.stringify()` экранирует спецсимволы, данные контролируемые — риск XSS низкий. Оставить как есть, но при изменении источников schema — убедиться, что они надёжно санитизированы.
+`JSON.stringify()` экранирует спецсимволы, данные контролируемые - риск XSS низкий. Оставить как есть, но при изменении источников schema - убедиться, что они надёжно санитизированы.
 
 ---
 
@@ -271,7 +271,7 @@ dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
 
 ### A. Проверка .env
 
-`.env` в `.gitignore` — локальные секреты не попадают в репозиторий. На production используется `env_file: .env` в `docker-compose.yml`. Убедитесь, что `.env` на сервере создан и не доступен через веб.
+`.env` в `.gitignore` - локальные секреты не попадают в репозиторий. На production используется `env_file: .env` в `docker-compose.yml`. Убедитесь, что `.env` на сервере создан и не доступен через веб.
 
 ### B. Зависимости (bun audit)
 
@@ -289,7 +289,7 @@ bun run test:e2e
 Отчёт охватывает:
 - Безопасность (auth, API, загрузки, зависимости, заголовки)
 - Качество кода (паттерны, debug, формы, lint, стиль)
-- Архитектуру и тестирование — в обзорном виде
+- Архитектуру и тестирование - в обзорном виде
 
 ---
 

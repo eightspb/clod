@@ -463,7 +463,7 @@ export function Home({ doctorsData = [] }) {
                 <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
                   {/* ── Левая колонка: текст ── */}
                   <div>
-                    {/* Верхние плашки — всегда друг под другом */}
+                    {/* Верхние плашки - всегда друг под другом */}
                     <div className="flex flex-col gap-2 w-fit mb-5">
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.1)', border: '1px solid rgba(78,200,168,0.25)', color: '#2BA888' }}>
                         <CheckCircle size={12} />

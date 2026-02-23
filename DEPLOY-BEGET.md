@@ -7,8 +7,8 @@
 ## Что понадобится
 
 - **Аккаунт Beget** с доступом к VPS.
-- **Домен** — нужен только для доступа по имени и HTTPS; без домена можно поднять сайт по IP по HTTP (см. часть 3А).
-- **Репозиторий на GitHub** (публичный или приватный; для приватного — SSH-ключ или токен).
+- **Домен** - нужен только для доступа по имени и HTTPS; без домена можно поднять сайт по IP по HTTP (см. часть 3А).
+- **Репозиторий на GitHub** (публичный или приватный; для приватного - SSH-ключ или токен).
 - **Терминал** с SSH-клиентом (на Windows: PowerShell + OpenSSH или PuTTY).
 
 ---
@@ -122,19 +122,19 @@ apt install -y git
 
 ### 2.3. Подготовка к клонированию с GitHub
 
-**Публичный репозиторий** — достаточно клонировать по HTTPS:
+**Публичный репозиторий** - достаточно клонировать по HTTPS:
 
 ```bash
 git clone https://github.com/eightspb/clod.git /srv/clod
 cd /srv/clod
 ```
 
-**Приватный репозиторий** — один из вариантов:
+**Приватный репозиторий** - один из вариантов:
 
 - **Вариант A: SSH-ключ**
   1. На сервере: `ssh-keygen -t ed25519 -C "vps-deploy" -f ~/.ssh/id_ed25519 -N ""`
   2. Вывести публичный ключ: `cat ~/.ssh/id_ed25519.pub`
-  3. В GitHub: **Settings** репозитория → **Deploy keys** → **Add deploy key** — вставить ключ.
+  3. В GitHub: **Settings** репозитория → **Deploy keys** → **Add deploy key** - вставить ключ.
   4. Клонировать:
      ```bash
      git clone git@github.com:ВАШ_ЛОГИН/ИМЯ_РЕПОЗИТОРИЯ.git /srv/clod
@@ -163,9 +163,9 @@ TOKEN_SECRET=длинная_случайная_строка_для_HMAC
 ASTRO_DB_REMOTE_URL=file:/data/db.sqlite
 ```
 
-- **ADMIN_PASSWORD** — пароль входа в `/admin`.
-- **TOKEN_SECRET** — любая длинная случайная строка (например, сгенерировать: `openssl rand -hex 32`).
-- **ASTRO_DB_REMOTE_URL** — не меняйте; база будет в Docker volume `/data`.
+- **ADMIN_PASSWORD** - пароль входа в `/admin`.
+- **TOKEN_SECRET** - любая длинная случайная строка (например, сгенерировать: `openssl rand -hex 32`).
+- **ASTRO_DB_REMOTE_URL** - не меняйте; база будет в Docker volume `/data`.
 
 ### 3.2. Домен и DNS
 
@@ -176,7 +176,7 @@ ASTRO_DB_REMOTE_URL=file:/data/db.sqlite
   - `www.odintsovclinic.ru` → IP вашего VPS
 - Дождитесь обновления DNS (проверка: `ping odintsovclinic.ru` с вашего ПК или с сервера).
 
-Если используете другой домен — везде в инструкции замените `odintsovclinic.ru` и `www.odintsovclinic.ru` на свой.
+Если используете другой домен - везде в инструкции замените `odintsovclinic.ru` и `www.odintsovclinic.ru` на свой.
 
 ---
 
@@ -199,7 +199,7 @@ cp nginx.no-domain.conf nginx.conf
 docker compose up -d --build
 ```
 
-Контейнер Certbot будет запущен, но для работы по IP он не нужен — можно игнорировать. Nginx слушает только порт 80 и проксирует запросы на приложение при любом `Host` (в т.ч. по IP).
+Контейнер Certbot будет запущен, но для работы по IP он не нужен - можно игнорировать. Nginx слушает только порт 80 и проксирует запросы на приложение при любом `Host` (в т.ч. по IP).
 
 3. **Открыть в браузере:** `http://ВАШ_IP` (подставьте IP вашего VPS).
 
@@ -218,7 +218,7 @@ cd /srv/clod
 cp nginx.bootstrap.conf nginx.conf
 ```
 
-Если домен другой — отредактируйте `nginx.conf` и замените `server_name` на ваш домен:
+Если домен другой - отредактируйте `nginx.conf` и замените `server_name` на ваш домен:
 
 ```bash
 nano nginx.conf
@@ -231,7 +231,7 @@ nano nginx.conf
 docker compose up -d nginx
 ```
 
-Проверьте: `docker compose ps` — контейнер `nginx` должен быть в состоянии running.
+Проверьте: `docker compose ps` - контейнер `nginx` должен быть в состоянии running.
 
 ### 4.3. Получить SSL-сертификат Let's Encrypt
 
@@ -249,13 +249,13 @@ docker compose run --rm certbot certonly \
 
 ### 4.4. Переключиться на финальный Nginx с HTTPS
 
-В репозитории уже есть финальный `nginx.conf` с HTTPS. Если вы его перезаписали на bootstrap — верните из git:
+В репозитории уже есть финальный `nginx.conf` с HTTPS. Если вы его перезаписали на bootstrap - верните из git:
 
 ```bash
 git checkout nginx.conf
 ```
 
-Если правили домен вручную — отредактируйте финальный `nginx.conf`: замените все вхождения `odintsovclinic.ru` на ваш домен (в `server_name` и путях к `ssl_certificate` / `ssl_certificate_key`).
+Если правили домен вручную - отредактируйте финальный `nginx.conf`: замените все вхождения `odintsovclinic.ru` на ваш домен (в `server_name` и путях к `ssl_certificate` / `ssl_certificate_key`).
 
 ### 4.5. Запустить весь стек (приложение + Nginx + Certbot)
 
@@ -305,7 +305,7 @@ docker compose up -d --build
 docker compose exec -T nginx nginx -s reload
 ```
 
-Сборка пересоберёт образ и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое — сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.
+Сборка пересоберёт образ и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое - сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.
 
 ---
 
@@ -376,4 +376,4 @@ docker compose down -v
 
 ---
 
-Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS. Обновление: с ПК — `bun run deploy` (скрипт подключается по `ssh clod` и выполняет `git pull` + `docker compose up -d --build`).
+Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS. Обновление: с ПК - `bun run deploy` (скрипт подключается по `ssh clod` и выполняет `git pull` + `docker compose up -d --build`).

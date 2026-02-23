@@ -4,7 +4,7 @@ $occupyingPids = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyCont
     Where-Object { $_ -gt 0 }
 
 foreach ($p in $occupyingPids) {
-    Write-Host "Port $port is occupied by PID $p — killing it..."
+    Write-Host "Port $port is occupied by PID $p - killing it..."
     Stop-Process -Id $p -Force -ErrorAction SilentlyContinue
 }
 

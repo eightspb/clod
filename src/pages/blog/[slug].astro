@@ -241,50 +241,28 @@ const breadcrumbItems = [
             <div class="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style="background: #A8D8F4;"></div>
             <div class="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style="background: #A0E4D4;"></div>
 
-            {/* Top row: photo + experience badge */}
-            <div class="flex items-start justify-between mb-4">
-              <a href={`/doctors/${author.slug}`} class="no-underline block flex-shrink-0">
-                <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0`}>
-                  <img
-                    src={author.photo}
-                    alt={author.name}
-                    width="192"
-                    height="192"
-                    loading="lazy"
-                    class="rounded-full object-cover w-48 h-48"
-                  />
-                </div>
-              </a>
-              <div class="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0 mt-2">
-                <p class="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
-                <p class="text-sm font-extrabold text-clay-mint leading-none">{author.experienceYears} лет</p>
+            {/* Photo + name */}
+            <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
+              <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0 w-fit`}>
+                <img
+                  src={author.photo}
+                  alt={author.name}
+                  width="144"
+                  height="144"
+                  loading="lazy"
+                  class="rounded-full object-cover w-44 h-44"
+                />
               </div>
-            </div>
-
-            {/* Name */}
-            <a href={`/doctors/${author.slug}`} class="no-underline block">
-              <h4 class="font-bold text-clay-dark text-base leading-snug mb-2 group-hover:text-clay-teal transition-colors">{author.name}</h4>
+              <h4 class="font-bold text-clay-dark text-base leading-snug mt-3 group-hover:text-clay-teal transition-colors">{author.name}</h4>
+              <p class="text-xs text-clay-muted leading-tight mt-1">{author.specialization.split(',')[0]}</p>
             </a>
 
-            {/* Specialization + link */}
-            <div class="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
-              <div class="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
-                <p class="text-xs font-semibold text-clay-dark leading-tight truncate">
-                  {author.specialization.split(',')[0]}
-                </p>
-                {author.specialization.split(',')[1] && (
-                  <p class="text-xs text-clay-muted leading-tight truncate">
-                    {author.specialization.split(',').slice(1).join(',').trim()}
-                  </p>
-                )}
-              </div>
-              <a
-                href={`/doctors/${author.slug}`}
-                class="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0 no-underline"
-              >
-                Подробнее
-              </a>
-            </div>
+            <a
+              href={`/doctors/${author.slug}`}
+              class="clay btn-clay-primary text-xs py-2 px-4 gap-1 inline-flex no-underline w-fit"
+            >
+              Подробнее
+            </a>
           </article>
         )}
 
