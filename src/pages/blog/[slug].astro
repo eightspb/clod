@@ -1,5 +1,5 @@
 ---
-import { getCollection, getEntry } from 'astro:content'
+import { getCollection, getEntry, render } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
@@ -13,7 +13,7 @@ const { slug } = Astro.params
 const post = await getEntry('blog', slug)
 if (!post) return Astro.redirect('/blog')
 
-const { Content } = await post.render()
+const { Content } = await render(post)
 
 const author = post.data.authorSlug
   ? DOCTORS.find((d) => d.slug === post.data.authorSlug)

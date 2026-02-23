@@ -43,14 +43,14 @@ export function DoctorPage({ doctor }) {
                       <img
                         src={doctor.photo}
                         alt={doctor.name}
-                        className="w-36 h-36 rounded-full object-cover"
+                        className="w-[216px] h-[216px] rounded-full object-cover"
                         loading="lazy"
-                        width="144"
-                        height="144"
+                        width="216"
+                        height="216"
                       />
                     )
                     : (
-                      <div className="w-36 h-36 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+                      <div className="w-[216px] h-[216px] rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
                         <span className="text-5xl font-bold text-clay-muted">{initials}</span>
                       </div>
                     )

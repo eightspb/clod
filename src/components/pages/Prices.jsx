@@ -1,5 +1,5 @@
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, CreditCard, Clock } from 'lucide-react'
-import { PHONE_NUMBER, PHONE_DISPLAY, WHATSAPP_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, WHATSAPP_URL } from '../../lib/contacts.js'
 
 const principles = [
   {

@@ -1,6 +1,5 @@
 import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star, User, Send } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { ClayContactBanner } from '../ClayContactBanner'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
 import { FILTER_TABS_SHORT, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'

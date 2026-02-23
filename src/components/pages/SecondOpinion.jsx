@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
+import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY, WHATSAPP_URL } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 

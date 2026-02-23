@@ -1,5 +1,4 @@
 import { Shield, FileText, Award, CheckCircle } from 'lucide-react'
-import { BreadcrumbNav } from '../BreadcrumbNav.jsx'
 
 const LICENSE_ITEMS = [
   {

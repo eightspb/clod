@@ -31,6 +31,44 @@ bun run preview  # превью собранного билда
 
 ---
 
+## Тестирование и CI/CD
+
+### Команды
+
+| Команда | Описание |
+|---------|----------|
+| `bun run test` | Запуск юнит-тестов в watch-режиме |
+| `bun run test:run` | Однократный прогон юнит-тестов |
+| `bun run test:coverage` | Тесты с отчётом покрытия |
+| `bun run test:e2e` | E2E-тесты (Playwright) |
+| `bun run lint` | Проверка кода ESLint |
+| `bun run lint:fix` | Автоисправление ESLint |
+
+### Покрытие тестами
+
+- **Юнит-тесты (Vitest)**: 56 тестов в `src/lib/*.test.js`, `src/components/*.test.jsx` — полное покрытие: nav, contacts, filters, auth (validateOrigin, cookie), upload-validation (doctorId, extension), DoctorCard, CtaSection
+- **E2E-тесты (Playwright)**: 7 тестов в `e2e/` — главная страница, навигация, blog
+
+### GitHub Actions CI
+
+При push/PR в `main` или `develop` выполняются:
+
+1. **Lint** — ESLint
+2. **Unit tests** — Vitest (56 тестов)
+3. **Build** — `astro build`
+4. **E2E** — Playwright (Chromium)
+
+### Конфигурация
+
+| Файл | Назначение |
+|------|------------|
+| `vitest.config.mjs` | Vitest + Astro getViteConfig, jsdom |
+| `eslint.config.js` | ESLint 9 flat config + Astro, React |
+| `playwright.config.js` | Playwright, webServer: dev/preview |
+| `.github/workflows/ci.yml` | GitHub Actions pipeline |
+
+---
+
 ## Архитектура
 
 Проект использует **Astro hybrid mode** (SSG + SSR):
@@ -62,9 +100,9 @@ API запрос       → src/pages/api/**/*.js (SSR)
 ### Безопасность
 
 - **Security headers** — добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
-- **Rate limiting** — login endpoint: макс. 5 попыток за 15 минут с одного IP
+- **Rate limiting** — login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** — проверка заголовка `Origin`/`Referer` на всех state-changing API
-- **Санитизация** — валидация и trim всех текстовых полей в admin API
+- **Санитизация** — валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
 - **Разделение секретов** — `TOKEN_SECRET` для HMAC (fallback на `ADMIN_PASSWORD`), `Secure` cookie в production
 
 ### Переменные окружения (`.env`)
@@ -91,6 +129,11 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ```
 clod/
+├── .github/workflows/
+│   └── ci.yml                    # GitHub Actions: lint, test, build, e2e
+├── e2e/                          # E2E-тесты (Playwright)
+│   ├── home.spec.js              # Главная страница
+│   └── navigation.spec.js        # Навигация
 ├── public/                        # Статические ассеты
 │   ├── tracker.js                 # Клиентский трекер аналитики
 │   ├── robots.txt                 # Директивы для поисковых роботов
@@ -192,6 +235,8 @@ clod/
 │   │           └── upload/
 │   │               ├── photo.js   # POST — загрузка фото доктора
 │   │               └── certificates.js # POST — загрузка сертификатов
+│   ├── test/
+│   │   └── setup.js              # Vitest setup (jest-dom, cleanup)
 │   ├── styles/
 │   │   └── global.css             # Tailwind + все clay-утилиты + clay-banner-* + prose-clay (блог)
 │   └── env.d.ts                   # Astro type references
@@ -206,6 +251,9 @@ clod/
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
 ├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
+├── vitest.config.mjs              # Vitest (Astro getViteConfig, jsdom)
+├── playwright.config.js           # Playwright E2E
+├── eslint.config.js               # ESLint 9 flat config (Astro, React)
 ├── tailwind.config.js             # Tailwind тема (цвета, тени, радиусы)
 ├── postcss.config.js
 ├── package.json

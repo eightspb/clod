@@ -3,6 +3,11 @@ export const prerender = false
 import { db as analyticsDb, AnalyticsSession, PageView, EventLog } from 'astro:db'
 import { eq } from 'astro:db'
 
+const RATE_LIMIT_MAX = 100
+const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute
+
+const analyticsRateLimit = new Map()
+
 function getClientIp(request) {
   return (
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -11,7 +16,38 @@ function getClientIp(request) {
   )
 }
 
+function checkAnalyticsRateLimit(ip) {
+  const now = Date.now()
+  const entry = analyticsRateLimit.get(ip)
+
+  if (!entry || now > entry.resetAt) {
+    analyticsRateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return { allowed: true }
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000)
+    return { allowed: false, retryAfterSec }
+  }
+
+  entry.count++
+  return { allowed: true }
+}
+
 export async function POST({ request }) {
+  const ip = getClientIp(request)
+  const { allowed, retryAfterSec } = checkAnalyticsRateLimit(ip)
+
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(retryAfterSec),
+      },
+    })
+  }
+
   try {
     const body = await request.json()
     const { type, sessionId, visitorId, data } = body
@@ -23,7 +59,6 @@ export async function POST({ request }) {
       })
     }
 
-    const ip = getClientIp(request)
     const now = new Date()
 
     if (type === 'session_start') {

@@ -1,5 +1,5 @@
 import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react'
-import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, WHATSAPP_URL, TELEGRAM_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND } from '../../lib/contacts.js'
+import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, WHATSAPP_URL, TELEGRAM_URL } from '../../lib/contacts.js'
 
 const localBusinessSchema = {
   '@context': 'https://schema.org',

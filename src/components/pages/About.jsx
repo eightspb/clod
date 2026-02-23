@@ -1,4 +1,4 @@
-import { ArrowRight, Award, Clock, Heart, Mail, Microscope, Shield, Star, Users, Zap, CheckCircle, Phone } from 'lucide-react'
+import { ArrowRight, Award, Clock, Heart, Mail, Shield, Star, Users, Zap, Phone } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 

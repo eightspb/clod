@@ -3,6 +3,7 @@ export const prerender = false
 import { db, Media, Doctor } from 'astro:db'
 import { eq } from 'astro:db'
 import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
+import { validateDoctorId, getSafeExtension } from '../../../../lib/upload-utils.js'
 import { writeFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
@@ -26,7 +27,8 @@ export async function POST({ request }) {
   try {
     const formData = await request.formData()
     const file = formData.get('file')
-    const doctorId = formData.get('doctorId')
+    const doctorIdRaw = formData.get('doctorId')
+    const doctorId = typeof doctorIdRaw === 'string' ? doctorIdRaw.trim() : null
 
     if (!file || typeof file === 'string') {
       return new Response(JSON.stringify({ error: 'Файл не передан' }), {
@@ -37,6 +39,14 @@ export async function POST({ request }) {
 
     if (!doctorId) {
       return new Response(JSON.stringify({ error: 'doctorId не передан' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    const doctorCheck = await validateDoctorId(doctorId)
+    if (!doctorCheck.valid) {
+      return new Response(JSON.stringify({ error: doctorCheck.error }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
@@ -56,8 +66,7 @@ export async function POST({ request }) {
       })
     }
 
-    // Generate unique filename based on doctorId + timestamp
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const ext = getSafeExtension(file.name)
     const filename = `${doctorId}-${Date.now()}.${ext}`
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'doctors')
     const filePath = join(uploadDir, filename)

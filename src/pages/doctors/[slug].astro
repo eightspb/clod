@@ -72,6 +72,6 @@ const physicianSchema = {
   ogImageAlt={doctor.name}
 >
   <script type="application/ld+json" set:html={JSON.stringify(physicianSchema)} />
-  <BreadcrumbNav items={[{ label: 'Врачи', href: '/doctors' }, { label: doctor.name }]} />
+  <BreadcrumbNav items={[{ label: 'Доктора', href: '/doctors' }, { label: doctor.name }]} />
   <DoctorPage doctor={doctor} />
 </Layout>

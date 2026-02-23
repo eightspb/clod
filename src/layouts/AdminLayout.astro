@@ -1,8 +1,4 @@
 ---
-// #region agent log
-import fs from 'node:fs';
-try { fs.appendFileSync('debug-a3eddf.log', JSON.stringify({sessionId:'a3eddf',runId:'debug2',hypothesisId:'C',location:'AdminLayout.astro:before-auth',message:'Checking auth',data:{pathname: Astro.url.pathname},timestamp:Date.now()}) + '\n'); } catch(e) {}
-// #endregion
 export const prerender = false
 
 interface Props {

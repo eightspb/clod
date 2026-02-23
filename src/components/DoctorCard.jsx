@@ -21,14 +21,14 @@ export function DoctorCard({ doctor }) {
               <img
                 src={doctor.photo}
                 alt={doctor.name}
-                className="w-48 h-48 rounded-full object-cover"
+                className="w-72 h-72 rounded-full object-cover"
                 loading="lazy"
-                width="192"
-                height="192"
+                width="288"
+                height="288"
               />
             )
             : (
-              <div className="w-48 h-48 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
+              <div className="w-72 h-72 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
                 <span className="text-6xl font-bold text-clay-muted">{initials}</span>
               </div>
             )
