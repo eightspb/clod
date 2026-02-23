@@ -1321,17 +1321,6 @@
   border-radius: 9999px;
   letter-spacing: 0.02em;
 }
-.blog-author-card {
-  display: flex;
-  gap: 1.25rem;
-  align-items: flex-start;
-  background: linear-gradient(135deg, #f8fffe 0%, #f0faf8 100%);
-  border: 1px solid #d4ede9;
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 12px rgba(42, 157, 143, 0.08);
-}
 
 /* ─────────────────────────────
    BLOG PROSE STYLES

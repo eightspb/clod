@@ -3,6 +3,7 @@ import { getCollection, getEntry, render } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
+import { RING_COLOR_MAP } from '../../lib/constants.js'
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog')
@@ -14,6 +15,12 @@ const post = await getEntry('blog', slug)
 if (!post) return Astro.redirect('/blog')
 
 const { Content } = await render(post)
+
+const allPosts = await getCollection('blog')
+const relatedPosts = allPosts
+  .filter((p) => p.data.category === post.data.category && p.slug !== post.slug)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 3)
 
 const author = post.data.authorSlug
   ? DOCTORS.find((d) => d.slug === post.data.authorSlug)
@@ -182,27 +189,6 @@ const breadcrumbItems = [
         </div>
 
         <footer class="mt-14 pt-10 border-t border-gray-100">
-          {author && (
-            <div class="blog-author-card">
-              <img
-                src={author.photo}
-                alt={author.name}
-                width="72"
-                height="72"
-                loading="lazy"
-                class="rounded-full object-cover w-[72px] h-[72px] shrink-0 ring-2 ring-white shadow"
-              />
-              <div>
-                <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-1">Автор статьи</p>
-                <a href={`/doctors/${author.slug}`} class="text-lg font-bold text-clay-text hover:text-clay-teal transition-colors no-underline block leading-tight mb-1">
-                  {author.name}
-                </a>
-                <p class="text-sm text-clay-muted">{author.specialization} · Стаж {author.experienceYears} лет</p>
-                {author.degree && <p class="text-sm text-clay-muted mt-0.5">{author.degree}</p>}
-              </div>
-            </div>
-          )}
-
           <div class="clay-card clay-card-mint p-8 md:p-10 text-center mt-8">
             <h2 class="text-xl font-bold text-white mb-3">Остались вопросы?</h2>
             <p class="text-white/85 mb-6 max-w-md mx-auto">
@@ -224,24 +210,59 @@ const breadcrumbItems = [
       <!-- Боковая панель -->
       <aside class="blog-article-sidebar">
         {author && (
-          <div class="clay-card p-5 mb-5">
+          <article class="clay clay-card p-6 flex flex-col relative overflow-visible group mb-5">
             <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Автор</p>
-            <a href={`/doctors/${author.slug}`} class="flex items-center gap-3 no-underline group">
-              <img
-                src={author.photo}
-                alt={author.name}
-                width="48"
-                height="48"
-                loading="lazy"
-                class="rounded-full object-cover w-12 h-12 shrink-0"
-              />
-              <div>
-                <span class="block font-semibold text-clay-text group-hover:text-clay-teal transition-colors text-sm leading-snug">{author.name}</span>
-                <span class="block text-xs text-clay-muted mt-0.5">{author.specialization}</span>
-                <span class="block text-xs text-clay-muted">Стаж {author.experienceYears} лет</span>
+            
+            {/* Decorative dots */}
+            <div class="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style="background: #FAC8B0;"></div>
+            <div class="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style="background: #A8D8F4;"></div>
+            <div class="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style="background: #A0E4D4;"></div>
+
+            {/* Top row: photo + experience badge */}
+            <div class="flex items-start justify-between mb-4">
+              <a href={`/doctors/${author.slug}`} class="no-underline block flex-shrink-0">
+                <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0`}>
+                  <img
+                    src={author.photo}
+                    alt={author.name}
+                    width="192"
+                    height="192"
+                    loading="lazy"
+                    class="rounded-full object-cover w-48 h-48"
+                  />
+                </div>
+              </a>
+              <div class="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0 mt-2">
+                <p class="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
+                <p class="text-sm font-extrabold text-clay-mint leading-none">{author.experienceYears} лет</p>
               </div>
+            </div>
+
+            {/* Name */}
+            <a href={`/doctors/${author.slug}`} class="no-underline block">
+              <h4 class="font-bold text-clay-dark text-base leading-snug mb-2 group-hover:text-clay-teal transition-colors">{author.name}</h4>
             </a>
-          </div>
+
+            {/* Specialization + link */}
+            <div class="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
+              <div class="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
+                <p class="text-xs font-semibold text-clay-dark leading-tight truncate">
+                  {author.specialization.split(',')[0]}
+                </p>
+                {author.specialization.split(',')[1] && (
+                  <p class="text-xs text-clay-muted leading-tight truncate">
+                    {author.specialization.split(',').slice(1).join(',').trim()}
+                  </p>
+                )}
+              </div>
+              <a
+                href={`/doctors/${author.slug}`}
+                class="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0 no-underline"
+              >
+                Подробнее
+              </a>
+            </div>
+          </article>
         )}
 
         <div class="clay-card clay-card-soft-mint p-5 mb-5">
@@ -252,7 +273,7 @@ const breadcrumbItems = [
           </a>
         </div>
 
-        <div class="clay-card p-5">
+        <div class="clay-card p-5 mb-5">
           <p class="text-xs font-medium text-clay-muted uppercase tracking-wide mb-3">Категория</p>
           <span class="blog-category-badge">{post.data.category}</span>
           {post.data.tags.length > 0 && (
@@ -263,6 +284,28 @@ const breadcrumbItems = [
             </div>
           )}
         </div>
+
+        {relatedPosts.length > 0 && (
+          <div class="clay-card p-5">
+            <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-4">Читайте также</p>
+            <div class="flex flex-col gap-4">
+              {relatedPosts.map((related) => (
+                <a href={`/blog/${related.slug}`} class="group no-underline block">
+                  <h4 class="text-sm font-bold text-clay-text group-hover:text-clay-teal transition-colors leading-snug mb-1.5 line-clamp-2">
+                    {related.data.title}
+                  </h4>
+                  <time class="text-xs text-clay-muted block">
+                    {related.data.publishDate.toLocaleDateString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </time>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
 
     </div>

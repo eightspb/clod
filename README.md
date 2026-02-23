@@ -191,7 +191,8 @@ clod/
 │   │       ├── chto-takoe-fibroadenoma.md
 │   │       ├── kak-izbezhat-operatsii-na-grudi.md
 │   │       ├── mammografiya-ili-uzi.md
-│   │       └── gipotireoz-simptomy-lechenie.md
+│   │       ├── gipotireoz-simptomy-lechenie.md
+│   │       └── ... и еще 11 новых статей
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
 │   │   ├── about.astro            # /about — О клинике (миссия, руководство, документы, преимущества, оборудование)
@@ -577,6 +578,19 @@ integrations: [
 - `kak-izbezhat-operatsii-na-grudi` — Как избежать операции на молочной железе
 - `mammografiya-ili-uzi` — Маммография или УЗИ: что выбрать
 - `gipotireoz-simptomy-lechenie` — Гипотиреоз: симптомы, диагностика и лечение
+
+**Недавно добавленные статьи:**
+- `fibroadenoma-chastye-voprosy` — Фиброаденома. Частые вопросы
+- `rannyaya-diagnostika-raka-grudi` — Ранняя диагностика рака груди
+- `kista-molochnoy-zhelezy` — Киста молочной железы: причины, симптомы, лечение
+- `eroziya-sheyki-matki` — Эрозия шейки матки. Мифы и правда
+- `15-pravil-grudnogo-vskarmlivaniya` — 15 правил грудного вскармливания
+- `mylnaya-opera-o-kistoznoy-mastopatii` — Мыльная опера о кистозной мастопатии
+- `simptomy-gipotireoza-i-gipertireoza` — Симптомы ГИПОтиреоза и ГИПЕРтиреоза
+- `tonkoigolnaya-punktsionnaya-biopsiya` — Тонкоигольная пункционная биопсия молочных желёз
+- `kak-prokhodit-priem-ginekologa` — Как проходит приём гинеколога
+- `kak-podgotovitsya-k-priemu-ginekologa` — Как подготовиться к приёму гинеколога
+- `kak-podgotovitsya-k-priemu-endokrinologa` — Как подготовиться к приёму эндокринолога
 
 **Добавление новой статьи:**
 1. Создать файл `src/content/blog/slug-statyi.md`
