@@ -38,7 +38,7 @@ const guarantees = [
   { icon: <MessageCircle size={18} className="text-clay-mint" />, text: 'Врач остаётся на связи - можно задать уточняющие вопросы после приёма' },
 ]
 
-const faqs = [
+export const SECOND_OPINION_FAQ = [
   {
     question: 'Что взять с собой?',
     answer: 'Снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники. Если есть результаты анализов или биопсии - берите тоже.',
@@ -161,7 +161,7 @@ export function SecondOpinion() {
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div>
-              <FaqSection items={faqs} title="Часто задаваемые вопросы" />
+              <FaqSection items={SECOND_OPINION_FAQ} title="Часто задаваемые вопросы" />
             </div>
             <div className="sticky top-24">
               <div className="clay clay-card-mint p-8 relative overflow-hidden">

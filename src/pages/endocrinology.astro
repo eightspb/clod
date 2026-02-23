@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { Endocrinology } from '../components/pages/Endocrinology.jsx'
+import { Endocrinology, ENDOCRINOLOGY_FAQ } from '../components/pages/Endocrinology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
@@ -27,6 +28,8 @@ const specialtySchema = {
     longitude: 30.251746,
   },
 }
+
+const faqSchema = generateFaqSchema(ENDOCRINOLOGY_FAQ)
 ---
 
 <Layout
@@ -35,6 +38,7 @@ const specialtySchema = {
   keywords="эндокринолог Санкт-Петербург, эндокринолог СПб, щитовидная железа лечение СПб, гипотиреоз лечение СПб, гормоны анализы СПб, эндокринолог Комендантский проспект"
 >
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология' }]} />
   <Endocrinology />
 </Layout>

@@ -1,8 +1,9 @@
 ---
 export const prerender = false
 import Layout from '../layouts/Layout.astro'
-import { Gynecology } from '../components/pages/Gynecology.jsx'
+import { Gynecology, GYNECOLOGY_FAQ } from '../components/pages/Gynecology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
 import { db, Service } from 'astro:db'
 import { eq } from 'astro:db'
 
@@ -32,6 +33,8 @@ const specialtySchema = {
     longitude: 30.251746,
   },
 }
+
+const faqSchema = generateFaqSchema(GYNECOLOGY_FAQ)
 ---
 
 <Layout
@@ -40,6 +43,7 @@ const specialtySchema = {
   keywords="гинеколог Санкт-Петербург, гинеколог СПб, гинеколог Комендантский проспект, гинеколог Старая Деревня, УЗИ малого таза СПб, гинеколог-эндокринолог СПб, женское здоровье СПб"
 >
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология' }]} />
   <Gynecology servicesData={services} />
 </Layout>

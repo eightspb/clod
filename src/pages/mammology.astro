@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { Mammology } from '../components/pages/Mammology.jsx'
+import { Mammology, MAMMOLOGY_FAQ } from '../components/pages/Mammology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
@@ -27,6 +28,8 @@ const specialtySchema = {
     longitude: 30.251746,
   },
 }
+
+const faqSchema = generateFaqSchema(MAMMOLOGY_FAQ)
 ---
 
 <Layout
@@ -35,6 +38,7 @@ const specialtySchema = {
   keywords="маммолог Санкт-Петербург, маммолог СПб, ВАБ СПб, вакуумная аспирационная биопсия Санкт-Петербург, удаление фиброаденомы без операции, удаление кисты молочной железы, маммолог Комендантский проспект, маммолог Старая Деревня"
 >
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология' }]} />
   <Mammology />
 </Layout>

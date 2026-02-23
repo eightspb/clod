@@ -42,7 +42,7 @@ export function DoctorPage({ doctor }) {
                     ? (
                       <img
                         src={doctor.photo}
-                        alt={doctor.name}
+                        alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
                         className="w-[216px] h-[216px] rounded-full object-cover"
                         loading="lazy"
                         width="216"

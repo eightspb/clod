@@ -35,13 +35,4 @@ describe('FaqSection', () => {
     expect(screen.getByText('Нет, под местной анестезией.')).toBeInTheDocument()
   })
 
-  it('injects FAQPage JSON-LD schema', () => {
-    const { container } = render(<FaqSection items={FAQ_ITEMS} />)
-    const script = container.querySelector('script[type="application/ld+json"]')
-    expect(script).not.toBeNull()
-    const data = JSON.parse(script.textContent)
-    expect(data['@type']).toBe('FAQPage')
-    expect(data.mainEntity).toHaveLength(2)
-    expect(data.mainEntity[0].name).toBe('Что такое ВАБ?')
-  })
 })

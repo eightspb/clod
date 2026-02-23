@@ -1,30 +1,13 @@
 /**
- * FaqSection - FAQ-аккордеон с автогенерацией FAQPage JSON-LD
+ * FaqSection - FAQ-аккордеон
  * @param {Array<{question: string, answer: string}>} items
  * @param {string} title - заголовок секции (по умолчанию "Частые вопросы")
  */
 export function FaqSection({ items = [], title = 'Частые вопросы' }) {
   if (!items.length) return null
 
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: items.map((item) => ({
-      '@type': 'Question',
-      name: item.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.answer,
-      },
-    })),
-  }
-
   return (
     <section className="mb-10">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
       <h2 className="text-2xl font-bold text-clay-text mb-6">{title}</h2>
       <div className="space-y-3">
         {items.map((item) => (

@@ -2,7 +2,7 @@ import { ArrowRight, Brain, Target, BookOpen, CheckCircle, MessageCircle, Zap, U
 import { WHATSAPP_URL } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 
-const NEUROLOGY_FAQ = [
+export const NEUROLOGY_FAQ = [
   {
     question: 'Что лечит невролог?',
     answer: 'Невролог занимается диагностикой и лечением заболеваний нервной системы: мигрени, головные боли напряжения, боль в спине и шее, грыжа межпозвонкового диска, радикулит, онемение конечностей, головокружения.',

@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { Neurology } from '../components/pages/Neurology.jsx'
+import { Neurology, NEUROLOGY_FAQ } from '../components/pages/Neurology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
@@ -27,6 +28,8 @@ const specialtySchema = {
     longitude: 30.251746,
   },
 }
+
+const faqSchema = generateFaqSchema(NEUROLOGY_FAQ)
 ---
 
 <Layout
@@ -35,6 +38,7 @@ const specialtySchema = {
   keywords="невролог Санкт-Петербург, невролог СПб, лечение мигрени СПб, боль в спине лечение СПб, грыжа позвоночника лечение без операции, блокада позвоночника СПб, невролог Комендантский проспект"
 >
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Неврология' }]} />
   <Neurology />
 </Layout>

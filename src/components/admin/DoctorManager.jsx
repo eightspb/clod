@@ -68,7 +68,7 @@ export function DoctorManager() {
                 <td style={{ padding: '10px 16px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f1f5f9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {doc.photoUrl ? (
-                      <img src={doc.photoUrl} alt={doc.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={doc.photoUrl} alt={`${doc.specialization ? doc.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doc.name}, клиника Одинцова, СПб`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <svg width="18" height="18" fill="none" stroke="#94a3b8" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>

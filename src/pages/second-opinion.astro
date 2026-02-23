@@ -1,7 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { SecondOpinion } from '../components/pages/SecondOpinion.jsx'
+import { SecondOpinion, SECOND_OPINION_FAQ } from '../components/pages/SecondOpinion.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
 
 const secondOpinionSchema = {
   '@context': 'https://schema.org',
@@ -38,6 +39,8 @@ const secondOpinionSchema = {
     name: 'Клиника Одинцова',
   },
 }
+
+const faqSchema = generateFaqSchema(SECOND_OPINION_FAQ)
 ---
 
 <Layout
@@ -46,6 +49,7 @@ const secondOpinionSchema = {
   keywords="второе мнение маммолог СПб, второе мнение онколог Санкт-Петербург, нужна ли операция на груди, проверить диагноз маммолог, бесплатная консультация маммолог СПб"
 >
   <script type="application/ld+json" set:html={JSON.stringify(secondOpinionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Бесплатное второе мнение' }]} />
   <SecondOpinion />
 </Layout>

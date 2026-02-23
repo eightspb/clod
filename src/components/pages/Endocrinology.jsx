@@ -4,7 +4,7 @@ import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
-const ENDOCRINOLOGY_FAQ = [
+export const ENDOCRINOLOGY_FAQ = [
   {
     question: 'Какие симптомы говорят о проблемах с щитовидной железой?',
     answer: 'Усталость без причины, набор веса при обычном питании, выпадение волос, зябкость, запоры, депрессия - могут указывать на гипотиреоз. Раздражительность, потливость, учащённое сердцебиение, похудение - на гипертиреоз. Для точного диагноза нужны анализы на ТТГ, Т3, Т4.',

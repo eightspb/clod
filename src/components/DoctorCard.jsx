@@ -20,7 +20,7 @@ export function DoctorCard({ doctor }) {
             ? (
               <img
                 src={doctor.photo}
-                alt={doctor.name}
+                alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
                 className="w-40 h-40 rounded-full object-cover"
                 loading="lazy"
                 width="160"
@@ -41,7 +41,7 @@ export function DoctorCard({ doctor }) {
       </div>
 
       {/* Name */}
-      <h4 className="font-bold text-clay-dark text-base leading-snug mb-2">{doctor.name}</h4>
+      <h3 className="font-bold text-clay-dark text-base leading-snug mb-2">{doctor.name}</h3>
 
       {/* Tagline */}
       {doctor.tagline && (

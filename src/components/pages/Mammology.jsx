@@ -4,7 +4,7 @@ import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
-const MAMMOLOGY_FAQ = [
+export const MAMMOLOGY_FAQ = [
   {
     question: 'Что лечит маммолог?',
     answer: 'Маммолог занимается диагностикой и лечением заболеваний молочных желёз: фиброаденомы, кисты, мастопатии, внутрипротоковые папилломы, а также ранней диагностикой рака молочной железы. В нашей клинике маммологи - онкологи-хирурги, владеющие УЗИ и технологией ВАБ.',

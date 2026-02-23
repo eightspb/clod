@@ -51,7 +51,7 @@ describe('DoctorCard', () => {
 
   it('renders photo when provided', () => {
     render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp' }} />)
-    const img = screen.getByRole('img', { name: 'Иванов Иван Иванович' })
+    const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
     expect(img).toHaveAttribute('src', '/images/doctor.webp')
   })
 })

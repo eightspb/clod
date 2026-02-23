@@ -4,7 +4,7 @@ import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
-const GYNECOLOGY_FAQ = [
+export const GYNECOLOGY_FAQ = [
   {
     question: 'Что входит в первичный приём гинеколога?',
     answer: 'На первичном приёме гинеколог проводит осмотр, УЗИ малого таза, при необходимости берёт мазки и назначает анализы. Всё - за один визит. Результаты базовых анализов готовы через 24 часа.',

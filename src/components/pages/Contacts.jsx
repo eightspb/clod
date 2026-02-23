@@ -191,17 +191,62 @@ export function Contacts() {
       {/* Карта */}
       <section className="mb-6">
         <h2 className="text-2xl font-bold text-clay-text mb-4">Карта</h2>
-        <div className="clay-card overflow-hidden" style={{ height: '400px' }}>
-          <iframe
-            src="https://yandex.ru/map-widget/v1/?ll=30.251746%2C60.001014&z=16&pt=30.251746%2C60.001014,pm2rdm~&l=map"
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            title="Карта - Клиника Одинцова, пр. Богатырский 22 к.1"
-            loading="lazy"
-            allowFullScreen
-          />
+        <div 
+          id="yandex-map-container"
+          className="clay-card overflow-hidden relative cursor-pointer group bg-slate-50" 
+          style={{ height: '400px' }}
+        >
+          {/* Фасад-заглушка */}
+          <div 
+            id="yandex-map-facade" 
+            className="absolute inset-0 flex flex-col items-center justify-center z-10 transition-colors group-hover:bg-slate-100"
+          >
+            <div className="icon-circle-mint mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
+              <MapPin size={28} className="text-white" />
+            </div>
+            <span className="text-clay-text font-semibold text-lg md:text-xl">Показать интерактивную карту</span>
+            <span className="text-clay-muted text-sm mt-2">Нажмите, чтобы загрузить Яндекс.Карты</span>
+          </div>
+          
+          {/* Контейнер для iframe */}
+          <div id="yandex-map-frame" className="w-full h-full" />
         </div>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.addEventListener('DOMContentLoaded', function() {
+                var container = document.getElementById('yandex-map-container');
+                var facade = document.getElementById('yandex-map-facade');
+                var frameContainer = document.getElementById('yandex-map-frame');
+                var isLoaded = false;
+
+                if (container) {
+                  container.addEventListener('click', function() {
+                    if (isLoaded) return;
+                    isLoaded = true;
+                    
+                    // Скрываем фасад
+                    facade.style.display = 'none';
+                    container.classList.remove('cursor-pointer', 'group');
+                    
+                    // Создаем iframe
+                    var iframe = document.createElement('iframe');
+                    iframe.setAttribute('src', 'https://yandex.ru/map-widget/v1/?ll=30.251746%2C60.001014&z=16&pt=30.251746%2C60.001014,pm2rdm~&l=map');
+                    iframe.setAttribute('width', '100%');
+                    iframe.setAttribute('height', '100%');
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('title', 'Карта - Клиника Одинцова, пр. Богатырский 22 к.1');
+                    iframe.setAttribute('allowfullscreen', 'true');
+                    iframe.setAttribute('loading', 'lazy');
+                    
+                    frameContainer.appendChild(iframe);
+                  });
+                }
+              });
+            `
+          }}
+        />
       </section>
 
       {/* ДМС */}
