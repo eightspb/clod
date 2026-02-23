@@ -20,8 +20,9 @@ WORKDIR /app
 RUN mkdir -p /data
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/bun.lock ./
+RUN bun install --frozen-lockfile --omit=dev
 COPY scripts ./scripts
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 

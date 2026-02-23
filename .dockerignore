@@ -6,3 +6,17 @@ dist
 .env
 .env.*
 !.env.example
+
+# Тесты и инструменты разработки — не должны попадать в production
+e2e
+**/*.test.js
+**/*.test.jsx
+**/*.spec.js
+**/*.spec.jsx
+src/test
+coverage
+vitest.config.*
+playwright.config.*
+playwright-report
+test-results
+.github
