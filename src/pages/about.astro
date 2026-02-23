@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { About } from '../components/pages/About.jsx'
 ---
 
@@ -11,5 +12,6 @@ import { About } from '../components/pages/About.jsx'
   ogImage="/images/og-default.jpg"
   ogType="website"
 >
+  <BreadcrumbNav items={[{ label: 'О клинике' }]} />
   <About client:load />
 </Layout>

@@ -90,9 +90,6 @@ export function Neurology() {
       <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
-          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
-            ← Назад на главную
-          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(184,168,216,0.18)', color: '#7860B0' }}>
               <Brain size={12} />

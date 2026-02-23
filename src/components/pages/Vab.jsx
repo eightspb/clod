@@ -101,7 +101,7 @@ export function Vab() {
     <div className="container-clay pb-12">
 
       {/* Hero */}
-      <section className="pt-6 pb-8 text-center">
+      <section className="pt-6 pb-8">
         <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
           <Zap size={15} className="text-clay-teal" />
           Флагманская технология клиники
@@ -109,11 +109,11 @@ export function Vab() {
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-clay-text mb-5 speakable">
           ВАБ - вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
         </h1>
-        <p className="text-lg text-clay-muted max-w-2xl mx-auto mb-8 speakable">
+        <p className="text-lg text-clay-muted max-w-2xl mb-8 speakable">
           Удаление фиброаденом, кист и других образований молочной железы через прокол 2 мм.
           Без скальпеля, без общего наркоза, без швов. Процедура 30–40 минут - и вы идёте домой.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3">
           <a
             href={WHATSAPP_URL}
             target="_blank"

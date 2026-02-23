@@ -84,9 +84,6 @@ export function About() {
         <div className="blob-mint absolute -top-32 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="container-clay relative z-10">
-          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
-            ← Назад на главную
-          </a>
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
               <Heart size={12} />

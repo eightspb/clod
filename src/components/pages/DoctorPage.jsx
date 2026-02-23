@@ -36,7 +36,7 @@ export function DoctorPage({ doctor }) {
 
             <div className="relative flex flex-col md:flex-row gap-8 items-start">
               {/* Фото */}
-              <div className="flex-shrink-0 flex flex-col items-center gap-4">
+              <div className="flex-shrink-0 flex flex-col items-start gap-4">
                 <div className={ring}>
                   {doctor.photo
                     ? (

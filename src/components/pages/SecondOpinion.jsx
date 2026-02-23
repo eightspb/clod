@@ -64,9 +64,6 @@ export function SecondOpinion() {
       <section className="relative overflow-hidden pt-8 pb-12">
 
         <div className="container-clay relative z-10">
-          <a href="/" className="inline-flex items-center gap-1 text-sm text-clay-muted hover:text-clay-mint transition-colors mb-6">
-            ← Назад на главную
-          </a>
           <div className="max-w-3xl">
             <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
               <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
