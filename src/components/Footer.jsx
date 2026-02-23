@@ -79,7 +79,7 @@ export function Footer() {
 
             {/* Nav links */}
             <div>
-              <h4 className="font-bold text-clay-dark mb-4 text-sm">Направления и услуги</h4>
+              <h4 className="font-bold text-clay-dark mb-4 text-sm">Навигация по сайту</h4>
               <nav aria-label="Навигация по сайту">
                 <ul className="flex flex-col gap-2">
                   {FOOTER_LINKS.map((link) => (
