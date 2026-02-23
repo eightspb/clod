@@ -43,13 +43,29 @@ const itemListSchema = {
     url: `https://odintsovclinic.ru/blog/${post.slug}`,
     name: post.data.title,
   })),
+  publisher: {
+    '@type': 'MedicalBusiness',
+    name: 'Клиника Одинцова',
+    url: 'https://odintsovclinic.ru',
+  },
+  spatialCoverage: {
+    '@type': 'Place',
+    name: 'Санкт-Петербург',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Санкт-Петербург',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
 }
 ---
 
 <Layout
   title="Блог - статьи о здоровье | Клиника Одинцова"
-  description="Полезные статьи о маммологии, гинекологии, эндокринологии и неврологии от врачей Клиники Одинцова. Советы специалистов, ответы на частые вопросы."
-  keywords="блог клиника Одинцова, статьи о маммологии, статьи о гинекологии, статьи о щитовидной железе, советы маммолога СПб"
+  description="Полезные статьи о маммологии, гинекологии, эндокринологии и неврологии от врачей Клиники Одинцова в Санкт-Петербурге. Советы специалистов, ответы на частые вопросы."
+  keywords="блог клиника Одинцова, статьи о маммологии СПб, статьи о гинекологии Санкт-Петербург, статьи о щитовидной железе, советы маммолога СПб, гинеколог СПб, эндокринолог СПб"
+  canonicalUrl="https://odintsovclinic.ru/blog"
 >
   <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />
 

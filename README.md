@@ -592,11 +592,19 @@ integrations: [
 - `kak-podgotovitsya-k-priemu-ginekologa` — Как подготовиться к приёму гинеколога
 - `kak-podgotovitsya-k-priemu-endokrinologa` — Как подготовиться к приёму эндокринолога
 
+**SEO/GEO на страницах блога:**
+- Meta: title, description, keywords, canonical URL
+- GEO: `geo.region`, `geo.placename`, `geo.position`, `ICBM` (из Layout)
+- Open Graph: og:type=article, og:image, article:published_time, article:modified_time, article:author, article:section, article:tag
+- JSON-LD: MedicalWebPage с keywords, spatialCoverage (Санкт-Петербург), author=Physician
+- Fallback: при отсутствии keywords — автогенерация из category + title + «СПб, Санкт-Петербург»
+
 **Добавление новой статьи:**
 1. Создать файл `src/content/blog/slug-statyi.md`
 2. Заполнить frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
-3. Написать контент в Markdown
-4. Статья автоматически появится на `/blog` и `/blog/slug-statyi`
+3. Для GEO: включить в keywords «СПб» и «Санкт-Петербург» (при отсутствии — fallback сработает автоматически)
+4. Написать контент в Markdown
+5. Статья автоматически появится на `/blog` и `/blog/slug-statyi`
 
 ---
 

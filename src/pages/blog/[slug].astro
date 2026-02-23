@@ -40,14 +40,23 @@ const updatedDate = post.data.updatedDate
     })
   : null
 
+// SEO/GEO: fallback для ключевых слов с геопривязкой
+const seoKeywords = post.data.keywords
+  ? post.data.keywords
+  : `${post.data.category}, ${post.data.title}, СПб, Санкт-Петербург, Клиника Одинцова`
+
+const canonicalUrl = `https://odintsovclinic.ru/blog/${post.slug}`
+const ogImageUrl = post.data.image || '/images/og-default.jpg'
+
 const articleSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalWebPage',
   headline: post.data.title,
   description: post.data.description,
-  url: `https://odintsovclinic.ru/blog/${post.slug}`,
+  url: canonicalUrl,
   datePublished: post.data.publishDate.toISOString(),
   ...(post.data.updatedDate && { dateModified: post.data.updatedDate.toISOString() }),
+  keywords: seoKeywords,
   author: author
     ? {
         '@type': 'Physician',
@@ -78,6 +87,16 @@ const articleSchema = {
     '@type': 'MedicalAudience',
     audienceType: 'Patient',
   },
+  spatialCoverage: {
+    '@type': 'Place',
+    name: 'Санкт-Петербург',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Санкт-Петербург',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
   ...(post.data.image && {
     image: {
       '@type': 'ImageObject',
@@ -102,15 +121,19 @@ const breadcrumbItems = [
 <Layout
   title={`${post.data.title} | Клиника Одинцова`}
   description={post.data.description}
-  keywords={post.data.keywords}
+  keywords={seoKeywords}
+  canonicalUrl={canonicalUrl}
   ogType="article"
-  ogImage={post.data.image}
+  ogImage={ogImageUrl}
   ogImageAlt={post.data.imageAlt || post.data.title}
 >
   <Fragment slot="head">
+    <!-- Open Graph article -->
     <meta property="article:published_time" content={post.data.publishDate.toISOString()} />
     <meta property="article:modified_time" content={post.data.updatedDate ? post.data.updatedDate.toISOString() : post.data.publishDate.toISOString()} />
     <meta property="article:author" content={author ? author.name : (post.data.author || 'Клиника Одинцова')} />
+    <meta property="article:section" content={post.data.category} />
+    <meta property="article:locale" content="ru_RU" />
     {post.data.tags.map((tag) => (
       <meta property="article:tag" content={tag} />
     ))}
