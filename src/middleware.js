@@ -73,5 +73,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   }
 
+  // Долгое кэширование статики (Lighthouse — «выбирайте эффективный период хранения кеша»)
+  if (path.startsWith('/_astro/') || path.startsWith('/fonts/') || path.startsWith('/images/')) {
+    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  }
+
   return response
 })

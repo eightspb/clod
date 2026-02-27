@@ -400,9 +400,10 @@
     will-change: transform;
   }
 
-  /* Floating decorative clay capsules */
+  /* Floating decorative clay capsules; will-change для композированной анимации (Lighthouse) */
   .orb {
     @apply absolute rounded-full pointer-events-none;
+    will-change: transform;
     box-shadow:
       6px 6px 16px rgba(0,0,0,0.15),
       inset -3px -3px 8px rgba(0,0,0,0.15),
