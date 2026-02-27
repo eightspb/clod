@@ -11,8 +11,8 @@ const heroSlides = [
   {
     trustBadge: 'Клиника №1 в России по вакуумной биопсии',
     badge: 'Первая частная клиника в России, практикующая ВАБ',
-    title: <>Удаление образований груди<br /><span style={{ color: '#2A9E80' }}>топ-манипуляция ВАБ за 30 минут</span></>,
-    desc: 'Вакуумно-аспирационная биопсия (ВАБ) — топ-манипуляция клиники. Прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
+    title: <>Удаление образований молочной железы<br /><span style={{ color: '#2A9E80' }}>бережная манипуляция ВАБ за 30 минут</span></>,
+    desc: 'Вакуумно-аспирационная биопсия (ВАБ) — ведущее направление клиники. Прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
     stats: [
       { val: '99%', unit: '', label: 'пациентов избегают операции*' },
       { val: '2', unit: 'мм', label: 'прокол ВАБ' },
@@ -82,7 +82,7 @@ const REVIEWS = [
     name: 'Ольга Иванова',
     date: '5 марта 2025',
     rating: 5,
-    text: 'Невролог избавил от хронических мигреней за 2 визита. Блокады под УЗИ-навигацией - совершенно безболезненно. Впервые за годы сплю нормально. Рекомендую всем, кто устал от бесполезных таблеток.',
+    text: 'Нутрициолог помогла разобраться с дефицитами и хронической усталостью. Наконец-то появились силы по утрам, а вес начал снижаться без жестких диет. Рекомендую всем, кто устал от постоянных ограничений.',
   },
 ]
 
@@ -407,7 +407,7 @@ export function Home({ doctorsData = [] }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroSlides.length)
-    }, 7000)
+    }, 12000)
     return () => clearInterval(timer)
   }, [])
 
@@ -450,9 +450,11 @@ export function Home({ doctorsData = [] }) {
               <div
                 key={idx}
                 ref={(el) => { slideRefs.current[idx] = el }}
-                className="transition-opacity duration-500"
+                className="transition-all duration-[800ms] ease-out"
                 style={{
                   opacity: isActive ? 1 : 0,
+                  transform: isActive ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.98)',
+                  filter: isActive ? 'blur(0px)' : 'blur(4px)',
                   position: useEqualHeight && sliderHeight > 0 ? 'absolute' : 'relative',
                   top: 0,
                   left: 0,
@@ -590,36 +592,36 @@ export function Home({ doctorsData = [] }) {
               </h2>
               <p className="text-white/90 text-lg mb-2">Клиника №1 в России по ВАБ согласно отзывам пациентов.</p>
               <p className="text-white/80 text-sm mb-5">Первая частная клиника в России, практикующая ВАБ. Прокол 2 мм полностью заживает за 2 месяца.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div className="bg-white/40 rounded-2xl p-5 backdrop-blur-sm border border-white/50 shadow-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center flex-shrink-0">
-                      <Zap size={18} className="text-white" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+                <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#EAF7F4] shadow-inner flex items-center justify-center flex-shrink-0">
+                      <Zap size={24} className="text-[#2A9E80]" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white mb-1">ВАБ — топ-манипуляция</h3>
-                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции. 99% пациентов избегают операции.</p>
+                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">ВАБ — топ-манипуляция</h3>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции. 99% пациентов избегают операции.</p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-white/40 rounded-2xl p-5 backdrop-blur-sm border border-white/50 shadow-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center flex-shrink-0">
-                      <Shield size={18} className="text-white" />
+                <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#EAF7F4] shadow-inner flex items-center justify-center flex-shrink-0">
+                      <Shield size={24} className="text-[#2A9E80]" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white mb-1">Бесплатное второе мнение</h3>
-                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Если вам уже назначили операцию — мы перепроверим диагноз. Ответ в день обращения, без посредников.</p>
+                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Бесплатное второе мнение</h3>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже назначили операцию — мы перепроверим диагноз. Ответ в день обращения, без посредников.</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <a href="/vab" className="clay btn-clay-white text-sm py-3">
+              <div className="flex flex-wrap gap-4 mt-2">
+                <a href="/vab" className="clay btn-clay-white text-sm py-3 px-6 shadow-lg">
                   Подробнее о ВАБ
-                  <ArrowRight size={14} />
+                  <ArrowRight size={16} />
                 </a>
-                <a href="/second-opinion" className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                <a href="/second-opinion" className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-bold text-sm hover:bg-white/30 transition-colors border border-white/30 shadow-lg">
                   Бесплатное второе мнение
                 </a>
               </div>
@@ -718,7 +720,7 @@ export function Home({ doctorsData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Наши доктора</h2>
-            <p className="text-clay-muted">Онкологи-маммологи, гинекологи и эндокринологи - все владеют УЗИ</p>
+            <p className="text-clay-muted">Онкологи-маммологи, гинекологи, эндокринологи и нутрициологи - все владеют УЗИ</p>
           </div>
 
           {/* Фильтр-таблетки */}

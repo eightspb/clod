@@ -113,13 +113,13 @@ export function Mammology() {
               Понимаем этот страх. Именно поэтому мы используем технологию ВАБ - вы остаётесь в сознании, разговариваете с доктором, а уже через 20 минут после процедуры едете домой.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
-              </a>
-              <a href="/second-opinion" className="clay btn-clay-secondary">
+              </button>
+              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary">
                 Получить второе мнение
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -205,9 +205,9 @@ export function Mammology() {
                 <div className="flex items-center gap-2 bg-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-bold">
                   Цена: 0 ₽
                 </div>
-                <a href="/second-opinion" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
                   Получить второе мнение
-                </a>
+                </button>
               </div>
               <div className="clay clay-card p-6">
                 <h3 className="font-bold text-clay-dark text-lg mb-4">Как проходит процедура</h3>
@@ -291,13 +291,13 @@ export function Mammology() {
                 <p className="text-clay-muted text-xs leading-relaxed">Онкологи-хирурги с опытом более 20 лет</p>
               </div>
             </a>
-            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left w-full">
               <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Бесплатное второе мнение</p>
                 <p className="text-clay-muted text-xs leading-relaxed">Назначили операцию? Проверим, нужна ли она</p>
               </div>
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -314,10 +314,10 @@ export function Mammology() {
               Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в WhatsApp в течение 2 минут.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp

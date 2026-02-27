@@ -49,20 +49,20 @@ export function DoctorCard({ doctor }) {
       )}
 
       {/* Specialization + link */}
-      <div className="mt-auto pt-3 border-t border-clay-bg flex items-center justify-between gap-2">
-        <div className="clay clay-card-soft-blue px-3 py-1.5 rounded-xl min-w-0 flex-1 mr-2">
-          <p className="text-xs font-semibold text-clay-dark leading-tight truncate">
+      <div className="mt-auto pt-4 border-t border-clay-bg flex items-center justify-between gap-3">
+        <div className="clay clay-card-soft-blue px-3 py-2 rounded-xl min-w-0 w-1/2">
+          <p className="text-[15.6px] font-semibold text-clay-dark leading-tight truncate">
             {doctor.specialization.split(',')[0]}
           </p>
           {doctor.specialization.split(',')[1] && (
-            <p className="text-xs text-clay-muted leading-tight truncate">
+            <p className="text-[15.6px] text-clay-muted leading-tight truncate mt-1">
               {doctor.specialization.split(',').slice(1).join(',').trim()}
             </p>
           )}
         </div>
         <a
           href={doctor.slug ? `/doctors/${doctor.slug}` : '/doctors'}
-          className="clay btn-clay-primary text-xs py-2 px-4 gap-1 flex-shrink-0"
+          className="clay btn-clay-primary text-lg py-2.5 px-4 gap-1 flex-1 text-center justify-center"
         >
           Подробнее
         </a>

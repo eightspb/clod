@@ -147,7 +147,7 @@ export function Footer() {
                   </div>
                 </div>
               </div>
-              <a href="/second-opinion" className="clay btn-clay-primary mt-5 w-full justify-center text-sm py-3">
+              <a href="/second-opinion" id="footer-booking-btn" className="clay btn-clay-primary mt-5 w-full flex justify-center text-sm py-3">
                 Записаться онлайн
               </a>
             </div>

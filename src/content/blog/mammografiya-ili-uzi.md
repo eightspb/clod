@@ -7,7 +7,7 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Диагностика"
 tags: ["маммография", "УЗИ", "диагностика", "скрининг", "маммология"]
-image: "/images/blog/mammography-vs-uzi.jpg"
+image: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Маммография и УЗИ молочных желёз - сравнение методов"
 readingTime: 6
 ---

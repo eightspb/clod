@@ -16,13 +16,13 @@ describe('nav.js', () => {
       })
     })
 
-    it('includes mammology, vab, gynecology, endocrinology, neurology', () => {
+    it('includes mammology, vab, gynecology, endocrinology, nutrition', () => {
       const toPaths = DIRECTIONS.map((d) => d.to)
       expect(toPaths).toContain('/mammology')
       expect(toPaths).toContain('/vab')
       expect(toPaths).toContain('/gynecology')
       expect(toPaths).toContain('/endocrinology')
-      expect(toPaths).toContain('/neurology')
+      expect(toPaths).toContain('/nutrition')
     })
   })
 
@@ -31,7 +31,7 @@ describe('nav.js', () => {
       const labels = NAV_ITEMS.map((i) => i.label)
       expect(labels).toContain('О клинике')
       expect(labels).toContain('Доктора')
-      expect(labels).toContain('Второе мнение')
+      expect(labels).toContain('Бесплатное второе мнение')
       expect(labels).toContain('Цены')
       expect(labels).toContain('Блог')
       expect(labels).toContain('Контакты')

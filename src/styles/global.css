@@ -33,6 +33,45 @@
 }
 
 @layer base {
+  :root {
+    --fs-xs: 0.75rem; --lh-xs: 1rem;
+    --fs-sm: 0.875rem; --lh-sm: 1.25rem;
+    --fs-base: 1rem; --lh-base: 1.5rem;
+    --fs-lg: 1.125rem; --lh-lg: 1.75rem;
+    --fs-xl: 1.25rem; --lh-xl: 1.75rem;
+    --fs-2xl: 1.5rem; --lh-2xl: 2rem;
+    --fs-3xl: 1.875rem; --lh-3xl: 2.25rem;
+    --fs-4xl: 2.25rem; --lh-4xl: 2.5rem;
+    --fs-5xl: 3rem; --lh-5xl: 1;
+    --fs-6xl: 3.75rem; --lh-6xl: 1;
+    --fs-7xl: 4.5rem; --lh-7xl: 1;
+    --fs-8xl: 6rem; --lh-8xl: 1;
+    --fs-9xl: 8rem; --lh-9xl: 1;
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      /* Самые маленькие шрифты увеличиваем на 20% */
+      --fs-xs: 0.9rem; --lh-xs: 1.2rem;
+      
+      /* Основные шрифты увеличиваем на 10% */
+      --fs-sm: 0.9625rem; --lh-sm: 1.375rem;
+      --fs-base: 1.1rem; --lh-base: 1.65rem;
+      --fs-lg: 1.2375rem; --lh-lg: 1.925rem;
+      --fs-xl: 1.375rem; --lh-xl: 1.925rem;
+      --fs-2xl: 1.65rem; --lh-2xl: 2.2rem;
+      --fs-3xl: 2.0625rem; --lh-3xl: 2.475rem;
+      --fs-4xl: 2.475rem; --lh-4xl: 2.75rem;
+
+      /* Большие шрифты (начиная с 5xl) увеличиваем на 20% */
+      --fs-5xl: 3.6rem; --lh-5xl: 1;
+      --fs-6xl: 4.5rem; --lh-6xl: 1;
+      --fs-7xl: 5.4rem; --lh-7xl: 1;
+      --fs-8xl: 7.2rem; --lh-8xl: 1;
+      --fs-9xl: 9.6rem; --lh-9xl: 1;
+    }
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -307,57 +346,57 @@
 
   @keyframes blob-breathe-a {
     0%   { transform: scale(1)    rotate(0deg); }
-    25%  { transform: scale(1.04) rotate(1.5deg); }
-    50%  { transform: scale(1.07) rotate(0deg); }
-    75%  { transform: scale(1.03) rotate(-1.5deg); }
+    25%  { transform: scale(1.08) rotate(3deg); }
+    50%  { transform: scale(1.15) rotate(0deg); }
+    75%  { transform: scale(1.06) rotate(-3deg); }
     100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-b {
     0%   { transform: scale(1)    rotate(0deg); }
-    25%  { transform: scale(1.05) rotate(-2deg); }
-    50%  { transform: scale(1.08) rotate(0deg); }
-    75%  { transform: scale(1.04) rotate(2deg); }
+    25%  { transform: scale(1.10) rotate(-4deg); }
+    50%  { transform: scale(1.18) rotate(0deg); }
+    75%  { transform: scale(1.08) rotate(4deg); }
     100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-c {
     0%   { transform: scale(1)    rotate(0deg); }
-    30%  { transform: scale(1.06) rotate(1deg); }
-    60%  { transform: scale(1.09) rotate(-1deg); }
-    80%  { transform: scale(1.04) rotate(0.5deg); }
+    30%  { transform: scale(1.12) rotate(2deg); }
+    60%  { transform: scale(1.20) rotate(-2deg); }
+    80%  { transform: scale(1.08) rotate(1deg); }
     100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-d {
     0%   { transform: scale(1)    rotate(0deg); }
-    35%  { transform: scale(1.05) rotate(-1.5deg); }
-    65%  { transform: scale(1.08) rotate(1.5deg); }
+    35%  { transform: scale(1.10) rotate(-3deg); }
+    65%  { transform: scale(1.16) rotate(3deg); }
     100% { transform: scale(1)    rotate(0deg); }
   }
 
   .blob-mint {
     background: linear-gradient(145deg, rgba(168,228,212,0.5), rgba(120,212,188,0.5));
     border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
-    animation: blob-breathe-a 9s ease-in-out infinite;
+    animation: blob-breathe-a 7.6s ease-in-out infinite;
     will-change: transform;
   }
   .blob-peach {
     background: linear-gradient(145deg, rgba(250,220,200,0.5), rgba(248,196,176,0.5));
     border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
-    animation: blob-breathe-b 11s ease-in-out infinite;
+    animation: blob-breathe-b 9.3s ease-in-out infinite;
     will-change: transform;
   }
   .blob-blue {
     background: linear-gradient(145deg, rgba(192,220,238,0.5), rgba(168,204,228,0.5));
     border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
-    animation: blob-breathe-c 13s ease-in-out infinite;
+    animation: blob-breathe-c 11s ease-in-out infinite;
     will-change: transform;
   }
   .blob-lavender {
     background: linear-gradient(145deg, rgba(221,213,240,0.5), rgba(204,192,232,0.5));
     border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
-    animation: blob-breathe-d 10s ease-in-out infinite;
+    animation: blob-breathe-d 8.5s ease-in-out infinite;
     will-change: transform;
   }
 
@@ -1502,4 +1541,30 @@
 @media (prefers-reduced-motion: reduce) {
   .blob-mint, .blob-peach, .blob-blue, .blob-lavender,
   .orb { animation: none !important; transition: none !important; }
+}
+
+/* ─────────────────────────────
+   DESKTOP FONT SIZE OVERRIDES (custom classes)
+───────────────────────────── */
+@media (min-width: 1024px) {
+  .clay-exp-pill { font-size: 0.9rem !important; } /* +20% */
+  .clay-spec-badge { font-size: 0.75rem !important; } /* +20% */
+  .btn-clay-primary-sm { font-size: 0.89375rem !important; } /* +10% */
+  .btn-clay-secondary-sm { font-size: 0.89375rem !important; } /* +10% */
+  .doctors-title-text { font-size: clamp(2.88rem, 6.72vw, 5.04rem) !important; } /* +20% */
+  .doctor-filter-pill { font-size: 1.122rem !important; } /* +10% */
+  .doctor-status-pill { font-size: 0.624rem !important; } /* +20% */
+  .doctor-clay-name { font-size: 2.068rem !important; } /* +10% */
+  .doctor-exp-pill { font-size: 0.99rem !important; } /* +10% */
+  .doctor-action-btn { font-size: 1.078rem !important; } /* +10% */
+
+  .blog-lead { font-size: 1.2375rem !important; } /* +10% */
+  .blog-category-badge { font-size: 0.9rem !important; } /* +20% */
+  .prose-clay { font-size: 1.16875rem !important; } /* +10% */
+  .prose-clay h2 { font-size: 1.54rem !important; } /* +10% */
+  .prose-clay h3 { font-size: 1.2375rem !important; } /* +10% */
+  .prose-clay ol li::before { font-size: 0.9rem !important; } /* +20% */
+  .prose-clay blockquote { font-size: 1.155rem !important; } /* +10% */
+  .prose-clay table { font-size: 0.99rem !important; } /* +10% */
+  .prose-clay th { font-size: 0.935rem !important; } /* +10% */
 }

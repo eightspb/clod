@@ -8,7 +8,7 @@ const DROPDOWN_CLOSE_DELAY = 150
 
 export function Header({ currentPath = '/' }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const dropdownTimer = useRef(null)
 
@@ -22,12 +22,13 @@ export function Header({ currentPath = '/' }) {
     return () => { if (dropdownTimer.current) clearTimeout(dropdownTimer.current) }
   }, [])
 
-  function handleDropdownBlur() {
-    dropdownTimer.current = setTimeout(() => setDropdownOpen(false), DROPDOWN_CLOSE_DELAY)
+  function handleDropdownLeave() {
+    dropdownTimer.current = setTimeout(() => setActiveDropdown(null), DROPDOWN_CLOSE_DELAY)
   }
 
-  function handleDropdownFocus() {
+  function handleDropdownEnter(label) {
     if (dropdownTimer.current) clearTimeout(dropdownTimer.current)
+    setActiveDropdown(label)
   }
 
   return (
@@ -69,7 +70,7 @@ export function Header({ currentPath = '/' }) {
             <Phone size={15} />
             {PHONE_DISPLAY}
           </a>
-          <a href="/second-opinion" className="clay btn-clay-primary text-sm py-2.5 px-5">
+          <a href="/second-opinion" data-booking-btn="true" className="clay btn-clay-primary text-sm py-2.5 px-5 flex items-center justify-center">
             Записаться
           </a>
         </div>
@@ -96,38 +97,44 @@ export function Header({ currentPath = '/' }) {
           <nav className="flex items-center justify-between gap-0.5 py-1">
             {NAV_ITEMS.map((item) =>
               item.children ? (
-                <div key={item.label} className="relative">
+                <div 
+                  key={item.label} 
+                  className="relative"
+                  onMouseEnter={() => handleDropdownEnter(item.label)}
+                  onMouseLeave={handleDropdownLeave}
+                >
                   <button
                     className="flex items-center gap-1 px-3 py-2 rounded-full text-base font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    onBlur={handleDropdownBlur}
-                    onFocus={handleDropdownFocus}
-                    aria-expanded={dropdownOpen}
+                    onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                    onBlur={handleDropdownLeave}
+                    onFocus={() => handleDropdownEnter(item.label)}
+                    aria-expanded={activeDropdown === item.label}
                     aria-haspopup="true"
-                    aria-controls="nav-dropdown"
                   >
                     {item.label}
                     <ChevronDown
                       size={14}
-                      className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+                      className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
                     />
                   </button>
-                  {dropdownOpen && (
-                    <div id="nav-dropdown" role="menu" className="clay clay-card absolute top-full mt-2 left-0 p-2 min-w-52 z-50">
-                      {item.children.map((child) => (
-                        <a
-                          key={child.to}
-                          href={child.to}
-                          role="menuitem"
-                          className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
-                            currentPath === child.to
-                              ? 'text-clay-mint bg-clay-mint-pale'
-                              : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
-                          }`}
-                        >
-                          {child.label}
-                        </a>
-                      ))}
+                  {activeDropdown === item.label && (
+                    <div role="menu" className="absolute top-full left-0 pt-2 min-w-52 z-50">
+                      <div className="clay clay-card p-2 w-full">
+                        {item.children.map((child) => (
+                          <a
+                            key={child.to}
+                            href={child.to}
+                            role="menuitem"
+                            className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
+                              currentPath === child.to
+                                ? 'text-clay-mint bg-clay-mint-pale'
+                                : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
+                            }`}
+                          >
+                            {child.label}
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -206,7 +213,9 @@ export function Header({ currentPath = '/' }) {
                 </a>
                 <a
                   href="/second-opinion"
-                  className="clay btn-clay-primary text-sm py-3 text-center"
+                  type="button"
+                  data-booking-btn="true"
+                  className="clay btn-clay-primary text-sm py-3 text-center flex justify-center"
                   onClick={() => setMobileOpen(false)}
                 >
                   Записаться онлайн

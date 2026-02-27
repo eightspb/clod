@@ -3,7 +3,7 @@ export const DIRECTIONS = [
   { label: 'ВАБ',              to: '/vab' },
   { label: 'Гинекология',      to: '/gynecology' },
   { label: 'Эндокринология',   to: '/endocrinology' },
-  { label: 'Нутрициология',    to: '/neurology' },
+  { label: 'Нутрициология',    to: '/nutrition' },
 ]
 
 export const NAV_ITEMS = [
@@ -11,7 +11,14 @@ export const NAV_ITEMS = [
   { label: 'Направления',         children: DIRECTIONS },
   { label: 'Доктора',             to: '/doctors' },
   { label: 'Бесплатное второе мнение', to: '/second-opinion' },
-  { label: 'Цены',                to: '/prices' },
+  { 
+    label: 'Для пациентов',       
+    children: [
+      { label: 'Акции', to: '/promotions' },
+      { label: 'Цены', to: '/prices' },
+      { label: 'Форма для налоговой', to: '/tax-form' }
+    ] 
+  },
   { label: 'Блог',                to: '/blog' },
   { label: 'Контакты',            to: '/contacts' },
 ]

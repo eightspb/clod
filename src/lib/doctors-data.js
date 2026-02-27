@@ -312,7 +312,7 @@ export const DOCTORS = [
     photo: '/images/doctors/kalinina.webp',
     name: 'Калинина Ирина Аркадьевна',
     dativeShortName: 'Ирине Аркадьевне',
-    specialization: 'Эндокринолог',
+    specialization: 'Эндокринолог, нутрициолог',
     experienceYears: 27,
     ringColor: 'mint',
     proDoctorovUrl: 'https://prodoctorov.ru/spb/vrach/349008-kalinina/',

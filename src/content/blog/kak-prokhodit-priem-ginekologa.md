@@ -7,7 +7,7 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Гинекология"
 tags: ["гинекология", "прием врача", "эндокринология", "осмотр"]
-image: "/images/blog/priem-ginekologa.jpg"
+image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Прием гинеколога"
 readingTime: 3
 ---

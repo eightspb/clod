@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
-import { PHONE_NUMBER, PHONE_DISPLAY, WHATSAPP_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
+import { SecondOpinionForm } from '../SecondOpinionForm.jsx'
 
 const steps = [
   {
@@ -58,8 +60,20 @@ export const SECOND_OPINION_FAQ = [
 ]
 
 export function SecondOpinion() {
+  const [isFormOpen, setIsFormOpen] = useState(false)
+
   return (
     <div>
+      {/* MODAL */}
+      {isFormOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-clay-dark/60 backdrop-blur-sm" onClick={() => setIsFormOpen(false)}></div>
+          <div className="relative z-10 w-full max-w-[740px] max-h-[88vh] overflow-y-auto rounded-3xl mt-12 no-scrollbar">
+            <SecondOpinionForm onClose={() => setIsFormOpen(false)} />
+          </div>
+        </div>
+      )}
+
       {/* HERO */}
       <section className="relative overflow-hidden pt-8 pb-12">
 
@@ -86,10 +100,10 @@ export function SecondOpinion() {
                 <Phone size={16} />
                 Позвонить сейчас
               </a>
-              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                <MessageCircle size={16} />
-                Написать в WhatsApp
-              </a>
+              <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
+                <FileText size={16} />
+                Отправить данные на проверку
+              </button>
             </div>
           </div>
         </div>
@@ -181,10 +195,10 @@ export function SecondOpinion() {
                       <Phone size={16} />
                       Позвонить: {PHONE_DISPLAY}
                     </a>
-                    <a href={WHATSAPP_URL} className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors" target="_blank" rel="noopener noreferrer">
-                      <MessageCircle size={16} />
-                      Написать в WhatsApp
-                    </a>
+                    <button onClick={() => setIsFormOpen(true)} className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                      <FileText size={16} />
+                      Отправить данные на проверку
+                    </button>
                   </div>
                   <p className="text-white/70 text-xs text-center mt-4">
                     Ответим в течение 2 минут в рабочее время

@@ -7,7 +7,7 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["ВАБ", "фиброаденома", "операция", "маммология"]
-image: "/images/blog/vab-vs-operation.jpg"
+image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Сравнение ВАБ и операции при фиброаденоме"
 readingTime: 7
 ---

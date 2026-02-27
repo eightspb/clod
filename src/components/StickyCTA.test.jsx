@@ -12,7 +12,7 @@ describe('StickyCTA', () => {
   it('renders appointment link', () => {
     render(<StickyCTA />)
     const appointLink = screen.getByRole('link', { name: /записаться/i })
-    expect(appointLink).toHaveAttribute('href', '/second-opinion')
+    expect(appointLink.getAttribute('href')).toBe('/second-opinion')
   })
 
   it('phone link has correct aria-label with display number', () => {

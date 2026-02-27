@@ -116,10 +116,10 @@ export function Gynecology({ servicesData = [] }) {
               Ваши страхи нам понятны. В нашей клинике осмотр - это партнёрство, а не инквизиция. Мы уважаем вас, ваше тело и ваше время. И никогда не назначим лечение, если оно не нужно.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a href="/prices" className="clay btn-clay-secondary">
                 Посмотреть цены
               </a>
@@ -267,13 +267,13 @@ export function Gynecology({ servicesData = [] }) {
                 <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все гинекологические услуги</p>
               </div>
             </a>
-            <a href="/second-opinion" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left">
               <MessageCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
                 <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
               </div>
-            </a>
+            </button>
           </div>
         </div>
       </section>
@@ -290,10 +290,10 @@ export function Gynecology({ servicesData = [] }) {
               Ответим в WhatsApp в течение 2 минут. Запись день в день - доступна по будням.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
                 WhatsApp

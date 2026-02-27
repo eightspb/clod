@@ -46,7 +46,7 @@ const seoKeywords = post.data.keywords
   : `${post.data.category}, ${post.data.title}, СПб, Санкт-Петербург, Клиника Одинцова`
 
 const canonicalUrl = `https://odintsovclinic.ru/blog/${post.slug}`
-const ogImageUrl = post.data.image || '/images/og-default.jpg'
+const ogImageUrl = post.data.image?.startsWith('http') ? post.data.image : (post.data.image ? `/images${post.data.image}` : '/images/og-default.jpg')
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -100,7 +100,7 @@ const articleSchema = {
   ...(post.data.image && {
     image: {
       '@type': 'ImageObject',
-      url: `https://odintsovclinic.ru${post.data.image}`,
+      url: post.data.image.startsWith('http') ? post.data.image : `https://odintsovclinic.ru${post.data.image}`,
       description: post.data.imageAlt ?? post.data.title,
     },
   }),

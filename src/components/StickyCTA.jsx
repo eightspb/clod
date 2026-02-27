@@ -24,9 +24,10 @@ export function StickyCTA() {
         <div className="w-px" style={{ background: 'rgba(78,200,168,0.2)' }} />
         <a
           href="/second-opinion"
+          data-booking-btn="true"
           className="flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold text-white"
           style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}
-          aria-label="Записаться на приём"
+          aria-label="Записаться"
         >
           <CalendarCheck size={18} />
           Записаться

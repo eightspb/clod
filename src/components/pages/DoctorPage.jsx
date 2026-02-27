@@ -82,10 +82,10 @@ export function DoctorPage({ doctor }) {
 
                 {/* Кнопка записи */}
                 <div className="flex flex-wrap gap-3">
-                  <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                     <Phone size={16} />
                     Записаться на приём
-                  </a>
+                  </button>
                   <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
                     {PHONE_DISPLAY}
                   </a>

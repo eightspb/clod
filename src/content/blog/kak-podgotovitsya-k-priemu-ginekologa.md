@@ -7,7 +7,7 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Гинекология"
 tags: ["гинекология", "подготовка", "прием врача"]
-image: "/images/blog/podgotovka-ginekolog.jpg"
+image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Подготовка к приему гинеколога"
 readingTime: 3
 ---

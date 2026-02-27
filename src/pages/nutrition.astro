@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import { Neurology, NEUROLOGY_FAQ } from '../components/pages/Neurology.jsx'
+import { Nutrition, NUTRITION_FAQ } from '../components/pages/Nutrition.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
 
@@ -29,7 +29,7 @@ const specialtySchema = {
   },
 }
 
-const faqSchema = generateFaqSchema(NEUROLOGY_FAQ)
+const faqSchema = generateFaqSchema(NUTRITION_FAQ)
 ---
 
 <Layout
@@ -40,5 +40,5 @@ const faqSchema = generateFaqSchema(NEUROLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Нутрициология' }]} />
-  <Neurology />
+  <Nutrition />
 </Layout>

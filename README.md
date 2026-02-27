@@ -96,6 +96,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 - Переходы между страницами
 
 Данные хранятся в трёх таблицах БД: `AnalyticsSession`, `PageView`, `EventLog`.
+Клиент отправляет события на `POST /api/analytics/event?event=<type>`, чтобы тип (`page_enter`, `click`, `form_submit` и т.д.) был виден в этой же строке access-лога.
 
 ### Безопасность
 
@@ -148,7 +149,7 @@ clod/
 │   │   │   ├── Mammology.jsx
 │   │   │   ├── Gynecology.jsx
 │   │   │   ├── Endocrinology.jsx
-│   │   │   ├── Neurology.jsx
+│   │   │   ├── Nutrition.jsx
 │   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры
 │   │   │   ├── Contacts.jsx       # Страница контактов с картой
 │   │   │   ├── SecondOpinion.jsx
@@ -199,7 +200,7 @@ clod/
 │   │   ├── mammology.astro        # /mammology
 │   │   ├── gynecology.astro       # /gynecology
 │   │   ├── endocrinology.astro    # /endocrinology
-│   │   ├── neurology.astro        # /neurology
+│   │   ├── nutrition.astro        # /nutrition
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── prices.astro           # /prices
 │   │   ├── vab.astro              # /vab - ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
@@ -280,7 +281,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/mammology` | `mammology.astro` | `Mammology.jsx` |
 | `/gynecology` | `gynecology.astro` | `Gynecology.jsx` |
 | `/endocrinology` | `endocrinology.astro` | `Endocrinology.jsx` |
-| `/neurology` | `neurology.astro` | `Neurology.jsx` |
+| `/nutrition` | `nutrition.astro` | `Nutrition.jsx` |
 | `/vab` | `vab.astro` | `Vab.jsx` |
 | `/contacts` | `contacts.astro` | `Contacts.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
@@ -694,7 +695,10 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Прямая связь**: новый блок на главной с гарантией ответа в день обращения; переименован «Врач в мессенджере» → «Лично врачу»
 - **Контакты/Футер**: добавлена ссылка и иконка ВКонтакте (`VK_URL` в `contacts.js`)
 - **Блог**: добавлены категории (Статьи, События клиники, Клинические случаи, Видео); секция «Врачи на телевидении»; CTA в личный кабинет
-- **Нутрициология**: обновлены мета-теги страницы `/neurology` (URL сохранён для SEO, контент переименован)
+- **Нутрициология**: переименован маршрут и файлы с `/neurology` на `/nutrition`, полностью переписан контент под нутрициологию.
+- **Блог (редизайн)**: карусель для видео "Врачи на ТВ", генерация тематических `og:image` (Unsplash) для всех статей, вывод картинок в карточках статей, улучшенные градиенты и тени.
+- **Онлайн-запись**: интегрирован виджет записи `booking.medflex.ru` (добавлен в `Layout.astro`), кнопка в футере теперь открывает модальное окно.
+- **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
 
 ---
 

@@ -126,10 +126,10 @@ export function Vab() {
             <MessageCircle size={18} />
             Записаться на ВАБ
           </a>
-          <a href="/second-opinion" className="btn-clay-secondary inline-flex items-center gap-2">
+          <button type="button" data-booking-btn="true" className="btn-clay-secondary inline-flex items-center gap-2">
             Бесплатное второе мнение
             <ArrowRight size={18} />
-          </a>
+          </button>
         </div>
       </section>
 
@@ -315,10 +315,10 @@ export function Vab() {
               бесплатно изучит ваши снимки и скажет, возможна ли замена на ВАБ.
             </p>
           </div>
-          <a href="/second-opinion" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
+          <button type="button" data-booking-btn="true" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
             Получить второе мнение
             <ArrowRight size={16} />
-          </a>
+          </button>
         </div>
         <p className="text-xs text-clay-muted mt-3">
           Принимаем ДМС: Ренессанс, АльфаСтрахование, ВСК, РЕСО-Гарантия.

@@ -31,7 +31,7 @@ const SECURITY_HEADERS = {
   get 'Content-Security-Policy'() {
     return getCspDirectives()
   },
-  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',

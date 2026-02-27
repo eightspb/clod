@@ -24,7 +24,7 @@ export function CtaSection({
               {subtitle}
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <a href={primaryHref} className="clay btn-clay-primary gap-2">
+              <a href={primaryHref} data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 <Phone size={16} />
                 {primaryLabel}
               </a>

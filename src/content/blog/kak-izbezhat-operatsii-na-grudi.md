@@ -7,7 +7,7 @@ author: "Приходько Кирилл Андреевич"
 authorSlug: "prikhodko"
 category: "Маммология"
 tags: ["ВАБ", "лечение без операции", "маммология", "киста", "фиброаденома"]
-image: "/images/blog/avoid-surgery.jpg"
+image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Лечение молочной железы без операции"
 readingTime: 6
 ---

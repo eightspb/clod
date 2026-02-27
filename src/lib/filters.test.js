@@ -13,9 +13,9 @@ describe('filters.js', () => {
   })
 
   describe('FILTER_BG and FILTER_BG_FLAT', () => {
-    it('have 4 gradient/color entries', () => {
-      expect(FILTER_BG).toHaveLength(4)
-      expect(FILTER_BG_FLAT).toHaveLength(4)
+    it('have 5 gradient/color entries', () => {
+      expect(FILTER_BG).toHaveLength(5)
+      expect(FILTER_BG_FLAT).toHaveLength(5)
     })
   })
 
@@ -39,9 +39,12 @@ describe('filters.js', () => {
       expect(matchesFilter({ specialization: 'Акушер-гинеколог' }, 'gynecology')).toBe(true)
     })
 
-    it('matches endocrinology for эндокринолог, нутрицио', () => {
+    it('matches endocrinology for эндокринолог', () => {
       expect(matchesFilter({ specialization: 'Эндокринолог' }, 'endocrinology')).toBe(true)
-      expect(matchesFilter({ specialization: 'Нутрициолог' }, 'endocrinology')).toBe(true)
+    })
+
+    it('matches nutrition for нутрициолог', () => {
+      expect(matchesFilter({ specialization: 'Нутрициолог' }, 'nutrition')).toBe(true)
     })
 
     it('is case-insensitive', () => {

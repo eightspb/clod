@@ -7,7 +7,7 @@ author: "Калинина Ирина Аркадьевна"
 authorSlug: "kalinina"
 category: "Эндокринология"
 tags: ["щитовидная железа", "гормоны", "эндокринология", "симптомы"]
-image: "/images/blog/thyroid.jpg"
+image: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Щитовидная железа"
 readingTime: 3
 ---

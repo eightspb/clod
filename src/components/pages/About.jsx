@@ -96,10 +96,10 @@ export function About() {
               Экспертная медицина в маммологии, гинекологии, эндокринологии и нутрициологии. Мы помогаем принимать осознанные решения о здоровье.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на приём
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
                 <Phone size={16} />
                 Позвонить
@@ -405,10 +405,10 @@ export function About() {
                 Позвоните нам или оставьте заявку - ответим в течение 15 минут и подберём удобное время.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href="/second-opinion" className="clay btn-clay-white gap-2">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-white gap-2">
                   Записаться онлайн
                   <ArrowRight size={16} />
-                </a>
+                </button>
                 <a href={`tel:${PHONE_NUMBER}`} className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
                   <Phone size={16} />
                   Позвонить

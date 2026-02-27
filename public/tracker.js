@@ -52,15 +52,20 @@
     }
   }
 
+  function getEventUrl(type) {
+    var eventType = type || 'unknown'
+    return API_EVENT + '?event=' + encodeURIComponent(eventType)
+  }
+
   function sendEvent(type, data, beacon) {
-    send(API_EVENT, { type: type, sessionId: sessionId, visitorId: visitorId, data: data }, beacon)
+    send(getEventUrl(type), { type: type, sessionId: sessionId, visitorId: visitorId, data: data }, beacon)
   }
 
   function flushBatch() {
     if (eventQueue.length === 0) return
     var events = eventQueue.slice()
     eventQueue = []
-    send(API_EVENT, { type: 'batch', sessionId: sessionId, visitorId: visitorId, data: { events: events } })
+    send(getEventUrl('batch'), { type: 'batch', sessionId: sessionId, visitorId: visitorId, data: { events: events } })
   }
 
   function queueEvent(type, page, target, details) {

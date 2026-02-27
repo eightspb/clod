@@ -64,7 +64,7 @@ export function Prices({ servicesData = [] }) {
       title: 'Нутрициология',
       color: 'clay-card-soft-lavender',
       accent: '#7060A8',
-      icon: '🧠',
+      icon: '🥗',
       items: [],
     },
   ]
@@ -107,11 +107,11 @@ export function Prices({ servicesData = [] }) {
       { name: 'Повторная консультация + план', price: '2 500' },
     ]
     priceCategories[3].items = [
-      { name: 'Консультация невролога', price: '3 500' },
-      { name: 'Лечебная блокада (1 зона)', price: 'от 5 500' },
-      { name: 'Блокада под УЗИ-навигацией', price: 'от 7 900' },
-      { name: 'Курс лечебных блокад (3 процедуры)', price: 'от 18 000' },
-      { name: 'МРТ позвоночника (1 отдел)', price: '4 200' },
+      { name: 'Первичная консультация нутрициолога', price: '3 500' },
+      { name: 'Повторная консультация (разбор анализов)', price: '2 500' },
+      { name: 'Составление персонального плана питания', price: '5 000' },
+      { name: 'Месячное сопровождение (ведение)', price: '12 000' },
+      { name: 'Биоимпедансометрия', price: '1 500' },
     ]
   }
 
@@ -134,10 +134,10 @@ export function Prices({ servicesData = [] }) {
               Никаких скрытых доплат в день процедуры. Цена, которую назвали - цена, которую заплатите.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на консультацию
                 <ArrowRight size={16} />
-              </a>
+              </button>
               <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
                 <Phone size={16} />
                 Уточнить цену
@@ -184,10 +184,10 @@ export function Prices({ servicesData = [] }) {
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 80 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Базовая стоимость процедуры</p>
-                <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                   Записаться на ВАБ
                   <ArrowRight size={16} />
-                </a>
+                </button>
               </div>
               <div>
                 <p className="text-sm font-semibold text-clay-dark mb-2">Базовая стоимость включает:</p>

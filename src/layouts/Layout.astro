@@ -47,7 +47,7 @@ const currentPath = Astro.url.pathname
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={`https://odintsovclinic.ru${ogImage}`} />
+    <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : `https://odintsovclinic.ru${ogImage}`} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogImageAlt || title} />
@@ -60,7 +60,7 @@ const currentPath = Astro.url.pathname
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={`https://odintsovclinic.ru${ogImage}`} />
+    <meta name="twitter:image" content={ogImage.startsWith('http') ? ogImage : `https://odintsovclinic.ru${ogImage}`} />
 
     <!-- hreflang -->
     <link rel="alternate" hreflang="ru" href={canonicalUrl} />
@@ -235,6 +235,24 @@ const currentPath = Astro.url.pathname
     </script>
 
     <script src="/tracker.js" is:inline></script>
+
+    <!-- Medflex Widget -->
+    <div id="medflexRoundWidgetData" data-src="https://booking.medflex.ru/?user=1c7cca1b1f55aed63a6775079eac0f99&isRoundWidget=true"></div>
+    <script defer src="https://booking.medflex.ru/components/round/round_widget_button.js" charset="utf-8" is:inline></script>
+    <script is:inline>
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-booking-btn]');
+        if (btn) {
+          e.preventDefault();
+          var widgetBtn = document.querySelector('.medflex-round-widget__button');
+          if (widgetBtn) {
+            widgetBtn.click();
+          } else {
+            window.open('https://booking.medflex.ru/?user=1c7cca1b1f55aed63a6775079eac0f99', '_blank');
+          }
+        }
+      });
+    </script>
 
     <script>
       // Параллакс для орбов: слой fixed, орбы смещаются через translateY
