@@ -11,7 +11,7 @@ const heroSlides = [
   {
     trustBadge: 'Золотой стандарт маммологии',
     badge: 'Хирургия без скальпеля - это реальность',
-    title: <>Удаление образований груди<br /><span style={{ color: '#4EC8A8' }}>без операции и шрамов</span></>,
+    title: <>Удаление образований груди<br /><span style={{ color: '#2A9E80' }}>без операции и шрамов</span></>,
     desc: 'Боитесь скальпеля и общего наркоза? Технология ВАБ Xishan - это прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
     stats: [
       { val: '30', unit: 'мин', label: 'процедура' },
@@ -25,7 +25,7 @@ const heroSlides = [
   {
     trustBadge: 'Доказательная медицина',
     badge: 'Для тех, кому уже назначили операцию',
-    title: <>Бесплатный экспертный<br /><span style={{ color: '#4EC8A8' }}>аудит вашего диагноза</span></>,
+    title: <>Бесплатный экспертный<br /><span style={{ color: '#2A9E80' }}>аудит вашего диагноза</span></>,
     desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения. Каждый третий случай решается без операции - методом ВАБ за 30 минут.',
     stats: [
       { val: '0', unit: '₽', label: 'стоимость аудита' },
@@ -39,7 +39,7 @@ const heroSlides = [
   {
     trustBadge: 'Премиальный сервис',
     badge: 'Здоровье как инвестиция в качество жизни',
-    title: <>Гинекология, эндокринология<br /><span style={{ color: '#4EC8A8' }}>и неврология без боли</span></>,
+    title: <>Гинекология, эндокринология<br /><span style={{ color: '#2A9E80' }}>и неврология без боли</span></>,
     desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, жизнь без мигреней. Атмосфера пятизвёздочного отеля, а не больницы.',
     stats: [
       { val: '0%', unit: '', label: 'гипердиагностики' },
@@ -176,7 +176,7 @@ function AppointmentFormSection() {
                 <p className="text-clay-muted text-sm">Мы перезвоним вам в течение 15 минут в рабочее время.</p>
                 <button
                   onClick={() => setIsSubmitted(false)}
-                  className="mt-4 text-sm text-clay-mint font-semibold hover:underline"
+                  className="mt-4 text-sm text-clay-mint-dark font-semibold hover:underline"
                 >
                   Отправить ещё одну заявку
                 </button>
@@ -256,7 +256,7 @@ function HeroVisualVab() {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold text-clay-dark">Прокол ВАБ</span>
-            <span className="text-xs font-bold" style={{ color: '#4EC8A8' }}>2 мм</span>
+            <span className="text-xs font-bold" style={{ color: '#2A9E80' }}>2 мм</span>
           </div>
           <div className="h-1.5 rounded-full" style={{ background: 'rgba(78,200,168,0.15)' }}>
             <div className="h-1.5 rounded-full" style={{ width: '4%', background: '#4EC8A8' }} />
@@ -270,7 +270,7 @@ function HeroVisualVab() {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold text-clay-dark">Обычный разрез</span>
-            <span className="text-xs font-bold" style={{ color: '#E8906A' }}>5 см</span>
+            <span className="text-xs font-bold" style={{ color: '#C0603A' }}>5 см</span>
           </div>
           <div className="h-1.5 rounded-full" style={{ background: 'rgba(240,168,136,0.15)' }}>
             <div className="h-1.5 rounded-full" style={{ width: '100%', background: '#F0A888' }} />
@@ -510,7 +510,7 @@ export function Home({ doctorsData = [] }) {
                           <div key={s.label} className="text-center">
                             <div className="flex items-end justify-center gap-0.5 mb-1">
                               <span className="text-3xl sm:text-4xl font-extrabold text-clay-dark leading-none">{s.val}</span>
-                              {s.unit && <span className="text-lg font-bold pb-0.5" style={{ color: '#4EC8A8' }}>{s.unit}</span>}
+                              {s.unit && <span className="text-lg font-bold pb-0.5" style={{ color: '#2A9E80' }}>{s.unit}</span>}
                             </div>
                             <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
                           </div>
@@ -545,13 +545,18 @@ export function Home({ doctorsData = [] }) {
                   key={idx}
                   onClick={() => goToSlide(idx)}
                   aria-label={`Слайд ${idx + 1}`}
-                  className="rounded-full transition-all duration-300"
-                  style={{
-                    width: activeSlide === idx ? '28px' : '8px',
-                    height: '8px',
-                    background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
-                  }}
-                />
+                  className="flex items-center justify-center transition-all duration-300"
+                  style={{ padding: '8px', background: 'transparent', border: 'none' }}
+                >
+                  <span
+                    className="rounded-full block transition-all duration-300"
+                    style={{
+                      width: activeSlide === idx ? '28px' : '8px',
+                      height: '8px',
+                      background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
+                    }}
+                  />
+                </button>
               ))}
             </div>
             <button
@@ -591,7 +596,7 @@ export function Home({ doctorsData = [] }) {
                       <Zap size={18} className="text-white" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white mb-1">Технология ВАБ</h4>
+                      <h3 className="font-bold text-white mb-1">Технология ВАБ</h3>
                       <p className="text-white text-sm leading-relaxed drop-shadow-sm">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции.</p>
                     </div>
                   </div>
@@ -602,7 +607,7 @@ export function Home({ doctorsData = [] }) {
                       <Shield size={18} className="text-white" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white mb-1">Бесплатное второе мнение</h4>
+                      <h3 className="font-bold text-white mb-1">Бесплатное второе мнение</h3>
                       <p className="text-white text-sm leading-relaxed drop-shadow-sm">Если вам уже назначили операцию - мы перепроверим диагноз. Каждый 3-й случай решается с ВАБ.</p>
                     </div>
                   </div>
@@ -644,12 +649,12 @@ export function Home({ doctorsData = [] }) {
                       </div>
                     </div>
                     <div className="clay clay-card px-3 py-1.5 text-center">
-                      <p className="font-extrabold text-clay-mint text-base leading-none">{s.stat}</p>
+                      <p className="font-extrabold text-clay-mint-dark text-base leading-none">{s.stat}</p>
                       <p className="text-clay-muted text-xs">{s.statLabel}</p>
                     </div>
                   </div>
                   <p className="text-clay-muted text-sm leading-relaxed flex-1 mb-4">{s.desc}</p>
-                  <div className="flex items-center gap-1 text-clay-mint text-sm font-semibold">
+                  <div className="flex items-center gap-1 text-clay-mint-dark text-sm font-semibold">
                     Подробнее <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
                   </div>
                 </div>
@@ -666,7 +671,7 @@ export function Home({ doctorsData = [] }) {
             <div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-4">
                 Почему выбирают<br />
-                <span className="text-clay-mint">Клинику Одинцова</span>
+                <span className="text-clay-mint-dark">Клинику Одинцова</span>
               </h2>
               <p className="text-clay-muted leading-relaxed mb-8">
                 Мы не просто лечим - мы помогаем вам принимать осознанные решения. Доказательная медицина, современные технологии и уважение к вашему времени.
@@ -678,7 +683,7 @@ export function Home({ doctorsData = [] }) {
                     <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
                       <div className={item.bg}><Icon size={20} className="text-white" /></div>
                       <div>
-                        <h4 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h4>
+                        <h3 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h3>
                         <p className="text-clay-muted text-xs leading-relaxed">{item.desc}</p>
                       </div>
                     </div>

@@ -306,59 +306,59 @@
   ───────────────────────────── */
 
   @keyframes blob-breathe-a {
-    0%   { border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%; transform: scale(1)    rotate(0deg); }
-    25%  { border-radius: 50% 50% 62% 38% / 52% 44% 56% 48%; transform: scale(1.04) rotate(1.5deg); }
-    50%  { border-radius: 42% 58% 48% 52% / 60% 38% 62% 40%; transform: scale(1.07) rotate(0deg); }
-    75%  { border-radius: 55% 45% 38% 62% / 44% 56% 44% 56%; transform: scale(1.03) rotate(-1.5deg); }
-    100% { border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%; transform: scale(1)    rotate(0deg); }
+    0%   { transform: scale(1)    rotate(0deg); }
+    25%  { transform: scale(1.04) rotate(1.5deg); }
+    50%  { transform: scale(1.07) rotate(0deg); }
+    75%  { transform: scale(1.03) rotate(-1.5deg); }
+    100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-b {
-    0%   { border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%; transform: scale(1)    rotate(0deg); }
-    25%  { border-radius: 58% 42% 55% 45% / 42% 60% 40% 60%; transform: scale(1.05) rotate(-2deg); }
-    50%  { border-radius: 48% 52% 38% 62% / 52% 50% 50% 50%; transform: scale(1.08) rotate(0deg); }
-    75%  { border-radius: 62% 38% 50% 50% / 46% 54% 46% 54%; transform: scale(1.04) rotate(2deg); }
-    100% { border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%; transform: scale(1)    rotate(0deg); }
+    0%   { transform: scale(1)    rotate(0deg); }
+    25%  { transform: scale(1.05) rotate(-2deg); }
+    50%  { transform: scale(1.08) rotate(0deg); }
+    75%  { transform: scale(1.04) rotate(2deg); }
+    100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-c {
-    0%   { border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%; transform: scale(1)    rotate(0deg); }
-    30%  { border-radius: 44% 56% 60% 40% / 62% 44% 56% 38%; transform: scale(1.06) rotate(1deg); }
-    60%  { border-radius: 62% 38% 44% 56% / 40% 58% 42% 58%; transform: scale(1.09) rotate(-1deg); }
-    80%  { border-radius: 50% 50% 55% 45% / 55% 45% 55% 45%; transform: scale(1.04) rotate(0.5deg); }
-    100% { border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%; transform: scale(1)    rotate(0deg); }
+    0%   { transform: scale(1)    rotate(0deg); }
+    30%  { transform: scale(1.06) rotate(1deg); }
+    60%  { transform: scale(1.09) rotate(-1deg); }
+    80%  { transform: scale(1.04) rotate(0.5deg); }
+    100% { transform: scale(1)    rotate(0deg); }
   }
 
   @keyframes blob-breathe-d {
-    0%   { border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; transform: scale(1)    rotate(0deg); }
-    35%  { border-radius: 60% 40% 42% 58% / 40% 62% 38% 62%; transform: scale(1.05) rotate(-1.5deg); }
-    65%  { border-radius: 38% 62% 55% 45% / 60% 40% 60% 40%; transform: scale(1.08) rotate(1.5deg); }
-    100% { border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; transform: scale(1)    rotate(0deg); }
+    0%   { transform: scale(1)    rotate(0deg); }
+    35%  { transform: scale(1.05) rotate(-1.5deg); }
+    65%  { transform: scale(1.08) rotate(1.5deg); }
+    100% { transform: scale(1)    rotate(0deg); }
   }
 
   .blob-mint {
     background: linear-gradient(145deg, rgba(168,228,212,0.5), rgba(120,212,188,0.5));
     border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
     animation: blob-breathe-a 9s ease-in-out infinite;
-    will-change: border-radius, transform;
+    will-change: transform;
   }
   .blob-peach {
     background: linear-gradient(145deg, rgba(250,220,200,0.5), rgba(248,196,176,0.5));
     border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
     animation: blob-breathe-b 11s ease-in-out infinite;
-    will-change: border-radius, transform;
+    will-change: transform;
   }
   .blob-blue {
     background: linear-gradient(145deg, rgba(192,220,238,0.5), rgba(168,204,228,0.5));
     border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
     animation: blob-breathe-c 13s ease-in-out infinite;
-    will-change: border-radius, transform;
+    will-change: transform;
   }
   .blob-lavender {
     background: linear-gradient(145deg, rgba(221,213,240,0.5), rgba(204,192,232,0.5));
     border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
     animation: blob-breathe-d 10s ease-in-out infinite;
-    will-change: border-radius, transform;
+    will-change: transform;
   }
 
   /* Floating decorative clay capsules */

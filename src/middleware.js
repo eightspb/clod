@@ -4,7 +4,10 @@ import { isAuthenticated } from './lib/auth.js'
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
 // Fonts are self-hosted (/fonts/inter-var.woff2) - no external font CDN on public pages.
 // tracker.js makes fetch calls only to same-origin /api/* endpoints.
-// Astro hydration and inline scripts require 'unsafe-inline' for script-src.
+// Astro SSG hydration and JSON-LD scripts require 'unsafe-inline' for script-src.
+// NOTE: 'require-trusted-types-for' is intentionally omitted — it conflicts with
+// 'unsafe-inline' and provides no real enforcement when both are present.
+// Trusted Types enforcement requires a nonce-based CSP migration (future work).
 // In dev, connect-src allows Cursor debug ingest (127.0.0.1:7460).
 function getCspDirectives() {
   const connectSrc = import.meta.env.DEV
@@ -21,7 +24,6 @@ function getCspDirectives() {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "require-trusted-types-for 'script'",
   ].join('; ')
 }
 

@@ -6,6 +6,7 @@ export default {
       colors: {
         clay: {
           mint: '#4DC8A8',
+          'mint-dark': '#2A9E80',
           'mint-light': '#A0DDD0',
           'mint-pale': '#D8F2EC',
           peach: '#F5A88C',
@@ -22,7 +23,7 @@ export default {
           card: '#FFFCF8',
           dark: '#2D3A34',
           text: '#3D4A44',
-          muted: '#7A8C84',
+          muted: '#5A6E66',
         },
       },
       borderRadius: {

@@ -71,18 +71,6 @@ const currentPath = Astro.url.pathname
     <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 
   <slot name="head" />
-  <script>
-    try {
-      if (typeof window !== 'undefined' && window.trustedTypes && window.trustedTypes.createPolicy) {
-        window.trustedTypes.createPolicy('default', {
-          createScript: (s) => s,
-          createScriptURL: (s) => s
-        })
-      }
-    } catch (e) {
-      // ignore
-    }
-  </script>
 
     <!-- JSON-LD: MedicalBusiness -->
     <script type="application/ld+json" set:html={JSON.stringify({
