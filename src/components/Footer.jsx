@@ -1,7 +1,7 @@
-import { Phone, MapPin, Clock, MessageCircle, Award, Zap } from 'lucide-react'
+import { Phone, MapPin, Clock, Award, Zap } from 'lucide-react'
 import {
   PHONE_NUMBER, PHONE_DISPLAY, PHONE_NUMBER_2, PHONE_DISPLAY_2,
-  WHATSAPP_URL, TELEGRAM_URL, VK_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND,
+  TELEGRAM_URL, VK_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND,
 } from '../lib/contacts.js'
 import { FOOTER_LINKS } from '../lib/nav.js'
 import { CLINIC_FACTS } from '../lib/clinic-info.js'
@@ -53,15 +53,6 @@ export function Footer() {
                 Высокие технологии ВАБ и доказательный подход в маммологии, гинекологии, эндокринологии и нутрициологии.
               </p>
               <div className="flex gap-3">
-                <a
-                  href={WHATSAPP_URL}
-                  className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
-                  aria-label="WhatsApp"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle size={18} className="text-clay-mint" />
-                </a>
                 <a
                   href={TELEGRAM_URL}
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
@@ -147,9 +138,9 @@ export function Footer() {
                   </div>
                 </div>
               </div>
-              <a href="/second-opinion" id="footer-booking-btn" className="clay btn-clay-primary mt-5 w-full flex justify-center text-sm py-3">
+              <button type="button" id="footer-booking-btn" data-booking-btn="true" className="clay btn-clay-primary mt-5 w-full flex justify-center text-sm py-3">
                 Записаться онлайн
-              </a>
+              </button>
             </div>
           </div>
         </div>

@@ -13,16 +13,23 @@ describe('CtaSection', () => {
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Оставить заявку')
   })
 
-  it('renders primary CTA link', () => {
+  it('renders primary CTA button (opens booking modal)', () => {
     render(<CtaSection />)
-    const link = screen.getByRole('link', { name: /записаться онлайн/i })
-    expect(link).toHaveAttribute('href', '/second-opinion')
+    const btn = screen.getByRole('button', { name: /записаться онлайн/i })
+    expect(btn).toHaveAttribute('data-booking-btn', 'true')
   })
 
-  it('renders custom primary href', () => {
-    render(<CtaSection primaryHref="/appointment" primaryLabel="Записаться" />)
-    const link = screen.getByRole('link', { name: /записаться/i })
-    expect(link).toHaveAttribute('href', '/appointment')
+  it('renders custom primary label', () => {
+    render(<CtaSection primaryLabel="Бесплатное второе мнение" />)
+    const btn = screen.getByRole('button', { name: /бесплатное второе мнение/i })
+    expect(btn).toHaveAttribute('data-booking-btn', 'true')
+  })
+
+  it('renders primary as link when primaryHref is set', () => {
+    render(<CtaSection primaryLabel="Бесплатное второе мнение" primaryHref="/second-opinion" />)
+    const link = screen.getByRole('link', { name: /бесплатное второе мнение/i })
+    expect(link).toHaveAttribute('href', '/second-opinion')
+    expect(screen.queryByRole('button', { name: /бесплатное второе мнение/i })).toBeNull()
   })
 
   it('renders phone link with tel:', () => {

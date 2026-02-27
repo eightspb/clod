@@ -16,12 +16,6 @@ describe('Footer', () => {
     expect(phoneLinks.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders WhatsApp link', () => {
-    render(<Footer />)
-    const wa = screen.getByRole('link', { name: /whatsapp/i })
-    expect(wa.getAttribute('href')).toContain('wa.me')
-  })
-
   it('renders Telegram link', () => {
     render(<Footer />)
     const tg = screen.getByRole('link', { name: /telegram/i })
@@ -40,10 +34,10 @@ describe('Footer', () => {
     expect(link).toHaveAttribute('href', '/licenses')
   })
 
-  it('renders appointment CTA link', () => {
+  it('renders appointment CTA button (opens booking modal)', () => {
     render(<Footer />)
-    const cta = screen.getByRole('link', { name: /записаться онлайн/i })
-    expect(cta).toHaveAttribute('href', '/second-opinion')
+    const cta = screen.getByRole('button', { name: /записаться онлайн/i })
+    expect(cta).toHaveAttribute('data-booking-btn', 'true')
   })
 
   it('renders address', () => {

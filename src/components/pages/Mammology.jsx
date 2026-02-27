@@ -1,5 +1,5 @@
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle } from 'lucide-react'
-import { WHATSAPP_URL } from '../../lib/contacts.js'
+import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
@@ -23,7 +23,7 @@ export const MAMMOLOGY_FAQ = [
   },
   {
     question: 'Можно ли записаться без направления?',
-    answer: 'Да. Направление от врача не нужно. Вы можете записаться напрямую через WhatsApp или по телефону. На первичной консультации врач проведёт осмотр и УЗИ.',
+    answer: 'Да. Направление от врача не нужно. Вы можете записаться напрямую через Telegram или по телефону. На первичной консультации врач проведёт осмотр и УЗИ.',
   },
   {
     question: 'Принимаете ли вы ДМС?',
@@ -311,16 +311,15 @@ export function Mammology() {
               Готовы решить вопрос раз и навсегда?
             </h2>
             <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в WhatsApp в течение 2 минут.
+              Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в Telegram в течение 2 минут.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на ВАБ
                 <ArrowRight size={16} />
               </button>
-              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                <MessageCircle size={16} />
-                WhatsApp
+              <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                Telegram
               </a>
             </div>
           </div>

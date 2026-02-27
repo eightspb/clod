@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
-import { WHATSAPP_URL, PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
+import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { DoctorCard } from '../DoctorCard.jsx'
@@ -117,19 +117,18 @@ export function Vab() {
           Первая частная клиника в России, практикующая ВАБ. Клиника №1 по вакуумной биопсии согласно отзывам пациентов.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            data-booking-btn="true"
             className="btn-clay-primary inline-flex items-center gap-2"
           >
             <MessageCircle size={18} />
             Записаться на ВАБ
-          </a>
-          <button type="button" data-booking-btn="true" className="btn-clay-secondary inline-flex items-center gap-2">
+          </button>
+          <a href="/second-opinion" className="btn-clay-secondary inline-flex items-center gap-2">
             Бесплатное второе мнение
             <ArrowRight size={18} />
-          </button>
+          </a>
         </div>
       </section>
 
@@ -315,10 +314,10 @@ export function Vab() {
               бесплатно изучит ваши снимки и скажет, возможна ли замена на ВАБ.
             </p>
           </div>
-          <button type="button" data-booking-btn="true" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
+          <a href="/second-opinion" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
             Получить второе мнение
             <ArrowRight size={16} />
-          </button>
+          </a>
         </div>
         <p className="text-xs text-clay-muted mt-3">
           Принимаем ДМС: Ренессанс, АльфаСтрахование, ВСК, РЕСО-Гарантия.
@@ -343,19 +342,18 @@ export function Vab() {
       <section className="clay-card-mint p-8 text-center">
         <h2 className="text-2xl font-bold text-white mb-3">Запишитесь на консультацию</h2>
         <p className="text-white/85 mb-6 max-w-lg mx-auto">
-          Ответим в WhatsApp за 2 минуты. Запись день в день.
+          Ответим в Telegram за 2 минуты. Запись день в день.
           Санкт-Петербург, пр. Богатырский 22 к.1 (м. Комендантский проспект)
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            data-booking-btn="true"
             className="btn-clay-primary inline-flex items-center gap-2"
           >
             <MessageCircle size={18} />
-            Написать в WhatsApp
-          </a>
+            Записаться онлайн
+          </button>
           <a href={`tel:${PHONE_NUMBER}`} className="btn-clay-secondary inline-flex items-center gap-2">
             <Clock size={18} />
             {PHONE_DISPLAY}

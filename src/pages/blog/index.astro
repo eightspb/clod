@@ -38,6 +38,16 @@ const FALLBACK_COLORS = [
   'clay-card-soft-lavender',
 ]
 
+// Картинки направлений с сайта odintsovclinic.ru (Tilda CDN)
+const CATEGORY_IMAGES = {
+  'Маммология':     'https://static.tildacdn.com/tild3633-3438-4663-b938-306434333039/Radetzky2_3Breastreduction11280x640_1.jpg',
+  'Эндокринология': 'https://static.tildacdn.com/tild3133-6231-4538-a162-643234333132/shchitovidnayazheleza3.jpg',
+  'Гинекология':    'https://static.tildacdn.com/tild6633-3765-4236-a638-356138616239/1115x741xplazmoliftingvginekologiiotzivyjpgpagespeedicNtiiBtqsEX.jpg',
+  'Неврология':     'https://static.tildacdn.com/tild6231-3339-4938-a539-646461653165/Reflex-Testing-1.jpg',
+  'Диагностика':    'https://static.tildacdn.com/tild3065-3562-4066-a135-303636303863/9001900.jpg',
+  'Нутрициология':  'https://static.tildacdn.com/tild6633-3765-4236-a638-356138616239/1115x741xplazmoliftingvginekologiiotzivyjpgpagespeedicNtiiBtqsEX.jpg',
+}
+
 const ALL_CATEGORIES = ['Все', 'Маммология', 'Гинекология', 'Эндокринология', 'Нутрициология', 'Диагностика', 'События клиники', 'Клинические случаи', 'Видео']
 
 const TV_VIDEOS = [
@@ -119,16 +129,6 @@ const itemListSchema = {
       </p>
     </div>
 
-    {/* Категории */}
-    <div class="flex flex-wrap gap-2.5 mb-12 justify-center md:justify-start">
-      {ALL_CATEGORIES.map((cat) => (
-        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold cursor-pointer transition-all hover:scale-105 hover:shadow-md"
-          style="background: rgba(78,200,168,0.08); color: #2BA888; border: 1px solid rgba(78,200,168,0.2);">
-          {cat}
-        </span>
-      ))}
-    </div>
-
     {/* Видео с ТВ - Карусель */}
     <section class="mb-16 relative">
       <div class="flex items-center justify-between mb-6">
@@ -142,18 +142,18 @@ const itemListSchema = {
           <h2 class="text-2xl font-bold text-clay-text tracking-tight">Врачи клиники на телевидении</h2>
         </div>
         <div class="hidden sm:flex gap-2">
-          {/* Индикаторы скролла (чисто декоративные для десктопа) */}
-          <div class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-muted">
+          {/* Кнопки скролла */}
+          <button type="button" id="prev-video-btn" aria-label="Предыдущее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-muted hover:text-clay-teal hover:border-clay-teal transition-colors cursor-pointer">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </div>
-          <div class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-teal">
+          </button>
+          <button type="button" id="next-video-btn" aria-label="Следующее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-teal hover:bg-clay-teal hover:text-white transition-colors cursor-pointer">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
+          </button>
         </div>
       </div>
       
       {/* Скроллируемый контейнер (карусель) */}
-      <div class="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div id="video-carousel" class="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
         {TV_VIDEOS.map((video) => (
           <div class="clay-card-soft-blue clay-card p-6 flex flex-col gap-4 min-w-[280px] w-[85%] sm:w-[350px] lg:w-[400px] snap-center flex-shrink-0 hover:-translate-y-1 transition-transform duration-300">
             <div class="flex items-center justify-between mb-1">
@@ -184,6 +184,21 @@ const itemListSchema = {
       </div>
     </section>
 
+    {/* Категории */}
+    <div class="flex flex-wrap gap-2.5 mb-12 justify-center md:justify-start" id="category-filters">
+      {ALL_CATEGORIES.map((cat, i) => (
+        <button
+          type="button"
+          data-filter={cat}
+          class={`category-filter-btn inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold cursor-pointer transition-all hover:scale-105 hover:shadow-md ${
+            i === 0 ? 'active-filter' : ''
+          }`}
+        >
+          {cat}
+        </button>
+      ))}
+    </div>
+
     {/* Статьи */}
     <section class="mb-16">
       <h2 class="text-2xl font-bold text-clay-text mb-8 tracking-tight">Статьи и клинические случаи</h2>
@@ -205,12 +220,14 @@ const itemListSchema = {
             return (
               <a
                 href={`/blog/${post.slug}`}
+                data-post-card
+                data-category={post.data.category}
                 class={`${cardColor} clay-card flex flex-col p-0 overflow-hidden hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 no-underline group border border-white/40`}
               >
                 {/* Изображение карточки */}
                 <div class="w-full h-52 overflow-hidden relative bg-gray-100">
                   <img
-                    src={post.data.image || '/images/og-default.jpg'}
+                    src={CATEGORY_IMAGES[post.data.category] || post.data.image || '/images/og-default.jpg'}
                     alt={post.data.imageAlt || post.data.title}
                     loading="lazy"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -294,4 +311,74 @@ const itemListSchema = {
     </div>
 
   </div>
+
+  <style is:global>
+    .category-filter-btn {
+      background: rgba(78, 200, 168, 0.08);
+      color: #2BA888;
+      border: 1px solid rgba(78, 200, 168, 0.2);
+    }
+    .category-filter-btn.active-filter {
+      background: #2BA888;
+      color: white;
+      border-color: #2BA888;
+    }
+  </style>
+
+  <script>
+    function setupBlogInteractions() {
+      // Фильтрация категорий блога
+      const filterBtns = document.querySelectorAll('.category-filter-btn');
+      const postCards = document.querySelectorAll('[data-post-card]');
+
+      if (filterBtns.length > 0 && postCards.length > 0) {
+        filterBtns.forEach(btn => {
+          btn.onclick = () => {
+            // Убираем активный класс у всех
+            filterBtns.forEach(b => b.classList.remove('active-filter'));
+            // Добавляем нажатой кнопке
+            btn.classList.add('active-filter');
+
+            const selectedCategory = btn.getAttribute('data-filter');
+
+            // Фильтруем карточки
+            postCards.forEach(card => {
+              const cardCategory = card.getAttribute('data-category');
+              if (selectedCategory === 'Все' || cardCategory === selectedCategory) {
+                // Карточки используют flex
+                card.style.display = 'flex';
+              } else {
+                card.style.display = 'none';
+              }
+            });
+          };
+        });
+      }
+
+      // Карусель видео
+      const videoCarousel = document.getElementById('video-carousel');
+      const prevBtn = document.getElementById('prev-video-btn');
+      const nextBtn = document.getElementById('next-video-btn');
+
+      if (videoCarousel && prevBtn && nextBtn) {
+        prevBtn.onclick = () => {
+          const cardWidth = videoCarousel.firstElementChild?.clientWidth || 350;
+          const gap = 20;
+          videoCarousel.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' });
+        };
+
+        nextBtn.onclick = () => {
+          const cardWidth = videoCarousel.firstElementChild?.clientWidth || 350;
+          const gap = 20;
+          videoCarousel.scrollBy({ left: (cardWidth + gap), behavior: 'smooth' });
+        };
+      }
+    }
+
+    // Запускаем при загрузке
+    setupBlogInteractions();
+    
+    // Поддержка Astro View Transitions (на всякий случай)
+    document.addEventListener('astro:page-load', setupBlogInteractions);
+  </script>
 </Layout>

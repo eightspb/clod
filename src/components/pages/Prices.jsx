@@ -1,5 +1,5 @@
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, CreditCard, Clock } from 'lucide-react'
-import { PHONE_NUMBER, WHATSAPP_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
 const principles = [
   {
@@ -360,16 +360,15 @@ export function Prices({ servicesData = [] }) {
                 Остались вопросы по ценам?
               </h2>
               <p className="text-clay-muted mb-5 max-w-md mx-auto">
-                Ответим в WhatsApp в течение 2 минут и назовём точную стоимость для вашей ситуации.
+                Ответим в Telegram в течение 2 минут и назовём точную стоимость для вашей ситуации.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                  <MessageCircle size={16} />
-                  WhatsApp
+                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                  Telegram
                 </a>
               </div>
             </div>

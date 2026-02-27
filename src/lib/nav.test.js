@@ -32,7 +32,7 @@ describe('nav.js', () => {
       expect(labels).toContain('О клинике')
       expect(labels).toContain('Доктора')
       expect(labels).toContain('Бесплатное второе мнение')
-      expect(labels).toContain('Цены')
+      expect(labels).toContain('Для пациентов')
       expect(labels).toContain('Блог')
       expect(labels).toContain('Контакты')
     })

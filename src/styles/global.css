@@ -1568,3 +1568,10 @@
   .prose-clay table { font-size: 0.99rem !important; } /* +10% */
   .prose-clay th { font-size: 0.935rem !important; } /* +10% */
 }
+
+/* Скрыть только круглую кнопку Medflex (не контейнер и не модалку записи) */
+.medflex-round-widget__button {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

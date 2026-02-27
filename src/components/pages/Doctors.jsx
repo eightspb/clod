@@ -70,6 +70,7 @@ export function Doctors() {
         title="Не знаете, к кому обратиться?"
         subtitle="Позвоните нам - мы поможем выбрать нужного специалиста и запишем на удобное время"
         primaryLabel="Бесплатное второе мнение"
+        primaryHref="/second-opinion"
       />
     </div>
     </ErrorBoundary>

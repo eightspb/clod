@@ -494,11 +494,11 @@ export function Home({ doctorsData = [] }) {
 
                     {/* CTA кнопки */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                      <a href={slide.primaryBtn.href} className="clay btn-clay-primary gap-2">
+                      <a href={slide.primaryBtn.href} data-booking-btn={slide.primaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-primary gap-2">
                         {slide.primaryBtn.label}
                         <ArrowRight size={16} />
                       </a>
-                      <a href={slide.secondaryBtn.href} className="clay btn-clay-secondary">
+                      <a href={slide.secondaryBtn.href} data-booking-btn={slide.secondaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-secondary">
                         {slide.secondaryBtn.label}
                       </a>
                     </div>

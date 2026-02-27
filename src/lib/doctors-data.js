@@ -270,7 +270,7 @@ export const DOCTORS = [
     photo: '/images/doctors/nevzorova.webp',
     name: 'Невзорова Елена Александровна',
     dativeShortName: 'Елене Александровне',
-    specialization: 'Гинеколог, акушер-гинеколог, врач УЗД',
+    specialization: 'Гинеколог, акушер-гинеколог, нутрициолог, врач УЗД',
     experienceYears: 29,
     ringColor: 'blue',
     proDoctorovUrl: 'https://prodoctorov.ru/spb/vrach/752759-nevzorova/',

@@ -4,7 +4,6 @@ import {
   PHONE_DISPLAY,
   PHONE_NUMBER_2,
   PHONE_DISPLAY_2,
-  WHATSAPP_URL,
   TELEGRAM_URL,
   ADDRESS,
   HOURS_WEEKDAY,
@@ -32,10 +31,6 @@ describe('contacts.js', () => {
   })
 
   describe('messenger links', () => {
-    it('WHATSAPP_URL is valid wa.me format', () => {
-      expect(WHATSAPP_URL).toMatch(/^https:\/\/wa\.me\/[0-9]+$/)
-    })
-
     it('TELEGRAM_URL is valid t.me format', () => {
       expect(TELEGRAM_URL).toMatch(/^https:\/\/t\.me\/[a-zA-Z0-9_]+$/)
     })

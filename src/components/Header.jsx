@@ -70,9 +70,9 @@ export function Header({ currentPath = '/' }) {
             <Phone size={15} />
             {PHONE_DISPLAY}
           </a>
-          <a href="/second-opinion" data-booking-btn="true" className="clay btn-clay-primary text-sm py-2.5 px-5 flex items-center justify-center">
+          <button type="button" data-booking-btn="true" className="clay btn-clay-primary text-sm py-2.5 px-5 flex items-center justify-center">
             Записаться
-          </a>
+          </button>
         </div>
 
         {/* Mobile burger */}
@@ -211,15 +211,14 @@ export function Header({ currentPath = '/' }) {
                   <Phone size={15} />
                   {PHONE_DISPLAY}
                 </a>
-                <a
-                  href="/second-opinion"
+                <button
                   type="button"
                   data-booking-btn="true"
-                  className="clay btn-clay-primary text-sm py-3 text-center flex justify-center"
+                  className="clay btn-clay-primary text-sm py-3 text-center flex justify-center w-full"
                   onClick={() => setMobileOpen(false)}
                 >
                   Записаться онлайн
-                </a>
+                </button>
               </div>
             </nav>
           </div>

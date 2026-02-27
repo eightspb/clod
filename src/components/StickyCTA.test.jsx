@@ -9,10 +9,10 @@ describe('StickyCTA', () => {
     expect(phoneLink.getAttribute('href')).toMatch(/^tel:/)
   })
 
-  it('renders appointment link', () => {
+  it('renders appointment button (opens booking modal)', () => {
     render(<StickyCTA />)
-    const appointLink = screen.getByRole('link', { name: /записаться/i })
-    expect(appointLink.getAttribute('href')).toBe('/second-opinion')
+    const appointBtn = screen.getByRole('button', { name: /записаться/i })
+    expect(appointBtn).toHaveAttribute('data-booking-btn', 'true')
   })
 
   it('phone link has correct aria-label with display number', () => {

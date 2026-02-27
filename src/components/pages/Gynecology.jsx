@@ -1,5 +1,5 @@
 import { ArrowRight, Heart, CheckCircle, Star, Clock, MessageCircle, Smile, Users } from 'lucide-react'
-import { WHATSAPP_URL } from '../../lib/contacts.js'
+import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
@@ -271,7 +271,7 @@ export function Gynecology({ servicesData = [] }) {
               <MessageCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Ответим в Telegram в течение 2 минут</p>
               </div>
             </button>
           </div>
@@ -287,16 +287,15 @@ export function Gynecology({ servicesData = [] }) {
               Запишитесь на бережный осмотр
             </h2>
             <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Ответим в WhatsApp в течение 2 минут. Запись день в день - доступна по будням.
+              Ответим в Telegram в течение 2 минут. Запись день в день - доступна по будням.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #FAC0A8, #F0A080)', boxShadow: '10px 10px 24px hsl(18, 12%, 60%), inset -4px -4px 9px hsla(18, 25%, 42%, 0.65), inset 0px 7px 14px hsla(18, 60%, 88%, 0.5)' }}>
                 Записаться на приём
                 <ArrowRight size={16} />
               </button>
-              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                <MessageCircle size={16} />
-                WhatsApp
+              <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                Telegram
               </a>
             </div>
           </div>

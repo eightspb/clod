@@ -320,7 +320,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 | Файл | Экспорты | Используется в |
 |---|---|---|
-| `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `WHATSAPP_URL`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
+| `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `Home` |
 | `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `Home` |

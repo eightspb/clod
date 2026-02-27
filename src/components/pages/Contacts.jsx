@@ -1,5 +1,5 @@
-import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react'
-import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, WHATSAPP_URL, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
+import { MapPin, Phone, Clock, Mail, Navigation } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
 
 const localBusinessSchema = {
   '@context': 'https://schema.org',
@@ -105,15 +105,6 @@ export function Contacts() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-2">
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-clay-secondary text-sm inline-flex items-center gap-2"
-            >
-              <MessageCircle size={15} />
-              WhatsApp
-            </a>
             <a
               href={TELEGRAM_URL}
               target="_blank"
@@ -274,7 +265,7 @@ export function Contacts() {
           ))}
         </div>
         <p className="text-xs text-white/70 mt-4">
-          Уточните наличие вашей страховки у администратора по телефону или в WhatsApp.
+          Уточните наличие вашей страховки у администратора по телефону или в Telegram.
         </p>
       </section>
     </div>

@@ -1,5 +1,5 @@
 import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users } from 'lucide-react'
-import { WHATSAPP_URL } from '../../lib/contacts.js'
+import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 
 export const NUTRITION_FAQ = [
@@ -287,7 +287,7 @@ export function Nutrition() {
               <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div className="text-left">
                 <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Ответим в WhatsApp в течение 2 минут</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Ответим в Telegram в течение 2 минут</p>
               </div>
             </button>
           </div>
@@ -310,9 +310,8 @@ export function Nutrition() {
                 Записаться
                 <ArrowRight size={16} />
               </button>
-              <a href={WHATSAPP_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                <MessageCircle size={16} />
-                WhatsApp
+              <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                Telegram
               </a>
             </div>
           </div>

@@ -15,12 +15,12 @@ function getCspDirectives() {
     : "'self'"
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' https://booking.medflex.ru",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: https:",
-    "frame-src https://yandex.ru",
-    `connect-src ${connectSrc}`,
+    "frame-src https://yandex.ru https://booking.medflex.ru",
+    `connect-src ${connectSrc} https://booking.medflex.ru`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

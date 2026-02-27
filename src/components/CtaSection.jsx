@@ -5,11 +5,23 @@ export function CtaSection({
   title = 'Записаться на приём',
   subtitle = 'Звоните или оставьте заявку - мы перезвоним и подберём удобное время',
   primaryLabel = 'Записаться онлайн',
-  primaryHref = '/second-opinion',
+  primaryHref,
   secondaryLabel = PHONE_DISPLAY,
   secondaryHref = `tel:${PHONE_NUMBER}`,
   cardClass = 'clay-card',
 }) {
+  const primaryCta = primaryHref ? (
+    <a href={primaryHref} className="clay btn-clay-primary gap-2">
+      <Phone size={16} />
+      {primaryLabel}
+    </a>
+  ) : (
+    <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+      <Phone size={16} />
+      {primaryLabel}
+    </button>
+  )
+
   return (
     <section className="section">
       <div className="container-clay">
@@ -24,10 +36,7 @@ export function CtaSection({
               {subtitle}
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <a href={primaryHref} data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                <Phone size={16} />
-                {primaryLabel}
-              </a>
+              {primaryCta}
               <a href={secondaryHref} className="clay btn-clay-secondary gap-2">
                 {secondaryLabel}
               </a>

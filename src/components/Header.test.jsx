@@ -29,7 +29,7 @@ describe('Header', () => {
     const menuBtn = screen.getByRole('button', { name: /меню/i })
     fireEvent.click(menuBtn)
     expect(menuBtn).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('link', { name: /записаться онлайн/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /записаться онлайн/i })).toBeInTheDocument()
   })
 
   it('closes mobile menu on second burger click', () => {
