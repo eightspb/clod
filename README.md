@@ -700,6 +700,7 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Онлайн-запись**: интегрирован виджет записи `booking.medflex.ru` (добавлен в `Layout.astro`), кнопка в футере теперь открывает модальное окно.
 - **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
 - **Производительность (Lighthouse)**: preconnect для `booking.medflex.ru`; загрузка `tracker.js` с `defer` (не блокирует отрисовку); виджет Medflex подгружается по `requestIdleCallback` (снижение длительной задачи в main thread); уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в middleware — `Cache-Control: public, max-age=31536000, immutable` для `/_astro/`, `/fonts/`, `/images/`; в nginx включено gzip для текстовых ответов.
+- **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; блокирующий CSS страницы «О клинике» сделан неблокирующим (post-build скрипт `scripts/async-about-css.mjs`: `media="print"` + `onload="this.media='all'"`).
 
 ---
 
