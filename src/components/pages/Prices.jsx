@@ -20,8 +20,8 @@ const principles = [
     icon: <MessageCircle size={24} className="text-white" />,
     bg: 'clay-card-peach',
     title: 'Прямая связь',
-    desc: 'После процедур лечащий доктор остаётся на связи в мессенджере. Любой вопрос о вашем состоянии - ответ в тот же день, без промежуточных звонков в колл-центр.',
-    tag: 'Врач в мессенджере',
+    desc: 'После процедур лечащий доктор остаётся с вами на прямой связи. Любой вопрос о вашем состоянии — ответ в тот же день, без промежуточных звонков в колл-центр.',
+    tag: 'Лично врачу',
   },
 ]
 
@@ -61,7 +61,7 @@ export function Prices({ servicesData = [] }) {
       items: [],
     },
     {
-      title: 'Неврология',
+      title: 'Нутрициология',
       color: 'clay-card-soft-lavender',
       accent: '#7060A8',
       icon: '🧠',
@@ -175,26 +175,35 @@ export function Prices({ servicesData = [] }) {
           <div className="clay clay-card p-6 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="stat-pill mb-4">Всё включено</div>
+                <div className="stat-pill mb-4">Топ-манипуляция клиники</div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-                  ВАБ «под ключ»
+                  ВАБ — вакуумная аспирационная биопсия
                 </h2>
                 <p className="text-clay-muted leading-relaxed mb-4">
-                  Стоимость процедуры ВАБ включает всё - от подготовки до получения результата гистологии. Никаких сюрпризов в день оплаты.
+                  Прозрачное ценообразование: базовая стоимость процедуры и отдельные позиции дополнительных услуг. Точная стоимость определяется на консультации.
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 80 000 ₽</div>
-                <p className="text-sm text-clay-muted mb-6">Финальная цена, без доплат</p>
+                <p className="text-sm text-clay-muted mb-6">Базовая стоимость процедуры</p>
                 <a href="/second-opinion" className="clay btn-clay-primary gap-2">
                   Записаться на ВАБ
                   <ArrowRight size={16} />
                 </a>
               </div>
               <div>
-                <p className="text-sm font-semibold text-clay-dark mb-3">Что входит в стоимость:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {included.map((item) => (
+                <p className="text-sm font-semibold text-clay-dark mb-2">Базовая стоимость включает:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                  {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ', 'Все расходные материалы'].map((item) => (
                     <div key={item} className="clay clay-card flex items-center gap-2.5 px-3 py-2.5">
                       <CheckCircle size={15} className="text-clay-mint flex-shrink-0" />
+                      <span className="text-xs font-medium text-clay-dark">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm font-semibold text-clay-dark mb-2">Дополнительные услуги (оплачиваются отдельно):</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {['Подготовка к процедуре', 'Местная анестезия', 'Гистологическое исследование', 'Послеоперационное наблюдение', 'Контрольный снимок после процедуры'].map((item) => (
+                    <div key={item} className="clay clay-card-soft-peach clay flex items-center gap-2.5 px-3 py-2.5">
+                      <CheckCircle size={15} className="text-clay-peach flex-shrink-0" />
                       <span className="text-xs font-medium text-clay-dark">{item}</span>
                     </div>
                   ))}

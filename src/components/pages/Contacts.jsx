@@ -1,5 +1,5 @@
 import { MapPin, Phone, Clock, MessageCircle, Mail, Navigation } from 'lucide-react'
-import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, WHATSAPP_URL, TELEGRAM_URL } from '../../lib/contacts.js'
+import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, WHATSAPP_URL, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
 
 const localBusinessSchema = {
   '@context': 'https://schema.org',
@@ -104,7 +104,7 @@ export function Contacts() {
               </a>
             </div>
           </div>
-          <div className="flex gap-3 mt-2">
+          <div className="flex flex-wrap gap-3 mt-2">
             <a
               href={WHATSAPP_URL}
               target="_blank"
@@ -121,6 +121,17 @@ export function Contacts() {
               className="btn-clay-secondary text-sm inline-flex items-center gap-2"
             >
               Telegram
+            </a>
+            <a
+              href={VK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-clay-secondary text-sm inline-flex items-center gap-2"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14C20.67 22 22 20.67 22 15.07V8.93C22 3.33 20.67 2 15.07 2zm3.08 13.5h-1.69c-.64 0-.84-.51-1.99-1.67-1-.98-1.44-.98-1.69-.98-.34 0-.44.1-.44.57v1.52c0 .41-.13.65-1.19.65-1.75 0-3.69-1.06-5.06-3.04C4.7 10.13 4.18 8.18 4.18 7.77c0-.25.1-.49.57-.49h1.69c.42 0 .58.19.74.64.82 2.37 2.19 4.45 2.76 4.45.21 0 .31-.1.31-.64V9.56c-.06-1.15-.67-1.25-.67-1.66 0-.2.16-.4.42-.4h2.66c.36 0 .48.19.48.6v3.23c0 .36.16.48.26.48.21 0 .39-.12.78-.51 1.2-1.35 2.06-3.43 2.06-3.43.11-.25.31-.49.73-.49h1.69c.51 0 .62.26.51.6-.21 1-.68 1.74-1.5 2.8-.14.19-.19.28 0 .49.14.16.59.55.89.88.55.6 1.37 1.56 1.37 2.08.01.41-.2.65-.61.65z"/>
+              </svg>
+              ВКонтакте
             </a>
           </div>
         </div>

@@ -9,38 +9,39 @@ import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
 const heroSlides = [
   {
-    trustBadge: 'Золотой стандарт маммологии',
-    badge: 'Хирургия без скальпеля - это реальность',
-    title: <>Удаление образований груди<br /><span style={{ color: '#2A9E80' }}>без операции и шрамов</span></>,
-    desc: 'Боитесь скальпеля и общего наркоза? Технология ВАБ Xishan - это прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
+    trustBadge: 'Клиника №1 в России по вакуумной биопсии',
+    badge: 'Первая частная клиника в России, практикующая ВАБ',
+    title: <>Удаление образований груди<br /><span style={{ color: '#2A9E80' }}>топ-манипуляция ВАБ за 30 минут</span></>,
+    desc: 'Вакуумно-аспирационная биопсия (ВАБ) — топ-манипуляция клиники. Прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
     stats: [
+      { val: '99%', unit: '', label: 'пациентов избегают операции*' },
+      { val: '2', unit: 'мм', label: 'прокол ВАБ' },
       { val: '30', unit: 'мин', label: 'процедура' },
-      { val: '2', unit: 'мм', label: 'прокол' },
-      { val: '0', unit: '', label: 'швов и шрамов' },
     ],
+    disclaimer: '* По данным клиники, результат зависит от медицинских показаний.',
     primaryBtn: { label: 'Записаться на ВАБ', href: '/second-opinion' },
-    secondaryBtn: { label: 'Рассчитать стоимость', href: '/mammology' },
+    secondaryBtn: { label: 'Подробнее о ВАБ', href: '/vab' },
     visual: 'vab',
   },
   {
     trustBadge: 'Доказательная медицина',
     badge: 'Для тех, кому уже назначили операцию',
-    title: <>Бесплатный экспертный<br /><span style={{ color: '#2A9E80' }}>аудит вашего диагноза</span></>,
-    desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения. Каждый третий случай решается без операции - методом ВАБ за 30 минут.',
+    title: <>Бесплатное второе мнение<br /><span style={{ color: '#2A9E80' }}>от ведущего маммолога</span></>,
+    desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения. 99% пациентов решают вопрос с помощью ВАБ за 30 минут.',
     stats: [
-      { val: '0', unit: '₽', label: 'стоимость аудита' },
-      { val: '1/3', unit: '', label: 'избегают операции' },
+      { val: '0', unit: '₽', label: 'второе мнение бесплатно' },
+      { val: '99%', unit: '', label: 'избегают операции' },
       { val: '48', unit: 'ч', label: 'срок проверки' },
     ],
-    primaryBtn: { label: 'Загрузить документы', href: '/second-opinion' },
+    primaryBtn: { label: 'Получить второе мнение', href: '/second-opinion' },
     secondaryBtn: { label: 'Записаться на приём', href: '/second-opinion' },
     visual: 'opinion',
   },
   {
     trustBadge: 'Премиальный сервис',
     badge: 'Здоровье как инвестиция в качество жизни',
-    title: <>Гинекология, эндокринология<br /><span style={{ color: '#2A9E80' }}>и неврология без боли</span></>,
-    desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, жизнь без мигреней. Атмосфера пятизвёздочного отеля, а не больницы.',
+    title: <>Гинекология, эндокринология<br /><span style={{ color: '#2A9E80' }}>и нутрициология без боли</span></>,
+    desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, персональный план питания. Атмосфера пятизвёздочного отеля, а не больницы.',
     stats: [
       { val: '0%', unit: '', label: 'гипердиагностики' },
       { val: '15+', unit: '', label: 'лет стаж докторов' },
@@ -293,7 +294,7 @@ function HeroVisualOpinion() {
           <Shield size={18} className="text-white" />
         </div>
         <div>
-          <p className="font-bold text-clay-dark text-sm">Экспертный аудит диагноза</p>
+          <p className="font-bold text-clay-dark text-sm">Бесплатное второе мнение</p>
           <p className="text-xs text-clay-muted">Анализ снимков и заключений</p>
         </div>
       </div>
@@ -336,7 +337,7 @@ function HeroVisualEcosystem() {
   const directions = [
     { icon: '🌸', name: 'Гинекология', color: '#F0A888', bg: 'rgba(240,168,136,0.12)', tag: 'Без боли' },
     { icon: '⚡', name: 'Эндокринология', color: '#4E9EC8', bg: 'rgba(78,158,200,0.12)', tag: 'Энергия' },
-    { icon: '🧠', name: 'Неврология', color: '#9B8EC8', bg: 'rgba(155,142,200,0.12)', tag: 'Без мигреней' },
+    { icon: '🥗', name: 'Нутрициология', color: '#9B8EC8', bg: 'rgba(155,142,200,0.12)', tag: 'Питание' },
   ]
   return (
     <div className="clay clay-card-soft-peach p-5 flex flex-col gap-3">
@@ -501,9 +502,8 @@ export function Home({ doctorsData = [] }) {
                     </div>
                   </div>
 
-                  {/* ── Правая колонка: визуальный блок ── */}
+                  {/* ── Правая колонка: цифровой блок ── */}
                   <div className="flex flex-col gap-4">
-                    {/* Цифровой блок */}
                     <div className="clay clay-card p-6">
                       <div className="grid grid-cols-3 gap-4">
                         {slide.stats.map((s) => (
@@ -516,12 +516,12 @@ export function Home({ doctorsData = [] }) {
                           </div>
                         ))}
                       </div>
+                      {slide.disclaimer && (
+                        <p className="text-xs text-clay-muted mt-3 pt-3 border-t border-black/5 leading-relaxed">
+                          {slide.disclaimer}
+                        </p>
+                      )}
                     </div>
-
-                    {/* Визуальная карточка - уникальная для каждого слайда */}
-                    {slide.visual === 'vab' && <HeroVisualVab />}
-                    {slide.visual === 'opinion' && <HeroVisualOpinion />}
-                    {slide.visual === 'ecosystem' && <HeroVisualEcosystem />}
                   </div>
                 </div>
               </div>
@@ -583,12 +583,13 @@ export function Home({ doctorsData = [] }) {
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
               <div className="inline-block px-4 py-1.5 rounded-full bg-white/25 text-white text-xs font-bold mb-4 uppercase tracking-wider">
-                Флагман клиники
+                Основное направление клиники
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
-                Удаление образований в груди за 30 минут
+                Клиника №1 в России по вакуумной аспирационной биопсии
               </h2>
-              <p className="text-white/90 text-lg mb-5">Без скальпеля и швов. Прокол 2 мм полностью заживает за 2 месяца.</p>
+              <p className="text-white/90 text-lg mb-2">Клиника №1 в России по ВАБ согласно отзывам пациентов.</p>
+              <p className="text-white/80 text-sm mb-5">Первая частная клиника в России, практикующая ВАБ. Прокол 2 мм полностью заживает за 2 месяца.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div className="bg-white/40 rounded-2xl p-5 backdrop-blur-sm border border-white/50 shadow-lg">
                   <div className="flex items-start gap-3">
@@ -596,8 +597,8 @@ export function Home({ doctorsData = [] }) {
                       <Zap size={18} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white mb-1">Технология ВАБ</h3>
-                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции.</p>
+                      <h3 className="font-bold text-white mb-1">ВАБ — топ-манипуляция</h3>
+                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции. 99% пациентов избегают операции.</p>
                     </div>
                   </div>
                 </div>
@@ -608,7 +609,7 @@ export function Home({ doctorsData = [] }) {
                     </div>
                     <div>
                       <h3 className="font-bold text-white mb-1">Бесплатное второе мнение</h3>
-                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Если вам уже назначили операцию - мы перепроверим диагноз. Каждый 3-й случай решается с ВАБ.</p>
+                      <p className="text-white text-sm leading-relaxed drop-shadow-sm">Если вам уже назначили операцию — мы перепроверим диагноз. Ответ в день обращения, без посредников.</p>
                     </div>
                   </div>
                 </div>
@@ -693,7 +694,7 @@ export function Home({ doctorsData = [] }) {
             </div>
             <div className="space-y-4">
               {[
-                { val: '1/3', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'пациентов избегают операции', desc: 'Каждый третий пациент, пришедший с направлением на операцию из другой клиники, решает проблему с помощью ВАБ за 30 минут.' },
+                { val: '99%', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'пациентов избегают операции', desc: 'Пациенты, пришедшие с направлением на операцию из другой клиники, решают проблему с помощью ВАБ за 30 минут. Результат зависит от медицинских показаний.' },
                 { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж докторов', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
                 { val: '24ч', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'результаты анализов', desc: 'Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.' },
               ].map((s) => (
@@ -768,6 +769,60 @@ export function Home({ doctorsData = [] }) {
       </section>
 
 
+
+      {/* ── ПРЯМАЯ СВЯЗЬ ── */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="clay clay-card-soft-mint p-6 md:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.15)', color: '#2BA888' }}>
+                  <MessageCircle size={12} />
+                  Прямая связь
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
+                  Лично врачу — без посредников
+                </h2>
+                <p className="text-clay-muted leading-relaxed mb-4">
+                  После процедуры лечащий врач остаётся с вами на прямой связи. Любой вопрос — ответ в день обращения. Никаких звонков в колл-центр, никаких промежуточных звеньев.
+                </p>
+                <div className="space-y-3">
+                  {[
+                    'Ответ на любой вопрос в день обращения',
+                    'Прямой контакт с лечащим врачом',
+                    'Без промежуточных звонков в колл-центр',
+                    'Личный кабинет с историей лечения и результатами',
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3">
+                      <CheckCircle size={16} className="text-clay-mint flex-shrink-0" />
+                      <span className="text-sm text-clay-dark">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="clay clay-card p-6 flex flex-col gap-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="icon-circle-mint">
+                    <Phone size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-clay-dark">Записаться на приём</p>
+                    <p className="text-xs text-clay-muted">Ответим в течение 15 минут</p>
+                  </div>
+                </div>
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2 justify-center">
+                  <Phone size={16} />
+                  Позвонить
+                </a>
+                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2 justify-center" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={16} />
+                  Написать в Telegram
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── REVIEWS ── */}
       <ReviewsSection />

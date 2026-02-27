@@ -72,7 +72,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'Сколько стоит ВАБ в Санкт-Петербурге?',
-    answer: 'Стоимость ВАБ в Клинике Одинцова - от 80 000 ₽ «под ключ». В цену включены: консультация, УЗИ, анестезия, сама процедура и гистологическое исследование. Скрытых доплат нет.',
+    answer: 'Стоимость процедуры ВАБ в Клинике Одинцова — от 80 000 ₽. В базовую стоимость включены: консультация, УЗИ и сама процедура. Дополнительно оплачиваются: анестезия, гистологическое исследование, послеоперационное наблюдение и контрольный снимок. Точная стоимость определяется на консультации.',
   },
   {
     question: 'Нужна ли госпитализация?',
@@ -83,8 +83,8 @@ export const FAQ_ITEMS = [
     answer: 'Нет. Прокол размером 2 мм полностью заживает за 6–8 недель без видимого следа. Форма и объём груди не меняются.',
   },
   {
-    question: 'Можно ли убрать фиброаденому без операции?',
-    answer: 'Да. ВАБ - это и есть альтернатива операции. Вместо разреза скальпелем - прокол 2 мм, вместо стационара - амбулатория, вместо общего наркоза - местная анестезия. Каждый третий пациент, которому рекомендовали операцию, после консультации в нашей клинике избегает её с помощью ВАБ.',
+    question: 'Можно ли убрать фиброаденому с помощью ВАБ?',
+    answer: 'Да. ВАБ — топ-манипуляция для удаления фиброаденом. Вместо разреза скальпелем — прокол 2 мм, вместо стационара — амбулатория, вместо общего наркоза — местная анестезия. 99% пациентов, которым рекомендовали операцию, после консультации в нашей клинике решают вопрос с помощью ВАБ.',
   },
   {
     question: 'Нужно ли направление от врача?',
@@ -104,14 +104,17 @@ export function Vab() {
       <section className="pt-6 pb-8">
         <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
           <Zap size={15} className="text-clay-teal" />
-          Флагманская технология клиники
+          Топ-манипуляция клиники · Основное направление
         </div>
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-clay-text mb-5 speakable">
-          ВАБ - вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
+          ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
         </h1>
-        <p className="text-lg text-clay-muted max-w-2xl mb-8 speakable">
+        <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
           Удаление фиброаденом, кист и других образований молочной железы через прокол 2 мм.
-          Без скальпеля, без общего наркоза, без швов. Процедура 30–40 минут - и вы идёте домой.
+          Клиника №1 в России по ВАБ согласно отзывам пациентов. Процедура 30–40 минут — и вы идёте домой.
+        </p>
+        <p className="text-sm text-clay-muted max-w-2xl mb-8">
+          Первая частная клиника в России, практикующая ВАБ. Клиника №1 по вакуумной биопсии согласно отзывам пациентов.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <a
@@ -130,19 +133,41 @@ export function Vab() {
         </div>
       </section>
 
-      {/* Ключевые факты */}
+      {/* Счётчики клиники */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { value: '30 мин', label: 'длительность процедуры' },
+          { value: '99%', label: 'пациентов избегают операции*' },
           { value: '2 мм', label: 'размер прокола' },
+          { value: '30 мин', label: 'длительность процедуры' },
           { value: '1–2 дня', label: 'восстановление' },
-          { value: '1/3', label: 'пациентов избегают операции' },
         ].map((stat) => (
           <div key={stat.label} className="clay-card text-center py-5 px-3">
             <div className="text-2xl md:text-3xl font-bold text-clay-teal mb-1">{stat.value}</div>
             <div className="text-xs text-clay-muted leading-tight">{stat.label}</div>
           </div>
         ))}
+      </section>
+
+      {/* Блок достижений клиники */}
+      <section className="clay-card-soft-mint clay-card p-6 md:p-8 mb-10">
+        <h2 className="text-xl font-bold text-clay-text mb-5">Клиника в цифрах</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">1000+</div>
+            <p className="text-sm text-clay-muted leading-tight">проведённых процедур ВАБ</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">50+</div>
+            <p className="text-sm text-clay-muted leading-tight">врачей из других клиник прошли обучение на нашей базе</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">99%</div>
+            <p className="text-sm text-clay-muted leading-tight">пациентов избегают операции*</p>
+          </div>
+        </div>
+        <p className="text-xs text-clay-muted mt-4 pt-4 border-t border-black/5">
+          * По данным клиники. Результат зависит от медицинских показаний пациента.
+        </p>
       </section>
 
       {/* Показания */}
@@ -246,13 +271,13 @@ export function Vab() {
       {/* Цены */}
       <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
-        <p className="text-clay-muted mb-6">Фиксированные цены без скрытых доплат</p>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <p className="text-clay-muted mb-6">Прозрачное ценообразование — вы знаете стоимость каждого этапа</p>
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <div className="clay-card p-6">
-            <div className="text-sm text-clay-muted mb-1">ВАБ под ключ</div>
-            <div className="text-3xl font-bold text-clay-teal mb-2">от 80 000 ₽</div>
+            <div className="text-sm font-semibold text-clay-text mb-1">Процедура ВАБ Xishan DK-B-MS</div>
+            <div className="text-3xl font-bold text-clay-teal mb-4">от 80 000 ₽</div>
             <ul className="space-y-1.5 text-sm text-clay-muted">
-              {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Местная анестезия', 'Процедура ВАБ Xishan DK-B-MS', 'Гистологическое исследование'].map((item) => (
+              {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ'].map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <CheckCircle size={13} className="text-clay-teal shrink-0" />
                   {item}
@@ -260,25 +285,42 @@ export function Vab() {
               ))}
             </ul>
           </div>
-          <div className="clay-card-peach p-6 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <AlertCircle size={18} className="text-white" />
-                <span className="font-semibold text-white">Бесплатное второе мнение</span>
-              </div>
-              <p className="text-sm text-white/85 mb-4">
-                Уже получили заключение и вам рекомендовали операцию? Наш онколог-маммолог
-                бесплатно изучит ваши снимки и скажет, возможна ли замена на ВАБ.
-              </p>
-            </div>
-            <a href="/second-opinion" className="btn-clay-white text-sm inline-flex items-center gap-2">
-              Получить второе мнение
-              <ArrowRight size={16} />
-            </a>
+          <div className="clay-card p-6">
+            <div className="text-sm font-semibold text-clay-text mb-3">Дополнительные услуги</div>
+            <ul className="space-y-2 text-sm">
+              {[
+                { name: 'Подготовка к процедуре', price: 'уточняется' },
+                { name: 'Местная анестезия', price: 'уточняется' },
+                { name: 'Гистологическое исследование', price: 'уточняется' },
+                { name: 'Послеоперационное наблюдение', price: 'уточняется' },
+                { name: 'Контрольный снимок после процедуры', price: 'уточняется' },
+              ].map((item) => (
+                <li key={item.name} className="flex items-center justify-between gap-2">
+                  <span className="text-clay-muted">{item.name}</span>
+                  <span className="text-clay-teal font-medium text-xs whitespace-nowrap">{item.price}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-clay-muted mt-3">Точная стоимость определяется на консультации</p>
           </div>
         </div>
+        <div className="clay-card-peach p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle size={18} className="text-white" />
+              <span className="font-semibold text-white">Бесплатное второе мнение</span>
+            </div>
+            <p className="text-sm text-white/85">
+              Уже получили заключение и вам рекомендовали операцию? Наш онколог-маммолог
+              бесплатно изучит ваши снимки и скажет, возможна ли замена на ВАБ.
+            </p>
+          </div>
+          <a href="/second-opinion" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
+            Получить второе мнение
+            <ArrowRight size={16} />
+          </a>
+        </div>
         <p className="text-xs text-clay-muted mt-3">
-          Точная стоимость определяется на консультации в зависимости от размера и количества образований.
           Принимаем ДМС: Ренессанс, АльфаСтрахование, ВСК, РЕСО-Гарантия.
         </p>
       </section>

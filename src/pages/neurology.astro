@@ -7,11 +7,11 @@ import { generateFaqSchema } from '../utils/schema.js'
 const specialtySchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова - Неврология',
-  medicalSpecialty: 'Neurology',
+  name: 'Клиника Одинцова - Нутрициология',
+  medicalSpecialty: 'Dietetics',
   availableService: {
     '@type': 'MedicalProcedure',
-    name: 'Лечение боли в спине и мигреней, лечебные блокады под УЗИ-навигацией',
+    name: 'Нутрициология, персональный план питания, коррекция нутритивного статуса',
   },
   isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
   address: {
@@ -33,12 +33,12 @@ const faqSchema = generateFaqSchema(NEUROLOGY_FAQ)
 ---
 
 <Layout
-  title="Неврология в Санкт-Петербурге - лечение боли в спине и мигреней | Клиника Одинцова"
-  description="Лечение боли в спине, мигреней и грыжи позвоночника без операции. Лечебные блокады под УЗИ-навигацией. Результат за 1–3 визита."
-  keywords="невролог Санкт-Петербург, невролог СПб, лечение мигрени СПб, боль в спине лечение СПб, грыжа позвоночника лечение без операции, блокада позвоночника СПб, невролог Комендантский проспект"
+  title="Нутрициология в Санкт-Петербурге - персональный план питания | Клиника Одинцова"
+  description="Нутрициология в Клинике Одинцова. Персональный план питания, коррекция нутритивного статуса, здоровье через правильное питание. Доказательный подход."
+  keywords="нутрициолог Санкт-Петербург, нутрициолог СПб, план питания СПб, коррекция веса СПб, нутрициология Комендантский проспект, правильное питание СПб"
 >
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-  <BreadcrumbNav items={[{ label: 'Неврология' }]} />
+  <BreadcrumbNav items={[{ label: 'Нутрициология' }]} />
   <Neurology />
 </Layout>

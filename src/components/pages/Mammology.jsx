@@ -100,7 +100,7 @@ export function Mammology() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 text-white" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}>
               <Zap size={12} />
-              Флагманская услуга
+              Основное направление клиники
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
               Маммология в Санкт-Петербурге:{' '}
@@ -254,7 +254,8 @@ export function Mammology() {
             {[
               { name: 'Первичная консультация онколога-маммолога', price: 'от 3 500 ₽' },
               { name: 'УЗИ молочных желёз', price: 'от 2 500 ₽' },
-              { name: 'ВАБ (вакуумная аспирационная биопсия) под ключ', price: 'от 80 000 ₽' },
+              { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 80 000 ₽' },
+              { name: 'Удаление образований молочной железы', price: 'уточняется' },
               { name: 'Второе мнение онколога-маммолога', price: 'Бесплатно' },
             ].map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
