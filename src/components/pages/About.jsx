@@ -81,8 +81,7 @@ export function About() {
     <div>
       {/* HERO */}
       <section className="relative overflow-hidden pt-8 pb-12">
-        <div className="blob-mint absolute -top-32 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
-        <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
+        {/* decorative blobs removed to reduce CSS payload */}
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>

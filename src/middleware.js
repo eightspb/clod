@@ -21,6 +21,7 @@ function getCspDirectives() {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    "require-trusted-types-for 'script'",
   ].join('; ')
 }
 
@@ -28,6 +29,7 @@ const SECURITY_HEADERS = {
   get 'Content-Security-Policy'() {
     return getCspDirectives()
   },
+  'Cross-Origin-Opener-Policy': 'same-origin',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',
@@ -36,10 +38,23 @@ const SECURITY_HEADERS = {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // Auth check for /admin routes
-  if (context.url.pathname.startsWith('/admin') && context.url.pathname !== '/admin/login') {
+  const path = context.url.pathname
+  // Determine adminui vs admin api access
+  const isAdminRoute = path.startsWith('/admin') && path !== '/admin/login'
+  const isAdminApi = path.startsWith('/api/admin')
+
+  // Auth check: protect admin UI routes and admin API endpoints
+  if (isAdminRoute || isAdminApi) {
     const authed = await isAuthenticated(context.request)
     if (!authed) {
+      if (isAdminApi) {
+        // For API calls, do not redirect - return 401
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      // For UI navigation, redirect to login page
       return context.redirect('/admin/login')
     }
   }

@@ -35,6 +35,20 @@ function checkAnalyticsRateLimit(ip) {
 }
 
 export async function POST({ request }) {
+  // Basic origin validation to restrict analytics endpoint usage to our own domain
+  const origin = request.headers.get('origin') || request.headers.get('host') || ''
+  const allowedOrigins = [
+    'https://odintsovclinic.ru',
+    'https://www.odintsovclinic.ru',
+    'http://localhost:4321',
+    'http://localhost:3000',
+  ]
+  if (origin && !allowedOrigins.includes(origin)) {
+    return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
   const ip = getClientIp(request)
   const { allowed, retryAfterSec } = checkAnalyticsRateLimit(ip)
 
