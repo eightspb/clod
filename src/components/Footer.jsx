@@ -35,19 +35,14 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Brand */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-bold text-clay-dark leading-none">Клиника Одинцова</p>
-                  <p className="text-xs text-clay-muted mt-0.5">Экспертная медицина</p>
-                </div>
+              <div className="mb-4">
+                <img
+                  src="/images/logo.png"
+                  alt="Клиника Одинцова"
+                  width="180"
+                  height="44"
+                  className="h-10 w-auto"
+                />
               </div>
               <p className="text-sm text-clay-muted leading-relaxed mb-5">
                 Высокие технологии ВАБ и доказательный подход в маммологии, гинекологии, эндокринологии и нутрициологии.

@@ -41,7 +41,7 @@ export default {
         'clay-lavender': '34px 34px 68px hsl(260,10%,60%), inset -8px -8px 16px hsla(260,20%,55%,0.7), inset 0px 14px 28px hsl(260,20%,95%)',
       },
       fontFamily: {
-        sans: ['"Inter"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+        sans: ['"Golos Text"', '"Segoe UI"', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         xs: ['var(--fs-xs)', { lineHeight: 'var(--lh-xs)' }],

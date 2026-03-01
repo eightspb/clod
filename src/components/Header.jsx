@@ -45,19 +45,21 @@ export function Header({ currentPath = '/' }) {
       <div className="container-clay flex items-center justify-between gap-4 pb-1 relative z-[80]">
         {/* Logo */}
         <a href="/" className="flex-shrink-0">
-          <div className="clay clay-card flex items-center gap-2 px-5 py-2.5">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </div>
-            <span className="font-bold text-clay-dark text-sm sm:text-base leading-tight">
-              Клиника{' '}
-              <span className="text-clay-mint">Одинцова</span>
-            </span>
+          <div
+            className="flex items-center justify-center px-5 py-3"
+            style={{
+              borderRadius: '24px',
+              background: '#FFFCF8',
+              boxShadow: '0px 8px 20px hsl(140,10%,70%), inset -3px -3px 7px hsla(140,20%,55%,0.2), inset 0px 3px 8px hsl(140,20%,97%)',
+            }}
+          >
+            <img
+              src="/images/logo.png"
+              alt="Клиника Одинцова"
+              width="180"
+              height="44"
+              className="h-10 w-auto"
+            />
           </div>
         </a>
 
