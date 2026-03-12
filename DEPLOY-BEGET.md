@@ -290,9 +290,11 @@ bun run deploy
 
 Скрипт подключится к серверу по `ssh clod`, выполнит `git pull`, `docker compose up -d --build` и перезагрузку Nginx (`nginx -s reload`) для сброса кэша. Либо запустите напрямую:
 
-```powershell
-.\scripts\deploy.ps1
+```bash
+sh scripts/deploy.sh
 ```
+
+Для старого Windows-сценария можно по-прежнему использовать `.\scripts\deploy.ps1`.
 
 ### 5.2. Вручную на сервере
 

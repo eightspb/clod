@@ -29,6 +29,8 @@ bun run build    # production-сборка в dist/
 bun run preview  # превью собранного билда
 ```
 
+`bun run dev` и `bun run deploy` используют shell-скрипты и рассчитаны на macOS/Linux. Старые PowerShell-скрипты сохранены как legacy-вариант для Windows.
+
 ---
 
 ## Тестирование и CI/CD
