@@ -46,3 +46,15 @@ bun-debug.log*
 # Cache
 .cache/
 .parcel-cache/
+
+# Test and report artifacts
+coverage/
+playwright-report/
+test-results/
+output/
+
+# Local tool state
+.cursor/*.log
+
+# Misc legacy/local files
+PageSpeed Insights.pdf
