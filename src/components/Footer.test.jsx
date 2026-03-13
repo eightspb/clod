@@ -5,7 +5,7 @@ import { Footer } from './Footer.jsx'
 describe('Footer', () => {
   it('renders clinic name', () => {
     render(<Footer />)
-    expect(screen.getByText('Клиника Одинцова')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /клиника одинцова/i })).toBeInTheDocument()
   })
 
   it('renders phone links', () => {
