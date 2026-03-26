@@ -52,6 +52,7 @@ coverage/
 playwright-report/
 test-results/
 output/
+.playwright-cli/
 
 # Local tool state
 .cursor/*.log
