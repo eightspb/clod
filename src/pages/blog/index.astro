@@ -3,6 +3,16 @@ import { getCollection } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 
+function normalizeImageUrl(image) {
+  if (!image) return '/images/og-default.jpg'
+  if (image.startsWith('http://') || image.startsWith('https://')) return image
+  if (image.startsWith('/')) return image
+  const normalizedImage = image.replace(/^\/?/, '')
+  return normalizedImage.startsWith('images/')
+    ? `/${normalizedImage}`
+    : `/images/${normalizedImage}`
+}
+
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
 )
@@ -227,7 +237,7 @@ const itemListSchema = {
                 {/* Изображение карточки */}
                 <div class="w-full h-52 overflow-hidden relative bg-gray-100">
                   <img
-                    src={CATEGORY_IMAGES[post.data.category] || post.data.image || '/images/og-default.jpg'}
+                    src={CATEGORY_IMAGES[post.data.category] || normalizeImageUrl(post.data.image)}
                     alt={post.data.imageAlt || post.data.title}
                     loading="lazy"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"

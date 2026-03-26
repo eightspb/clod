@@ -21,6 +21,6 @@ test.describe('Навигация', () => {
 
   test('страница блога загружается', async ({ page }) => {
     await page.goto('/blog')
-    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /блог клиники/i })).toBeVisible()
   })
 })

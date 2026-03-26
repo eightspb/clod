@@ -1,22 +1,43 @@
 ---
-import { getCollection, getEntry, render } from 'astro:content'
+import { getCollection, render } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog')
-  return posts.map((post) => ({ params: { slug: post.slug } }))
+function normalizeImageUrl(image) {
+  if (!image) return '/images/og-default.jpg'
+  if (image.startsWith('http://') || image.startsWith('https://')) return image
+  if (image.startsWith('/')) return image
+  const normalizedImage = image.replace(/^\/?/, '')
+  return normalizedImage.startsWith('images/')
+    ? `/${normalizedImage}`
+    : `/images/${normalizedImage}`
 }
 
+function toAbsoluteUrl(url) {
+  return url.startsWith('http://') || url.startsWith('https://')
+    ? url
+    : `https://odintsovclinic.ru${url}`
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog')
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+  }))
+}
+
+const allPosts = await getCollection('blog')
 const { slug } = Astro.params
-const post = await getEntry('blog', slug)
-if (!post) return Astro.redirect('/blog')
+const post = allPosts.find((entry) => entry.slug === slug)
+
+if (!post) {
+  throw new Error(`Missing blog post entry for slug "${slug}".`)
+}
 
 const { Content } = await render(post)
 
-const allPosts = await getCollection('blog')
 const relatedPosts = allPosts
   .filter((p) => p.data.category === post.data.category && p.slug !== post.slug)
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
@@ -46,7 +67,7 @@ const seoKeywords = post.data.keywords
   : `${post.data.category}, ${post.data.title}, СПб, Санкт-Петербург, Клиника Одинцова`
 
 const canonicalUrl = `https://odintsovclinic.ru/blog/${post.slug}`
-const ogImageUrl = post.data.image?.startsWith('http') ? post.data.image : (post.data.image ? `/images${post.data.image}` : '/images/og-default.jpg')
+const ogImageUrl = normalizeImageUrl(post.data.image)
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -100,7 +121,7 @@ const articleSchema = {
   ...(post.data.image && {
     image: {
       '@type': 'ImageObject',
-      url: post.data.image.startsWith('http') ? post.data.image : `https://odintsovclinic.ru${post.data.image}`,
+      url: toAbsoluteUrl(ogImageUrl),
       description: post.data.imageAlt ?? post.data.title,
     },
   }),
