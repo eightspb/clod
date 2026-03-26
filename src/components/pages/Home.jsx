@@ -9,33 +9,30 @@ import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
 const heroSlides = [
   {
-    trustBadge: 'Клиника №1 в России по вакуумной биопсии',
-    badge: 'Первая частная клиника в России, практикующая ВАБ',
+    trustBadge: 'Экспертный подход к ВАБ',
+    badge: 'Одно из ключевых направлений клиники',
     title: <>Удаление образований молочной железы<br /><span style={{ color: '#2A9E80' }}>бережная манипуляция ВАБ за 30 минут</span></>,
     desc: 'Вакуумно-аспирационная биопсия (ВАБ) — ведущее направление клиники. Прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
     stats: [
-      { val: '99%', unit: '', label: 'пациентов избегают операции*' },
+      { val: '1', unit: 'день', label: 'домой после процедуры' },
       { val: '2', unit: 'мм', label: 'прокол ВАБ' },
       { val: '30', unit: 'мин', label: 'процедура' },
     ],
-    disclaimer: '* По данным клиники, результат зависит от медицинских показаний.',
     primaryBtn: { label: 'Записаться на ВАБ', href: '/second-opinion' },
     secondaryBtn: { label: 'Подробнее о ВАБ', href: '/vab' },
-    visual: 'vab',
   },
   {
     trustBadge: 'Доказательная медицина',
     badge: 'Для тех, кому уже назначили операцию',
     title: <>Бесплатное второе мнение<br /><span style={{ color: '#2A9E80' }}>от ведущего маммолога</span></>,
-    desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения. 99% пациентов решают вопрос с помощью ВАБ за 30 минут.',
+    desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения, обсудим тактику и подскажем следующий шаг без лишней спешки.',
     stats: [
       { val: '0', unit: '₽', label: 'второе мнение бесплатно' },
-      { val: '99%', unit: '', label: 'избегают операции' },
+      { val: '1', unit: 'план', label: 'следующих шагов' },
       { val: '48', unit: 'ч', label: 'срок проверки' },
     ],
     primaryBtn: { label: 'Получить второе мнение', href: '/second-opinion' },
     secondaryBtn: { label: 'Записаться на приём', href: '/second-opinion' },
-    visual: 'opinion',
   },
   {
     trustBadge: 'Премиальный сервис',
@@ -43,13 +40,12 @@ const heroSlides = [
     title: <>Гинекология, эндокринология<br /><span style={{ color: '#2A9E80' }}>и нутрициология без боли</span></>,
     desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, персональный план питания. Атмосфера пятизвёздочного отеля, а не больницы.',
     stats: [
-      { val: '0%', unit: '', label: 'гипердиагностики' },
-      { val: '15+', unit: '', label: 'лет стаж докторов' },
-      { val: '1–3', unit: '', label: 'визита до результата' },
+      { val: '4', unit: '', label: 'ключевых направления' },
+      { val: '9', unit: '', label: 'врачей в команде' },
+      { val: '1', unit: '', label: 'единый стандарт сервиса' },
     ],
     primaryBtn: { label: 'Выбрать специалиста', href: '/gynecology' },
     secondaryBtn: { label: 'Все направления', href: '/mammology' },
-    visual: 'ecosystem',
   },
 ]
 
@@ -237,142 +233,6 @@ function AppointmentFormSection() {
     </section>
   )
 }
-
-function HeroVisualVab() {
-  return (
-    <div className="clay clay-card-soft-mint p-5 flex flex-col gap-3">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="icon-circle-mint">
-          <Zap size={18} className="text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-clay-dark text-sm">Система XISHAN (Сишань)</p>
-          <p className="text-xs text-clay-muted">Роботизированное удаление под УЗИ-контролем</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
-        <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.15)' }}>
-          <span className="text-lg font-extrabold" style={{ color: '#4EC8A8' }}>·</span>
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-clay-dark">Прокол ВАБ</span>
-            <span className="text-xs font-bold" style={{ color: '#2A9E80' }}>2 мм</span>
-          </div>
-          <div className="h-1.5 rounded-full" style={{ background: 'rgba(78,200,168,0.15)' }}>
-            <div className="h-1.5 rounded-full" style={{ width: '4%', background: '#4EC8A8' }} />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
-        <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(240,168,136,0.15)' }}>
-          <span className="text-lg font-extrabold" style={{ color: '#E8906A' }}>-</span>
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-clay-dark">Обычный разрез</span>
-            <span className="text-xs font-bold" style={{ color: '#C0603A' }}>5 см</span>
-          </div>
-          <div className="h-1.5 rounded-full" style={{ background: 'rgba(240,168,136,0.15)' }}>
-            <div className="h-1.5 rounded-full" style={{ width: '100%', background: '#F0A888' }} />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 mt-1">
-        <CheckCircle size={14} style={{ color: '#4EC8A8' }} />
-        <span className="text-xs text-clay-muted">Заживление за 2 месяца без следов</span>
-      </div>
-    </div>
-  )
-}
-
-function HeroVisualOpinion() {
-  return (
-    <div className="clay clay-card-soft-blue p-5 flex flex-col gap-3">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="icon-circle-blue">
-          <Shield size={18} className="text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-clay-dark text-sm">Бесплатное второе мнение</p>
-          <p className="text-xs text-clay-muted">Анализ снимков и заключений</p>
-        </div>
-      </div>
-      <div className="p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-clay-dark">Категория BI-RADS</span>
-          <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#4E9EC8' }}>3 → Пересмотр</span>
-        </div>
-        <div className="grid grid-cols-5 gap-1">
-          {[1,2,3,4,5].map((n) => (
-            <div
-              key={n}
-              className="h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-              style={{
-                background: n <= 3 ? (n === 3 ? '#4E9EC8' : 'rgba(78,158,200,0.25)') : 'rgba(61,74,68,0.08)',
-                color: n <= 3 ? (n === 3 ? '#fff' : '#4E9EC8') : '#9BA8A2',
-              }}
-            >
-              {n}
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-clay-muted mt-2">Доказательный подход к классификации</p>
-      </div>
-      <div className="flex flex-col gap-2">
-        {['Загрузить МРТ / УЗИ', 'Загрузить заключение доктора', 'Получить экспертное мнение'].map((step, i) => (
-          <div key={step} className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: '#4EC8A8' }}>
-              {i + 1}
-            </div>
-            <span className="text-xs text-clay-dark">{step}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function HeroVisualEcosystem() {
-  const directions = [
-    { icon: '🌸', name: 'Гинекология', color: '#F0A888', bg: 'rgba(240,168,136,0.12)', tag: 'Без боли' },
-    { icon: '⚡', name: 'Эндокринология', color: '#4E9EC8', bg: 'rgba(78,158,200,0.12)', tag: 'Энергия' },
-    { icon: '🥗', name: 'Нутрициология', color: '#9B8EC8', bg: 'rgba(155,142,200,0.12)', tag: 'Питание' },
-  ]
-  return (
-    <div className="clay clay-card-soft-peach p-5 flex flex-col gap-3">
-      <div className="flex items-center gap-3 mb-1">
-        <div className="icon-circle-peach">
-          <Heart size={18} className="text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-clay-dark text-sm">Экосистема здоровья</p>
-          <p className="text-xs text-clay-muted">Три направления - один стандарт качества</p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2">
-        {directions.map((d) => (
-          <div key={d.name} className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.7)' }}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: d.bg }}>
-              {d.icon}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-clay-dark">{d.name}</p>
-            </div>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: d.bg, color: d.color }}>
-              {d.tag}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2 mt-1">
-        <Star size={13} style={{ color: '#F0A888' }} />
-        <span className="text-xs text-clay-muted">Спокойная дружелюбная атмосфера</span>
-      </div>
-    </div>
-  )
-}
-
 
 const LG_BREAKPOINT = 1024
 
@@ -588,10 +448,10 @@ export function Home({ doctorsData = [] }) {
                 Основное направление клиники
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
-                Клиника №1 в России по вакуумной аспирационной биопсии
+                Вакуумная аспирационная биопсия как ключевое направление клиники
               </h2>
-              <p className="text-white/90 text-lg mb-2">Клиника №1 в России по ВАБ согласно отзывам пациентов.</p>
-              <p className="text-white/80 text-sm mb-5">Первая частная клиника в России, практикующая ВАБ. Прокол 2 мм полностью заживает за 2 месяца.</p>
+              <p className="text-white/90 text-lg mb-2">Помогаем пройти путь от диагностики до аккуратной малоинвазивной процедуры в одном месте.</p>
+              <p className="text-white/80 text-sm mb-5">Прокол 2 мм, контроль под УЗИ и понятный маршрут для пациента без лишних госпитализаций.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
                 <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                   <div className="flex items-start gap-4">
@@ -600,7 +460,7 @@ export function Home({ doctorsData = [] }) {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">ВАБ — топ-манипуляция</h3>
-                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Роботизированное удаление опухоли до 3 см под контролем УЗИ. В 10 раз информативнее обычной пункции. 99% пациентов избегают операции.</p>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Малоинвазивное удаление образований до 3 см под контролем УЗИ с понятным планом наблюдения после процедуры.</p>
                     </div>
                   </div>
                 </div>
@@ -611,7 +471,7 @@ export function Home({ doctorsData = [] }) {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Бесплатное второе мнение</h3>
-                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже назначили операцию — мы перепроверим диагноз. Ответ в день обращения, без посредников.</p>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже назначили операцию, мы перепроверим документы, обсудим риски и предложим следующий шаг без лишних посредников.</p>
                     </div>
                   </div>
                 </div>
@@ -696,9 +556,9 @@ export function Home({ doctorsData = [] }) {
             </div>
             <div className="space-y-4">
               {[
-                { val: '99%', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'пациентов избегают операции', desc: 'Пациенты, пришедшие с направлением на операцию из другой клиники, решают проблему с помощью ВАБ за 30 минут. Результат зависит от медицинских показаний.' },
-                { val: '15+', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'лет средний стаж докторов', desc: 'Работаем только с экспертами, прошедшими обучение в ведущих клиниках России и Европы.' },
-                { val: '24ч', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'результаты анализов', desc: 'Все результаты приходят на ваш телефон. Личный кабинет с доступом из любой точки мира.' },
+                { val: '30 мин', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'типичная длительность ВАБ', desc: 'Процедура проходит амбулаторно, а дальнейшие рекомендации команда объясняет сразу после неё.' },
+                { val: '9', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'врачей в команде клиники', desc: 'Маммологи, гинекологи, эндокринологи и нутрициологи работают в одном маршруте пациента.' },
+                { val: '2', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'канала для связи с клиникой', desc: 'Сообщаем о готовности документов и подсказываем следующий шаг по телефону или в Telegram.' },
               ].map((s) => (
                 <div key={s.val} className={`clay ${s.card} p-6`}>
                   <div className="flex items-start gap-4">
@@ -793,7 +653,7 @@ export function Home({ doctorsData = [] }) {
                     'Ответ на любой вопрос в день обращения',
                     'Прямой контакт с лечащим врачом',
                     'Без промежуточных звонков в колл-центр',
-                    'Личный кабинет с историей лечения и результатами',
+                    'Помощь с документами и следующими шагами после приёма',
                   ].map((item) => (
                     <div key={item} className="flex items-center gap-3">
                       <CheckCircle size={16} className="text-clay-mint flex-shrink-0" />
@@ -863,4 +723,3 @@ export function Home({ doctorsData = [] }) {
     </ErrorBoundary>
   )
 }
-
