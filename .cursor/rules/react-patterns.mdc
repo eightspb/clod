@@ -9,7 +9,7 @@ alwaysApply: false
 ## Components
 - Use `function`, not `const`, for component definitions
 - One component per file; named export only
-- Props via destructured object - RORO pattern:
+- Props via destructured object where it improves readability
 
 ```jsx
 // ✅ GOOD
@@ -19,6 +19,13 @@ export function ClayCard({ title, children, variant = 'default' }) { ... }
 const ClayCard = (props) => { ... }
 export default ClayCard
 ```
+
+## Component Boundaries
+
+- Prefer presentational components that receive data via props
+- Keep domain decisions and normalization in `src/lib/**` when they are reused or test-sensitive
+- Use hooks and effects only in interactive components that truly need them
+- Avoid turning static Astro-rendered sections into client components without a clear reason
 
 ## Claymorphism Design System
 The project uses a custom clay design system. Use these CSS classes from `src/styles/global.css`:
@@ -53,11 +60,26 @@ export function Nav() {
 }
 ```
 
+## Styling
+
+- Prefer Tailwind utilities and shared clay classes over ad-hoc inline styles
+- When a visual pattern repeats, add or reuse a named utility in `src/styles/global.css`
+- Keep class composition readable; extract repeated class strings when necessary
+
 ## Performance
-- Use `React.lazy` + `<Suspense>` for page-level components in the router
-- Always add `loading="lazy"` to `<img>` tags
-- Prefer WebP images; always specify `width` and `height`
+
+- Minimize client-side state and hydration
+- Always add `loading="lazy"` to non-critical `<img>` tags
+- Prefer modern compressed assets and always specify meaningful `alt`, `width`, and `height`
+- Avoid expensive effects that can be replaced by CSS or Astro-rendered markup
 
 ## Responsive
 - Mobile-first with Tailwind breakpoints: `sm:` `md:` `lg:`
 - Default layout is single column; expand with `sm:grid-cols-2`, `lg:grid-cols-4`
+
+## Accessibility
+
+- Use semantic elements before adding ARIA
+- Ensure interactive controls have accessible names
+- Keep keyboard interaction intact for menus, dialogs, and forms
+- Do not rely on color alone to communicate state

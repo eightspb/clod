@@ -1,0 +1,55 @@
+---
+description: API handler, validation, upload, and security rules for Astro SSR endpoints
+globs:
+  - src/pages/api/**/*.js
+  - src/lib/auth*.js
+  - src/lib/upload*.js
+  - src/middleware.js
+alwaysApply: false
+---
+
+# API and Security
+
+## General Principles
+
+- Validate input at the boundary before performing side effects
+- Fail closed on invalid auth, origin, file type, or malformed payloads
+- Keep handler code thin: parse request, validate, delegate logic, return explicit response
+- Use the same security posture for admin and public endpoints unless an endpoint is intentionally less privileged and documented
+
+## Input Validation
+
+- Normalize and trim user input before business logic
+- Reject missing required fields with explicit `400` responses
+- Validate file uploads by allowed extensions, MIME types, and size limits
+- Treat all request data as untrusted, including `FormData`, query params, cookies, and headers
+
+## Auth, Cookies, and Mutations
+
+- For state-changing requests, keep origin validation and CSRF-style protections intact
+- Reuse `src/lib/auth.js` validation primitives instead of duplicating cookie and origin logic
+- Do not weaken cookie flags or token signing behavior for convenience
+- When auth or cookie behavior changes, add or update focused tests
+
+## Errors and Responses
+
+- Return explicit HTTP status codes and machine-readable JSON for API failures
+- Do not leak stack traces, secrets, SMTP credentials, or raw upstream errors to the client
+- Log server-side failures with enough context to debug, but without excessive PII
+- Avoid silent fallback behavior for missing production credentials in new code
+
+## External Services
+
+- Wrap external side effects like SMTP, analytics sinks, or storage writes in a minimal abstraction when complexity grows
+- Guard against partial-failure ambiguity: know which failures should abort the request and which should be best-effort
+- Add timeouts or bounded waiting when integrating with external services
+
+## Security-Sensitive Areas in This Repo
+
+- `src/lib/auth.js`
+- `src/lib/upload-validation.js`
+- `src/lib/upload-utils.js`
+- `src/middleware.js`
+- `src/pages/api/**`
+
+Any change in these areas should be treated as high-risk and validated with targeted tests.

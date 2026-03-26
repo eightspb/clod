@@ -1,0 +1,40 @@
+---
+description: Documentation, delivery quality, and final validation expectations
+alwaysApply: true
+---
+
+# Documentation and Delivery
+
+## Documentation Rules
+
+- Keep `README.md` aligned with the actual state of the repository
+- Update documentation when changing:
+  - commands
+  - environment variables
+  - architecture
+  - page structure
+  - API behavior
+  - security behavior
+  - test strategy
+- If a new rule becomes part of team workflow, document it in `.cursor/rules/` and reference it from `AGENTS.md` or `CLAUDE.md`
+
+## Environment and Ops
+
+- When adding a new env var, update `.env.example` and mention it in `README.md`
+- When changing deploy or infrastructure behavior, update the relevant operational docs in the same change
+- Do not leave hidden setup steps only in code comments or commit messages
+
+## Delivery Checklist
+
+- Read the target area before editing
+- Keep the change focused and reversible
+- Run the smallest relevant validation for the change
+- Run broader validation when the blast radius is large
+- Summarize assumptions if a decision was made without explicit user input
+
+## Validation Expectations
+
+- UI/component logic: run `bun run test:run` or a narrower equivalent if available
+- Route or browser interaction changes: run `bun run test:e2e` when practical
+- Broad code changes: run `bun run lint` and `bun run build`
+- If validation is skipped, state why explicitly

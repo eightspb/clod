@@ -1,0 +1,55 @@
+---
+description: Test-driven development and testing strategy for Astro, React, Vitest, and Playwright
+globs:
+  - "**/*.{js,jsx,mjs,astro}"
+alwaysApply: false
+---
+
+# Test-Driven Development
+
+This project follows **Red → Green → Refactor** for behavior changes.
+
+## Mandatory Workflow
+
+- Write a failing test first for bugs and new behavior in `src/lib/**`, `src/components/**`, and `src/pages/api/**`
+- Implement the smallest change that makes the test pass
+- Refactor only after the test suite is green
+- Add tests for every regression-prone change, especially auth, uploads, filters, analytics, and admin behavior
+
+## Test Pyramid
+
+- Use **Vitest** for domain logic, helpers, and isolated React components
+- Use **Playwright** for page flows, navigation, hydration, forms, and cross-route behavior
+- Do not use E2E tests to cover logic that is better and faster expressed in unit tests
+
+## Test Design
+
+- Test one behavior per test
+- Keep tests short and intention-revealing
+- Make the final meaningful statement an assertion when practical
+- Prefer fakes and stubs over brittle mocks
+- Use irregular, realistic inputs instead of placeholder values
+- Do not share mutable state across tests
+- Prepare a clean state at the start of each test
+- Test public behavior, not implementation details
+
+## What to Cover First
+
+- Domain invariants in `src/lib/**`
+- Conditional rendering and interaction in reusable components
+- Validation and failure modes in API handlers
+- Security-sensitive behavior: auth cookies, origin checks, upload validation, rate limiting assumptions
+- SEO-critical route behavior when page generation logic changes
+
+## Validation Commands
+
+- Smallest relevant unit run: `bun run test:run`
+- Coverage when the change is broad or risky: `bun run test:coverage`
+- Browser-level verification for route or UI flows: `bun run test:e2e`
+- Static quality gate: `bun run lint`
+
+## Practical Guidance
+
+- For purely editorial text changes, test only if behavior or rendering contracts can regress
+- For layout-only changes, prefer targeted component coverage or Playwright checks over snapshot sprawl
+- When fixing a production bug, keep the regression test as close as possible to the failure surface

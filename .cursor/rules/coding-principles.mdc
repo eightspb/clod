@@ -1,0 +1,70 @@
+---
+description: Clean coding principles for Astro + React + JavaScript, adapted from Elegant Objects and DDD
+alwaysApply: true
+---
+
+# Coding Principles
+
+These rules adapt the strongest ideas from Elegant Objects, DDD, and production web engineering to this repository's real stack: Astro 4, React 18, JavaScript, Tailwind, Vitest, and Playwright.
+
+## Core Paradigms
+
+- Respect **DDD-lite**: separate presentation, domain logic, and infrastructure even in a small codebase
+- Favor **fail fast** over silent fallbacks for invalid state, unexpected input, and misconfiguration
+- Reproduce a bug or a feature expectation with a test before fixing or implementing it
+- Preserve existing structure unless the refactor clearly improves clarity, safety, or reuse
+- Prefer small modules with one reason to change
+
+## Boundaries
+
+- Keep route composition in `src/pages/**` and `src/layouts/**`
+- Keep reusable business rules, normalization, filtering, validation, and security helpers in `src/lib/**`
+- Keep UI rendering concerns in `src/components/**`
+- Keep I/O and transport concerns in `src/pages/api/**`, `src/middleware.js`, and `scripts/**`
+- If logic is reused in more than one route or component, move it out of the page and into a focused module
+
+## JavaScript Conventions
+
+- Prefer **functions and modules** over classes unless stateful objects are genuinely the cleanest fit
+- Use `function` declarations for components and named helpers
+- Prefer named exports over default exports
+- Use `const` by default and only use `let` when mutation is intentional and local
+- Do not mutate props, arguments, imported constants, or shared objects
+- Favor explicit objects and arrays over positional argument lists when a function needs several inputs
+- Avoid clever abstractions; choose readable data flow over compactness
+
+## Naming
+
+- Name modules and variables after the domain: `doctor`, `session`, `filter`, `certificate`, `appointment`
+- Use verbs for actions: `validateOrigin`, `buildSetCookie`, `matchesFilter`
+- Use PascalCase for React components, camelCase for functions, and UPPER_SNAKE_CASE for static constants
+- Keep route files in Astro file-based routing conventions and avoid inventing SPA naming patterns
+
+## Design Quality
+
+- Keep functions short enough that their intent is obvious without comments
+- Prefer guard clauses and explicit branches over deeply nested conditionals
+- Avoid "god files" and dumping-ground utilities
+- Keep static content and lookup tables outside component bodies
+- Use comments sparingly and only for non-obvious intent or constraints
+- Use JSDoc where it materially improves the contract of a reusable module or exported function
+
+## Error Messages
+
+- Make errors and logs specific, contextual, and actionable
+- Keep each error message to one sentence
+- Avoid vague messages like `Something went wrong`
+- Never expose secrets, credentials, raw tokens, or excessive PII in logs
+
+## Defaults and Absence
+
+- In domain and API code, prefer explicit validation and meaningful return shapes over implicit `null`/`undefined`
+- In React rendering code, `return null` is acceptable when "render nothing" is the intended UI contract
+- Do not pass `null` or `undefined` through multiple layers when a clear default or early validation would be simpler
+
+## Dependency and Architecture Discipline
+
+- Do not add a dependency if the platform or current stack already solves the problem well enough
+- Do not mix Astro routing ideas with React Router or Next.js patterns
+- Do not add TypeScript-only conventions to JavaScript code without first introducing the tooling and migration plan
+- If a new pattern becomes necessary, document it in `.cursor/rules/` and `README.md`

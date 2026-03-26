@@ -5,12 +5,22 @@ alwaysApply: true
 
 # Git Workflow Rules
 
-## Commit and Push Policy
+## Safety
 
-All commits and pushes to GitHub **must be performed exclusively through Cursor**.
+- Inspect `git status` before making broad changes
+- Keep changes focused on the user request
+- Do not mix unrelated refactors into a feature or bug-fix change
+- Never use destructive commands such as hard reset or checkout-revert unless explicitly requested
 
-- Do not use command line `git commit` or `git push`
-- Do not use GitHub Desktop or other Git clients
-- Always use Cursor's Git integration for all Git operations
+## Commit Quality
 
-This ensures consistency in commit messages, proper staging, and maintains the project's development workflow within the IDE environment.
+- Commit only after relevant linting, tests, or build validation for the touched area
+- Keep commits small enough to review and roll back safely
+- Do not commit secrets, `.env`, debug logs, or accidental build output
+- Generated artifacts should be committed only when the workflow explicitly requires them
+
+## Branching and Review Readiness
+
+- Prefer short-lived branches for non-trivial work
+- Summaries should describe the behavior change, not just the files touched
+- If validation was skipped, call it out clearly in the final handoff

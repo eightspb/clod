@@ -3,41 +3,62 @@ description: Project tech stack and core development principles for Клиник
 alwaysApply: true
 ---
 
-# Клиника Одинцова - Tech Stack & Core Principles
+# Клиника Одинцова - Project Context
 
 ## Stack
-- **Runtime**: Bun (not npm/yarn)
-- **Framework**: Astro 4 + React 18 islands (JSX - no TypeScript)
-- **Routing**: Astro file-based routing (not React Router) - pages in `src/pages/*.astro`
-- **Styling**: Tailwind CSS 3 + custom clay utility classes in `src/styles/global.css`
-- **CSS library**: `claymorphism-css` (imported in global.css)
+- **Runtime**: Bun
+- **Framework**: Astro 4 + React 18 islands
+- **Language**: JavaScript (`.js`, `.jsx`) with selective TypeScript config files
+- **Routing**: Astro file-based routing in `src/pages/**`
+- **Database**: `@astrojs/db` with SQLite
+- **Styling**: Tailwind CSS 3 + custom clay utilities in `src/styles/global.css`
 - **Icons**: Lucide React
-- **Language**: JavaScript (`.jsx` files), Russian content
+- **Testing**: Vitest + Testing Library + Playwright
+- **Deployment**: Docker + Docker Compose + Nginx
 
 ## Architecture
-- Pages are `.astro` files in `src/pages/` - they import React components from `src/components/pages/`
-- Layout wrapper: `src/layouts/Layout.astro` - wraps all pages via `<slot />`
-- Only `Header.jsx` uses `client:load` (interactive); all other components are server-rendered (SSG)
-- Dev server runs at `localhost:4321` (Astro default)
+- Public routes are primarily Astro pages composed from reusable sections and layout shells
+- Interactive UI is implemented with React islands, not with a global SPA runtime
+- Admin pages and API endpoints run through Astro SSR
+- Cross-cutting security behavior lives in `src/middleware.js`
+- Reusable domain data and validation helpers live in `src/lib/**`
+- Blog and long-form content live in `src/content/**`
 
-## Key Principles
-- Write concise, functional, declarative code - avoid classes
-- Prefer iteration and modularization over duplication
-- Use descriptive variable names with auxiliary verbs (`isLoading`, `hasError`, `canSubmit`)
-- Use lowercase with dashes for directories (`components/clay-card`, `pages/second-opinion`)
-- Favor **named exports** for all components
-- Use the **RORO pattern** (Receive an Object, Return an Object) for functions with multiple params
+## Architecture Priorities
+
+- **Server-first** for public content, metadata, and SEO-sensitive pages
+- **Client-only where necessary** for menus, forms, admin interactions, and browser APIs
+- **DDD-lite boundaries** between pages, UI, domain logic, and infrastructure
+- **TDD for behavior changes** in shared logic, interactive components, and API handlers
+- **Fail fast** on invalid input, bad auth, or broken configuration
+- **Accessibility and SEO are first-class concerns**, not polish items
 
 ## JavaScript Style
-- Use `function` keyword for components and pure functions - not `const`
-- Omit semicolons
-- File structure order: exported component → subcomponents → helpers → static content
-- Avoid unnecessary curly braces in single-line conditionals
-- Use `if (condition) doSomething()` for simple guards
+- Use plain JavaScript patterns that are idiomatic for the existing codebase
+- Prefer `function` declarations for exported components and reusable helpers
+- Prefer named exports
+- Keep static content outside component bodies
+- Avoid introducing TypeScript-specific rules into JavaScript files unless the repo is being migrated intentionally
 
-## Documentation (README)
-- После любых изменений в проекте **обновлять файл README.md**, чтобы он отражал актуальное состояние (новые страницы, фичи, структура, команды и т.д.).
-- **Исключение**: если пользователь явно указывает, что работа тестовая/экспериментальная (например: «тестовая страница», «тестовый проект», «просто проверяем»), README обновлять не нужно.
+## Repository Landmarks
+
+- `src/pages/**`: Astro routes and API endpoints
+- `src/components/pages/**`: page-level React sections
+- `src/components/admin/**`: admin interface
+- `src/components/**`: shared UI components
+- `src/lib/**`: domain data, filters, auth, validation, tracker utilities
+- `src/layouts/**`: page shells
+- `src/content/**`: blog collections
+- `db/**`: Astro DB schema and seed data
+- `e2e/**`: Playwright coverage
+
+## Delivery Expectations
+
+- Use `bun run ...` commands for local validation
+- Keep README current when the project structure, commands, features, or environment requirements change
+- Preserve Russian-first public content unless the task explicitly adds another locale
+- Preserve structured data, canonical metadata, and semantic markup when changing indexed pages
+- Treat admin auth, analytics, uploads, and form handling as sensitive change areas
 
 ## Running the project
 ```bash
@@ -45,4 +66,10 @@ bun run dev      # start dev server at localhost:4321
 bun run build    # production build
 bun run preview  # preview build
 ```
-## Development is run in Windows in Cursor
+
+## Validation Defaults
+
+- `bun run lint`
+- `bun run test:run`
+- `bun run test:e2e`
+- `bun run build`

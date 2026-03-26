@@ -1,0 +1,50 @@
+---
+description: Astro-first page architecture, React islands, and SEO-safe page composition
+globs:
+  - src/pages/**/*.astro
+  - src/layouts/**/*.astro
+  - src/components/**/*.jsx
+  - src/content/**/*.md
+alwaysApply: false
+---
+
+# Astro Pages and React Islands
+
+## Rendering Strategy
+
+- Prefer **Astro-first** rendering for public pages, SEO content, layouts, and static sections
+- Use React islands only when interactivity, client state, or browser-only APIs are required
+- Do not turn a static page into a client-heavy React page unless the user experience clearly needs it
+
+## File Responsibilities
+
+- `src/pages/**/*.astro`: route entrypoints, page data wiring, metadata, and high-level composition
+- `src/layouts/**/*.astro`: document shell, SEO tags, global wrappers, and cross-page structure
+- `src/components/pages/*.jsx`: page-level React sections when Astro-only markup would be too cumbersome
+- `src/components/*.jsx`: reusable UI building blocks
+- `src/content/**`: editorial content and blog material
+
+## Routing
+
+- Respect Astro file-based routing exactly
+- Do not introduce React Router, client-side route state, or SPA assumptions
+- Keep route slugs stable when they are public or indexed
+
+## SEO and Medical Content
+
+- Preserve canonical URLs, meta descriptions, headings, and structured data on SEO-sensitive pages
+- When editing blog or service pages, avoid weakening semantic structure such as `h1`, section headings, and FAQ markup
+- User-facing copy is Russian-first unless the task explicitly introduces another language
+- Do not make unsupported medical, legal, or compliance claims
+
+## Hydration Discipline
+
+- Use the lightest viable client directive and avoid hydrating more UI than needed
+- Keep browser-only code inside interactive components, not in shared server-rendered modules
+- Prefer passing serialized props from Astro pages into React components instead of fetching the same data again on the client
+
+## Layout and Composition
+
+- Keep page composition top-down: page -> section components -> small reusable components
+- Reuse existing page wrappers, headers, banners, and CTA blocks before adding new variants
+- Extract shared logic before copying the same section pattern across multiple medical pages

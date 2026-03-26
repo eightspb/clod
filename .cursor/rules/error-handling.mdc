@@ -1,13 +1,15 @@
 ---
-description: Error handling and validation patterns for React components
-globs: src/**/*.jsx
+description: Error handling and validation patterns for React components and JavaScript modules
+globs:
+  - src/**/*.jsx
+  - src/**/*.js
 alwaysApply: false
 ---
 
 # Error Handling & Validation
 
 ## Guard Clauses First
-Handle errors and edge cases at the top of functions - happy path goes last.
+Handle errors and edge cases at the top of functions so the happy path stays obvious.
 
 ```jsx
 // ✅ GOOD
@@ -29,7 +31,7 @@ function DoctorCard({ doctor }) {
 ```
 
 ## Early Returns Over Else
-Avoid `else` after a `return` - use if-return pattern.
+Avoid `else` after a `return` when a guard clause makes the branch simpler.
 
 ```jsx
 // ✅ GOOD
@@ -47,10 +49,18 @@ if (isLoading) {
 }
 ```
 
+## Validate at the Boundary
+
+- In API handlers, validate request data before side effects
+- In React forms, validate before starting async work
+- Keep normalization close to the boundary: `trim`, whitelist, parse, and reject early
+- Move reusable validation rules into `src/lib/**` instead of duplicating them across components and endpoints
+
 ## Form Validation
 - Validate on the client before any async call
 - Show inline errors next to fields, not only as toasts
 - Disable the submit button while `isSubmitting` is true
+- Preserve user input on validation failure when possible
 
 ## Error State Naming
 ```jsx
@@ -75,3 +85,10 @@ async function submitAppointment(data) {
   }
 }
 ```
+
+## Server Errors
+
+- Return explicit HTTP status codes
+- Use a stable JSON shape for API failures
+- Log enough context to diagnose the issue without leaking secrets or excessive PII
+- Do not swallow exceptions silently
