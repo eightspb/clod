@@ -52,6 +52,8 @@ export default [
       'src/middleware.js',
       'src/lib/tracker.js',
       'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
       '.astro/**',
     ],
   },

@@ -84,7 +84,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'Можно ли убрать фиброаденому с помощью ВАБ?',
-    answer: 'Да. ВАБ — топ-манипуляция для удаления фиброаденом. Вместо разреза скальпелем — прокол 2 мм, вместо стационара — амбулатория, вместо общего наркоза — местная анестезия. 99% пациентов, которым рекомендовали операцию, после консультации в нашей клинике решают вопрос с помощью ВАБ.',
+    answer: 'Да. ВАБ — малоинвазивный способ удаления фиброаденом через прокол 2 мм. Вместо разреза скальпелем — амбулаторная процедура под местной анестезией, а итоговое решение о показаниях принимается после очной консультации и УЗИ.',
   },
   {
     question: 'Нужно ли направление от врача?',
@@ -111,10 +111,10 @@ export function Vab() {
         </h1>
         <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
           Удаление фиброаденом, кист и других образований молочной железы через прокол 2 мм.
-          Клиника №1 в России по ВАБ согласно отзывам пациентов. Процедура 30–40 минут — и вы идёте домой.
+          Процедура длится 30–40 минут и в большинстве случаев позволяет вернуться домой в тот же день.
         </p>
         <p className="text-sm text-clay-muted max-w-2xl mb-8">
-          Первая частная клиника в России, практикующая ВАБ. Клиника №1 по вакуумной биопсии согласно отзывам пациентов.
+          Перед процедурой врач оценивает показания, проводит УЗИ и подробно обсуждает с вами ожидаемый результат и дальнейший план наблюдения.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
@@ -135,10 +135,10 @@ export function Vab() {
       {/* Счётчики клиники */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { value: '99%', label: 'пациентов избегают операции*' },
           { value: '2 мм', label: 'размер прокола' },
-          { value: '30 мин', label: 'длительность процедуры' },
+          { value: '30–40 мин', label: 'длительность процедуры' },
           { value: '1–2 дня', label: 'восстановление' },
+          { value: 'УЗИ', label: 'контроль процедуры в реальном времени' },
         ].map((stat) => (
           <div key={stat.label} className="clay-card text-center py-5 px-3">
             <div className="text-2xl md:text-3xl font-bold text-clay-teal mb-1">{stat.value}</div>
@@ -149,24 +149,21 @@ export function Vab() {
 
       {/* Блок достижений клиники */}
       <section className="clay-card-soft-mint clay-card p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-bold text-clay-text mb-5">Клиника в цифрах</h2>
+        <h2 className="text-xl font-bold text-clay-text mb-5">Что важно знать о процедуре</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">1000+</div>
-            <p className="text-sm text-clay-muted leading-tight">проведённых процедур ВАБ</p>
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">2 мм</div>
+            <p className="text-sm text-clay-muted leading-tight">микропрокол вместо хирургического разреза</p>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">50+</div>
-            <p className="text-sm text-clay-muted leading-tight">врачей из других клиник прошли обучение на нашей базе</p>
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">30–40 мин</div>
+            <p className="text-sm text-clay-muted leading-tight">средняя длительность процедуры</p>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">99%</div>
-            <p className="text-sm text-clay-muted leading-tight">пациентов избегают операции*</p>
+            <div className="text-4xl font-extrabold text-clay-teal mb-2">7–10 дней</div>
+            <p className="text-sm text-clay-muted leading-tight">срок готовности гистологии после удаления</p>
           </div>
         </div>
-        <p className="text-xs text-clay-muted mt-4 pt-4 border-t border-black/5">
-          * По данным клиники. Результат зависит от медицинских показаний пациента.
-        </p>
       </section>
 
       {/* Показания */}

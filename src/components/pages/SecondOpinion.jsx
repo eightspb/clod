@@ -88,7 +88,7 @@ export function SecondOpinion() {
               <span className="text-clay-mint">Перепроверьте диагноз</span> у нас
             </h1>
             <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
-              99% пациентов, приходящих к нам с направлением на операцию из другой клиники, решают проблему с помощью ВАБ за 30 минут.
+              Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
             </p>
             <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
               <p className="text-clay-dark font-medium text-sm leading-relaxed">
@@ -114,9 +114,9 @@ export function SecondOpinion() {
         <div className="container-clay">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { val: '99%', desc: 'пациентов избегают операции благодаря ВАБ*' },
               { val: '0 ₽', desc: 'стоимость второго мнения - полностью бесплатно' },
-              { val: '30 мин', desc: 'процедура ВАБ вместо полноценной операции' },
+              { val: '30–40 мин', desc: 'консультация и разбор случая с онкологом-маммологом' },
+              { val: 'В день обращения', desc: 'обсуждаем дальнейший план без лишнего ожидания' },
             ].map((s) => (
               <div key={s.val} className="clay clay-card p-5 text-center">
                 <div className="text-3xl sm:text-4xl font-extrabold text-clay-mint mb-1.5">{s.val}</div>

@@ -122,9 +122,9 @@ export function Nutrition() {
         <div className="container-clay">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { val: '100%', label: 'индивидуальный подбор рациона' },
-              { val: '0', label: 'жёстких диет и запретов' },
-              { val: '85%', label: 'пациентов достигают цели' },
+              { val: 'Персонально', label: 'подбираем рацион под образ жизни и цели' },
+              { val: '0', label: 'жёстких диет и запретов как основы подхода' },
+              { val: '2–3', label: 'консультации для старта и корректировки плана' },
               { val: 'EBM', label: 'доказательная база' },
             ].map((s) => (
               <div key={s.label} className="clay clay-card p-4 text-center">
