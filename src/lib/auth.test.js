@@ -52,10 +52,16 @@ afterEach(() => {
 
 describe('auth.js', () => {
   describe('validateOrigin', () => {
-    function makeRequest(origin, referer) {
+    function makeRequest(origin, referer, extras = {}) {
       return {
+        url: extras.url || 'https://odintsovclinic.ru/api/test',
         headers: {
-          get: (name) => (name === 'origin' ? origin : name === 'referer' ? referer : null),
+          get: (name) =>
+            name === 'origin'
+              ? origin
+              : name === 'referer'
+                ? referer
+                : extras[name] ?? null,
         },
       }
     }
@@ -74,6 +80,28 @@ describe('auth.js', () => {
 
     it('accepts referer when origin is missing', () => {
       expect(validateOrigin(makeRequest(null, 'https://localhost:4321/page'))).toBe(true)
+    })
+
+    it('accepts the current request host even when it is not in the static allowlist', () => {
+      expect(
+        validateOrigin(
+          makeRequest('https://app.odintsovclinic.ru/', null, {
+            host: 'app.odintsovclinic.ru',
+            url: 'https://app.odintsovclinic.ru/api/test',
+          })
+        )
+      ).toBe(true)
+    })
+
+    it('accepts same-origin requests without origin when fetch metadata is present', () => {
+      expect(
+        validateOrigin(
+          makeRequest(null, null, {
+            host: 'odintsovclinic.ru',
+            'sec-fetch-site': 'same-origin',
+          })
+        )
+      ).toBe(true)
     })
 
     it('rejects unknown origin', () => {

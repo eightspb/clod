@@ -121,16 +121,56 @@ const ALLOWED_HOSTS = [
   '127.0.0.1:4321',
 ]
 
+function normalizeHost(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function getForwardedHost(request) {
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  return normalizeHost(forwardedHost?.split(',')[0])
+}
+
+function getRequestUrlHost(request) {
+  const requestUrl = request.url
+
+  if (!requestUrl) {
+    return ''
+  }
+
+  try {
+    return normalizeHost(new URL(requestUrl).host)
+  } catch {
+    return ''
+  }
+}
+
+function getAllowedHosts(request) {
+  return new Set(
+    [
+      ...ALLOWED_HOSTS,
+      request.headers.get('host'),
+      getForwardedHost(request),
+      getRequestUrlHost(request),
+    ]
+      .map(normalizeHost)
+      .filter(Boolean)
+  )
+}
+
 export function validateOrigin(request) {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
-
   const source = origin || referer
-  if (!source) return false
+  const allowedHosts = getAllowedHosts(request)
+
+  if (!source) {
+    const fetchSite = normalizeHost(request.headers.get('sec-fetch-site'))
+    return (fetchSite === 'same-origin' || fetchSite === 'same-site') && allowedHosts.size > 0
+  }
 
   try {
     const url = new URL(source)
-    return ALLOWED_HOSTS.includes(url.host)
+    return allowedHosts.has(normalizeHost(url.host))
   } catch {
     return false
   }
