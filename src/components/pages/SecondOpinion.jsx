@@ -181,13 +181,13 @@ export function SecondOpinion() {
               <div className="clay clay-card-mint p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-white/25 flex items-center justify-center mb-4">
-                    <span className="text-2xl font-extrabold text-white">0₽</span>
+                  <div className="w-12 h-12 rounded-full bg-white/70 border border-white/80 flex items-center justify-center mb-4">
+                    <span className="text-2xl font-extrabold text-clay-mint">0₽</span>
                   </div>
-                  <h3 className="font-extrabold text-white text-2xl mb-3">
+                  <h3 className="font-extrabold text-clay-dark text-2xl mb-3">
                     Второе мнение - бесплатно
                   </h3>
-                  <p className="text-white/90 text-sm leading-relaxed mb-6">
+                  <p className="text-clay-text text-sm leading-relaxed mb-6">
                     Нам важно, чтобы вы приняли осознанное решение. Изучение заключения нашим онкологом-маммологом - без каких-либо условий.
                   </p>
                   <div className="space-y-3">
@@ -195,12 +195,12 @@ export function SecondOpinion() {
                       <Phone size={16} />
                       Позвонить: {PHONE_DISPLAY}
                     </a>
-                    <button onClick={() => setIsFormOpen(true)} className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                    <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary w-full justify-center gap-2">
                       <FileText size={16} />
                       Отправить данные на проверку
                     </button>
                   </div>
-                  <p className="text-white/70 text-xs text-center mt-4">
+                  <p className="text-clay-muted text-xs text-center mt-4">
                     Обычно отвечаем в рабочее время без долгого ожидания
                   </p>
                 </div>

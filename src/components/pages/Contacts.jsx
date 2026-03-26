@@ -254,18 +254,18 @@ export function Contacts() {
 
       {/* ДМС */}
       <section className="clay-card-mint p-6 md:p-8">
-        <h2 className="text-xl font-bold text-white mb-4">Принимаем по ДМС</h2>
-        <p className="text-white/85 mb-4">
+        <h2 className="text-xl font-bold text-clay-dark mb-4">Принимаем по ДМС</h2>
+        <p className="text-clay-text mb-4">
           Принимаем пациентов по полисам добровольного медицинского страхования. Список программ и объём покрытия можно уточнить у администратора при записи:
         </p>
         <div className="flex flex-wrap gap-3">
           {['Ренессанс', 'АльфаСтрахование', 'ВСК', 'РЕСО-Гарантия'].map((ins) => (
-            <span key={ins} className="bg-white/20 rounded-2xl px-4 py-2 text-sm font-semibold text-white">
+            <span key={ins} className="bg-white/65 border border-white/80 rounded-2xl px-4 py-2 text-sm font-semibold text-clay-dark">
               {ins}
             </span>
           ))}
         </div>
-        <p className="text-xs text-white/70 mt-4">
+        <p className="text-xs text-clay-muted mt-4">
           Уточните наличие вашей страховки у администратора по телефону или в Telegram.
         </p>
       </section>

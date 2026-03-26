@@ -173,7 +173,7 @@ export function Vab() {
           <ul className="grid sm:grid-cols-2 gap-3">
             {INDICATIONS.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <CheckCircle size={18} className="text-clay-teal shrink-0 mt-0.5" />
+                <CheckCircle size={18} className="text-clay-mint shrink-0 mt-0.5" />
                 <span className="text-clay-text">{item}</span>
               </li>
             ))}
@@ -206,8 +206,8 @@ export function Vab() {
               <Shield size={22} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
-              <p className="text-white/85 leading-relaxed mb-4">
+              <h2 className="text-xl font-bold text-clay-dark mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
+              <p className="text-clay-text leading-relaxed mb-4">
                 Клиника Одинцова использует систему Xishan DK-B-MS производства Xishan (Сишань)
                 для проведения ВАБ под постоянным контролем УЗИ. Решение о применении метода принимается врачом после очной оценки.
               </p>
@@ -218,9 +218,9 @@ export function Vab() {
                   'Автоматическая аспирация поэтапно',
                   'Одновременный забор материала для гистологии',
                 ].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-white/90">
-                    <Star size={14} className="text-white shrink-0" />
-                    {f}
+                  <li key={f} className="flex items-center gap-2 rounded-xl bg-white/55 border border-white/70 px-3 py-2 text-sm text-clay-dark">
+                    <Star size={14} className="text-clay-mint shrink-0" />
+                    <span className="font-medium">{f}</span>
                   </li>
                 ))}
               </ul>
@@ -250,7 +250,7 @@ export function Vab() {
                   <td className="p-4 text-clay-muted">{row.param}</td>
                   <td className="p-4 font-medium text-clay-text">
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle size={14} className="text-clay-teal shrink-0" />
+                      <CheckCircle size={14} className="text-clay-mint shrink-0" />
                       {row.vab}
                     </span>
                   </td>
@@ -273,7 +273,7 @@ export function Vab() {
             <ul className="space-y-1.5 text-sm text-clay-muted">
               {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ'].map((item) => (
                 <li key={item} className="flex items-center gap-2">
-                  <CheckCircle size={13} className="text-clay-teal shrink-0" />
+                  <CheckCircle size={13} className="text-clay-mint shrink-0" />
                   {item}
                 </li>
               ))}
@@ -300,10 +300,10 @@ export function Vab() {
         <div className="clay-card-peach p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle size={18} className="text-white" />
-              <span className="font-semibold text-white">Бесплатное второе мнение</span>
+              <AlertCircle size={18} className="text-clay-peach" />
+              <span className="font-semibold text-clay-dark">Бесплатное второе мнение</span>
             </div>
-            <p className="text-sm text-white/85">
+            <p className="text-sm text-clay-text">
               Уже получили заключение и вам рекомендовали операцию? Наш онколог-маммолог
               бесплатно изучит ваши снимки и скажет, есть ли в вашем случае более щадящий вариант.
             </p>
@@ -334,8 +334,8 @@ export function Vab() {
 
       {/* CTA */}
       <section className="clay-card-mint p-8 text-center">
-        <h2 className="text-2xl font-bold text-white mb-3">Запишитесь на консультацию</h2>
-        <p className="text-white/85 mb-6 max-w-lg mx-auto">
+        <h2 className="text-2xl font-bold text-clay-dark mb-3">Запишитесь на консультацию</h2>
+        <p className="text-clay-text mb-6 max-w-lg mx-auto">
           Санкт-Петербург, пр. Богатырский 22 к.1, Приморский район, рядом с м. Комендантский проспект и м. Старая Деревня.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -347,7 +347,7 @@ export function Vab() {
             <MessageCircle size={18} />
             Записаться онлайн
           </button>
-          <a href={`tel:${PHONE_NUMBER}`} className="btn-clay-secondary inline-flex items-center gap-2">
+          <a href={`tel:${PHONE_NUMBER}`} className="btn-clay-white inline-flex items-center gap-2">
             <Clock size={18} />
             {PHONE_DISPLAY}
           </a>

@@ -7,8 +7,6 @@ import { SERVICES, WHY_ITEMS } from '../../lib/clinic-info.js'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
-const CLINIC_LOCATION = 'Санкт-Петербург, Приморский район, Богатырский проспект 22 к.1'
-const NEAREST_METRO = 'м. Комендантский проспект и м. Старая Деревня'
 
 const heroSlides = [
   {
@@ -41,7 +39,7 @@ const heroSlides = [
     trustBadge: 'Гинекология, эндокринология, нутрициология',
     badge: 'Понятный маршрут пациента',
     title: <>Приём по показаниям<br /><span style={{ color: '#2A9E80' }}>с уважительным и спокойным подходом</span></>,
-    desc: 'Разбираем жалобы, результаты анализов и план наблюдения без спешки. Работаем в Санкт-Петербурге, Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.',
+    desc: 'Разбираем жалобы, результаты анализов и план наблюдения без спешки. Объясняем следующий шаг понятным и спокойным языком.',
     stats: [
       { val: '4', unit: '', label: 'ключевых направления' },
       { val: '9', unit: '', label: 'врачей в команде' },
@@ -472,9 +470,6 @@ export function Home({ doctorsData = [] }) {
                       </div>
                     )}
 
-                    <p className="text-sm sm:text-base text-clay-muted leading-relaxed mb-3 max-w-lg">
-                      {CLINIC_LOCATION} · {NEAREST_METRO}
-                    </p>
                     <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg" style={{ lineHeight: '1.75' }}>
                       {slide.desc}
                     </p>
@@ -584,14 +579,14 @@ export function Home({ doctorsData = [] }) {
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-white/25 text-white text-xs font-bold mb-4 uppercase tracking-wider">
+              <div className="inline-block px-4 py-1.5 rounded-full bg-white/70 text-clay-dark text-xs font-bold mb-4 uppercase tracking-wider border border-white/80">
                 Маммология и ВАБ
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
                 Вакуумная аспирационная биопсия по показаниям
               </h2>
-              <p className="text-white/90 text-lg mb-2">Помогаем пройти путь от диагностики до малоинвазивного лечения в одном месте.</p>
-              <p className="text-white/80 text-sm mb-5">Контроль под УЗИ, понятный маршрут для пациента и обсуждение дальнейшего наблюдения заранее.</p>
+              <p className="text-clay-text text-lg mb-2">Помогаем пройти путь от диагностики до малоинвазивного лечения в одном месте.</p>
+              <p className="text-clay-muted text-sm mb-5">Контроль под УЗИ, понятный маршрут для пациента и обсуждение дальнейшего наблюдения заранее.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
                 <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                   <div className="flex items-start gap-4">
@@ -621,7 +616,7 @@ export function Home({ doctorsData = [] }) {
                   Подробнее о ВАБ
                   <ArrowRight size={16} />
                 </a>
-                <a href="/second-opinion" className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-bold text-sm hover:bg-white/30 transition-colors border border-white/30 shadow-lg">
+                <a href="/second-opinion" className="clay btn-clay-secondary text-sm py-3 px-6 shadow-lg">
                   Бесплатное второе мнение
                 </a>
               </div>

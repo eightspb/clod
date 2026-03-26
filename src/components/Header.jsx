@@ -121,7 +121,7 @@ export function Header({ currentPath = '/' }) {
           <div
             className="flex items-center justify-center px-5 py-3"
             style={{
-              borderRadius: '24px',
+              borderRadius: '34px',
               background: '#FFFCF8',
               boxShadow: '0px 8px 20px hsl(140,10%,70%), inset -3px -3px 7px hsla(140,20%,55%,0.2), inset 0px 3px 8px hsl(140,20%,97%)',
             }}

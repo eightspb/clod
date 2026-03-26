@@ -394,11 +394,11 @@ export function About() {
             <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
-              <Star size={40} className="text-white/80 mx-auto mb-4" />
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+              <Star size={40} className="text-clay-mint mx-auto mb-4" />
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
                 Готовы записаться?
               </h2>
-              <p className="text-white/90 text-lg mb-5 max-w-xl mx-auto">
+              <p className="text-clay-text text-lg mb-5 max-w-xl mx-auto">
                 Позвоните нам или оставьте заявку - подскажем удобный формат связи и согласуем время приёма.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
@@ -406,7 +406,7 @@ export function About() {
                   Записаться онлайн
                   <ArrowRight size={16} />
                 </button>
-                <a href={`tel:${PHONE_NUMBER}`} className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition-colors">
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>

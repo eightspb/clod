@@ -198,11 +198,11 @@ export function Mammology() {
             <div className="space-y-4">
               <div className="clay clay-card-mint p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
-                <h3 className="font-bold text-white text-xl mb-2">Бесплатное второе мнение</h3>
-                <p className="text-white/90 text-sm leading-relaxed mb-4">
+                <h3 className="font-bold text-clay-dark text-xl mb-2">Бесплатное второе мнение</h3>
+                <p className="text-clay-text text-sm leading-relaxed mb-4">
                   Если вам уже рекомендовали операцию в другой клинике, принесите снимки. Наш онколог-маммолог спокойно проверит показания и расскажет о вариантах.
                 </p>
-                <div className="flex items-center gap-2 bg-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-bold">
+                <div className="flex items-center gap-2 bg-white/60 border border-white/80 rounded-xl px-4 py-2.5 text-clay-dark text-sm font-bold">
                   Цена: 0 ₽
                 </div>
                 <button type="button" data-booking-btn="true" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">

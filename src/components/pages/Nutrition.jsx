@@ -199,10 +199,10 @@ export function Nutrition() {
             <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
                   Персональный план питания
                 </h2>
-                <p className="text-white/90 leading-relaxed mb-5">
+                <p className="text-clay-text leading-relaxed mb-5">
                   Это не распечатка стандартной диеты из интернета. Мы анализируем ваш дневник питания, анализы и образ жизни, чтобы создать последовательный план, который реально вписать в повседневность.
                 </p>
                 <div className="space-y-3">
@@ -212,8 +212,8 @@ export function Nutrition() {
                     'Списки покупок и конструктор блюд',
                     'Коррекция дефицитов по анализам',
                   ].map((p) => (
-                    <div key={p} className="flex items-center gap-2 text-white/90 text-sm">
-                      <CheckCircle size={16} className="flex-shrink-0 text-white" />
+                    <div key={p} className="flex items-center gap-2 text-clay-text text-sm">
+                      <CheckCircle size={16} className="flex-shrink-0 text-clay-mint" />
                       {p}
                     </div>
                   ))}
@@ -225,9 +225,9 @@ export function Nutrition() {
                   { q: 'Можно ли есть сладкое?', a: 'Да! Мы поможем вписать любимые десерты в рацион так, чтобы они не мешали результату.' },
                   { q: 'Как долго соблюдать план?', a: 'План пересматривается в динамике и может меняться вместе с вашими целями и состоянием здоровья.' },
                 ].map((faq) => (
-                  <div key={faq.q} className="bg-white/20 rounded-2xl p-4">
-                    <p className="font-bold text-white text-sm mb-1">- {faq.q}</p>
-                    <p className="text-white/85 text-sm">{faq.a}</p>
+                  <div key={faq.q} className="bg-white/55 border border-white/75 rounded-2xl p-4">
+                    <p className="font-bold text-clay-dark text-sm mb-1">- {faq.q}</p>
+                    <p className="text-clay-text text-sm">{faq.a}</p>
                   </div>
                 ))}
               </div>
