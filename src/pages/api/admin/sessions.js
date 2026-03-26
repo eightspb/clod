@@ -1,47 +1,71 @@
 export const prerender = false
 
-import { db, AnalyticsSession } from 'astro:db'
+import { db, desc, gte, AnalyticsSession } from 'astro:db'
 import { isAuthenticated } from '../../../lib/auth.js'
+
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 200
+
+function jsonResponse(payload, status) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: JSON_HEADERS,
+  })
+}
+
+function errorResponse(status, code, message) {
+  return jsonResponse(
+    {
+      success: false,
+      error: {
+        code,
+        message,
+      },
+    },
+    status
+  )
+}
+
+function parseLimit(value) {
+  const limit = Number.parseInt(value || `${DEFAULT_LIMIT}`, 10)
+  if (!Number.isFinite(limit) || limit <= 0) return DEFAULT_LIMIT
+  return Math.min(limit, MAX_LIMIT)
+}
 
 export async function GET({ request }) {
   if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return errorResponse(401, 'UNAUTHORIZED', 'Требуется авторизация.')
   }
 
   try {
     const url = new URL(request.url)
     const activeOnly = url.searchParams.get('active') !== 'false'
-    const limit = parseInt(url.searchParams.get('limit') || '100', 10)
-
-    const allSessions = await db.select().from(AnalyticsSession)
+    const limit = parseLimit(url.searchParams.get('limit'))
     const onlineThreshold = new Date(Date.now() - 5 * 60 * 1000)
 
-    let sessions = allSessions
-    if (activeOnly) {
-      sessions = sessions.filter(s => new Date(s.lastActiveAt) >= onlineThreshold)
-    }
+    const query = db
+      .select()
+      .from(AnalyticsSession)
+      .orderBy(desc(AnalyticsSession.lastActiveAt))
+      .limit(limit)
 
-    sessions = sessions
-      .sort((a, b) => new Date(b.lastActiveAt) - new Date(a.lastActiveAt))
-      .slice(0, limit)
-      .map(s => ({
-        ...s,
-        isOnline: new Date(s.lastActiveAt) >= onlineThreshold,
-        durationSeconds: Math.round((new Date(s.lastActiveAt) - new Date(s.startedAt)) / 1000),
-      }))
+    const sessions = activeOnly
+      ? await query.where(gte(AnalyticsSession.lastActiveAt, onlineThreshold))
+      : await query
 
-    return new Response(JSON.stringify({ sessions }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  } catch (err) {
-    console.error('[admin/sessions]', err)
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({
+      sessions: sessions.map((session) => ({
+        ...session,
+        isOnline: new Date(session.lastActiveAt) >= onlineThreshold,
+        durationSeconds: Math.max(
+          0,
+          Math.round((new Date(session.lastActiveAt) - new Date(session.startedAt)) / 1000)
+        ),
+      })),
+    }, 200)
+  } catch (error) {
+    console.error('[admin/sessions]', error)
+    return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось загрузить сессии.')
   }
 }
