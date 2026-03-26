@@ -1,83 +1,80 @@
 export const prerender = false
 
-import { db, Media, Doctor } from 'astro:db'
+import { db, Doctor, Media } from 'astro:db'
 import { eq } from 'astro:db'
-import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
-import { validateDoctorId, getSafeExtension } from '../../../../lib/upload-utils.js'
-import { writeFile, mkdir } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
+import {
+  buildStorageFilename,
+  deleteFileIfExists,
+  mediaUrlToFilePath,
+  validateDoctorId,
+  validateImageFile,
+} from '../../../../lib/upload-utils.js'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+
+function jsonResponse(payload, status) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Forbidden' }, 403)
   }
+
   if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Unauthorized' }, 401)
   }
+
+  let filePath = null
+  let mediaId = null
 
   try {
     const formData = await request.formData()
     const file = formData.get('file')
     const doctorIdRaw = formData.get('doctorId')
-    const doctorId = typeof doctorIdRaw === 'string' ? doctorIdRaw.trim() : null
+    const doctorId = typeof doctorIdRaw === 'string' ? doctorIdRaw.trim() : ''
 
     if (!file || typeof file === 'string') {
-      return new Response(JSON.stringify({ error: 'Файл не передан' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'Файл не передан' }, 400)
     }
 
     if (!doctorId) {
-      return new Response(JSON.stringify({ error: 'doctorId не передан' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'doctorId не передан' }, 400)
     }
 
     const doctorCheck = await validateDoctorId(doctorId)
     if (!doctorCheck.valid) {
-      return new Response(JSON.stringify({ error: doctorCheck.error }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: doctorCheck.error }, 400)
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return new Response(JSON.stringify({ error: 'Допустимые форматы: JPEG, PNG, WebP' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    const fileCheck = validateImageFile(file, { maxSizeBytes: MAX_SIZE })
+    if (!fileCheck.valid) {
+      const errorMessage = fileCheck.error === 'Файл слишком большой'
+        ? 'Файл слишком большой (макс. 5MB)'
+        : fileCheck.error
+      return jsonResponse({ error: errorMessage }, 400)
     }
 
-    if (file.size > MAX_SIZE) {
-      return new Response(JSON.stringify({ error: 'Файл слишком большой (макс. 5MB)' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-
-    const ext = getSafeExtension(file.name)
-    const filename = `${doctorId}-${Date.now()}.${ext}`
+    const filename = buildStorageFilename({
+      doctorId,
+      category: 'photo',
+      originalName: file.name,
+      uniqueSuffix: crypto.randomUUID(),
+    })
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'doctors')
-    const filePath = join(uploadDir, filename)
+    filePath = join(uploadDir, filename)
     const publicUrl = `/uploads/doctors/${filename}`
 
     await mkdir(uploadDir, { recursive: true })
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(filePath, buffer)
+    await writeFile(filePath, Buffer.from(await file.arrayBuffer()))
 
-    // Save to Media table
-    const mediaId = crypto.randomUUID()
+    mediaId = crypto.randomUUID()
     await db.insert(Media).values({
       id: mediaId,
       filename,
@@ -87,18 +84,47 @@ export async function POST({ request }) {
       createdAt: new Date(),
     })
 
-    // Update doctor's photoMediaId
-    await db.update(Doctor).set({ photoMediaId: mediaId }).where(eq(Doctor.id, doctorId))
+    await db
+      .update(Doctor)
+      .set({ photoMediaId: mediaId })
+      .where(eq(Doctor.id, doctorId))
 
-    return new Response(JSON.stringify({ ok: true, mediaId, url: publicUrl }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    const previousPhotoMediaId = doctorCheck.doctor?.photoMediaId
+
+    if (previousPhotoMediaId && previousPhotoMediaId !== mediaId) {
+      try {
+        const previousMediaRows = await db.select().from(Media).where(eq(Media.id, previousPhotoMediaId))
+        const previousMedia = previousMediaRows[0]
+
+        await db.delete(Media).where(eq(Media.id, previousPhotoMediaId))
+
+        if (previousMedia?.url) {
+          await deleteFileIfExists(mediaUrlToFilePath(previousMedia.url))
+        }
+      } catch (cleanupError) {
+        console.error('[upload/photo] previous photo cleanup failed', cleanupError)
+      }
+    }
+
+    return jsonResponse({ ok: true, mediaId, url: publicUrl }, 200)
   } catch (err) {
+    if (mediaId) {
+      try {
+        await db.delete(Media).where(eq(Media.id, mediaId))
+      } catch (cleanupError) {
+        console.error('[upload/photo] media rollback failed', cleanupError)
+      }
+    }
+
+    if (filePath) {
+      try {
+        await deleteFileIfExists(filePath)
+      } catch (cleanupError) {
+        console.error('[upload/photo] file rollback failed', cleanupError)
+      }
+    }
+
     console.error('[upload/photo]', err)
-    return new Response(JSON.stringify({ error: 'Ошибка загрузки файла' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Ошибка загрузки файла' }, 500)
   }
 }

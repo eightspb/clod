@@ -1,61 +1,53 @@
 export const prerender = false
 
 import { db, DoctorCertificate, Media } from 'astro:db'
-import { eq, and } from 'astro:db'
+import { and, eq } from 'astro:db'
 import { isAuthenticated, validateOrigin } from '../../../../../lib/auth.js'
-import { unlink } from 'node:fs/promises'
-import { join } from 'node:path'
+import { deleteFileIfExists, mediaUrlToFilePath } from '../../../../../lib/upload-utils.js'
+
+function jsonResponse(payload, status) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
 
 export async function GET({ request, params }) {
   if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Unauthorized' }, 401)
   }
 
   try {
     const { id: doctorId } = params
     const certs = await db.select().from(DoctorCertificate).where(eq(DoctorCertificate.doctorId, doctorId))
-    const allMedia = await db.select().from(Media)
-    const mediaMap = Object.fromEntries(allMedia.map(m => [m.id, m]))
+    const mediaRows = await db.select().from(Media)
+    const mediaMap = Object.fromEntries(mediaRows.map((media) => [media.id, media]))
 
-    const result = certs
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map(c => ({
-        id: c.id,
-        mediaId: c.mediaId,
-        title: c.title,
-        sortOrder: c.sortOrder,
-        url: mediaMap[c.mediaId]?.url || null,
-        createdAt: c.createdAt,
+    const certificates = certs
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .map((cert) => ({
+        id: cert.id,
+        mediaId: cert.mediaId,
+        title: cert.title,
+        sortOrder: cert.sortOrder,
+        url: mediaMap[cert.mediaId]?.url || null,
+        createdAt: cert.createdAt,
       }))
 
-    return new Response(JSON.stringify({ certificates: result }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ certificates }, 200)
   } catch (err) {
     console.error('[doctors/[id]/certificates GET]', err)
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Internal error' }, 500)
   }
 }
 
 export async function DELETE({ request, params }) {
   if (!validateOrigin(request)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Forbidden' }, 403)
   }
+
   if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Unauthorized' }, 401)
   }
 
   try {
@@ -64,54 +56,43 @@ export async function DELETE({ request, params }) {
     const { certId } = body
 
     if (!certId) {
-      return new Response(JSON.stringify({ error: 'certId не передан' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'certId не передан' }, 400)
     }
 
-    // Find the cert to get mediaId
     const certs = await db
       .select()
       .from(DoctorCertificate)
       .where(and(eq(DoctorCertificate.id, certId), eq(DoctorCertificate.doctorId, doctorId)))
 
     if (certs.length === 0) {
-      return new Response(JSON.stringify({ error: 'Сертификат не найден' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'Сертификат не найден' }, 404)
     }
 
     const cert = certs[0]
+    const mediaRows = await db.select().from(Media).where(eq(Media.id, cert.mediaId))
+    const media = mediaRows[0]
 
-    // Get media record to find file path
-    const mediaRecords = await db.select().from(Media).where(eq(Media.id, cert.mediaId))
-    const media = mediaRecords[0]
-
-    // Delete cert record
     await db.delete(DoctorCertificate).where(eq(DoctorCertificate.id, certId))
 
-    // Delete media record and physical file
     if (media) {
-      await db.delete(Media).where(eq(Media.id, media.id))
       try {
-        const filePath = join(process.cwd(), 'public', media.url)
-        await unlink(filePath)
-      } catch {
-        // File may not exist on disk - ignore
+        await db.delete(Media).where(eq(Media.id, media.id))
+      } catch (cleanupError) {
+        console.error('[doctors/[id]/certificates DELETE] media delete failed', cleanupError)
+      }
+
+      if (media.url) {
+        try {
+          await deleteFileIfExists(mediaUrlToFilePath(media.url))
+        } catch (cleanupError) {
+          console.error('[doctors/[id]/certificates DELETE] file delete failed', cleanupError)
+        }
       }
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ ok: true }, 200)
   } catch (err) {
     console.error('[doctors/[id]/certificates DELETE]', err)
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Internal error' }, 500)
   }
 }

@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react'
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+const MAX_SIZE = 5 * 1024 * 1024
+
 const labelStyle = {
   display: 'block',
   fontSize: '12px',
@@ -34,6 +37,21 @@ function ProgressBar({ progress, label, status }) {
   )
 }
 
+function validatePhotoFile(file) {
+  if (!file) return 'Файл не выбран'
+  if (!ALLOWED_TYPES.includes(file.type)) return 'Допустимые форматы: JPEG, PNG, WebP'
+  if (file.size > MAX_SIZE) return 'Файл слишком большой (макс. 5MB)'
+  return ''
+}
+
+function getResponseError(responseText, fallback) {
+  try {
+    return JSON.parse(responseText).error || fallback
+  } catch {
+    return fallback
+  }
+}
+
 export function DoctorPhotoUpload({ doctor, onPhotoUpdated }) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -45,6 +63,15 @@ export function DoctorPhotoUpload({ doctor, onPhotoUpdated }) {
   function handleFileChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    const validationError = validatePhotoFile(file)
+    if (validationError) {
+      setStatus('error')
+      setError(validationError)
+      e.target.value = ''
+      return
+    }
+
     const localPreview = URL.createObjectURL(file)
     setPreviewUrl(localPreview)
     uploadPhoto(file)
@@ -77,9 +104,7 @@ export function DoctorPhotoUpload({ doctor, onPhotoUpdated }) {
             onPhotoUpdated(data.url)
             resolve()
           } else {
-            let msg = 'Ошибка загрузки'
-            try { msg = JSON.parse(xhr.responseText).error || msg } catch {}
-            reject(new Error(msg))
+            reject(new Error(getResponseError(xhr.responseText, 'Ошибка загрузки')))
           }
         }
 

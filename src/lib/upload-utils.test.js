@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { isSafeDoctorId, getSafeExtension } from './upload-validation.js'
+import { describe, expect, it } from 'vitest'
+import {
+  buildStorageFilename,
+  getSafeExtension,
+  isSafeDoctorId,
+  mediaUrlToFilePath,
+  validateImageFile,
+} from './upload-validation.js'
 
 describe('upload-utils', () => {
   describe('isSafeDoctorId', () => {
@@ -47,6 +53,58 @@ describe('upload-utils', () => {
     it('handles missing filename', () => {
       expect(getSafeExtension('')).toBe('jpg')
       expect(getSafeExtension(null)).toBe('jpg')
+    })
+  })
+
+  describe('validateImageFile', () => {
+    it('accepts a supported image within the size limit', () => {
+      const result = validateImageFile({
+        type: 'image/png',
+        size: 1024,
+      }, { maxSizeBytes: 2 * 1024 * 1024 })
+
+      expect(result).toEqual({ valid: true })
+    })
+
+    it('rejects unsupported mime types', () => {
+      const result = validateImageFile({
+        type: 'image/svg+xml',
+        size: 1024,
+      }, { maxSizeBytes: 2 * 1024 * 1024 })
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('JPEG')
+    })
+
+    it('rejects oversized files', () => {
+      const result = validateImageFile({
+        type: 'image/jpeg',
+        size: 5 * 1024 * 1024,
+      }, { maxSizeBytes: 1024 })
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('слишком большой')
+    })
+  })
+
+  describe('buildStorageFilename', () => {
+    it('builds deterministic filenames without Math.random', () => {
+      expect(buildStorageFilename({
+        doctorId: 'odintsov',
+        category: 'cert',
+        originalName: 'Diploma 2025.PNG',
+        uniqueSuffix: 'abc-123',
+      })).toBe('odintsov-cert-abc123.png')
+    })
+  })
+
+  describe('mediaUrlToFilePath', () => {
+    it('maps upload urls into the public directory', () => {
+      expect(mediaUrlToFilePath('/uploads/doctors/odintsov-photo.jpg')).toContain('/public/uploads/doctors/odintsov-photo.jpg')
+    })
+
+    it('rejects urls outside the uploads root', () => {
+      expect(() => mediaUrlToFilePath('/images/avatar.jpg')).toThrow('Unsupported media URL')
     })
   })
 })

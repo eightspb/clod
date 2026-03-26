@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react'
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+const MAX_SIZE = 10 * 1024 * 1024
+
 function ProgressBar({ progress, label, status }) {
   const colors = { uploading: '#38bdf8', done: '#22c55e', error: '#f87171' }
   const color = colors[status] || colors.uploading
@@ -28,17 +31,44 @@ const labelStyle = {
   marginBottom: '4px',
 }
 
+function validateCertificateFile(file) {
+  if (!ALLOWED_TYPES.includes(file.type)) return 'Допустимые форматы: JPEG, PNG, WebP'
+  if (file.size > MAX_SIZE) return 'Файл слишком большой (макс. 10MB)'
+  return ''
+}
+
+function getResponseError(responseText, fallback) {
+  try {
+    const payload = JSON.parse(responseText)
+    if (payload?.errors?.length > 0) {
+      return payload.errors[0].error || fallback
+    }
+
+    return payload.error || fallback
+  } catch {
+    return fallback
+  }
+}
+
 export function DoctorCertificates({ doctor }) {
   const [certs, setCerts] = useState(doctor.certificates || [])
   const [uploads, setUploads] = useState([])
   const [deleting, setDeleting] = useState(null)
   const [lightbox, setLightbox] = useState(null)
+  const [error, setError] = useState('')
   const fileRef = useRef(null)
 
   async function handleFilesChange(e) {
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
     e.target.value = ''
+    setError('')
+
+    const invalidFile = files.find((file) => validateCertificateFile(file))
+    if (invalidFile) {
+      setError(validateCertificateFile(invalidFile))
+      return
+    }
 
     const initialUploads = files.map(f => ({ name: f.name, progress: 0, status: 'uploading', error: '' }))
     setUploads(initialUploads)
@@ -75,17 +105,15 @@ export function DoctorCertificates({ doctor }) {
       }
 
       xhr.onload = () => {
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText)
-          if (data.uploaded?.length > 0) resolve(data.uploaded[0])
-          else if (data.errors?.length > 0) reject(new Error(data.errors[0].error))
-          else reject(new Error('Неизвестная ошибка'))
-        } else {
-          let msg = 'Ошибка загрузки'
-          try { msg = JSON.parse(xhr.responseText).error || msg } catch {}
-          reject(new Error(msg))
-        }
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText)
+        if (data.uploaded?.length > 0) resolve(data.uploaded[0])
+        else if (data.errors?.length > 0) reject(new Error(data.errors[0].error))
+        else reject(new Error('Неизвестная ошибка'))
+      } else {
+        reject(new Error(getResponseError(xhr.responseText, 'Ошибка загрузки')))
       }
+    }
 
       xhr.onerror = () => reject(new Error('Ошибка соединения'))
       xhr.send(formData)
@@ -101,8 +129,14 @@ export function DoctorCertificates({ doctor }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ certId: cert.id }),
       })
-      if (res.ok) setCerts(prev => prev.filter(c => c.id !== cert.id))
-    } catch {}
+      if (res.ok) {
+        setCerts(prev => prev.filter(c => c.id !== cert.id))
+      } else {
+        setError(getResponseError(await res.text(), 'Не удалось удалить сертификат'))
+      }
+    } catch {
+      setError('Не удалось удалить сертификат')
+    }
     setDeleting(null)
   }
 
@@ -130,6 +164,12 @@ export function DoctorCertificates({ doctor }) {
           {uploads.map((u, i) => (
             <ProgressBar key={i} progress={u.progress} label={u.name} status={u.status} />
           ))}
+        </div>
+      )}
+
+      {error && (
+        <div style={{ marginBottom: '12px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #fecaca', background: '#fef2f2', color: '#b91c1c', fontSize: '12px' }}>
+          {error}
         </div>
       )}
 

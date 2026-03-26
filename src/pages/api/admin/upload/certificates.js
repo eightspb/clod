@@ -1,85 +1,88 @@
 export const prerender = false
 
-import { db, Media, DoctorCertificate } from 'astro:db'
-import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
-import { validateDoctorId, getSafeExtension } from '../../../../lib/upload-utils.js'
-import { writeFile, mkdir } from 'node:fs/promises'
+import { db, DoctorCertificate, Media } from 'astro:db'
+import { eq } from 'astro:db'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
+import {
+  buildStorageFilename,
+  deleteFileIfExists,
+  validateDoctorId,
+  validateImageFile,
+} from '../../../../lib/upload-utils.js'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB per file
+
+function jsonResponse(payload, status) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Forbidden' }, 403)
   }
+
   if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Unauthorized' }, 401)
   }
 
   try {
     const formData = await request.formData()
     const doctorIdRaw = formData.get('doctorId')
-    const doctorId = typeof doctorIdRaw === 'string' ? doctorIdRaw.trim() : null
+    const doctorId = typeof doctorIdRaw === 'string' ? doctorIdRaw.trim() : ''
     const files = formData.getAll('files')
 
     if (!doctorId) {
-      return new Response(JSON.stringify({ error: 'doctorId не передан' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: 'doctorId не передан' }, 400)
     }
 
     const doctorCheck = await validateDoctorId(doctorId)
     if (!doctorCheck.valid) {
-      return new Response(JSON.stringify({ error: doctorCheck.error }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ error: doctorCheck.error }, 400)
     }
 
-    if (!files || files.length === 0) {
-      return new Response(JSON.stringify({ error: 'Файлы не переданы' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    if (!files.length) {
+      return jsonResponse({ error: 'Файлы не переданы' }, 400)
     }
 
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'certificates')
     await mkdir(uploadDir, { recursive: true })
 
-    const results = []
+    const uploaded = []
     const errors = []
 
     for (const file of files) {
-      if (typeof file === 'string') continue
-
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        errors.push({ name: file.name, error: 'Недопустимый формат (только JPEG, PNG, WebP)' })
+      if (typeof file === 'string') {
+        errors.push({ name: 'unknown', error: 'Некорректный формат файла' })
         continue
       }
 
-      if (file.size > MAX_SIZE) {
-        errors.push({ name: file.name, error: 'Файл слишком большой (макс. 10MB)' })
+      const fileCheck = validateImageFile(file, { maxSizeBytes: MAX_SIZE })
+      if (!fileCheck.valid) {
+        errors.push({ name: file.name, error: fileCheck.error })
         continue
       }
+
+      let filePath = null
+      let mediaId = null
 
       try {
-        const ext = getSafeExtension(file.name)
-        const filename = `${doctorId}-cert-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`
-        const filePath = join(uploadDir, filename)
+        const filename = buildStorageFilename({
+          doctorId,
+          category: 'cert',
+          originalName: file.name,
+          uniqueSuffix: crypto.randomUUID(),
+        })
         const publicUrl = `/uploads/certificates/${filename}`
+        filePath = join(uploadDir, filename)
 
-        const buffer = Buffer.from(await file.arrayBuffer())
-        await writeFile(filePath, buffer)
+        await writeFile(filePath, Buffer.from(await file.arrayBuffer()))
 
-        const mediaId = crypto.randomUUID()
+        mediaId = crypto.randomUUID()
         await db.insert(Media).values({
           id: mediaId,
           filename,
@@ -90,31 +93,43 @@ export async function POST({ request }) {
         })
 
         const certId = crypto.randomUUID()
+        const title = file.name.replace(/\.[^.]+$/, '') || 'Сертификат'
+
         await db.insert(DoctorCertificate).values({
           id: certId,
           doctorId,
           mediaId,
-          title: file.name.replace(/\.[^.]+$/, ''), // filename without extension as default title
+          title,
           sortOrder: 0,
           createdAt: new Date(),
         })
 
-        results.push({ id: certId, mediaId, url: publicUrl, title: file.name.replace(/\.[^.]+$/, '') })
+        uploaded.push({ id: certId, mediaId, url: publicUrl, title })
       } catch (fileErr) {
-        console.error('[upload/certificates] file error:', fileErr)
+        if (mediaId) {
+          try {
+            await db.delete(Media).where(eq(Media.id, mediaId))
+          } catch (cleanupError) {
+            console.error('[upload/certificates] media rollback failed', cleanupError)
+          }
+        }
+
+        if (filePath) {
+          try {
+            await deleteFileIfExists(filePath)
+          } catch (cleanupError) {
+            console.error('[upload/certificates] file rollback failed', cleanupError)
+          }
+        }
+
+        console.error('[upload/certificates] file error', fileErr)
         errors.push({ name: file.name, error: 'Ошибка при сохранении файла' })
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, uploaded: results, errors }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ ok: true, uploaded, errors }, 200)
   } catch (err) {
     console.error('[upload/certificates]', err)
-    return new Response(JSON.stringify({ error: 'Ошибка загрузки файлов' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ error: 'Ошибка загрузки файлов' }, 500)
   }
 }
