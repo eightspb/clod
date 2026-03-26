@@ -33,7 +33,6 @@ const currentPath = Astro.url.pathname
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="keywords" content={keywords} />
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
     <title>{title}</title>
@@ -118,7 +117,7 @@ const currentPath = Astro.url.pathname
           "closes": "18:00"
         }
       ],
-      "medicalSpecialty": ["Oncology", "Gynecology", "Endocrinology", "Neurology"],
+      "medicalSpecialty": ["Oncology", "Gynecology", "Endocrinology", "Nutrition"],
       "areaServed": [
         {"@type": "City", "name": "Санкт-Петербург"},
         {"@type": "AdministrativeArea", "name": "Ленинградская область"},
@@ -146,28 +145,15 @@ const currentPath = Astro.url.pathname
     })} />
   </head>
   <body class="relative min-h-screen bg-clay-bg font-sans">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-clay-teal focus:text-white focus:rounded-xl focus:font-semibold focus:shadow-lg">
+    <a href="#main-content" class="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-[9999] focus-visible:px-4 focus-visible:py-2 focus-visible:bg-clay-mint-dark focus-visible:text-white focus-visible:rounded-xl focus-visible:font-semibold focus-visible:shadow-lg">
       Перейти к содержимому
     </a>
     <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->
     <div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
-      <div class="blob-mint absolute w-80 h-80 opacity-40" style="top:-60px;right:-60px" />
-      <div class="blob-peach absolute w-64 h-64 opacity-32" style="bottom:-40px;left:-60px" />
-      <div class="blob-blue absolute w-52 h-52 opacity-25" style="bottom:15%;right:-30px" />
-      <div class="blob-lavender absolute w-48 h-48 opacity-28" style="top:20%;left:38%" />
-    </div>
-    <!-- Маленькие orb: fixed-слой, параллакс через JS (translateY). Сокращено число элементов для меньшего DOM (Lighthouse) -->
-    <div id="orb-layer" aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
-      <div class="orb absolute w-5 h-5 opacity-50" data-speed="0.3" style="top:8vh;left:22%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
-      <div class="orb absolute w-7 h-7 opacity-38" data-speed="0.5" style="top:16vh;right:28%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
-      <div class="orb absolute w-3 h-3 opacity-55" data-speed="0.2" style="top:26vh;left:62%;background:linear-gradient(145deg,#CCC0EC,#B4A4DC)" />
-      <div class="orb absolute w-6 h-6 opacity-42" data-speed="0.6" style="top:38vh;left:8%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
-      <div class="orb absolute w-4 h-4 opacity-48" data-speed="0.4" style="top:50vh;right:18%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
-      <div class="orb absolute w-8 h-8 opacity-32" data-speed="0.25" style="top:62vh;left:48%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
-      <div class="orb absolute w-5 h-5 opacity-40" data-speed="0.35" style="top:88vh;left:72%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
-      <div class="orb absolute w-6 h-6 opacity-36" data-speed="0.3" style="top:120vh;left:15%;background:linear-gradient(145deg,#A8D8F4,#78BCE8)" />
-      <div class="orb absolute w-5 h-5 opacity-40" data-speed="0.2" style="top:155vh;left:52%;background:linear-gradient(145deg,#A8E4D4,#78D4BC)" />
-      <div class="orb absolute w-7 h-7 opacity-34" data-speed="0.6" style="top:172vh;right:35%;background:linear-gradient(145deg,#FAC8B0,#F0A888)" />
+      <div class="blob-mint absolute w-72 h-72 opacity-24" style="top:-56px;right:-56px" />
+      <div class="blob-peach absolute w-60 h-60 opacity-18" style="bottom:-36px;left:-56px" />
+      <div class="blob-blue absolute w-48 h-48 opacity-16" style="bottom:15%;right:-28px" />
+      <div class="blob-lavender absolute w-44 h-44 opacity-16" style="top:20%;left:38%" />
     </div>
     <Header currentPath={currentPath} client:load />
     <main id="main-content" class="relative" style="z-index:1">
@@ -176,11 +162,11 @@ const currentPath = Astro.url.pathname
     <Footer />
     <StickyCTA client:idle />
 
-    <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+    <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 hidden md:flex flex-col gap-2">
       <button
         id="font-increase"
         aria-label="Увеличить шрифт"
-        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-lg font-bold text-clay-text hover:bg-clay-pink hover:text-white transition-all duration-200 select-none"
+        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-lg font-bold text-clay-text hover:bg-clay-mint-dark hover:text-white transition-all duration-200 select-none"
       >A+</button>
       <button
         id="font-reset"
@@ -190,7 +176,7 @@ const currentPath = Astro.url.pathname
       <button
         id="font-decrease"
         aria-label="Уменьшить шрифт"
-        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-sm font-bold text-clay-text hover:bg-clay-pink hover:text-white transition-all duration-200 select-none"
+        class="w-10 h-10 rounded-2xl bg-white shadow-lg border border-clay-border flex items-center justify-center text-sm font-bold text-clay-text hover:bg-clay-mint-dark hover:text-white transition-all duration-200 select-none"
       >A−</button>
     </div>
 
@@ -266,32 +252,5 @@ const currentPath = Astro.url.pathname
       });
     </script>
 
-    <script>
-      // Параллакс для орбов: слой fixed, орбы смещаются через translateY
-      // При скролле вниз орб сдвигается вверх на scrollY * (1 - speed)
-      // speed=1 → орб движется вместе со страницей (полный параллакс)
-      // speed=0 → орб не движется (как статичный fixed)
-      // speed=0.3-0.6 → мягкий параллакс
-      (function () {
-        var orbs = document.querySelectorAll('#orb-layer .orb[data-speed]')
-        if (!orbs.length) return
-
-        var ticking = false
-        function updateOrbs() {
-          var scrollY = window.scrollY
-          orbs.forEach(function (orb) {
-            var speed = parseFloat(orb.getAttribute('data-speed')) || 0.5
-            orb.style.transform = 'translateY(' + (scrollY * speed) + 'px)'
-          })
-          ticking = false
-        }
-
-        window.addEventListener('scroll', function () {
-          if (ticking) return
-          ticking = true
-          requestAnimationFrame(updateOrbs)
-        }, { passive: true })
-      })()
-    </script>
   </body>
 </html>

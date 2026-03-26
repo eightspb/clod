@@ -56,8 +56,8 @@ export function Contacts() {
         <h1 className="text-3xl md:text-4xl font-bold text-clay-text mb-3 speakable">
           Контакты клиники в Санкт-Петербурге
         </h1>
-        <p className="text-clay-muted text-lg">
-          Мы находимся на северо-западе Санкт-Петербурга, в пешей доступности от трёх станций метро
+        <p className="text-clay-muted text-lg leading-relaxed max-w-3xl">
+          Приморский район, пр. Богатырский 22 к.1. Удобно добираться от м. Комендантский проспект, м. Старая Деревня и м. Пионерская.
         </p>
       </section>
 
@@ -73,6 +73,7 @@ export function Contacts() {
               <div className="font-semibold text-clay-text mb-1">Адрес</div>
               <div className="text-clay-muted leading-relaxed">
                 Санкт-Петербург,<br />
+                Приморский район,<br />
                 пр. Богатырский, д. 22, к. 1
               </div>
             </div>
@@ -183,7 +184,7 @@ export function Contacts() {
         </div>
         <div className="clay-card p-5 text-sm text-clay-muted leading-relaxed">
           <strong className="text-clay-text">На автомобиле:</strong> со стороны КАД - съезд на Богатырский проспект.
-          Парковка бесплатная во дворе дома 22 к.1.
+          Бесплатная парковка во дворе дома 22 к.1.
           <br /><br />
           <strong className="text-clay-text">На общественном транспорте:</strong> от метро «Комендантский проспект» - автобусы 93, 183 до остановки «Богатырский пр., 22».
           От метро «Старая Деревня» - маршрутка К-252.
@@ -206,7 +207,7 @@ export function Contacts() {
             <div className="icon-circle-mint mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
               <MapPin size={28} className="text-white" />
             </div>
-            <span className="text-clay-text font-semibold text-lg md:text-xl">Показать интерактивную карту</span>
+            <span className="text-clay-text font-semibold text-lg md:text-xl">Открыть карту проезда</span>
             <span className="text-clay-muted text-sm mt-2">Нажмите, чтобы загрузить Яндекс.Карты</span>
           </div>
           
@@ -253,9 +254,9 @@ export function Contacts() {
 
       {/* ДМС */}
       <section className="clay-card-mint p-6 md:p-8">
-        <h2 className="text-xl font-bold text-white mb-4">Работаем по ДМС</h2>
+        <h2 className="text-xl font-bold text-white mb-4">Принимаем по ДМС</h2>
         <p className="text-white/85 mb-4">
-          Принимаем пациентов по полисам добровольного медицинского страхования следующих компаний:
+          Принимаем пациентов по полисам добровольного медицинского страхования. Список программ и объём покрытия можно уточнить у администратора при записи:
         </p>
         <div className="flex flex-wrap gap-3">
           {['Ренессанс', 'АльфаСтрахование', 'ВСК', 'РЕСО-Гарантия'].map((ins) => (

@@ -11,25 +11,98 @@ export function Header({ currentPath = '/' }) {
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const dropdownTimer = useRef(null)
+  const mobileMenuButtonRef = useRef(null)
+  const mobileMenuRef = useRef(null)
+
+  function clearDropdownTimer() {
+    if (dropdownTimer.current) {
+      clearTimeout(dropdownTimer.current)
+      dropdownTimer.current = null
+    }
+  }
+
+  function closeDropdown() {
+    clearDropdownTimer()
+    setActiveDropdown(null)
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD)
+    onScroll()
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
-    return () => { if (dropdownTimer.current) clearTimeout(dropdownTimer.current) }
+    return () => clearDropdownTimer()
   }, [])
 
   function handleDropdownLeave() {
+    clearDropdownTimer()
     dropdownTimer.current = setTimeout(() => setActiveDropdown(null), DROPDOWN_CLOSE_DELAY)
   }
 
   function handleDropdownEnter(label) {
-    if (dropdownTimer.current) clearTimeout(dropdownTimer.current)
+    clearDropdownTimer()
     setActiveDropdown(label)
   }
+
+  function handleDropdownBlur(event) {
+    if (event.currentTarget.contains(event.relatedTarget)) {
+      return
+    }
+
+    handleDropdownLeave()
+  }
+
+  function handleDropdownKeyDown(event, label) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeDropdown()
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      handleDropdownEnter(label)
+      window.setTimeout(() => {
+        const firstLink = event.currentTarget.parentElement?.querySelector('[data-dropdown-panel] a')
+        firstLink?.focus()
+      }, 0)
+    }
+  }
+
+  function openMobileMenu() {
+    setActiveDropdown(null)
+    setMobileOpen(true)
+    window.setTimeout(() => {
+      const firstInteractive = mobileMenuRef.current?.querySelector('a, button')
+      firstInteractive?.focus()
+    }, 0)
+  }
+
+  function closeMobileMenu() {
+    setMobileOpen(false)
+    window.setTimeout(() => {
+      mobileMenuButtonRef.current?.focus()
+    }, 0)
+  }
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return undefined
+    }
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeMobileMenu()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [mobileOpen])
 
   return (
     <header
@@ -73,15 +146,16 @@ export function Header({ currentPath = '/' }) {
             {PHONE_DISPLAY}
           </a>
           <button type="button" data-booking-btn="true" className="clay btn-clay-primary text-sm py-2.5 px-5 flex items-center justify-center">
-            Записаться
+            Записаться на приём
           </button>
         </div>
 
         {/* Mobile burger */}
         <button
+          ref={mobileMenuButtonRef}
           className="clay clay-card lg:hidden p-2.5 rounded-2xl"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Меню"
+          onClick={() => (mobileOpen ? closeMobileMenu() : openMobileMenu())}
+          aria-label={mobileOpen ? 'Закрыть меню' : 'Открыть меню'}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
         >
@@ -104,14 +178,16 @@ export function Header({ currentPath = '/' }) {
                   className="relative"
                   onMouseEnter={() => handleDropdownEnter(item.label)}
                   onMouseLeave={handleDropdownLeave}
+                  onBlur={handleDropdownBlur}
                 >
                   <button
                     className="flex items-center gap-1 px-3 py-2 rounded-full text-base font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
                     onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
-                    onBlur={handleDropdownLeave}
                     onFocus={() => handleDropdownEnter(item.label)}
+                    onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
                     aria-expanded={activeDropdown === item.label}
                     aria-haspopup="true"
+                    aria-controls={`nav-dropdown-${item.label}`}
                   >
                     {item.label}
                     <ChevronDown
@@ -120,18 +196,18 @@ export function Header({ currentPath = '/' }) {
                     />
                   </button>
                   {activeDropdown === item.label && (
-                    <div role="menu" className="absolute top-full left-0 pt-2 min-w-52 z-50">
+                    <div id={`nav-dropdown-${item.label}`} data-dropdown-panel className="absolute top-full left-0 pt-2 min-w-52 z-50">
                       <div className="clay clay-card p-2 w-full">
                         {item.children.map((child) => (
                           <a
                             key={child.to}
                             href={child.to}
-                            role="menuitem"
                             className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
                               currentPath === child.to
                                 ? 'text-clay-mint bg-clay-mint-pale'
                                 : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
                             }`}
+                            aria-current={currentPath === child.to ? 'page' : undefined}
                           >
                             {child.label}
                           </a>
@@ -149,6 +225,7 @@ export function Header({ currentPath = '/' }) {
                       ? 'text-clay-mint'
                       : 'text-clay-text hover:text-clay-mint'
                   }`}
+                  aria-current={currentPath === item.to ? 'page' : undefined}
                 >
                   {item.label}
                 </a>
@@ -162,15 +239,12 @@ export function Header({ currentPath = '/' }) {
       {mobileOpen && (
         <>
           <div
-            role="button"
-            tabIndex={-1}
             className="lg:hidden fixed inset-0 bg-black/20 z-[60] cursor-default"
-            aria-label="Закрыть меню"
-            onClick={() => setMobileOpen(false)}
-            onKeyDown={(e) => e.key === 'Escape' && setMobileOpen(false)}
+            onClick={closeMobileMenu}
           />
           <div
             id="mobile-menu"
+            ref={mobileMenuRef}
             className="lg:hidden mx-4 mt-3 clay clay-card p-4 relative z-[70]"
             onClick={(e) => e.stopPropagation()}
           >
@@ -186,7 +260,8 @@ export function Header({ currentPath = '/' }) {
                         key={child.to}
                         href={child.to}
                         className="block px-4 py-2 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
-                        onClick={() => setMobileOpen(false)}
+                        onClick={closeMobileMenu}
+                        aria-current={currentPath === child.to ? 'page' : undefined}
                       >
                         {child.label}
                       </a>
@@ -198,7 +273,8 @@ export function Header({ currentPath = '/' }) {
                     key={item.to}
                     href={item.to}
                     className="px-4 py-2 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={closeMobileMenu}
+                    aria-current={currentPath === item.to ? 'page' : undefined}
                   >
                     {item.label}
                   </a>
@@ -208,7 +284,7 @@ export function Header({ currentPath = '/' }) {
                 <a
                   href={`tel:${PHONE_NUMBER}`}
                   className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <Phone size={15} />
                   {PHONE_DISPLAY}
@@ -217,9 +293,9 @@ export function Header({ currentPath = '/' }) {
                   type="button"
                   data-booking-btn="true"
                   className="clay btn-clay-primary text-sm py-3 text-center flex justify-center w-full"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobileMenu}
                 >
-                  Записаться онлайн
+                  Записаться на приём
                 </button>
               </div>
             </nav>

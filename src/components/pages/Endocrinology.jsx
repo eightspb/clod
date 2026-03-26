@@ -1,4 +1,4 @@
-import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle, Users } from 'lucide-react'
+import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle, Users, Clock } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { DoctorCard } from '../DoctorCard.jsx'
@@ -11,11 +11,11 @@ export const ENDOCRINOLOGY_FAQ = [
   },
   {
     question: 'Какие анализы нужно сдать эндокринологу?',
-    answer: 'На первичный приём достаточно прийти без анализов - врач назначит нужные. Стандартный скрининг включает ТТГ, Т4 свободный, ферритин, витамин D, общий анализ крови. При подозрении на диабет - глюкоза и HbA1c.',
+    answer: 'На первичный приём достаточно прийти без анализов - врач назначит нужные по жалобам и осмотру. Чаще всего в работе используются ТТГ, свободный Т4, ферритин, витамин D, общий анализ крови, а при подозрении на нарушения углеводного обмена - глюкоза и HbA1c.',
   },
   {
     question: 'Можно ли похудеть с помощью эндокринолога?',
-    answer: 'Если причина лишнего веса - гормональный дисбаланс (гипотиреоз, инсулинорезистентность, дефицит витамина D), то коррекция этих нарушений помогает нормализовать вес. Эндокринолог не занимается диетологией как таковой, но устраняет метаболические причины набора веса.',
+    answer: 'Если лишний вес связан с эндокринными причинами, их коррекция помогает улучшить самочувствие и упростить снижение массы тела. Эндокринолог не обещает быстрый результат, а разбирает причины набора веса и подбирает план по показаниям.',
   },
   {
     question: 'Как часто нужно проверять щитовидную железу?',
@@ -36,28 +36,28 @@ const features = [
     icon: <Activity size={22} className="text-white" />,
     bg: 'icon-circle-blue',
     card: 'clay-card-soft-blue',
-    title: 'Глубокий анализ',
-    subtitle: 'Мы смотрим шире одного ТТГ',
-    desc: 'Анализируем ферритин, витамин D, витамины группы B, гормональный профиль щитовидной железы, надпочечников и половых гормонов - всё в комплексе, чтобы найти истинную причину.',
-    badge: 'Комплексный профиль',
+    title: 'Комплексная диагностика',
+    subtitle: 'Смотрим шире одного анализа',
+    desc: 'Анализируем жалобы, анамнез и только необходимые лабораторные показатели, чтобы понять причину симптомов без лишнего обследования.',
+    badge: 'По показаниям',
   },
   {
     icon: <Zap size={22} className="text-white" />,
     bg: 'icon-circle-yellow',
     card: 'clay-card-soft-mint',
-    title: 'Быстрый результат',
-    subtitle: 'Уже через 14 дней',
-    desc: 'После начала коррекции пациенты замечают изменения в течение 14 дней: нормализуется сон, появляется энергия, улучшается концентрация. Корректируем план по данным повторных анализов.',
-    badge: '14 дней до изменений',
+    title: 'Пошаговое наблюдение',
+    subtitle: 'Сроки зависят от причины',
+    desc: 'Первые изменения оцениваем на повторном визите. Сроки коррекции зависят от диагноза, исходных анализов и ответа на терапию.',
+    badge: 'Контроль в динамике',
   },
   {
     icon: <Scale size={22} className="text-white" />,
     bg: 'icon-circle-peach',
     card: 'clay-card-soft-peach',
-    title: 'Управление весом',
-    subtitle: 'Без жёстких диет',
-    desc: 'Лишний вес - часто следствие метаболического сбоя, а не лени. Мы устраняем гормональную причину и назначаем медикаментозную поддержку только там, где это оправдано данными.',
-    badge: 'Медицинская коррекция',
+    title: 'Работа с весом',
+    subtitle: 'Без жёстких диет и обещаний',
+    desc: 'Ищем медицинские причины набора веса и обсуждаем реалистичный план коррекции. Лекарственная поддержка назначается только при наличии показаний.',
+    badge: 'Осознанный план',
   },
 ]
 
@@ -80,7 +80,7 @@ const conditions = [
   { name: 'Диабет 2 типа', color: 'clay-card-soft-mint' },
   { name: 'Инсулинорезистентность', color: 'clay-card-soft-lavender' },
   { name: 'Дефицит витамина D', color: 'clay-card-soft-mint' },
-  { name: 'Надпочечниковая усталость', color: 'clay-card-soft-peach' },
+  { name: 'Нарушения обмена веществ', color: 'clay-card-soft-peach' },
   { name: 'СПКЯ', color: 'clay-card-soft-blue' },
   { name: 'Нарушение обмена железа', color: 'clay-card-soft-lavender' },
 ]
@@ -99,13 +99,13 @@ export function Endocrinology() {
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
               Эндокринология в Санкт-Петербурге:{' '}
-              <span className="text-clay-blue">верните контроль</span> над своим телом
+              <span className="text-clay-blue">спокойный разбор</span> гормонов и обмена веществ
             </h1>
             <p className="text-lg text-clay-muted font-medium mb-3">
-              «Я постоянно устаю и набираю вес, а доктора говорят, что я просто мало сплю»
+              Если усталость, вес или сон мешают повседневной жизни, разберём причины по анализам и симптомам
             </p>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Усталость, набор веса, выпадение волос - это не «норма современной жизни». За этим часто стоят конкретные цифры в анализах. Мы найдём их и исправим.
+              Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Сначала ищем причину, затем обсуждаем план лечения без лишних обещаний.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '10px 10px 24px hsl(205, 12%, 60%), inset -4px -4px 9px hsla(205, 25%, 42%, 0.65), inset 0px 7px 14px hsla(205, 60%, 88%, 0.5)' }}>
@@ -125,7 +125,7 @@ export function Endocrinology() {
         <div className="container-clay">
           <div className="clay clay-card-soft-blue p-6 md:p-8">
             <h2 className="text-xl font-extrabold text-clay-dark mb-2">Узнаёте себя?</h2>
-            <p className="text-clay-muted text-sm mb-5">Если у вас есть 3 и более из этих симптомов - это повод проверить гормональный и метаболический профиль</p>
+            <p className="text-clay-muted text-sm mb-5">Если несколько симптомов сочетаются между собой, это повод обсудить гормональный и метаболический профиль на приёме</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {symptoms.map((s) => (
                 <div key={s} className="flex items-center gap-2.5 bg-white/60 rounded-xl px-3 py-2.5">
@@ -143,7 +143,7 @@ export function Endocrinology() {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Наш подход к лечению</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Три принципа, которые дают реальный результат</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Три принципа, которые помогают понять причину и не перегрузить вас лишними назначениями</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {features.map((f) => (
@@ -167,9 +167,9 @@ export function Endocrinology() {
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
-              <h2 className="text-2xl font-extrabold text-clay-dark mb-4">Чем мы занимаемся</h2>
+              <h2 className="text-2xl font-extrabold text-clay-dark mb-4">С чем можно обратиться</h2>
               <p className="text-clay-muted text-sm leading-relaxed mb-5">
-                Диагностика и лечение всех ключевых эндокринных нарушений по международным протоколам
+                Диагностика и лечение эндокринных нарушений с опорой на жалобы, осмотр и лабораторные данные
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {conditions.map((c) => (
@@ -183,10 +183,10 @@ export function Endocrinology() {
             <div className="space-y-4">
               <h2 className="text-2xl font-extrabold text-clay-dark mb-2">Как строится работа</h2>
               {[
-                { n: '01', title: 'Первичная консультация', desc: 'Разбираем жалобы, анализируем предыдущие обследования. Назначаем только необходимые анализы.' },
-                { n: '02', title: 'Расширенная диагностика', desc: 'Анализируем ТТГ, Т3/Т4, ферритин, витамин D, ДГЭА-С, кортизол, инсулин и другие маркеры в связке.' },
-                { n: '03', title: 'Индивидуальный план', desc: 'Медикаментозная коррекция + нутрициологическая поддержка. Без жёстких диет и лишних ограничений.' },
-                { n: '04', title: 'Контроль и корректировка', desc: 'Повторная сдача анализов через 6–8 недель. Корректируем дозировки. Вы всегда можете написать доктору.' },
+                { n: '01', title: 'Первичная консультация', desc: 'Разбираем жалобы, историю болезни и результаты прошлых обследований. Не назначаем лишнего.' },
+                { n: '02', title: 'Диагностика по показаниям', desc: 'Врач выбирает только те анализы и УЗИ, которые действительно помогут уточнить причину симптомов.' },
+                { n: '03', title: 'Индивидуальный план', desc: 'Обсуждаем лечение, коррекцию дефицитов и, при необходимости, изменения питания и образа жизни.' },
+                { n: '04', title: 'Контроль и корректировка', desc: 'Повторный визит помогает оценить динамику и при необходимости скорректировать терапию.' },
               ].map((s) => (
                 <div key={s.n} className="clay clay-card flex items-start gap-4 p-4">
                   <div className="num-badge text-sm w-8 h-8 flex-shrink-0">{s.n}</div>
@@ -206,7 +206,7 @@ export function Endocrinology() {
         <div className="container-clay">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Эндокринологи клиники</h2>
-            <p className="text-clay-muted">Специалисты, которые проведут консультацию и подберут лечение</p>
+            <p className="text-clay-muted">Специалисты, которые помогут разобраться в причинах жалоб и подобрать план по показаниям</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SPECIALTY_DOCTORS.map((doc) => (
@@ -220,8 +220,8 @@ export function Endocrinology() {
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на эндокринологию в СПб</h2>
-            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Ориентировочные цены на эндокринологию в СПб</h2>
+            <p className="text-clay-muted">Точная стоимость зависит от объёма приёма и обследований, которые нужны по ситуации</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {[
@@ -248,12 +248,12 @@ export function Endocrinology() {
       <section className="section">
         <div className="container-clay">
           <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="/doctors" className="clay clay-card-soft-blue p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <Users size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Наши эндокринологи</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и опытом от 10 лет</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и клиническим опытом</p>
               </div>
             </a>
             <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
@@ -263,11 +263,18 @@ export function Endocrinology() {
                 <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все эндокринологические услуги</p>
               </div>
             </a>
+            <a href="/contacts" className="clay clay-card-soft-peach p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Clock size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Как добраться</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Адрес, маршрут и ориентиры в Приморском районе</p>
+              </div>
+            </a>
             <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left">
               <MessageCircle size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Ответим в Telegram в течение 2 минут</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Поможем выбрать удобное время и формат визита</p>
               </div>
             </button>
           </div>
@@ -280,10 +287,10 @@ export function Endocrinology() {
           <div className="clay clay-card-soft-blue p-6 md:p-8 text-center">
             <TrendingUp size={40} className="text-clay-blue mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-              Готовы восстановить энергию?
+              Нужен спокойный разбор гормонов и самочувствия?
             </h2>
             <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Запишитесь на эндокринологическую консультацию. Первый шаг - анализ, второй - результат.
+              Запишитесь на консультацию. Разберём жалобы, обсудим анализы и составим план без лишних обещаний.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #9CD4F0, #68B8E4)', boxShadow: '10px 10px 24px hsl(205, 12%, 60%), inset -4px -4px 9px hsla(205, 25%, 42%, 0.65), inset 0px 7px 14px hsla(205, 60%, 88%, 0.5)' }}>

@@ -43,6 +43,19 @@
 
 @layer base {
   :root {
+    --clay-ink: #24322d;
+    --clay-text-strong: #33433d;
+    --clay-text: #42524c;
+    --clay-text-muted: #61726d;
+    --clay-surface: #fffdf9;
+    --clay-surface-soft: #f6f1ea;
+    --clay-surface-subtle: #f0ebe3;
+    --clay-border: rgba(93, 115, 106, 0.18);
+    --clay-focus: rgba(46, 156, 134, 0.86);
+    --clay-shadow-outset: 0px 10px 24px rgba(77, 94, 86, 0.12);
+    --clay-shadow-inset-primary: inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+    --clay-shadow-inset-secondary: inset 0px 1px 3px rgba(93, 115, 106, 0.08);
+
     --fs-xs: 0.75rem; --lh-xs: 1rem;
     --fs-sm: 0.875rem; --lh-sm: 1.25rem;
     --fs-base: 1rem; --lh-base: 1.5rem;
@@ -85,24 +98,34 @@
     box-sizing: border-box;
   }
   body {
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    background-color: #F7F3EF;
-    color: #3D4A44;
+    font-family: 'Golos Text', 'Segoe UI', system-ui, sans-serif;
+    background-color: #F5F0EA;
+    color: var(--clay-text);
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3 {
-    text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.12);
+    text-shadow: none;
   }
 
   /* ── Global claymorphism-css variable defaults ── */
   :root {
     --hue: 140;
     --clay-border-radius: 18px;
-    --clay-background: #FFFCF8;
+    --clay-background: var(--clay-surface);
     /* These reference --hue so each element's --hue override is picked up lazily */
-    --clay-shadow-outset: 0px 6px 16px hsl(var(--hue), 10%, 74%);
-    --clay-shadow-inset-primary: -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15);
-    --clay-shadow-inset-secondary: 0px 2px 6px hsl(var(--hue), 20%, 97%);
+    --clay-shadow-outset: 0px 10px 24px hsl(var(--hue), 8%, 78%);
+    --clay-shadow-inset-primary: -2px -2px 4px hsla(var(--hue), 14%, 100%, 0.7);
+    --clay-shadow-inset-secondary: 0px 2px 5px hsl(var(--hue), 18%, 96%);
+  }
+
+  :where(a, button, input, select, textarea, summary, [role='button'], [role='menuitem'], [tabindex]):focus-visible {
+    outline: 3px solid var(--clay-focus);
+    outline-offset: 4px;
+    box-shadow: 0 0 0 5px rgba(77, 200, 168, 0.14);
+  }
+
+  :where(a, button, input, select, textarea, summary, [role='button'], [role='menuitem'], [tabindex]):focus:not(:focus-visible) {
+    outline: none;
   }
 }
 
@@ -124,25 +147,26 @@
     border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      0px 6px 16px hsl(var(--hue), 10%, 74%),
-      inset -2px -2px 4px hsla(var(--hue), 20%, 55%, 0.15),
-      inset 0px 2px 6px hsl(var(--hue), 20%, 97%);
+      0px 10px 24px hsl(var(--hue), 8%, 80%),
+      inset -2px -2px 4px hsla(var(--hue), 16%, 100%, 0.72),
+      inset 0px 1px 3px hsla(var(--hue), 18%, 92%, 0.66);
   }
 
   .clay-card {
     --hue: 140;
-    --clay-background: #FFFCF8;
+    --clay-background: var(--clay-surface);
+    color: var(--clay-text);
   }
 
   .clay-card-lg {
     --hue: 140;
-    --clay-background: #FFFCF8;
+    --clay-background: var(--clay-surface);
     border-radius: 18px;
     background: var(--clay-background);
     box-shadow:
-      0px 8px 20px hsl(var(--hue), 10%, 72%),
-      inset -2px -2px 5px hsla(var(--hue), 20%, 55%, 0.15),
-      inset 0px 2px 8px hsl(var(--hue), 20%, 97%);
+      0px 12px 28px hsl(var(--hue), 8%, 78%),
+      inset -2px -2px 5px hsla(var(--hue), 16%, 100%, 0.7),
+      inset 0px 1px 4px hsla(var(--hue), 18%, 92%, 0.66);
   }
 
   /* ─────────────────────────────
@@ -150,27 +174,32 @@
   ───────────────────────────── */
   .clay-card-mint {
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #72D8BC, #48C8A4);
+    --clay-background: linear-gradient(145deg, #dff3ed, #c8e8dd);
+    color: var(--clay-ink);
   }
 
   .clay-card-peach {
     --hue: 18;
-    --clay-background: linear-gradient(145deg, #FAC0A8, #F0A888);
+    --clay-background: linear-gradient(145deg, #f7e4db, #efd1c1);
+    color: var(--clay-ink);
   }
 
   .clay-card-blue {
     --hue: 205;
-    --clay-background: linear-gradient(145deg, #9CD4F0, #70BCE4);
+    --clay-background: linear-gradient(145deg, #e0eef8, #c9dff0);
+    color: var(--clay-ink);
   }
 
   .clay-card-lavender {
     --hue: 260;
-    --clay-background: linear-gradient(145deg, #CCC0EC, #B4A4DC);
+    --clay-background: linear-gradient(145deg, #ece7f7, #dcd4ec);
+    color: var(--clay-ink);
   }
 
   .clay-card-yellow {
     --hue: 43;
-    --clay-background: linear-gradient(145deg, #FAE0A0, #F0C870);
+    --clay-background: linear-gradient(145deg, #fbefca, #f3ddb1);
+    color: var(--clay-ink);
   }
 
   /* ─────────────────────────────
@@ -178,69 +207,70 @@
   ───────────────────────────── */
   .clay-card-soft-mint {
     --hue: 155;
-    --clay-background: #e8f5f0;
+    --clay-background: #edf8f4;
   }
 
   .clay-card-soft-peach {
     --hue: 18;
-    --clay-background: #fce8df;
+    --clay-background: #f9ece6;
   }
 
   .clay-card-soft-blue {
     --hue: 205;
-    --clay-background: #dff0fc;
+    --clay-background: #e7f2fb;
   }
 
   .clay-card-soft-lavender {
     --hue: 260;
-    --clay-background: #ede8f5;
+    --clay-background: #f0ebf7;
   }
 
   /* ─────────────────────────────
      BUTTONS - pill shape
   ───────────────────────────── */
   .btn-clay-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full text-white font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #68D8B8, #44C4A0);
-    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    --clay-background: linear-gradient(145deg, #d9f1ea, #bddfd4);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
     box-shadow:
-      10px 10px 24px hsl(155, 12%, 60%),
-      inset -4px -4px 9px hsla(155, 25%, 42%, 0.65),
-      inset 0px 7px 14px hsla(155, 60%, 88%, 0.5);
+      0px 10px 22px hsla(155, 10%, 62%, 0.36),
+      inset -3px -3px 7px hsla(155, 20%, 42%, 0.18),
+      inset 0px 5px 10px hsla(155, 60%, 98%, 0.55);
   }
   .btn-clay-primary:hover {
-    transform: translateY(1px) scale(0.99);
+    transform: translateY(1px);
     box-shadow:
-      6px 6px 14px hsl(155, 12%, 63%),
-      inset -3px -3px 7px hsla(155, 25%, 42%, 0.5),
-      inset 0px 5px 10px hsla(155, 60%, 88%, 0.4);
+      0px 8px 18px hsla(155, 10%, 62%, 0.28),
+      inset -2px -2px 5px hsla(155, 20%, 42%, 0.16),
+      inset 0px 4px 8px hsla(155, 60%, 98%, 0.5);
   }
   .btn-clay-primary:active {
-    transform: translateY(2px) scale(0.98);
+    transform: translateY(2px);
     box-shadow:
-      3px 3px 8px hsl(155, 12%, 66%),
-      inset -2px -2px 5px hsla(155, 25%, 42%, 0.4),
-      inset 0px 3px 6px hsla(155, 60%, 88%, 0.3);
+      0px 5px 12px hsla(155, 10%, 62%, 0.24),
+      inset -2px -2px 4px hsla(155, 20%, 42%, 0.14),
+      inset 0px 3px 6px hsla(155, 60%, 98%, 0.44);
   }
 
   .btn-clay-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
     --hue: 140;
-    --clay-background: #FFFCF8;
-    color: #44C4A0;
-    background: #FFFCF8;
+    --clay-background: var(--clay-surface);
+    color: var(--clay-ink);
+    background: var(--clay-surface);
     box-shadow:
-      10px 10px 24px hsl(140, 8%, 66%),
-      inset -4px -4px 9px hsla(140, 15%, 55%, 0.35),
-      inset 0px 7px 14px hsl(140, 20%, 99%);
+      0px 10px 22px hsla(140, 8%, 66%, 0.32),
+      inset -3px -3px 7px hsla(140, 15%, 55%, 0.16),
+      inset 0px 5px 10px hsla(140, 20%, 100%, 0.55);
   }
   .btn-clay-secondary:hover {
     transform: translateY(1px);
     box-shadow:
-      6px 6px 14px hsl(140, 8%, 68%),
-      inset -3px -3px 7px hsla(140, 15%, 55%, 0.28),
-      inset 0px 5px 10px hsl(140, 20%, 99%);
+      0px 8px 18px hsla(140, 8%, 68%, 0.24),
+      inset -2px -2px 5px hsla(140, 15%, 55%, 0.14),
+      inset 0px 4px 8px hsla(140, 20%, 100%, 0.5);
   }
 
   .btn-clay-white {
@@ -248,9 +278,9 @@
     --hue: 140;
     --clay-background: white;
     box-shadow:
-      10px 10px 24px hsl(140, 8%, 66%),
-      inset -4px -4px 9px hsla(140, 15%, 55%, 0.3),
-      inset 0px 7px 14px hsl(140, 20%, 99%);
+      0px 10px 22px hsla(140, 8%, 66%, 0.28),
+      inset -3px -3px 7px hsla(140, 15%, 55%, 0.14),
+      inset 0px 5px 10px hsla(140, 20%, 100%, 0.55);
   }
   .btn-clay-white:hover {
     transform: translateY(1px);
@@ -262,24 +292,24 @@
   .pill-filter {
     @apply rounded-full px-5 py-2 text-sm font-medium cursor-pointer transition-all duration-200 select-none;
     --hue: 140;
-    --clay-background: #FFFCF8;
-    color: #7A8C84;
-    background: #FFFCF8;
+    --clay-background: var(--clay-surface);
+    color: var(--clay-text-muted);
+    background: var(--clay-surface);
     box-shadow:
-      6px 6px 14px hsl(140, 8%, 68%),
-      inset -3px -3px 7px hsla(140, 15%, 55%, 0.3),
-      inset 0px 5px 10px hsl(140, 20%, 99%);
+      0px 8px 18px hsla(140, 8%, 68%, 0.24),
+      inset -2px -2px 5px hsla(140, 15%, 55%, 0.14),
+      inset 0px 4px 8px hsla(140, 20%, 100%, 0.5);
   }
-  .pill-filter:hover { color: #44C4A0; }
+  .pill-filter:hover { color: var(--clay-ink); }
   .pill-filter.active {
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #68D8B8, #44C4A0);
-    background: linear-gradient(145deg, #68D8B8, #44C4A0);
-    color: white;
+    --clay-background: linear-gradient(145deg, #d9f1ea, #bddfd4);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
+    color: var(--clay-ink);
     box-shadow:
-      4px 4px 12px hsl(155, 12%, 62%),
-      inset -2px -2px 6px hsla(155, 25%, 42%, 0.5),
-      inset 0px 4px 8px hsla(155, 60%, 88%, 0.4);
+      0px 7px 16px hsla(155, 12%, 62%, 0.24),
+      inset -2px -2px 5px hsla(155, 25%, 42%, 0.16),
+      inset 0px 4px 8px hsla(155, 60%, 98%, 0.5);
   }
 
   /* ─────────────────────────────
@@ -318,27 +348,31 @@
   }
 
   .blob-mint {
-    background: linear-gradient(145deg, rgba(168,228,212,0.5), rgba(120,212,188,0.5));
+    background: linear-gradient(145deg, rgba(168,228,212,0.34), rgba(120,212,188,0.32));
     border-radius: 60% 40% 55% 45% / 45% 58% 42% 55%;
-    animation: blob-breathe-a 7.6s ease-in-out infinite;
+    opacity: 0.88;
+    animation: blob-breathe-a 9.5s ease-in-out infinite;
     will-change: transform;
   }
   .blob-peach {
-    background: linear-gradient(145deg, rgba(250,220,200,0.5), rgba(248,196,176,0.5));
+    background: linear-gradient(145deg, rgba(250,220,200,0.32), rgba(248,196,176,0.3));
     border-radius: 40% 60% 45% 55% / 58% 42% 58% 42%;
-    animation: blob-breathe-b 9.3s ease-in-out infinite;
+    opacity: 0.84;
+    animation: blob-breathe-b 11.2s ease-in-out infinite;
     will-change: transform;
   }
   .blob-blue {
-    background: linear-gradient(145deg, rgba(192,220,238,0.5), rgba(168,204,228,0.5));
+    background: linear-gradient(145deg, rgba(192,220,238,0.32), rgba(168,204,228,0.3));
     border-radius: 55% 45% 40% 60% / 50% 60% 40% 50%;
-    animation: blob-breathe-c 11s ease-in-out infinite;
+    opacity: 0.84;
+    animation: blob-breathe-c 12.8s ease-in-out infinite;
     will-change: transform;
   }
   .blob-lavender {
-    background: linear-gradient(145deg, rgba(221,213,240,0.5), rgba(204,192,232,0.5));
+    background: linear-gradient(145deg, rgba(221,213,240,0.32), rgba(204,192,232,0.3));
     border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
-    animation: blob-breathe-d 8.5s ease-in-out infinite;
+    opacity: 0.84;
+    animation: blob-breathe-d 10.5s ease-in-out infinite;
     will-change: transform;
   }
 
@@ -347,8 +381,8 @@
     @apply absolute rounded-full pointer-events-none;
     will-change: transform;
     box-shadow:
-      6px 6px 16px rgba(0,0,0,0.15),
-      inset -3px -3px 8px rgba(0,0,0,0.15),
+      0px 8px 18px rgba(0,0,0,0.12),
+      inset -2px -2px 6px rgba(0,0,0,0.12),
       inset 0px 5px 10px rgba(255,255,255,0.4);
   }
 
@@ -362,14 +396,15 @@
      NUMBER BADGE
   ───────────────────────────── */
   .num-badge {
-    @apply inline-flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-lg flex-shrink-0;
+    @apply inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg flex-shrink-0;
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #68D8B8, #44C4A0);
-    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    --clay-background: linear-gradient(145deg, #d9f1ea, #bddfd4);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
     box-shadow:
-      5px 5px 12px hsl(155, 12%, 62%),
-      inset -2px -2px 5px hsla(155, 25%, 42%, 0.5),
-      inset 0px 4px 8px hsla(155, 60%, 88%, 0.4);
+      0px 7px 16px hsla(155, 12%, 62%, 0.24),
+      inset -2px -2px 5px hsla(155, 25%, 42%, 0.14),
+      inset 0px 4px 8px hsla(155, 60%, 98%, 0.48);
   }
 
   /* ─────────────────────────────
@@ -390,27 +425,27 @@
 
   .icon-circle-mint {
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #A0E4D4, #70D0B8);
+    --clay-background: linear-gradient(145deg, #d9f1ea, #bddfd4);
   }
 
   .icon-circle-peach {
     --hue: 18;
-    --clay-background: linear-gradient(145deg, #FAC8B0, #F0A888);
+    --clay-background: linear-gradient(145deg, #f8e4d8, #efd1c1);
   }
 
   .icon-circle-blue {
     --hue: 205;
-    --clay-background: linear-gradient(145deg, #A8D8F4, #78BCE8);
+    --clay-background: linear-gradient(145deg, #e0eef8, #c9dff0);
   }
 
   .icon-circle-lavender {
     --hue: 260;
-    --clay-background: linear-gradient(145deg, #D0C4EC, #B8A8DC);
+    --clay-background: linear-gradient(145deg, #ece7f7, #dcd4ec);
   }
 
   .icon-circle-yellow {
     --hue: 43;
-    --clay-background: linear-gradient(145deg, #FAE0A0, #F0C870);
+    --clay-background: linear-gradient(145deg, #fbefca, #f3ddb1);
   }
 
   /* ─────────────────────────────
@@ -507,19 +542,17 @@
   .clay-title-blob {
     --hue: 162;
     border-radius: 48% 52% 54% 46% / 62% 58% 42% 38%;
-    background: linear-gradient(160deg, #C4ECE0, #9CD8C4, #B4E2D2);
+    background: linear-gradient(160deg, #dff4ec, #c4e7d9, #d2ebe1);
     box-shadow:
-      10px 10px 24px hsl(162, 12%, 76%),
-      inset -3px -3px 7px hsla(162, 25%, 45%, 0.18),
-      inset 0px 4px 10px hsla(162, 50%, 95%, 0.4);
+      0px 10px 24px hsl(162, 12%, 80%),
+      inset -2px -2px 5px hsla(162, 25%, 45%, 0.14),
+      inset 0px 3px 8px hsla(162, 50%, 98%, 0.38);
   }
 
   .clay-title-3d {
-    color: #FFFEF8;
+    color: var(--clay-ink);
     text-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.12),
-      0 6px 14px rgba(0, 0, 0, 0.07),
-      0 -1px 2px rgba(255, 255, 255, 0.5);
+      0 1px 0 rgba(255, 255, 255, 0.5);
     letter-spacing: -0.02em;
   }
 
@@ -534,12 +567,12 @@
     border-radius: 14px;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #7A8C84;
-    background: #FFFCF8;
+    color: var(--clay-text);
+    background: var(--clay-surface);
     box-shadow:
-      4px 4px 10px hsl(140, 8%, 68%),
-      inset -2px -2px 5px hsla(140, 15%, 55%, 0.2),
-      inset 0px 3px 7px hsl(140, 20%, 99%);
+      0px 7px 16px hsla(140, 8%, 68%, 0.24),
+      inset -2px -2px 5px hsla(140, 15%, 55%, 0.12),
+      inset 0px 4px 8px hsla(140, 20%, 100%, 0.5);
   }
 
   /* ─────────────────────────────
@@ -552,7 +585,7 @@
     border-radius: 999px;
     font-size: 0.625rem;
     font-weight: 600;
-    color: white;
+    color: var(--clay-ink);
     white-space: nowrap;
   }
   .clay-spec-badge-peach,
@@ -561,48 +594,49 @@
   .clay-spec-badge-lavender {
     background: var(--clay-background);
     box-shadow: 
-      3px 3px 8px hsl(var(--hue), 12%, 68%), 
-      inset -1px -1px 3px hsla(var(--hue), 25%, 45%, 0.3), 
-      inset 0px 2px 4px hsla(var(--hue), 60%, 92%, 0.4);
+      0px 5px 12px hsl(var(--hue), 12%, 72%), 
+      inset -1px -1px 3px hsla(var(--hue), 25%, 45%, 0.16), 
+      inset 0px 2px 4px hsla(var(--hue), 60%, 98%, 0.4);
   }
 
   .clay-spec-badge-peach {
     --hue: 18;
-    --clay-background: linear-gradient(145deg, #FAC8B0, #F0A888);
+    --clay-background: linear-gradient(145deg, #f8e4d8, #efd1c1);
   }
   .clay-spec-badge-blue {
     --hue: 205;
-    --clay-background: linear-gradient(145deg, #A8D8F4, #78BCE8);
+    --clay-background: linear-gradient(145deg, #e0eef8, #c9dff0);
   }
   .clay-spec-badge-mint {
     --hue: 155;
-    --clay-background: linear-gradient(145deg, #A0E4D4, #70D0B8);
+    --clay-background: linear-gradient(145deg, #d9f1ea, #bddfd4);
   }
   .clay-spec-badge-lavender {
     --hue: 260;
-    --clay-background: linear-gradient(145deg, #D0C4EC, #B8A8DC);
+    --clay-background: linear-gradient(145deg, #ece7f7, #dcd4ec);
   }
 
   /* ─────────────────────────────
      SMALL CLAY BUTTONS (for cards)
   ───────────────────────────── */
   .btn-clay-primary-sm {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full text-white font-semibold cursor-pointer transition-all duration-200 select-none;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full font-semibold cursor-pointer transition-all duration-200 select-none;
     font-size: 0.8125rem;
     padding: 10px 20px;
     --hue: 155;
-    background: linear-gradient(145deg, #68D8B8, #44C4A0);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
     box-shadow:
-      8px 8px 18px hsl(155, 12%, 62%),
-      inset -3px -3px 7px hsla(155, 25%, 42%, 0.55),
-      inset 0px 5px 10px hsla(155, 60%, 88%, 0.45);
+      0px 8px 18px hsla(155, 12%, 62%, 0.3),
+      inset -2px -2px 5px hsla(155, 25%, 42%, 0.16),
+      inset 0px 4px 8px hsla(155, 60%, 98%, 0.5);
   }
   .btn-clay-primary-sm:hover {
-    transform: translateY(1px) scale(0.99);
+    transform: translateY(1px);
     box-shadow:
-      5px 5px 12px hsl(155, 12%, 64%),
-      inset -2px -2px 5px hsla(155, 25%, 42%, 0.45),
-      inset 0px 4px 8px hsla(155, 60%, 88%, 0.35);
+      0px 6px 14px hsla(155, 12%, 64%, 0.22),
+      inset -2px -2px 4px hsla(155, 25%, 42%, 0.14),
+      inset 0px 3px 6px hsla(155, 60%, 98%, 0.46);
   }
 
   .btn-clay-secondary-sm {
@@ -610,20 +644,19 @@
     font-size: 0.8125rem;
     padding: 10px 20px;
     --hue: 140;
-    color: #7A8C84;
-    background: #FFFCF8;
+    color: var(--clay-ink);
+    background: var(--clay-surface);
     box-shadow:
-      8px 8px 18px hsl(140, 8%, 68%),
-      inset -3px -3px 7px hsla(140, 15%, 55%, 0.25),
-      inset 0px 5px 10px hsl(140, 20%, 99%);
+      0px 8px 18px hsla(140, 8%, 68%, 0.24),
+      inset -2px -2px 5px hsla(140, 15%, 55%, 0.14),
+      inset 0px 4px 8px hsla(140, 20%, 100%, 0.5);
   }
   .btn-clay-secondary-sm:hover {
-    color: #44C4A0;
     transform: translateY(1px);
     box-shadow:
-      5px 5px 12px hsl(140, 8%, 70%),
-      inset -2px -2px 5px hsla(140, 15%, 55%, 0.2),
-      inset 0px 4px 8px hsl(140, 20%, 99%);
+      0px 6px 14px hsla(140, 8%, 70%, 0.22),
+      inset -2px -2px 4px hsla(140, 15%, 55%, 0.12),
+      inset 0px 3px 6px hsla(140, 20%, 100%, 0.46);
   }
 
   /* ─────────────────────────────
@@ -632,12 +665,12 @@
   .stat-pill {
     @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
     --hue: 155;
-    background: linear-gradient(145deg, #68D8B8, #44C4A0);
-    color: white;
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
+    color: var(--clay-ink);
     box-shadow:
-      4px 4px 10px hsl(155, 12%, 62%),
-      inset -2px -2px 5px hsla(155, 25%, 42%, 0.4),
-      inset 0px 3px 6px hsla(155, 60%, 88%, 0.35);
+      0px 7px 16px hsla(155, 12%, 62%, 0.24),
+      inset -2px -2px 5px hsla(155, 25%, 42%, 0.14),
+      inset 0px 4px 8px hsla(155, 60%, 98%, 0.48);
   }
 
   /* ─────────────────────────────
@@ -792,10 +825,9 @@
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.01em;
-    color: #f7fbf9;
+    color: var(--clay-ink);
     text-shadow:
-      0px 4px 9px rgba(83, 91, 89, 0.3),
-      0px 1px 0px rgba(255, 255, 255, 0.65);
+      0px 1px 0px rgba(255, 255, 255, 0.55);
   }
 
   .doctors-title-dots {
@@ -847,28 +879,28 @@
     font-size: 1.02rem;
     line-height: 1;
     font-weight: 500;
-    color: #3f4542;
+    color: var(--clay-text);
     background: linear-gradient(145deg, #fcfaf7, #f3eee7);
     box-shadow:
-      5px 5px 12px rgba(124, 118, 110, 0.2),
-      inset -2px -2px 4px rgba(171, 163, 153, 0.23),
-      inset 2px 3px 5px rgba(255, 255, 255, 0.62);
+      0px 8px 18px rgba(124, 118, 110, 0.16),
+      inset -2px -2px 4px rgba(171, 163, 153, 0.16),
+      inset 2px 3px 5px rgba(255, 255, 255, 0.58);
     transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
     cursor: pointer;
   }
 
   .doctor-filter-pill:hover {
     transform: translateY(-0.5px);
-    color: #323835;
+    color: var(--clay-ink);
   }
 
   .doctor-filter-pill.is-active {
-    color: #234d45;
-    background: linear-gradient(145deg, #82d8cc, #5ec5b6);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
     box-shadow:
-      5px 5px 12px rgba(101, 117, 112, 0.22),
-      inset -2px -2px 4px rgba(88, 149, 137, 0.25),
-      inset 2px 3px 5px rgba(241, 255, 250, 0.48);
+      0px 8px 18px rgba(101, 117, 112, 0.18),
+      inset -2px -2px 4px rgba(88, 149, 137, 0.14),
+      inset 2px 3px 5px rgba(241, 255, 250, 0.46);
   }
 
   .doctors-demo-grid {
@@ -886,8 +918,8 @@
     border: 1px solid rgba(223, 216, 207, 0.9);
     background: linear-gradient(162deg, #fcfaf7, #f5f1ec);
     box-shadow:
-      0px 8px 18px rgba(105, 93, 82, 0.18),
-      0px 2px 4px rgba(105, 93, 82, 0.08),
+      0px 10px 22px rgba(105, 93, 82, 0.14),
+      0px 2px 4px rgba(105, 93, 82, 0.06),
       0px 1px 0px rgba(255, 255, 255, 0.55) inset;
   }
 
@@ -956,7 +988,7 @@
     overflow: hidden;
     background: #f0ece7;
     box-shadow:
-      0px 6px 10px rgba(118, 106, 96, 0.2),
+      0px 8px 16px rgba(118, 106, 96, 0.14),
       0px 1px 0px rgba(255, 255, 255, 0.65) inset;
   }
 
@@ -984,12 +1016,12 @@
     line-height: 1.12;
     letter-spacing: 0.01em;
     font-weight: 600;
-    color: #5e7280;
-    background: linear-gradient(145deg, #dceefe, #beddf2);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #e7f3fb, #d7e7f3);
     box-shadow:
-      4px 4px 8px rgba(103, 121, 133, 0.2),
-      inset -1px -1px 2px rgba(113, 147, 170, 0.2),
-      inset 1px 2px 3px rgba(248, 254, 255, 0.55);
+      0px 6px 14px rgba(103, 121, 133, 0.16),
+      inset -1px -1px 2px rgba(113, 147, 170, 0.12),
+      inset 1px 2px 3px rgba(248, 254, 255, 0.52);
   }
 
   .doctor-status-toggle {
@@ -1054,12 +1086,12 @@
     font-size: 0.9rem;
     line-height: 1;
     font-weight: 500;
-    color: #727876;
+    color: var(--clay-text);
     background: linear-gradient(145deg, #fdfbf8, #f2ede7);
     box-shadow:
-      5px 5px 10px rgba(126, 121, 112, 0.18),
-      inset -1px -1px 2px rgba(171, 164, 155, 0.2),
-      inset 1px 2px 3px rgba(255, 255, 255, 0.62);
+      0px 7px 16px rgba(126, 121, 112, 0.14),
+      inset -1px -1px 2px rgba(171, 164, 155, 0.14),
+      inset 1px 2px 3px rgba(255, 255, 255, 0.58);
   }
 
   .doctor-card-actions {
@@ -1086,21 +1118,21 @@
   }
 
   .doctor-action-btn-secondary {
-    color: #454d4a;
+    color: var(--clay-text);
     background: linear-gradient(145deg, #fcfaf7, #f2ede6);
     box-shadow:
-      5px 5px 10px rgba(126, 121, 112, 0.18),
-      inset -1px -1px 2px rgba(171, 164, 155, 0.2),
-      inset 1px 2px 3px rgba(255, 255, 255, 0.62);
+      0px 7px 16px rgba(126, 121, 112, 0.14),
+      inset -1px -1px 2px rgba(171, 164, 155, 0.14),
+      inset 1px 2px 3px rgba(255, 255, 255, 0.58);
   }
 
   .doctor-action-btn-primary {
-    color: #224b44;
-    background: linear-gradient(145deg, #86d7c9, #63c8b8);
+    color: var(--clay-ink);
+    background: linear-gradient(145deg, #d9f1ea, #bddfd4);
     box-shadow:
-      5px 5px 10px rgba(102, 120, 114, 0.2),
-      inset -1px -1px 2px rgba(83, 146, 134, 0.22),
-      inset 1px 2px 3px rgba(235, 255, 248, 0.52);
+      0px 7px 16px rgba(102, 120, 114, 0.16),
+      inset -1px -1px 2px rgba(83, 146, 134, 0.12),
+      inset 1px 2px 3px rgba(235, 255, 248, 0.48);
   }
 
   @media (max-width: 640px) {
@@ -1242,9 +1274,9 @@
 .blog-lead {
   font-size: 1.125rem;
   line-height: 1.75;
-  color: #5a6b63;
-  background: linear-gradient(135deg, #f0faf8 0%, #f5f9f7 100%);
-  border-left: 4px solid #2A9D8F;
+  color: var(--clay-text);
+  background: linear-gradient(135deg, #f4fbf8 0%, #f7fbf9 100%);
+  border-left: 4px solid #226f63;
   border-radius: 0 12px 12px 0;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
@@ -1266,8 +1298,8 @@
   align-items: center;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #1f7a6e;
-  background: #e6f7f5;
+  color: #225f56;
+  background: #e8f5f1;
   padding: 0.3rem 0.85rem;
   border-radius: 9999px;
   letter-spacing: 0.02em;
@@ -1277,7 +1309,7 @@
    BLOG PROSE STYLES
 ───────────────────────────── */
 .prose-clay {
-  color: #3D4A44;
+  color: var(--clay-text);
   line-height: 1.8;
   font-size: 1.0625rem;
 }
@@ -1287,11 +1319,11 @@
 .prose-clay h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1e2d28;
+  color: var(--clay-ink);
   margin-top: 3rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e6f7f5;
+  border-bottom: 2px solid #d8ebe6;
   position: relative;
 }
 .prose-clay h2::before {
@@ -1301,13 +1333,13 @@
   left: 0;
   width: 3rem;
   height: 2px;
-  background: #2A9D8F;
+  background: #226f63;
   border-radius: 2px;
 }
 .prose-clay h3 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #2D3A34;
+  color: var(--clay-text-strong);
   margin-top: 2rem;
   margin-bottom: 0.6rem;
   display: flex;
@@ -1319,7 +1351,7 @@
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: #2A9D8F;
+  background: #226f63;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1345,7 +1377,7 @@
   top: 0.55em;
   width: 7px;
   height: 7px;
-  background: #2A9D8F;
+  background: #226f63;
   border-radius: 50%;
   opacity: 0.7;
 }
@@ -1366,8 +1398,8 @@
   top: 0.1em;
   width: 1.4rem;
   height: 1.4rem;
-  background: #e6f7f5;
-  color: #1f7a6e;
+  background: #e8f5f1;
+  color: #225f56;
   font-size: 0.75rem;
   font-weight: 700;
   border-radius: 50%;
@@ -1378,37 +1410,37 @@
 }
 .prose-clay strong {
   font-weight: 700;
-  color: #1e2d28;
+  color: var(--clay-ink);
 }
 .prose-clay a {
-  color: #2A9D8F;
+  color: #226f63;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(42, 157, 143, 0.4);
+  text-decoration-color: rgba(34, 111, 99, 0.4);
   transition: color 0.15s, text-decoration-color 0.15s;
 }
 .prose-clay a:hover {
-  color: #1f7a6e;
-  text-decoration-color: #1f7a6e;
+  color: #1b6157;
+  text-decoration-color: #1b6157;
 }
 .prose-clay blockquote {
-  background: linear-gradient(135deg, #f0faf8 0%, #f5f9f7 100%);
-  border-left: 4px solid #2A9D8F;
+  background: linear-gradient(135deg, #f4fbf8 0%, #f7fbf9 100%);
+  border-left: 4px solid #226f63;
   border-radius: 0 12px 12px 0;
   padding: 1.1rem 1.4rem;
   margin: 2rem 0;
-  color: #3D4A44;
+  color: var(--clay-text);
   font-style: normal;
   font-size: 1.05rem;
-  box-shadow: 0 2px 8px rgba(42, 157, 143, 0.08);
+  box-shadow: 0 2px 8px rgba(42, 157, 143, 0.06);
 }
 .prose-clay blockquote p {
   margin-bottom: 0;
 }
 /* Специальные блоки - важная информация через > **Заголовок:** */
 .prose-clay p:has(strong:first-child) {
-  background: #fafffe;
-  border: 1px solid #d4ede9;
+  background: #fbfefd;
+  border: 1px solid #d8ebe6;
   border-radius: 10px;
   padding: 0.85rem 1.1rem;
   margin: 1.5rem 0;
@@ -1424,30 +1456,30 @@
   box-shadow: 0 1px 8px rgba(0,0,0,0.07);
 }
 .prose-clay th {
-  background: #e6f7f5;
+  background: #e8f5f1;
   font-weight: 700;
   text-align: left;
   padding: 0.75rem 1rem;
-  border-bottom: 2px solid #2A9D8F;
-  color: #1e2d28;
+  border-bottom: 2px solid #226f63;
+  color: var(--clay-ink);
   font-size: 0.85rem;
   letter-spacing: 0.02em;
 }
 .prose-clay td {
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid #edf2ef;
+  border-bottom: 1px solid #e5eee9;
   vertical-align: top;
   background: #fff;
 }
 .prose-clay tr:nth-child(even) td {
-  background: #fafffe;
+  background: #fbfefd;
 }
 .prose-clay tr:last-child td {
   border-bottom: none;
 }
 .prose-clay hr {
   border: none;
-  border-top: 2px dashed #d4ede9;
+  border-top: 2px dashed #d8ebe6;
   margin: 2.5rem 0;
 }
 

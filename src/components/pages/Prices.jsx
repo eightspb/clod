@@ -1,108 +1,145 @@
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, CreditCard, Clock } from 'lucide-react'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
-const principles = [
+const DEFAULT_PRICE_CATEGORIES = [
   {
-    icon: <Shield size={24} className="text-white" />,
-    bg: 'clay-card-mint',
-    title: 'Без доплат',
-    desc: 'Если в плане лечения ВАБ указана сумма - она финальная. В неё включены расходные материалы, анестезия, гистологическое исследование и послеоперационное наблюдение.',
-    tag: 'Гарантия',
+    title: 'Маммология',
+    color: 'clay-card-soft-mint',
+    accent: '#2F8F7C',
+    icon: '🩺',
+    intro: 'Консультации, УЗИ, ВАБ и второе мнение по показаниям.',
+    items: [
+      { name: 'Консультация онколога-маммолога', price: 3500 },
+      { name: 'УЗИ молочных желёз', price: 2500 },
+      { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 80000, isFrom: true },
+      { name: 'ВАБ + гистология (всё включено)', price: 85000, isFrom: true },
+      { name: 'Второе мнение по снимкам', price: 0 },
+    ],
   },
   {
-    icon: <Database size={24} className="text-white" />,
+    title: 'Гинекология',
+    color: 'clay-card-soft-peach',
+    accent: '#B9654E',
+    icon: '🌸',
+    intro: 'Приём, УЗИ, кольпоскопия и исследования по показаниям.',
+    items: [
+      { name: 'Консультация гинеколога', price: 3000 },
+      { name: 'УЗИ органов малого таза', price: 2500 },
+      { name: 'Кольпоскопия', price: 3500 },
+      { name: 'ПЦР-диагностика ИППП (12 инфекций)', price: 4800 },
+      { name: 'Комплекс «Полный скрининг»', price: 8900, isFrom: true },
+    ],
+  },
+  {
+    title: 'Эндокринология',
+    color: 'clay-card-soft-blue',
+    accent: '#3F759E',
+    icon: '⚡',
+    intro: 'Консультации, УЗИ щитовидной железы и обследования по назначению.',
+    items: [
+      { name: 'Консультация эндокринолога', price: 3500 },
+      { name: 'Анализ на ТТГ, Т3, Т4 свободный', price: 2200 },
+      { name: 'Расширенный гормональный профиль', price: 7400 },
+      { name: 'Комплекс «Энергия и метаболизм»', price: 12900, isFrom: true },
+      { name: 'Повторная консультация + план', price: 2500 },
+    ],
+  },
+  {
+    title: 'Нутрициология',
+    color: 'clay-card-soft-lavender',
+    accent: '#64589B',
+    icon: '🥗',
+    intro: 'Разбор анализов, план питания и сопровождение по запросу.',
+    items: [
+      { name: 'Первичная консультация нутрициолога', price: 3500 },
+      { name: 'Повторная консультация (разбор анализов)', price: 2500 },
+      { name: 'Составление персонального плана питания', price: 5000 },
+      { name: 'Месячное сопровождение (ведение)', price: 12000, isFrom: true },
+      { name: 'Биоимпедансометрия', price: 1500 },
+    ],
+  },
+]
+
+function formatPriceLabel(amount, isFrom = false) {
+  if (amount === 0) return 'Бесплатно'
+  const formatted = amount.toLocaleString('ru-RU')
+  return `${isFrom ? 'от ' : ''}${formatted} ₽`
+}
+
+function buildCategoryItems(categoryTitle, servicesData) {
+  return servicesData
+    .filter((service) => service.direction === categoryTitle)
+    .map((service) => {
+      const price = Number(service.price) || 0
+      const isFrom = /ВАБ|комплекс|скрининг|сопровождение/i.test(service.title)
+
+      return {
+        name: service.title,
+        price,
+        isFrom: price > 0 ? isFrom : false,
+      }
+    })
+    .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'ru'))
+}
+
+export function buildPriceCategories(servicesData = []) {
+  if (!servicesData.length) return DEFAULT_PRICE_CATEGORIES
+
+  return DEFAULT_PRICE_CATEGORIES.map((category) => ({
+    ...category,
+    items: buildCategoryItems(category.title, servicesData),
+  }))
+}
+
+export function buildPriceSchemaItems(servicesData = []) {
+  const categories = buildPriceCategories(servicesData)
+  let position = 1
+
+  return categories.flatMap((category) =>
+    category.items.map((item) => ({
+      '@type': 'ListItem',
+      position: position++,
+      item: {
+        '@type': 'MedicalProcedure',
+        name: item.name,
+        description: `${category.title}. ${item.price === 0 ? 'Стоимость обсуждается на консультации.' : `Стоимость ${formatPriceLabel(item.price, item.isFrom)}.`}`,
+        offers: {
+          '@type': 'Offer',
+          price: String(item.price),
+          priceCurrency: 'RUB',
+          seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
+        },
+      },
+    }))
+  )
+}
+
+const principles = [
+  {
+    Icon: Shield,
+    bg: 'clay-card-mint',
+    title: 'Понятно, что входит',
+    desc: 'Состав услуги и дополнительные позиции обсуждаем заранее. Если объём зависит от показаний, врач объяснит это до записи.',
+    tag: 'Состав услуги',
+  },
+  {
+    Icon: Database,
     bg: 'clay-card-blue',
-    title: 'Понятные документы',
-    desc: 'После консультации вы получаете заключение и рекомендации, а администратор помогает сориентироваться по дальнейшим исследованиям и выдаче документов.',
+    title: 'Документы и рекомендации',
+    desc: 'После консультации вы получаете заключение и рекомендации, а администратор помогает с маршрутом дальнейших исследований и выдачей документов.',
     tag: 'Документы',
   },
   {
-    icon: <MessageCircle size={24} className="text-white" />,
+    Icon: MessageCircle,
     bg: 'clay-card-peach',
-    title: 'Прямая связь',
-    desc: 'После процедур лечащий доктор остаётся с вами на прямой связи. Любой вопрос о вашем состоянии — ответ в тот же день, без промежуточных звонков в колл-центр.',
-    tag: 'Лично врачу',
+    title: 'Связь с лечащим врачом',
+    desc: 'После процедуры врач остаётся на связи по согласованному каналу и отвечает на вопросы о вашем состоянии без лишних промежуточных шагов.',
+    tag: 'По согласованию',
   },
 ]
 
 export function Prices({ servicesData = [] }) {
-  // Группируем услуги по направлениям
-  const defaultCategories = [
-    {
-      title: 'Маммология',
-      color: 'clay-card-soft-mint',
-      accent: '#3AB89A',
-      icon: '🩺',
-      items: [],
-    },
-    {
-      title: 'Гинекология',
-      color: 'clay-card-soft-peach',
-      accent: '#D07858',
-      icon: '🌸',
-      items: [],
-    },
-    {
-      title: 'Эндокринология',
-      color: 'clay-card-soft-blue',
-      accent: '#4880B0',
-      icon: '⚡',
-      items: [],
-    },
-    {
-      title: 'Нутрициология',
-      color: 'clay-card-soft-lavender',
-      accent: '#7060A8',
-      icon: '🥗',
-      items: [],
-    },
-  ]
-
-  let priceCategories = defaultCategories
-
-  if (servicesData.length > 0) {
-    priceCategories = defaultCategories.map(cat => ({
-      ...cat,
-      items: servicesData
-        .filter(s => s.direction === cat.title)
-        .map(s => ({
-          name: s.title,
-          price: s.price === 0 ? '0 - бесплатно' : (s.price.toString().startsWith('от') ? s.price : `от ${s.price}`), // форматирование цены
-          rawPrice: s.price
-        }))
-        .sort((a, b) => a.rawPrice - b.rawPrice) // простая сортировка
-    }))
-  } else {
-    // Fallback if no db data
-    priceCategories[0].items = [
-      { name: 'Консультация онколога-маммолога', price: '3 500' },
-      { name: 'УЗИ молочных желёз', price: '2 500' },
-      { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 80 000' },
-      { name: 'ВАБ + гистология (всё включено)', price: 'от 85 000' },
-      { name: 'Второе мнение по снимкам', price: '0 - бесплатно' },
-    ]
-    priceCategories[1].items = [
-      { name: 'Консультация гинеколога', price: '3 000' },
-      { name: 'УЗИ органов малого таза', price: '2 500' },
-      { name: 'Кольпоскопия', price: '3 500' },
-      { name: 'ПЦР-диагностика ИППП (12 инфекций)', price: '4 800' },
-      { name: 'Комплекс «Полный скрининг»', price: '8 900' },
-    ]
-    priceCategories[2].items = [
-      { name: 'Консультация эндокринолога', price: '3 500' },
-      { name: 'Анализ на ТТГ, Т3, Т4 свободный', price: '2 200' },
-      { name: 'Расширенный гормональный профиль', price: '7 400' },
-      { name: 'Комплекс «Энергия и метаболизм»', price: '12 900' },
-      { name: 'Повторная консультация + план', price: '2 500' },
-    ]
-    priceCategories[3].items = [
-      { name: 'Первичная консультация нутрициолога', price: '3 500' },
-      { name: 'Повторная консультация (разбор анализов)', price: '2 500' },
-      { name: 'Составление персонального плана питания', price: '5 000' },
-      { name: 'Месячное сопровождение (ведение)', price: '12 000' },
-      { name: 'Биоимпедансометрия', price: '1 500' },
-    ]
-  }
+  const priceCategories = buildPriceCategories(servicesData)
 
   return (
     <div>
@@ -111,16 +148,18 @@ export function Prices({ servicesData = [] }) {
 
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(47,143,124,0.10)', color: '#2F8F7C' }}>
               <Shield size={12} />
-              Честная медицина
+              Прозрачная стоимость
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Честная медицина:{' '}
-              <span className="text-clay-mint">фиксированная цена</span> и полная прозрачность
+              Понятная стоимость и прозрачный маршрут лечения
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
-              Никаких скрытых доплат в день процедуры. Цена, которую назвали - цена, которую заплатите.
+              В прайсе видно, что входит в приём, какие позиции оплачиваются отдельно и когда стоимость обсуждается после осмотра.
+            </p>
+            <p className="text-sm text-clay-muted leading-relaxed mb-5 max-w-2xl">
+              Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
@@ -141,16 +180,19 @@ export function Prices({ servicesData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Три принципа прозрачности</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Наша политика в ценообразовании</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Поясняем состав услуги и варианты оплаты без лишней рекламной формы.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {principles.map((p) => (
               <div key={p.title} className={`clay ${p.bg} p-5 flex flex-col relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <div className="relative z-10">
-                  <div className="inline-block px-3 py-1 rounded-full bg-white/25 text-white text-xs font-bold mb-4">{p.tag}</div>
-                  <h3 className="font-bold text-white text-xl mb-3">{p.title}</h3>
-                  <p className="text-white/90 text-sm leading-relaxed">{p.desc}</p>
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/75 shadow-sm">
+                    <p.Icon size={24} className="text-clay-dark" />
+                  </div>
+                  <div className="inline-block px-3 py-1 rounded-full bg-white/70 text-clay-dark text-xs font-bold mb-4">{p.tag}</div>
+                  <h3 className="font-bold text-clay-dark text-xl mb-3">{p.title}</h3>
+                  <p className="text-clay-dark/85 text-sm leading-relaxed">{p.desc}</p>
                 </div>
               </div>
             ))}
@@ -164,12 +206,12 @@ export function Prices({ servicesData = [] }) {
           <div className="clay clay-card p-6 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="stat-pill mb-4">Топ-манипуляция клиники</div>
+                <div className="stat-pill mb-4">Ключевая процедура</div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
                   ВАБ — вакуумная аспирационная биопсия
                 </h2>
                 <p className="text-clay-muted leading-relaxed mb-4">
-                  Прозрачное ценообразование: базовая стоимость процедуры и отдельные позиции дополнительных услуг. Точная стоимость определяется на консультации.
+                  Базовую стоимость и дополнительные позиции обсуждаем заранее. Итоговая сумма зависит от объёма вмешательства и клинической ситуации.
                 </p>
                 <div className="text-4xl font-extrabold text-clay-mint mb-1">от 80 000 ₽</div>
                 <p className="text-sm text-clay-muted mb-6">Базовая стоимость процедуры</p>
@@ -208,7 +250,7 @@ export function Prices({ servicesData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Прайс-лист</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Актуальные цены на все направления. Финальную стоимость уточняйте на консультации.</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Актуальные цены по направлениям. Если объём услуги зависит от показаний, врач заранее это объяснит.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {priceCategories.map((cat) => (
@@ -217,12 +259,13 @@ export function Prices({ servicesData = [] }) {
                   <span className="text-2xl">{cat.icon}</span>
                   <h3 className="font-bold text-clay-dark text-lg">{cat.title}</h3>
                 </div>
+                <p className="text-sm text-clay-muted leading-relaxed mb-4">{cat.intro}</p>
                 <div className="space-y-2.5">
                   {cat.items.map((item) => (
                     <div key={item.name} className="bg-white/60 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
                       <span className="text-sm text-clay-dark flex-1">{item.name}</span>
                       <span className="text-sm font-bold flex-shrink-0" style={{ color: cat.accent }}>
-                        {item.price} ₽
+                        {formatPriceLabel(item.price, item.isFrom)}
                       </span>
                     </div>
                   ))}
@@ -231,7 +274,7 @@ export function Prices({ servicesData = [] }) {
             ))}
           </div>
           <p className="text-xs text-clay-muted text-center mt-5">
-            * Цены указаны в рублях. Финальная стоимость определяется на консультации и зависит от объёма вмешательства.
+            * Цены указаны в рублях. Для услуг с пометкой «от» окончательная стоимость зависит от объёма вмешательства и показаний.
           </p>
         </div>
       </section>
@@ -341,15 +384,15 @@ export function Prices({ servicesData = [] }) {
       <section className="section">
         <div className="container-clay">
           <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
-            <div className="blob-mint absolute -top-10 -right-10 w-40 h-40 opacity-40 pointer-events-none" />
-            <div className="blob-peach absolute -bottom-10 -left-10 w-40 h-40 opacity-35 pointer-events-none" />
+            <div className="blob-mint absolute -top-10 -right-10 w-36 h-36 opacity-25 pointer-events-none" />
+            <div className="blob-peach absolute -bottom-10 -left-10 w-36 h-36 opacity-22 pointer-events-none" />
             <div className="relative z-10">
               <Star size={40} className="text-clay-mint mx-auto mb-4" />
               <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
                 Остались вопросы по ценам?
               </h2>
               <p className="text-clay-muted mb-5 max-w-md mx-auto">
-                Ответим в Telegram в течение 2 минут и назовём точную стоимость для вашей ситуации.
+                Подскажем ориентир по стоимости и составу услуги удобным для вас способом.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
@@ -357,7 +400,7 @@ export function Prices({ servicesData = [] }) {
                   Позвонить
                 </a>
                 <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                  Telegram
+                  Написать в Telegram
                 </a>
               </div>
             </div>

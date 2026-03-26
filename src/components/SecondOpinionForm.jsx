@@ -177,7 +177,7 @@ export function SecondOpinionForm({ onClose }) {
 
       <h3 className="text-xl md:text-2xl font-extrabold text-clay-dark mb-2">Отправить данные на проверку</h3>
       <p className="text-clay-muted text-sm mb-5">
-        Заполните форму и прикрепите снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники.
+        Заполните форму и прикрепите снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники. Если нужен очный осмотр в Санкт-Петербурге, мы подскажем дальнейший шаг.
       </p>
 
       {errorMsg && (
@@ -348,8 +348,9 @@ export function SecondOpinionForm({ onClose }) {
         <div className="flex items-start gap-2 mt-3">
           <Shield size={16} className="text-clay-mint flex-shrink-0 mt-0.5" />
           <p className="text-xs text-clay-muted leading-tight">
-            Нажимая «Отправить», я даю согласие на{' '}
+            Нажимая «Отправить заявку», я даю согласие на{' '}
             <a href="/privacy-policy" className="text-clay-mint hover:underline">обработку персональных данных</a>.
+            {' '}Согласие распространяется на прикреплённые файлы и материалы обращения.
           </p>
         </div>
 

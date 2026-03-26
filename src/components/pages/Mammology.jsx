@@ -7,7 +7,7 @@ import { FaqSection } from '../FaqSection.jsx'
 export const MAMMOLOGY_FAQ = [
   {
     question: 'Что лечит маммолог?',
-    answer: 'Маммолог занимается диагностикой и лечением заболеваний молочных желёз: фиброаденомы, кисты, мастопатии, внутрипротоковые папилломы, а также ранней диагностикой рака молочной железы. В нашей клинике маммологи - онкологи-хирурги, владеющие УЗИ и технологией ВАБ.',
+    answer: 'Маммолог занимается диагностикой и лечением заболеваний молочных желёз: фиброаденомы, кисты, мастопатии, внутрипротоковые папилломы, а также ранней диагностикой рака молочной железы. В нашей клинике приём ведут онкологи-маммологи, которые проводят осмотр, УЗИ и при необходимости предлагают ВАБ.',
   },
   {
     question: 'Как часто нужно ходить к маммологу?',
@@ -15,7 +15,7 @@ export const MAMMOLOGY_FAQ = [
   },
   {
     question: 'Чем отличается ВАБ от обычной биопсии?',
-    answer: 'Обычная биопсия (ТАБ) берёт лишь несколько клеток иглой для анализа. ВАБ - это полное удаление образования через прокол 2 мм под вакуумным контролем. То есть ВАБ одновременно является и диагностикой, и лечением.',
+    answer: 'Обычная биопсия (ТАБ) берёт лишь несколько клеток иглой для анализа. ВАБ - это малоинвазивное удаление образования через прокол 2 мм под вакуумным контролем. Метод позволяет получить материал для гистологии и, если есть показания, удалить образование за одну процедуру.',
   },
   {
     question: 'Нужно ли удалять фиброаденому?',
@@ -40,45 +40,45 @@ const features = [
     icon: <Zap size={22} className="text-white" />,
     bg: 'icon-circle-mint',
     card: 'clay-card-soft-mint',
-    title: 'Технология ВАБ',
-    subtitle: 'Вакуумная аспирационная биопсия',
-    desc: 'Роботизированное удаление опухоли до 3 см под постоянным контролем УЗИ. Прибор сам откачивает удалённую ткань - без разрезов, без крови.',
-    detail: 'Устройство Xishan (Сишань)',
+    title: 'Малоинвазивная ВАБ',
+    subtitle: 'Вакуумная аспирационная биопсия по показаниям',
+    desc: 'Метод рассматриваем после очной консультации, УЗИ и оценки снимков. Он позволяет удалить образование через минимальный доступ и сразу отправить материал на гистологию.',
+    detail: 'Амбулаторный формат',
   },
   {
     icon: <Eye size={22} className="text-white" />,
     bg: 'icon-circle-peach',
     card: 'clay-card-soft-peach',
-    title: 'Эстетика результата',
-    subtitle: 'Прокол 2 мм - и больше ничего',
-    desc: 'Вместо разреза - микропрокол, который заживает за 2 месяца без следа. Форма и объём груди не меняются. Никаких шрамов, деформаций или отёков.',
-    detail: 'Полное заживление за 2 месяца',
+    title: 'Щадящий доступ',
+    subtitle: 'Минимальный прокол вместо разреза',
+    desc: 'Процедура выполняется через небольшой прокол. Это помогает сократить травматичность вмешательства и облегчить восстановление по сравнению с более объёмной операцией.',
+    detail: 'Минимальный рубец',
   },
   {
     icon: <Shield size={22} className="text-white" />,
     bg: 'icon-circle-blue',
     card: 'clay-card-soft-blue',
-    title: 'Полная безопасность',
-    subtitle: 'Местная анестезия - вы в сознании',
-    desc: 'Местная анестезия позволяет вам разговаривать с доктором в процессе. Процедура длится 30 минут. Уже через 20 минут после её окончания вы уедете домой за рулём.',
-    detail: 'Уехать домой через 20 минут',
+    title: 'Локальное обезболивание',
+    subtitle: 'Без общего наркоза',
+    desc: 'Процедура проходит под местной анестезией и под контролем врача. После наблюдения вы уходите домой по согласованию с доктором.',
+    detail: 'Амбулаторное наблюдение',
   },
   {
     icon: <Microscope size={22} className="text-white" />,
     bg: 'icon-circle-lavender',
     card: 'clay-card-soft-lavender',
-    title: 'Максимальная точность',
-    subtitle: 'Гистология 100% материала',
-    desc: 'Всё удалённое образование полностью отправляется на гистологическое исследование. Это в 10 раз информативнее, чем обычная пункционная биопсия с одним столбиком ткани.',
-    detail: 'В 10× информативнее пункции',
+    title: 'Гистология материала',
+    subtitle: 'Подтверждение диагноза',
+    desc: 'Удалённая ткань отправляется на исследование. Это помогает уточнить диагноз и определить дальнейшую тактику.',
+    detail: 'Решение по результату',
   },
 ]
 
 const steps = [
-  { n: '01', title: 'Консультация', desc: 'Онколог-маммолог анализирует ваши снимки и осматривает. Ставим точный диагноз.' },
-  { n: '02', title: 'Планирование', desc: 'Определяем оптимальный доступ, объём удаления и параметры процедуры под УЗИ-контролем.' },
-  { n: '03', title: 'Процедура', desc: 'Местная анестезия, прокол 2 мм, удаление образования прибором Xishan DK-B-MS (Сишань). 30 минут.' },
-  { n: '04', title: 'Результат', desc: 'Отдыхаете 20 минут и едете домой. Материал уходит на гистологию. Врач на связи в мессенджере.' },
+  { n: '01', title: 'Консультация', desc: 'Онколог-маммолог изучает ваши снимки, проводит осмотр и обсуждает жалобы. Затем объясняет возможные варианты.' },
+  { n: '02', title: 'Планирование', desc: 'Определяем показания, объём вмешательства и параметры процедуры под УЗИ-контролем.' },
+  { n: '03', title: 'Процедура', desc: 'Местная анестезия, минимальный доступ и удаление образования под контролем врача. Обычно это занимает около 30 минут.' },
+  { n: '04', title: 'Результат', desc: 'Материал отправляется на гистологию, а врач объясняет дальнейшие шаги наблюдения и, при необходимости, связь с клиникой.' },
 ]
 
 const checks = [
@@ -98,23 +98,23 @@ export function Mammology() {
 
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 text-white" style={{ background: 'linear-gradient(145deg, #68D8B8, #44C4A0)' }}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 text-white" style={{ background: 'linear-gradient(145deg, #4EBA9D, #3A9F85)' }}>
               <Zap size={12} />
-              Основное направление клиники
+              Приём в Приморском районе Санкт-Петербурга
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
               Маммология в Санкт-Петербурге:{' '}
-              <span className="text-clay-mint">удаление новообразований</span> через прокол 2 мм
+              <span className="text-clay-mint">консультация, УЗИ и ВАБ</span> по показаниям
             </h1>
-            <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium">
-              «Боюсь шрамов и того, что под наркозом что-то пойдёт не так»
+            <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
+              Приём ведут онкологи-маммологи. Работаем в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Понимаем этот страх. Именно поэтому мы используем технологию ВАБ - вы остаётесь в сознании, разговариваете с доктором, а уже через 20 минут после процедуры едете домой.
+              Если нужно удалить образование, врач спокойно объяснит показания, возможные альтернативы и дальнейший план наблюдения.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                Записаться на ВАБ
+                Записаться на консультацию
                 <ArrowRight size={16} />
               </button>
               <button type="button" data-booking-btn="true" className="clay btn-clay-secondary">
@@ -132,8 +132,8 @@ export function Mammology() {
             {[
               { val: '30', unit: 'мин', label: 'Длительность процедуры' },
               { val: '2', unit: 'мм', label: 'Размер прокола' },
-              { val: '3', unit: 'см', label: 'Макс. размер опухоли' },
-              { val: '10×', unit: '', label: 'Информативнее пункции' },
+              { val: '3', unit: 'см', label: 'Размер образований, которые оцениваем' },
+              { val: 'Гистология', unit: '', label: 'Материал отправляем на исследование' },
             ].map((s) => (
               <div key={s.label} className="clay clay-card p-4 text-center">
                 <div className="flex items-end justify-center gap-0.5">
@@ -152,7 +152,7 @@ export function Mammology() {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">4 причины выбрать ВАБ</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Технология, которая навсегда меняет представление о хирургии молочной железы</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Щадящий вариант вмешательства, когда врач считает его уместным по результатам осмотра и диагностики</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {features.map((f) => (
@@ -184,7 +184,7 @@ export function Mammology() {
                 Кому подходит ВАБ?
               </h2>
               <p className="text-clay-muted mb-6 leading-relaxed">
-                ВАБ эффективна при большинстве доброкачественных и пограничных образований. Перед процедурой онколог-маммолог обязательно проведёт консультацию и оценит показания.
+                ВАБ рассматриваем при доброкачественных и некоторых пограничных образованиях. Перед процедурой онколог-маммолог обязательно проведёт консультацию и оценит показания.
               </p>
               <div className="space-y-2.5">
                 {checks.map((item) => (
@@ -200,7 +200,7 @@ export function Mammology() {
                 <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
                 <h3 className="font-bold text-white text-xl mb-2">Бесплатное второе мнение</h3>
                 <p className="text-white/90 text-sm leading-relaxed mb-4">
-                  Если вам уже назначили операцию в другой клинике - принесите снимки. Наш онколог-маммолог проверит, можно ли заменить операцию деликатной процедурой ВАБ.
+                  Если вам уже рекомендовали операцию в другой клинике, принесите снимки. Наш онколог-маммолог спокойно проверит показания и расскажет о вариантах.
                 </p>
                 <div className="flex items-center gap-2 bg-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-bold">
                   Цена: 0 ₽
@@ -248,14 +248,14 @@ export function Mammology() {
         <div className="container-clay">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на маммологию в СПб</h2>
-            <p className="text-clay-muted">Фиксированные цены без скрытых доплат</p>
+            <p className="text-clay-muted">Понятная структура оплаты и маршрута пациента</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {[
               { name: 'Первичная консультация онколога-маммолога', price: 'от 3 500 ₽' },
               { name: 'УЗИ молочных желёз', price: 'от 2 500 ₽' },
               { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 80 000 ₽' },
-              { name: 'Удаление образований молочной железы', price: 'уточняется' },
+              { name: 'Удаление образований молочной железы по показаниям', price: 'уточняется' },
               { name: 'Второе мнение онколога-маммолога', price: 'Бесплатно' },
             ].map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
@@ -264,6 +264,9 @@ export function Mammology() {
               </div>
             ))}
           </div>
+          <p className="text-xs text-clay-muted max-w-2xl mx-auto leading-relaxed mb-5">
+            В базовую стоимость ВАБ входят консультация, УЗИ и сама процедура. Анестезия, гистология, наблюдение и контрольный снимок обсуждаются отдельно после очной оценки.
+          </p>
           <div className="text-center">
             <a href="/prices" className="clay btn-clay-secondary text-sm">
               Полный прайс-лист →
@@ -291,11 +294,11 @@ export function Mammology() {
                 <p className="text-clay-muted text-xs leading-relaxed">Онкологи-хирурги с опытом более 20 лет</p>
               </div>
             </a>
-            <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left w-full">
+              <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left w-full">
               <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Бесплатное второе мнение</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Назначили операцию? Проверим, нужна ли она</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Рекомендовали операцию? Проверим показания и расскажем о вариантах</p>
               </div>
             </button>
           </div>
@@ -308,10 +311,10 @@ export function Mammology() {
           <div className="clay clay-card-soft-mint p-6 md:p-8 text-center">
             <Clock size={40} className="text-clay-mint mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-              Готовы решить вопрос раз и навсегда?
+              Нужна спокойная очная оценка?
             </h2>
             <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Запишитесь на консультацию или получите бесплатное второе мнение. Ответим в Telegram в течение 2 минут.
+              Запишитесь на консультацию или получите бесплатное второе мнение. Клиника находится в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">

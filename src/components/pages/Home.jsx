@@ -1,55 +1,139 @@
 import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star, User, Send } from 'lucide-react'
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
 import { FILTER_TABS_SHORT, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'
 import { SERVICES, WHY_ITEMS } from '../../lib/clinic-info.js'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 
+const HERO_AUTOPLAY_INTERVAL = 12000
+const CLINIC_LOCATION = 'Санкт-Петербург, Приморский район, Богатырский проспект 22 к.1'
+const NEAREST_METRO = 'м. Комендантский проспект и м. Старая Деревня'
 
 const heroSlides = [
   {
-    trustBadge: 'Экспертный подход к ВАБ',
-    badge: 'Одно из ключевых направлений клиники',
-    title: <>Удаление образований молочной железы<br /><span style={{ color: '#2A9E80' }}>бережная манипуляция ВАБ за 30 минут</span></>,
-    desc: 'Вакуумно-аспирационная биопсия (ВАБ) — ведущее направление клиники. Прокол 2 мм вместо разреза 5 см. Процедура занимает 30 минут, вы уходите домой в тот же день.',
+    trustBadge: 'Маммология и ВАБ',
+    badge: 'Приморский район · Санкт-Петербург',
+    title: <>Вакуумная аспирационная биопсия<br /><span style={{ color: '#2A9E80' }}>по показаниям и под УЗ-контролем</span></>,
+    desc: 'Обсуждаем объём вмешательства, показания и дальнейшее наблюдение заранее. Процедура обычно проходит амбулаторно и занимает около 30 минут.',
     stats: [
-      { val: '1', unit: 'день', label: 'домой после процедуры' },
+      { val: '30', unit: 'мин', label: 'обычная длительность' },
       { val: '2', unit: 'мм', label: 'прокол ВАБ' },
-      { val: '30', unit: 'мин', label: 'процедура' },
+      { val: '1', unit: 'день', label: 'без госпитализации' },
     ],
     primaryBtn: { label: 'Записаться на ВАБ', href: '/second-opinion' },
     secondaryBtn: { label: 'Подробнее о ВАБ', href: '/vab' },
   },
   {
-    trustBadge: 'Доказательная медицина',
-    badge: 'Для тех, кому уже назначили операцию',
-    title: <>Бесплатное второе мнение<br /><span style={{ color: '#2A9E80' }}>от ведущего маммолога</span></>,
-    desc: 'Получили направление на операцию в другой клинике? Мы перепроверим снимки и заключения, обсудим тактику и подскажем следующий шаг без лишней спешки.',
+    trustBadge: 'Второе мнение',
+    badge: 'Для пациентов из любого региона России',
+    title: <>Второе мнение по маммологии<br /><span style={{ color: '#2A9E80' }}>с разбором снимков и заключений</span></>,
+    desc: 'Перепроверяем документы, обсуждаем тактику и объясняем следующий шаг спокойным, понятным языком. При необходимости помогаем с очной маршрутизацией в Санкт-Петербурге.',
     stats: [
       { val: '0', unit: '₽', label: 'второе мнение бесплатно' },
-      { val: '1', unit: 'план', label: 'следующих шагов' },
-      { val: '48', unit: 'ч', label: 'срок проверки' },
+      { val: '1', unit: '', label: 'понятный план действий' },
+      { val: 'СПб', unit: '', label: 'очная маршрутизация при необходимости' },
     ],
     primaryBtn: { label: 'Получить второе мнение', href: '/second-opinion' },
     secondaryBtn: { label: 'Записаться на приём', href: '/second-opinion' },
   },
   {
-    trustBadge: 'Премиальный сервис',
-    badge: 'Здоровье как инвестиция в качество жизни',
-    title: <>Гинекология, эндокринология<br /><span style={{ color: '#2A9E80' }}>и нутрициология без боли</span></>,
-    desc: 'Бережный осмотр без дискомфорта, точная настройка гормонального баланса, персональный план питания. Атмосфера пятизвёздочного отеля, а не больницы.',
+    trustBadge: 'Гинекология, эндокринология, нутрициология',
+    badge: 'Понятный маршрут пациента',
+    title: <>Приём по показаниям<br /><span style={{ color: '#2A9E80' }}>с уважительным и спокойным подходом</span></>,
+    desc: 'Разбираем жалобы, результаты анализов и план наблюдения без спешки. Работаем в Санкт-Петербурге, Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.',
     stats: [
       { val: '4', unit: '', label: 'ключевых направления' },
       { val: '9', unit: '', label: 'врачей в команде' },
-      { val: '1', unit: '', label: 'единый стандарт сервиса' },
+      { val: '1', unit: '', label: 'единый маршрут пациента' },
     ],
     primaryBtn: { label: 'Выбрать специалиста', href: '/gynecology' },
     secondaryBtn: { label: 'Все направления', href: '/mammology' },
   },
 ]
 
+const HOME_SERVICES = SERVICES.map((service) => {
+  if (service.to === '/vab') {
+    return {
+      ...service,
+      tag: 'Малоинвазивная процедура',
+      desc: 'Вакуумная аспирационная биопсия под УЗ-контролем. Обсуждаем показания, объём вмешательства и наблюдение заранее.',
+    }
+  }
+
+  if (service.to === '/gynecology') {
+    return {
+      ...service,
+      tag: 'Приём по показаниям',
+      desc: 'Бережный гинекологический приём с понятными объяснениями, без давления и лишних назначений.',
+    }
+  }
+
+  if (service.to === '/endocrinology') {
+    return {
+      ...service,
+      tag: 'Поэтапная диагностика',
+      desc: 'Разбираем жалобы, анализы и динамику поэтапно. Без обещаний мгновенного результата.',
+    }
+  }
+
+  if (service.to === '/nutrition') {
+    return {
+      ...service,
+      desc: 'Помогаем выстроить питание с учётом анализов, жалоб и привычного ритма жизни.',
+    }
+  }
+
+  if (service.to === '/mammology') {
+    return {
+      ...service,
+      desc: 'Диагностика и лечение заболеваний молочной железы с понятным маршрутом пациента и опорой на показания.',
+    }
+  }
+
+  return service
+})
+
+const HOME_WHY_ITEMS = WHY_ITEMS.map((item) => {
+  if (item.title === 'Без боли и стресса') {
+    return {
+      ...item,
+      title: 'Уважительный приём',
+      desc: 'Спокойная коммуникация, аккуратный осмотр и понятные объяснения на каждом этапе.',
+    }
+  }
+
+  if (item.title === 'Сервис без ожидания') {
+    return {
+      ...item,
+      title: 'Понятные сроки',
+      desc: 'Сообщаем, когда ждать результаты и какой шаг будет следующим.',
+    }
+  }
+
+  if (item.title === 'Высокие технологии') {
+    return {
+      ...item,
+      title: 'Технологии по делу',
+      desc: 'Используем оборудование там, где оно действительно помогает в диагностике и лечении.',
+    }
+  }
+
+  return {
+    ...item,
+    desc: 'Назначаем только обоснованные обследования и сохраняем спокойный, уважительный тон приёма.',
+  }
+})
+
+const HOME_REASONS = [
+  'Врачи объясняют решения простым языком и без давления',
+  'Маршрут пациента строим от жалобы к следующему шагу',
+  'По необходимости организуем очную консультацию в Санкт-Петербурге',
+  'После приёма подсказываем, какие документы и результаты взять с собой',
+]
+
 const WHY_ICONS = { Shield, Zap, Clock, Heart }
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 const REVIEWS = [
   {
@@ -57,28 +141,28 @@ const REVIEWS = [
     name: 'Анна Петрова',
     date: '12 января 2025',
     rating: 5,
-    text: 'Обратилась с направлением на операцию из другой клиники. Здесь сделали ВАБ за 30 минут - никакого разреза, никаких швов. Уже через день вышла на работу. Доктор объяснила всё доступно, без лишних страхов.',
+    text: 'Обратилась с направлением на операцию из другой клиники. Здесь спокойно перепроверили документы, объяснили варианты и предложили малоинвазивное решение по показаниям.',
   },
   {
     id: 2,
     name: 'Марина Соколова',
     date: '3 февраля 2025',
     rating: 5,
-    text: 'Наконец-то нашла гинеколога, который слушает. Никакого давления, никакой гипердиагностики. Составили чёткий план лечения, всё объяснили. Атмосфера как в хорошем отеле - спокойно и уютно.',
+    text: 'На приёме по гинекологии всё объяснили спокойно, без давления и лишних назначений. Понравилось, что сразу обозначили следующий шаг.',
   },
   {
     id: 3,
     name: 'Елена Кузнецова',
     date: '18 февраля 2025',
     rating: 5,
-    text: 'Эндокринолог помогла разобраться с гормональным дисбалансом, который мучил меня три года. Уже после первого визита почувствовала разницу. Результаты анализов приходят в мессенджер - очень удобно.',
+    text: 'Эндокринолог помогла собрать анализы в понятную картину и дала спокойный план наблюдения. Всё прошло без спешки и лишних обещаний.',
   },
   {
     id: 4,
     name: 'Ольга Иванова',
     date: '5 марта 2025',
     rating: 5,
-    text: 'Нутрициолог помогла разобраться с дефицитами и хронической усталостью. Наконец-то появились силы по утрам, а вес начал снижаться без жестких диет. Рекомендую всем, кто устал от постоянных ограничений.',
+    text: 'На приёме по нутрициологии разобрали питание и дефициты без жёстких схем. Понравился спокойный, уважительный тон.',
   },
 ]
 
@@ -162,7 +246,7 @@ function AppointmentFormSection() {
                 Записаться на приём
               </h2>
               <p className="text-clay-muted">
-                Оставьте контакты - перезвоним в течение 15 минут
+                Оставьте контакты - администратор свяжется с вами в рабочее время
               </p>
             </div>
 
@@ -170,7 +254,7 @@ function AppointmentFormSection() {
               <div className="clay clay-card-soft-mint p-6 text-center">
                 <CheckCircle size={40} className="text-clay-mint mx-auto mb-3" />
                 <p className="font-bold text-clay-dark text-lg mb-1">Заявка принята!</p>
-                <p className="text-clay-muted text-sm">Мы перезвоним вам в течение 15 минут в рабочее время.</p>
+                <p className="text-clay-muted text-sm">Мы свяжемся с вами в рабочее время и согласуем удобный формат связи.</p>
                 <button
                   onClick={() => setIsSubmitted(false)}
                   className="mt-4 text-sm text-clay-mint-dark font-semibold hover:underline"
@@ -234,42 +318,84 @@ function AppointmentFormSection() {
   )
 }
 
-const LG_BREAKPOINT = 1024
-
 export function Home({ doctorsData = [] }) {
   const [activeSlide, setActiveSlide] = useState(0)
   const [sliderHeight, setSliderHeight] = useState(0)
-  const [useEqualHeight, setUseEqualHeight] = useState(false)
   const slideRefs = useRef([])
   const [activeFilter, setActiveFilter] = useState('all')
-
-  useEffect(() => {
-    const mq = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`)
-    function update() {
-      setUseEqualHeight(mq.matches)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false
     }
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
 
-  useEffect(() => {
-    const updateHeight = () => {
-      const heights = slideRefs.current.map((el) => el?.offsetHeight ?? 0)
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  })
+
+  useIsomorphicLayoutEffect(() => {
+    function updateHeight() {
+      const heights = slideRefs.current
+        .map((el) => el?.offsetHeight ?? 0)
+        .filter((height) => height > 0)
+
+      if (heights.length === 0) return
+
       const max = Math.max(...heights)
-      if (max > 0) setSliderHeight(max)
+      setSliderHeight((prevHeight) => (prevHeight === max ? prevHeight : max))
     }
+
+    const frameId = window.requestAnimationFrame(updateHeight)
+    const resizeObserver = new ResizeObserver(updateHeight)
+
+    slideRefs.current.forEach((slide) => {
+      if (slide) {
+        resizeObserver.observe(slide)
+      }
+    })
+
     updateHeight()
     window.addEventListener('resize', updateHeight)
-    return () => window.removeEventListener('resize', updateHeight)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateHeight)
+    }
   }, [])
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    const handleChange = (event) => {
+      if (event.matches) {
+        setIsAutoplayPaused(true)
+      }
+    }
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange)
+    } else if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleChange)
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', handleChange)
+      } else if (typeof mediaQuery.removeListener === 'function') {
+        mediaQuery.removeListener(handleChange)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isAutoplayPaused) return undefined
+
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroSlides.length)
-    }, 12000)
+    }, HERO_AUTOPLAY_INTERVAL)
     return () => clearInterval(timer)
-  }, [])
+  }, [isAutoplayPaused])
 
   function goToSlide(idx) {
     setActiveSlide(idx)
@@ -300,12 +426,10 @@ export function Home({ doctorsData = [] }) {
 
         <div className="container-clay relative z-10 py-8 md:py-14">
           {/* Слайды */}
-          <div className="relative" style={{ minHeight: useEqualHeight && sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
+          <div className="relative" style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
             {heroSlides.map((slide, idx) => {
               const isActive = activeSlide === idx
-              if (!useEqualHeight && !isActive) {
-                return <div key={idx} ref={(el) => { slideRefs.current[idx] = el }} style={{ display: 'none' }} />
-              }
+
               return (
               <div
                 key={idx}
@@ -315,7 +439,7 @@ export function Home({ doctorsData = [] }) {
                   opacity: isActive ? 1 : 0,
                   transform: isActive ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.98)',
                   filter: isActive ? 'blur(0px)' : 'blur(4px)',
-                  position: useEqualHeight && sliderHeight > 0 ? 'absolute' : 'relative',
+                  position: !isActive || sliderHeight > 0 ? 'absolute' : 'relative',
                   top: 0,
                   left: 0,
                   width: '100%',
@@ -348,6 +472,9 @@ export function Home({ doctorsData = [] }) {
                       </div>
                     )}
 
+                    <p className="text-sm sm:text-base text-clay-muted leading-relaxed mb-3 max-w-lg">
+                      {CLINIC_LOCATION} · {NEAREST_METRO}
+                    </p>
                     <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg" style={{ lineHeight: '1.75' }}>
                       {slide.desc}
                     </p>
@@ -394,6 +521,7 @@ export function Home({ doctorsData = [] }) {
           {/* Навигация */}
           <div className="flex items-center gap-4 mt-10">
             <button
+              type="button"
               onClick={prevSlide}
               className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
               style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
@@ -401,9 +529,20 @@ export function Home({ doctorsData = [] }) {
             >
               <ChevronLeft size={16} className="text-clay-mint" />
             </button>
+            <button
+              type="button"
+              onClick={() => setIsAutoplayPaused((current) => !current)}
+              className="rounded-full px-4 py-2 text-xs font-semibold transition-colors"
+              style={{ background: 'rgba(61,74,68,0.06)', color: '#3D4A44' }}
+              aria-pressed={isAutoplayPaused}
+              aria-label={isAutoplayPaused ? 'Возобновить автопрокрутку слайдов' : 'Пауза автопрокрутки слайдов'}
+            >
+              {isAutoplayPaused ? 'Возобновить автопрокрутку' : 'Пауза слайдов'}
+            </button>
             <div className="flex items-center gap-2">
               {heroSlides.map((_, idx) => (
                 <button
+                  type="button"
                   key={idx}
                   onClick={() => goToSlide(idx)}
                   aria-label={`Слайд ${idx + 1}`}
@@ -422,6 +561,7 @@ export function Home({ doctorsData = [] }) {
               ))}
             </div>
             <button
+              type="button"
               onClick={nextSlide}
               className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
               style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
@@ -445,13 +585,13 @@ export function Home({ doctorsData = [] }) {
             <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
             <div className="relative z-10">
               <div className="inline-block px-4 py-1.5 rounded-full bg-white/25 text-white text-xs font-bold mb-4 uppercase tracking-wider">
-                Основное направление клиники
+                Маммология и ВАБ
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
-                Вакуумная аспирационная биопсия как ключевое направление клиники
+                Вакуумная аспирационная биопсия по показаниям
               </h2>
-              <p className="text-white/90 text-lg mb-2">Помогаем пройти путь от диагностики до аккуратной малоинвазивной процедуры в одном месте.</p>
-              <p className="text-white/80 text-sm mb-5">Прокол 2 мм, контроль под УЗИ и понятный маршрут для пациента без лишних госпитализаций.</p>
+              <p className="text-white/90 text-lg mb-2">Помогаем пройти путь от диагностики до малоинвазивного лечения в одном месте.</p>
+              <p className="text-white/80 text-sm mb-5">Контроль под УЗИ, понятный маршрут для пациента и обсуждение дальнейшего наблюдения заранее.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
                 <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                   <div className="flex items-start gap-4">
@@ -459,8 +599,8 @@ export function Home({ doctorsData = [] }) {
                       <Zap size={24} className="text-[#2A9E80]" />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">ВАБ — топ-манипуляция</h3>
-                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Малоинвазивное удаление образований до 3 см под контролем УЗИ с понятным планом наблюдения после процедуры.</p>
+                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">ВАБ под УЗ-контролем</h3>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Малоинвазивная процедура в маммологии, где заранее обсуждаем показания, объём вмешательства и наблюдение.</p>
                     </div>
                   </div>
                 </div>
@@ -471,7 +611,7 @@ export function Home({ doctorsData = [] }) {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Бесплатное второе мнение</h3>
-                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже назначили операцию, мы перепроверим документы, обсудим риски и предложим следующий шаг без лишних посредников.</p>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже предложили операцию, мы перепроверим документы, обсудим риски и поможем определить следующий шаг.</p>
                     </div>
                   </div>
                 </div>
@@ -495,10 +635,10 @@ export function Home({ doctorsData = [] }) {
         <div className="container-clay">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Направления клиники</h2>
-            <p className="text-clay-muted max-w-xl mx-auto">Комплексная помощь по ключевым направлениям - от диагностики до результата</p>
+            <p className="text-clay-muted max-w-xl mx-auto">Понятный маршрут от первичного обращения до следующего шага без лишнего давления</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {SERVICES.map((s) => (
+            {HOME_SERVICES.map((s) => (
               <a key={s.to} href={s.to} className="group block">
                 <div className={`clay ${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
                   <div className="flex items-start justify-between mb-4">
@@ -540,7 +680,7 @@ export function Home({ doctorsData = [] }) {
                 Мы не просто лечим - мы помогаем вам принимать осознанные решения. Доказательная медицина, современные технологии и уважение к вашему времени.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {WHY_ITEMS.map((item) => {
+                {HOME_WHY_ITEMS.map((item) => {
                   const Icon = WHY_ICONS[item.iconName]
                   return (
                     <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
@@ -643,18 +783,13 @@ export function Home({ doctorsData = [] }) {
                   Прямая связь
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-                  Лично врачу — без посредников
+                  Связь с лечащим врачом
                 </h2>
                 <p className="text-clay-muted leading-relaxed mb-4">
-                  После процедуры лечащий врач остаётся с вами на прямой связи. Любой вопрос — ответ в день обращения. Никаких звонков в колл-центр, никаких промежуточных звеньев.
+                  После процедуры лечащий врач остаётся на связи. Если появятся вопросы, мы поможем с ними в день обращения и подскажем дальнейший шаг.
                 </p>
                 <div className="space-y-3">
-                  {[
-                    'Ответ на любой вопрос в день обращения',
-                    'Прямой контакт с лечащим врачом',
-                    'Без промежуточных звонков в колл-центр',
-                    'Помощь с документами и следующими шагами после приёма',
-                  ].map((item) => (
+                  {HOME_REASONS.map((item) => (
                     <div key={item} className="flex items-center gap-3">
                       <CheckCircle size={16} className="text-clay-mint flex-shrink-0" />
                       <span className="text-sm text-clay-dark">{item}</span>
@@ -667,11 +802,11 @@ export function Home({ doctorsData = [] }) {
                   <div className="icon-circle-mint">
                     <Phone size={18} className="text-white" />
                   </div>
-                  <div>
-                    <p className="font-bold text-clay-dark">Записаться на приём</p>
-                    <p className="text-xs text-clay-muted">Ответим в течение 15 минут</p>
-                  </div>
+                <div>
+                  <p className="font-bold text-clay-dark">Записаться на приём</p>
+                  <p className="text-xs text-clay-muted">Подскажем удобный формат связи</p>
                 </div>
+              </div>
                 <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2 justify-center">
                   <Phone size={16} />
                   Позвонить
@@ -703,7 +838,7 @@ export function Home({ doctorsData = [] }) {
                 Не знаете, к кому обратиться?
               </h2>
               <p className="text-clay-muted text-lg mb-5 max-w-xl mx-auto">
-                Позвоните нам или напишите в мессенджер - поможем разобраться и направим к нужному специалисту.
+                Позвоните нам или напишите в мессенджер - поможем с маршрутом и подскажем, с чего лучше начать.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">

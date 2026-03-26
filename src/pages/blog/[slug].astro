@@ -61,13 +61,16 @@ const updatedDate = post.data.updatedDate
     })
   : null
 
-// SEO/GEO: fallback для ключевых слов с геопривязкой
+// SEO: blog pages keep a nationwide informational intent by default.
 const seoKeywords = post.data.keywords
   ? post.data.keywords
-  : `${post.data.category}, ${post.data.title}, СПб, Санкт-Петербург, Клиника Одинцова`
+  : `${post.data.category}, ${post.data.title}, Клиника Одинцова`
 
 const canonicalUrl = `https://odintsovclinic.ru/blog/${post.slug}`
 const ogImageUrl = normalizeImageUrl(post.data.image)
+const hasLocalSignals = /санкт-петербург|спб|приморский район|комендантский|старая деревня/i.test(
+  `${post.data.description} ${seoKeywords} ${post.data.tags.join(' ')}`
+)
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -108,16 +111,18 @@ const articleSchema = {
     '@type': 'MedicalAudience',
     audienceType: 'Patient',
   },
-  spatialCoverage: {
-    '@type': 'Place',
-    name: 'Санкт-Петербург',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Санкт-Петербург',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
+  ...(hasLocalSignals && {
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'Санкт-Петербург',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Санкт-Петербург',
+        addressRegion: 'Санкт-Петербург',
+        addressCountry: 'RU',
+      },
     },
-  },
+  }),
   ...(post.data.image && {
     image: {
       '@type': 'ImageObject',
@@ -234,12 +239,12 @@ const breadcrumbItems = [
 
         <footer class="mt-14 pt-10 border-t border-gray-100">
           <div class="clay-card clay-card-mint p-8 md:p-10 text-center mt-8">
-            <h2 class="text-xl font-bold text-white mb-3">Остались вопросы?</h2>
+            <h2 class="text-xl font-bold text-white mb-3">Нужен очный разбор ситуации?</h2>
             <p class="text-white/85 mb-6 max-w-md mx-auto">
-              Запишитесь на консультацию к специалисту - получите персональный ответ на вашу ситуацию.
+              Статья помогает сориентироваться, но тактику лечения и объём обследования лучше обсуждать на очной консультации. Если вы в Санкт-Петербурге, подскажем удобный маршрут визита.
             </p>
             <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-block">
-              Записаться на приём
+              Записаться на консультацию
             </a>
           </div>
 
@@ -289,9 +294,9 @@ const breadcrumbItems = [
 
         <div class="clay-card clay-card-soft-mint p-5 mb-5">
           <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Запись на приём</p>
-          <p class="text-sm text-clay-muted mb-4 leading-relaxed">Получите консультацию специалиста по вашей ситуации</p>
+          <p class="text-sm text-clay-muted mb-4 leading-relaxed">Если нужен очный маршрут в Санкт-Петербурге, поможем подобрать специалиста и формат визита.</p>
           <a href="/#appointment" data-booking-btn="true" class="btn-clay-primary block text-center text-sm py-2.5">
-            Записаться
+            Уточнить очный приём
           </a>
         </div>
 

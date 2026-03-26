@@ -63,25 +63,25 @@ const ALL_CATEGORIES = ['Все', 'Маммология', 'Гинекологи�
 const TV_VIDEOS = [
   {
     title: 'Одинцов о ВАБ на телевидении',
-    desc: 'Интервью о вакуумно-аспирационной биопсии — топ-манипуляции клиники',
+    desc: 'Интервью о вакуумно-аспирационной биопсии и маршруте пациентки.',
     channel: 'ТВ-эфир',
     date: '2025',
   },
   {
     title: 'Маммология без мифов',
-    desc: 'Врач клиники развенчивает популярные мифы о заболеваниях молочной железы',
+    desc: 'Комментарий врача о распространённых мифах и клинической практике.',
     channel: 'ТВ-эфир',
     date: '2025',
   },
   {
     title: 'Гормоны под контролем',
-    desc: 'Как работает щитовидная железа и почему важен регулярный чек-ап',
+    desc: 'Как работает щитовидная железа и когда имеет смысл обследование.',
     channel: 'ТВ-эфир',
     date: '2025',
   },
   {
     title: 'Женское здоровье после 40',
-    desc: 'Особенности гормональной перестройки и современная профилактика',
+    desc: 'Как меняются задачи профилактики и наблюдения в зрелом возрасте.',
     channel: 'ТВ-эфир',
     date: '2025',
   }
@@ -119,9 +119,9 @@ const itemListSchema = {
 ---
 
 <Layout
-  title="Блог - статьи о здоровье | Клиника Одинцова"
-  description="Полезные статьи о маммологии, гинекологии, эндокринологии и нутрициологии от врачей Клиники Одинцова в Санкт-Петербурге. Советы специалистов, ответы на частые вопросы."
-  keywords="блог клиника Одинцова, статьи о маммологии СПб, статьи о гинекологии Санкт-Петербург, статьи о щитовидной железе, советы маммолога СПб, гинеколог СПб, эндокринолог СПб"
+  title="Блог и клинические разборы | Клиника Одинцова"
+  description="Статьи, клинические разборы и ответы врачей Клиники Одинцова. Материалы для пациентов из разных регионов России, с мягким локальным маршрутом в Санкт-Петербурге."
+  keywords="блог клиники, клинические разборы, статьи о маммологии, статьи о гинекологии, статьи об эндокринологии, диагностика"
   canonicalUrl="https://odintsovclinic.ru/blog"
 >
   <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />
@@ -132,10 +132,13 @@ const itemListSchema = {
 
     <div class="mb-10 text-center md:text-left">
       <h1 class="text-3xl md:text-5xl font-extrabold text-clay-text mb-4 tracking-tight">
-        Блог клиники
+        Блог и клинические разборы
       </h1>
-      <p class="text-clay-muted text-lg md:text-xl max-w-3xl mx-auto md:mx-0">
-        Статьи, клинические случаи и события от врачей Клиники Одинцова. Разбираем сложные медицинские темы простым языком.
+      <p class="text-clay-muted text-lg md:text-xl max-w-3xl mx-auto md:mx-0 leading-relaxed">
+        Статьи, клинические случаи и комментарии врачей. Разбираем медицинские темы спокойно и точно, без лишнего рекламного тона.
+      </p>
+      <p class="text-sm text-clay-muted mt-3 max-w-3xl mx-auto md:mx-0">
+        Блог полезен читателям из любого региона России. Если вы в Санкт-Петербурге, в финальных блоках подскажем очную маршрутизацию и запись на приём.
       </p>
     </div>
 
@@ -149,14 +152,14 @@ const itemListSchema = {
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
             </svg>
           </div>
-          <h2 class="text-2xl font-bold text-clay-text tracking-tight">Врачи клиники на телевидении</h2>
+          <h2 class="text-2xl font-bold text-clay-text tracking-tight">Выступления врачей в медиа</h2>
         </div>
         <div class="hidden sm:flex gap-2">
           {/* Кнопки скролла */}
-          <button type="button" id="prev-video-btn" aria-label="Предыдущее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-muted hover:text-clay-teal hover:border-clay-teal transition-colors cursor-pointer">
+          <button type="button" id="prev-video-btn" aria-label="Предыдущее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-muted hover:text-clay-teal hover:border-clay-teal transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint/40 focus-visible:ring-offset-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <button type="button" id="next-video-btn" aria-label="Следующее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-teal hover:bg-clay-teal hover:text-white transition-colors cursor-pointer">
+          <button type="button" id="next-video-btn" aria-label="Следующее видео" class="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm border border-gray-100 text-clay-teal hover:bg-clay-teal hover:text-white transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint/40 focus-visible:ring-offset-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -165,7 +168,7 @@ const itemListSchema = {
       {/* Скроллируемый контейнер (карусель) */}
       <div id="video-carousel" class="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
         {TV_VIDEOS.map((video) => (
-          <div class="clay-card-soft-blue clay-card p-6 flex flex-col gap-4 min-w-[280px] w-[85%] sm:w-[350px] lg:w-[400px] snap-center flex-shrink-0 hover:-translate-y-1 transition-transform duration-300">
+          <div class="clay-card-soft-blue clay-card p-6 flex flex-col gap-4 min-w-[280px] w-[85%] sm:w-[350px] lg:w-[400px] snap-center flex-shrink-0 hover:-translate-y-0.5 transition-transform duration-300">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full text-sky-700 bg-sky-100/80">
                 {video.channel}
@@ -200,7 +203,8 @@ const itemListSchema = {
         <button
           type="button"
           data-filter={cat}
-          class={`category-filter-btn inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold cursor-pointer transition-all hover:scale-105 hover:shadow-md ${
+          aria-pressed={i === 0}
+          class={`category-filter-btn inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold cursor-pointer transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint/40 focus-visible:ring-offset-2 ${
             i === 0 ? 'active-filter' : ''
           }`}
         >
@@ -232,7 +236,7 @@ const itemListSchema = {
                 href={`/blog/${post.slug}`}
                 data-post-card
                 data-category={post.data.category}
-                class={`${cardColor} clay-card flex flex-col p-0 overflow-hidden hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 no-underline group border border-white/40`}
+                class={`${cardColor} clay-card flex flex-col p-0 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 no-underline group border border-white/40`}
               >
                 {/* Изображение карточки */}
                 <div class="w-full h-52 overflow-hidden relative bg-gray-100">
@@ -289,11 +293,11 @@ const itemListSchema = {
 
     {/* CTA в онлайн-сервис клиники */}
     <div class="grid gap-6 md:grid-cols-2 mb-10">
-      <div class="clay-card-soft-mint clay-card p-8 md:p-10 text-center flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300">
+      <div class="clay-card-soft-mint clay-card p-8 md:p-10 text-center flex flex-col items-center justify-center hover:shadow-lg transition-shadow duration-300">
         <div class="w-16 h-16 rounded-full bg-white/60 flex items-center justify-center mb-5 text-emerald-600 shadow-sm">
            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <h2 class="text-2xl font-bold text-clay-dark mb-3">Онлайн-сервис пациента</h2>
+        <h2 class="text-2xl font-bold text-clay-dark mb-3">Личный кабинет пациента</h2>
         <p class="text-clay-muted mb-8 text-base leading-relaxed max-w-sm">
           Если вы уже пользуетесь внешним сервисом МедТочка, здесь можно авторизоваться и перейти к своим данным.
         </p>
@@ -305,14 +309,14 @@ const itemListSchema = {
         </a>
       </div>
       
-      <div class="clay-card p-8 md:p-10 text-center flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
-        <div class="absolute -right-6 -top-6 w-32 h-32 bg-sky-50 rounded-full blur-2xl opacity-60"></div>
+      <div class="clay-card p-8 md:p-10 text-center flex flex-col items-center justify-center hover:shadow-lg transition-shadow duration-300 relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-32 h-32 bg-sky-50 rounded-full blur-2xl opacity-40"></div>
         <div class="w-16 h-16 rounded-full bg-sky-50 flex items-center justify-center mb-5 text-sky-600 shadow-sm">
            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         </div>
-        <h2 class="text-2xl font-bold text-clay-dark mb-3">Есть вопрос к врачу?</h2>
+        <h2 class="text-2xl font-bold text-clay-dark mb-3">Нужна очная консультация?</h2>
         <p class="text-clay-muted mb-8 text-base leading-relaxed max-w-sm relative z-10">
-          Запишитесь на консультацию — наши специалисты ответят на все вопросы лично в день обращения.
+          Если вы в Санкт-Петербурге, подскажем профильного специалиста и удобное время визита.
         </p>
         <button type="button" data-booking-btn="true" class="btn-clay-secondary inline-flex items-center gap-2.5 px-8 py-3.5 text-base w-full sm:w-auto justify-center relative z-10">
           Записаться на приём
@@ -324,14 +328,19 @@ const itemListSchema = {
 
   <style is:global>
     .category-filter-btn {
-      background: rgba(78, 200, 168, 0.08);
-      color: #2BA888;
-      border: 1px solid rgba(78, 200, 168, 0.2);
+      background: rgba(255, 255, 255, 0.82);
+      color: #27453f;
+      border: 1px solid rgba(47, 143, 124, 0.18);
+      box-shadow: 0 8px 18px rgba(36, 55, 51, 0.04);
     }
     .category-filter-btn.active-filter {
-      background: #2BA888;
+      background: #27453f;
       color: white;
-      border-color: #2BA888;
+      border-color: #27453f;
+    }
+    .category-filter-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(47, 143, 124, 0.22);
     }
   </style>
 
@@ -346,8 +355,10 @@ const itemListSchema = {
           btn.onclick = () => {
             // Убираем активный класс у всех
             filterBtns.forEach(b => b.classList.remove('active-filter'));
+            filterBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
             // Добавляем нажатой кнопке
             btn.classList.add('active-filter');
+            btn.setAttribute('aria-pressed', 'true');
 
             const selectedCategory = btn.getAttribute('data-filter');
 

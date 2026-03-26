@@ -36,7 +36,7 @@ describe('Footer', () => {
 
   it('renders appointment CTA button (opens booking modal)', () => {
     render(<Footer />)
-    const cta = screen.getByRole('button', { name: /записаться онлайн/i })
+    const cta = screen.getByRole('button', { name: /записаться на приём/i })
     expect(cta).toHaveAttribute('data-booking-btn', 'true')
   })
 
@@ -44,6 +44,11 @@ describe('Footer', () => {
     render(<Footer />)
     const addressElements = screen.getAllByText(/Богатырский/i)
     expect(addressElements.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('mentions the Primorsky district in the contact block', () => {
+    render(<Footer />)
+    expect(screen.getAllByText(/приморский район/i).length).toBeGreaterThan(0)
   })
 
   it('renders working hours', () => {

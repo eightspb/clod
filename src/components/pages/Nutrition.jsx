@@ -1,11 +1,11 @@
-import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users } from 'lucide-react'
+import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users, Clock } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 
 export const NUTRITION_FAQ = [
   {
     question: 'Чем занимается нутрициолог?',
-    answer: 'Нутрициолог анализирует ваш рацион, образ жизни и анализы для составления индивидуального плана питания. Мы помогаем скорректировать дефициты, снизить вес, улучшить самочувствие и пищеварение с помощью научно доказанных методов.',
+    answer: 'Нутрициолог анализирует рацион, образ жизни и результаты анализов, чтобы составить индивидуальный план питания. Мы помогаем скорректировать дефициты и выстроить питание с опорой на доказательные подходы и реальные цели.',
   },
   {
     question: 'Нужно ли сдавать анализы перед приёмом?',
@@ -17,11 +17,11 @@ export const NUTRITION_FAQ = [
   },
   {
     question: 'Помогаете ли вы при эндокринных нарушениях?',
-    answer: 'Да, питание играет ключевую роль при инсулинорезистентности, гипотиреозе, СПКЯ и других состояниях. Наш нутрициолог работает в тесной связке с эндокринологом клиники для достижения наилучших результатов.',
+    answer: 'Да, питание играет важную роль при инсулинорезистентности, гипотиреозе, СПКЯ и других состояниях. Наш нутрициолог работает в тесной связке с эндокринологом клиники, чтобы тактика питания была согласована с медицинским планом.',
   },
   {
     question: 'Как часто нужно посещать нутрициолога?',
-    answer: 'Обычно достаточно 2-3 консультаций: первичная для сбора информации, повторная для разбора анализов и выдачи плана питания, и контрольная через 1-2 месяца для оценки результатов и корректировки плана.',
+    answer: 'Обычно достаточно 2-3 консультаций: первичная для сбора информации, повторная для разбора анализов и выдачи плана питания, и контрольная через 1-2 месяца для оценки динамики и корректировки плана.',
   },
 ]
 
@@ -30,9 +30,9 @@ const features = [
     icon: <Target size={22} className="text-white" />,
     bg: 'icon-circle-mint',
     card: 'clay-card-soft-mint',
-    title: 'Персональный подход',
-    subtitle: 'План под ваши цели и образ жизни',
-    desc: 'Мы не выдаём шаблонные меню на неделю. Ваш рацион будет учитывать ваши вкусовые предпочтения, бюджет, график работы и наличие сопутствующих заболеваний.',
+    title: 'Персональный план',
+    subtitle: 'Под цели, ритм и ограничения',
+    desc: 'Мы не выдаём шаблонные меню на неделю. Рацион учитывает предпочтения, бюджет, график и сопутствующие состояния.',
     badge: 'Индивидуально',
   },
   {
@@ -40,17 +40,17 @@ const features = [
     bg: 'icon-circle-blue',
     card: 'clay-card-soft-blue',
     title: 'Доказательная база',
-    subtitle: 'Без БАДов "на всякий случай"',
-    desc: 'Опираемся на современные клинические рекомендации и научные данные. Назначаем добавки только при подтверждённых дефицитах, а основу здоровья строим через полноценный рацион.',
+    subtitle: 'Без добавок "на всякий случай"',
+    desc: 'Опираемся на современные клинические рекомендации и назначаем добавки только при подтверждённых дефицитах.',
     badge: 'Только наука',
   },
   {
     icon: <Zap size={22} className="text-white" />,
     bg: 'icon-circle-peach',
     card: 'clay-card-soft-peach',
-    title: 'Комфортное внедрение',
-    subtitle: 'Без срывов и чувства вины',
-    desc: 'Работаем с пищевым поведением бережно. Помогаем выстроить здоровые отношения с едой, избавиться от тяги к сладкому и компульсивных перееданий без жёстких ограничений.',
+    title: 'Постепенные изменения',
+    subtitle: 'Без жёстких ограничений',
+    desc: 'Работаем с пищевым поведением бережно и без давления, чтобы новые привычки были устойчивыми в повседневной жизни.',
     badge: 'Бережно',
   },
 ]
@@ -79,7 +79,7 @@ const myths = [
   },
   {
     myth: '«У меня плохая генетика, питание не поможет»',
-    truth: 'Генетика влияет лишь на часть факторов. Правильно подобранный рацион и образ жизни способны значительно улучшить здоровье и качество жизни при любой генетике.',
+    truth: 'Генетика влияет лишь на часть факторов. Правильно подобранный рацион и образ жизни могут заметно улучшить самочувствие и повседневную устойчивость привычек.',
   },
 ]
 
@@ -92,17 +92,17 @@ export function Nutrition() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(78,200,168,0.18)', color: '#2B8A72' }}>
               <Apple size={12} />
-              Нутрициология и превентивная медицина
+              Нутрициология
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
               Нутрициология в Санкт-Петербурге:{' '}
-              <span className="text-clay-mint">здоровье и энергия</span> через правильное питание
+              <span className="text-clay-mint">персональный план питания</span> без жёстких диет
             </h1>
             <p className="text-lg text-clay-muted font-medium mb-3">
-              «Устал от постоянных диет, срывов и отсутствия энергии»
+              Если хочется выстроить питание спокойно и без крайностей, начнём с анализа привычек и результатов обследований
             </p>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Еда — это основа вашего самочувствия. Мы помогаем нормализовать вес, восполнить дефициты и вернуть радость к жизни без жёстких ограничений и бесполезных БАДов.
+              Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Сначала оцениваем привычки и дефициты, затем обсуждаем реалистичный план.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #88DFB8, #4EC8A8)', boxShadow: '10px 10px 24px hsl(160, 15%, 70%), inset -4px -4px 9px hsla(160, 30%, 45%, 0.65), inset 0px 7px 14px hsla(160, 60%, 90%, 0.5)' }}>
@@ -122,10 +122,10 @@ export function Nutrition() {
         <div className="container-clay">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { val: 'Персонально', label: 'подбираем рацион под образ жизни и цели' },
-              { val: '0', label: 'жёстких диет и запретов как основы подхода' },
+              { val: 'План', label: 'подбираем рацион под образ жизни и цели' },
+              { val: 'Без диет', label: 'жёстких ограничений как основы подхода' },
               { val: '2–3', label: 'консультации для старта и корректировки плана' },
-              { val: 'EBM', label: 'доказательная база' },
+              { val: 'Доказательно', label: 'опираемся на клинические рекомендации' },
             ].map((s) => (
               <div key={s.label} className="clay clay-card p-4 text-center">
                 <div className="text-3xl sm:text-4xl font-extrabold text-clay-mint leading-none mb-1.5">{s.val}</div>
@@ -141,7 +141,7 @@ export function Nutrition() {
         <div className="container-clay">
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Наш подход к питанию</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Научно обоснованные методы для долгосрочного результата</p>
+            <p className="text-clay-muted max-w-lg mx-auto">Научно обоснованный разбор питания, анализов и привычек без перегрузки и давления</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {features.map((f) => (
@@ -165,9 +165,9 @@ export function Nutrition() {
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
-              <h2 className="text-2xl font-extrabold text-clay-dark mb-4">С чем мы помогаем</h2>
+              <h2 className="text-2xl font-extrabold text-clay-dark mb-4">С чем можно обратиться</h2>
               <p className="text-clay-muted text-sm leading-relaxed mb-5">
-                Комплексная работа с питанием при различных состояниях здоровья и для достижения ваших целей
+                Работаем с питанием при различных состояниях здоровья и при запросе на более устойчивые привычки
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {conditions.map((c) => (
@@ -180,7 +180,7 @@ export function Nutrition() {
             </div>
             <div className="space-y-4">
               <h2 className="text-2xl font-extrabold text-clay-dark mb-2">Мифы о питании</h2>
-              <p className="text-clay-muted text-sm mb-4">Разрушаем популярные стереотипы доказательной медициной</p>
+              <p className="text-clay-muted text-sm mb-4">Спокойно разбираем популярные стереотипы и оставляем только то, что работает на практике</p>
               {myths.map((m, i) => (
                 <div key={i} className="clay clay-card p-5">
                   <p className="font-semibold text-clay-dark text-sm mb-2">{m.myth}</p>
@@ -203,7 +203,7 @@ export function Nutrition() {
                   Персональный план питания
                 </h2>
                 <p className="text-white/90 leading-relaxed mb-5">
-                  Это не распечатка стандартной диеты из интернета. Мы анализируем ваш дневник питания, анализы и образ жизни, чтобы создать пошаговое руководство, которое будет работать именно для вас.
+                  Это не распечатка стандартной диеты из интернета. Мы анализируем ваш дневник питания, анализы и образ жизни, чтобы создать последовательный план, который реально вписать в повседневность.
                 </p>
                 <div className="space-y-3">
                   {[
@@ -223,7 +223,7 @@ export function Nutrition() {
                 {[
                   { q: 'Нужно ли считать калории?', a: 'Не обязательно. Мы предлагаем разные методы: правило тарелки, порции с ладонь, интуитивное питание.' },
                   { q: 'Можно ли есть сладкое?', a: 'Да! Мы поможем вписать любимые десерты в рацион так, чтобы они не мешали результату.' },
-                  { q: 'Как долго соблюдать план?', a: 'План разрабатывается так, чтобы стать вашим образом жизни навсегда, а не временной диетой.' },
+                  { q: 'Как долго соблюдать план?', a: 'План пересматривается в динамике и может меняться вместе с вашими целями и состоянием здоровья.' },
                 ].map((faq) => (
                   <div key={faq.q} className="bg-white/20 rounded-2xl p-4">
                     <p className="font-bold text-white text-sm mb-1">- {faq.q}</p>
@@ -240,8 +240,8 @@ export function Nutrition() {
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на нутрициологию</h2>
-            <p className="text-clay-muted">Инвестиции в ваше здоровье и энергию</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Ориентировочные цены на нутрициологию</h2>
+            <p className="text-clay-muted">Стоимость зависит от формата консультации и объёма сопровождения</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {[
@@ -268,7 +268,7 @@ export function Nutrition() {
       <section className="section">
         <div className="container-clay">
           <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="/doctors" className="clay clay-card-soft-mint p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <Users size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div>
@@ -283,11 +283,18 @@ export function Nutrition() {
                 <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все услуги клиники</p>
               </div>
             </a>
+            <a href="/contacts" className="clay clay-card-soft-blue p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+              <Clock size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-clay-dark text-sm mb-1">Как добраться</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Адрес, район и удобные ориентиры для визита</p>
+              </div>
+            </a>
             <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div className="text-left">
                 <p className="font-bold text-clay-dark text-sm mb-1">Записаться на приём</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Ответим в Telegram в течение 2 минут</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Поможем выбрать удобное время и формат визита</p>
               </div>
             </button>
           </div>
@@ -300,10 +307,10 @@ export function Nutrition() {
           <div className="clay clay-card-soft-mint p-6 md:p-8 text-center">
             <Apple size={40} className="text-clay-mint mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-              Готовы изменить жизнь к лучшему?
+              Нужен спокойный план питания без крайностей?
             </h2>
             <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Запишитесь к нашему нутрициологу. Разберёмся в причине ваших жалоб и предложим конкретный план действий.
+              Запишитесь к нутрициологу. Разберём жалобы, дефициты и привычки, чтобы предложить реалистичный план.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2" style={{ background: 'linear-gradient(145deg, #88DFB8, #4EC8A8)', boxShadow: '10px 10px 24px hsl(160, 15%, 70%), inset -4px -4px 9px hsla(160, 30%, 45%, 0.65), inset 0px 7px 14px hsla(160, 60%, 90%, 0.5)' }}>

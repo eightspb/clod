@@ -7,6 +7,29 @@ import { FOOTER_LINKS } from '../lib/nav.js'
 import { CLINIC_FACTS } from '../lib/clinic-info.js'
 
 const FACT_ICONS = { Zap, Award, Clock, MapPin }
+const FACT_COPY = {
+  'Технология ВАБ': {
+    title: 'ВАБ как щадящая технология',
+    desc: 'Процедуру проводим по показаниям и с понятным обсуждением альтернатив.',
+  },
+  'Опытные доктора': {
+    title: 'Опытные врачи',
+    desc: 'Средний стаж специалистов около 15 лет. Решения принимаем на основании клинической картины и обследований.',
+  },
+  'Быстрый сервис': {
+    title: 'Организация без задержек',
+    desc: 'Помогаем с записью и обратной связью в рабочее время без лишней суеты.',
+  },
+  'Удобное расположение': {
+    title: 'Удобный маршрут',
+    desc: 'Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добраться от метро «Комендантский проспект» и «Старая Деревня».',
+  },
+}
+
+const FOOTER_FACTS = CLINIC_FACTS.map((fact) => ({
+  ...fact,
+  ...(FACT_COPY[fact.title] ?? {}),
+}))
 
 export function Footer() {
   return (
@@ -14,17 +37,19 @@ export function Footer() {
       <div className="container-clay">
         {/* Key facts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {CLINIC_FACTS.map((fact) => {
+          {FOOTER_FACTS.map((fact) => {
             const Icon = FACT_ICONS[fact.iconName]
             return (
-              <div key={fact.title} className={`clay ${fact.color} p-5`}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center">
-                    <Icon size={22} className="text-white" />
+              <div key={fact.title} className={`clay ${fact.color} p-4 overflow-hidden`}>
+                <div className="rounded-[16px] bg-white/74 backdrop-blur-sm p-4 h-full">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-clay-card flex items-center justify-center shadow-sm">
+                      <Icon size={22} className="text-clay-ink" />
+                    </div>
                   </div>
+                  <h4 className="font-bold text-clay-ink text-sm mb-1.5">{fact.title}</h4>
+                  <p className="text-clay-text text-xs leading-relaxed">{fact.desc}</p>
                 </div>
-                <h4 className="font-bold text-white text-sm mb-1.5">{fact.title}</h4>
-                <p className="text-white/85 text-xs leading-relaxed">{fact.desc}</p>
               </div>
             )
           })}
@@ -45,7 +70,7 @@ export function Footer() {
                 />
               </div>
               <p className="text-sm text-clay-muted leading-relaxed mb-5">
-                Высокие технологии ВАБ и доказательный подход в маммологии, гинекологии, эндокринологии и нутрициологии.
+                Клиника экспертной медицины в Санкт-Петербурге: маммология, гинекология, эндокринология и нутрициология. Приём ведём по показаниям, с понятным маршрутом и без лишних назначений.
               </p>
               <div className="flex gap-3">
                 <a
@@ -120,6 +145,7 @@ export function Footer() {
                     <p className="text-sm font-semibold text-clay-dark">
                       {ADDRESS}
                     </p>
+                    <p className="text-xs text-clay-muted mt-0.5">Приморский район</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -134,7 +160,7 @@ export function Footer() {
                 </div>
               </div>
               <button type="button" id="footer-booking-btn" data-booking-btn="true" className="clay btn-clay-primary mt-5 w-full flex justify-center text-sm py-3">
-                Записаться онлайн
+                Записаться на приём
               </button>
             </div>
           </div>
