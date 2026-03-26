@@ -6,7 +6,7 @@ import { validateOrigin } from '../../lib/auth.js'
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const TAX_FORM_TO_EMAIL = 'info@odintsovclinic.ru'
+const TAX_FORM_TO_EMAIL = 'info@odintsovclinic.ru, vbazarbaev@gmail.com'
 const submissionsByIp = new Map()
 
 function jsonResponse(payload, status, headers = {}) {

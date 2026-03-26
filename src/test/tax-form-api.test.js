@@ -175,7 +175,7 @@ describe('POST /api/tax-form', () => {
     expect(limitedResponse.headers.get('Retry-After')).toBeTruthy()
   })
 
-  it('sends sanitized application details to info@odintsovclinic.ru', async () => {
+  it('sends sanitized application details to both clinic inboxes', async () => {
     sendMailMock.mockResolvedValue({})
     const { POST } = await loadHandler()
 
@@ -195,7 +195,9 @@ describe('POST /api/tax-form', () => {
       success: true,
     })
     expect(sendMailMock).toHaveBeenCalledTimes(1)
-    expect(sendMailMock.mock.calls[0][0].to).toBe('info@odintsovclinic.ru')
+    expect(sendMailMock.mock.calls[0][0].to).toBe(
+      'info@odintsovclinic.ru, vbazarbaev@gmail.com'
+    )
     expect(sendMailMock.mock.calls[0][0].html).toContain('Иванова &lt;Мария&gt;')
     expect(sendMailMock.mock.calls[0][0].html).toContain('Иванов Сергей&lt;script&gt;')
     expect(sendMailMock.mock.calls[0][0].html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
