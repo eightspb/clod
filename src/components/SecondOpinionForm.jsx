@@ -1,6 +1,76 @@
 import { useState } from 'react'
 import { Shield, Paperclip, X, AlertCircle, CheckCircle } from 'lucide-react'
 
+const MAX_FILES = 5
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+const MAX_TOTAL_FILE_SIZE_BYTES = 25 * 1024 * 1024
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'jpg', 'jpeg', 'png'])
+const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+
+function getFileExtension(filename) {
+  const parts = filename.toLowerCase().split('.')
+  return parts.length > 1 ? parts.at(-1) : ''
+}
+
+function isAllowedFile(file) {
+  const extension = getFileExtension(file.name || '')
+  const mimeType = (file.type || '').toLowerCase()
+
+  if (!ALLOWED_EXTENSIONS.has(extension)) {
+    return false
+  }
+
+  if (!mimeType) {
+    return true
+  }
+
+  return ALLOWED_MIME_TYPES.has(mimeType)
+}
+
+function validateFiles(files) {
+  if (!files.length) {
+    return 'Прикрепите хотя бы один файл.'
+  }
+
+  if (files.length > MAX_FILES) {
+    return `Можно прикрепить не более ${MAX_FILES} файлов.`
+  }
+
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0)
+  if (totalSize > MAX_TOTAL_FILE_SIZE_BYTES) {
+    return 'Суммарный размер файлов не должен превышать 25 МБ.'
+  }
+
+  for (const file of files) {
+    if (!isAllowedFile(file)) {
+      return 'Можно прикрепить только PDF, JPG, JPEG или PNG.'
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return 'Размер одного файла не должен превышать 10 МБ.'
+    }
+  }
+
+  return ''
+}
+
+async function getErrorMessage(response) {
+  try {
+    const payload = await response.json()
+    if (payload?.error?.details?.length) {
+      return payload.error.details.map(({ message }) => message).join(' ')
+    }
+
+    if (payload?.error?.message) {
+      return payload.error.message
+    }
+  } catch {
+    // Ignore malformed error payloads and use a generic fallback below.
+  }
+
+  return 'Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.'
+}
+
 export function SecondOpinionForm({ onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -8,26 +78,47 @@ export function SecondOpinionForm({ onClose }) {
   const [files, setFiles] = useState([])
 
   const handleFileChange = (e) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files)
-      // Basic validation: max 5 files, ~5MB each limit could be added here
-      setFiles((prev) => [...prev, ...selectedFiles].slice(0, 5)) // max 5 files
+    if (!e.target.files) return
+
+    const selectedFiles = Array.from(e.target.files)
+    const nextFiles = [...files, ...selectedFiles]
+    const validationMessage = validateFiles(nextFiles)
+
+    if (validationMessage) {
+      setErrorMsg(validationMessage)
+      e.target.value = ''
+      return
     }
+
+    setFiles(nextFiles)
+    setErrorMsg('')
+    e.target.value = ''
   }
 
   const removeFile = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index))
+    setFiles((prev) => {
+      const nextFiles = prev.filter((_, i) => i !== index)
+      if (errorMsg) {
+        setErrorMsg(validateFiles(nextFiles))
+      }
+      return nextFiles
+    })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorMsg('')
+
+    const validationMessage = validateFiles(files)
+    if (validationMessage) {
+      setErrorMsg(validationMessage)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const formData = new FormData(e.target)
-      
-      // Remove any previously appended files from FormData and append current state files
+      const formData = new FormData(e.currentTarget)
       formData.delete('files')
       files.forEach((file) => {
         formData.append('files', file)
@@ -39,7 +130,7 @@ export function SecondOpinionForm({ onClose }) {
       })
 
       if (!res.ok) {
-        throw new Error('Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.')
+        throw new Error(await getErrorMessage(res))
       }
 
       setIsSuccess(true)
@@ -90,7 +181,7 @@ export function SecondOpinionForm({ onClose }) {
       </p>
 
       {errorMsg && (
-        <div className="clay clay-card-soft-peach p-3 mb-5 flex items-start gap-2.5 text-clay-text text-sm">
+        <div role="alert" className="clay clay-card-soft-peach p-3 mb-5 flex items-start gap-2.5 text-clay-text text-sm">
           <AlertCircle size={18} className="text-clay-peach flex-shrink-0 mt-0.5" />
           <p>{errorMsg}</p>
         </div>
@@ -203,7 +294,7 @@ export function SecondOpinionForm({ onClose }) {
 
         <div>
           <label className="block text-sm font-semibold text-clay-dark mb-1.5">
-            Прикрепить документы (до 5 файлов) <span className="text-clay-peach">*</span>
+            Прикрепить документы (до {MAX_FILES} файлов) <span className="text-clay-peach">*</span>
           </label>
           
           <div className="clay clay-card-soft-mint border border-dashed border-clay-mint/30 p-3 rounded-xl bg-white/50">
@@ -212,14 +303,14 @@ export function SecondOpinionForm({ onClose }) {
               id="file-upload"
               multiple
               onChange={handleFileChange}
-              disabled={isSubmitting || files.length >= 5}
+              disabled={isSubmitting || files.length >= MAX_FILES}
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              accept=".pdf,.jpg,.jpeg,.png"
             />
             <label
               htmlFor="file-upload"
               className={`flex items-center justify-center gap-2 w-full py-2 rounded-lg border-2 border-transparent font-semibold text-sm transition-all cursor-pointer ${
-                files.length >= 5 || isSubmitting
+                files.length >= MAX_FILES || isSubmitting
                   ? 'bg-clay-bg text-clay-muted opacity-50 cursor-not-allowed'
                   : 'bg-white text-clay-mint shadow-sm hover:shadow-md'
               }`}
@@ -249,7 +340,7 @@ export function SecondOpinionForm({ onClose }) {
             )}
             
             <p className="text-xs text-clay-muted mt-2 text-center">
-              PDF, JPG, PNG, DOC (до 10 МБ на файл)
+              PDF, JPG, JPEG, PNG. До 10 МБ на файл, суммарно до 25 МБ.
             </p>
           </div>
         </div>
