@@ -1,5 +1,6 @@
 import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users, Clock } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
+import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { FaqSection } from '../FaqSection.jsx'
 
 export const NUTRITION_FAQ = [
@@ -82,6 +83,7 @@ const myths = [
     truth: 'Генетика влияет лишь на часть факторов. Правильно подобранный рацион и образ жизни могут заметно улучшить самочувствие и повседневную устойчивость привычек.',
   },
 ]
+const NUTRITION_PRICE_CATEGORY = getShortPriceCategoryBySlug('nutrition')
 
 export function Nutrition() {
   return (
@@ -244,20 +246,18 @@ export function Nutrition() {
             <p className="text-clay-muted">Стоимость зависит от формата консультации и объёма сопровождения</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {[
-              { name: 'Первичная консультация нутрициолога', price: 'от 3 500 ₽' },
-              { name: 'Повторная консультация (разбор анализов)', price: 'от 2 500 ₽' },
-              { name: 'Составление персонального плана питания', price: 'от 5 000 ₽' },
-              { name: 'Месячное сопровождение (ведение)', price: 'от 12 000 ₽' },
-            ].map((item) => (
+            {NUTRITION_PRICE_CATEGORY.items.map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
                 <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
-                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{item.price}</span>
+                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{formatPriceLabel(item.price, item.isFrom)}</span>
               </div>
             ))}
           </div>
+          <p className="text-xs text-clay-muted max-w-2xl mx-auto leading-relaxed mb-5">
+            {NUTRITION_PRICE_CATEGORY.note}
+          </p>
           <div className="text-center">
-            <a href="/prices" className="clay btn-clay-secondary text-sm">
+            <a href={NUTRITION_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
               Полный прайс-лист →
             </a>
           </div>
@@ -276,11 +276,11 @@ export function Nutrition() {
                 <p className="text-clay-muted text-xs leading-relaxed">Врачи доказательной медицины</p>
               </div>
             </a>
-            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <a href={NUTRITION_PRICE_CATEGORY.fullPriceHref} className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <CheckCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все услуги клиники</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Официальный полный прайс-лист клиники</p>
               </div>
             </a>
             <a href="/contacts" className="clay clay-card-soft-blue p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">

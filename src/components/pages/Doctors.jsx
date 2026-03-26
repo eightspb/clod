@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { FILTER_TABS, matchesFilter } from '../../lib/filters.js'
+import { FILTER_TABS, FILTER_BG, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
@@ -35,19 +35,27 @@ export function Doctors() {
         <section className="section pt-6 pb-0">
           <div className="container-clay">
             <div className="flex flex-wrap gap-2 justify-center">
-              {FILTER_TABS.map((tab) => {
+              {FILTER_TABS.map((tab, index) => {
                 const isActive = activeFilter === tab.id
+                const background = isActive ? FILTER_BG[index] : FILTER_BG_FLAT[index]
                 return (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveFilter(tab.id)}
                     aria-pressed={isActive}
-                    className={`inline-flex items-center rounded-full border px-5 py-2.5 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f3ef] ${
+                    className={`inline-flex items-center rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f3ef] ${
                       isActive
-                        ? 'bg-clay-dark text-white border-clay-dark shadow-sm'
-                        : 'bg-white/85 text-clay-dark border-clay-mint/15 hover:bg-clay-mint-pale hover:border-clay-mint/30'
+                        ? 'text-clay-dark -translate-y-0.5'
+                        : 'text-clay-dark hover:-translate-y-0.5'
                     }`}
+                    style={{
+                      background,
+                      borderColor: isActive ? 'rgba(78, 200, 168, 0.28)' : 'rgba(93, 115, 106, 0.12)',
+                      boxShadow: isActive
+                        ? '0 12px 24px rgba(77, 94, 86, 0.14), inset -3px -3px 8px rgba(255,255,255,0.55), inset 0 3px 6px rgba(255,255,255,0.3)'
+                        : '0 8px 18px rgba(77, 94, 86, 0.08), inset -2px -2px 6px rgba(255,255,255,0.45), inset 0 2px 5px rgba(255,255,255,0.22)',
+                    }}
                   >
                     {tab.label}
                   </button>

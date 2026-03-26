@@ -220,6 +220,7 @@ clod/
 │   │   ├── nav.js                 # Навигация: DIRECTIONS, NAV_ITEMS, FOOTER_LINKS
 │   │   ├── filters.js             # Фильтры докторов: FILTER_TABS, FILTER_BG, matchesFilter
 │   │   ├── clinic-info.js         # Данные клиники: CLINIC_FACTS, SERVICES, WHY_ITEMS
+│   │   ├── price-list.js          # Официальный и короткий прайс-лист клиники
 │   │   └── doctors-data.js        # Статические данные 9 докторов клиники
 │   ├── content/                   # Astro Content Collections
 │   │   ├── config.ts              # Схема коллекций (blog: title, description, author, tags…)
@@ -239,6 +240,8 @@ clod/
 │   │   ├── nutrition.astro        # /nutrition
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── prices.astro           # /prices
+│   │   ├── prices/
+│   │   │   └── full.astro         # /prices/full - полный официальный прайс-лист
 │   │   ├── vab.astro              # /vab - ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
 │   │   ├── contacts.astro         # /contacts - контакты с картой
 │   │   ├── blog/
@@ -322,6 +325,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/contacts` | `contacts.astro` | `Contacts.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
 | `/prices` | `prices.astro` | `Prices.jsx` |
+| `/prices/full` | `prices/full.astro` | - (Astro) |
 | `/doctors` | `doctors.astro` | `Doctors.jsx` |
 | `/doctors/[slug]` | `doctors/[slug].astro` | `DoctorPage.jsx` |
 | `/blog` | `blog/index.astro` | - (Astro) |

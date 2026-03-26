@@ -1,6 +1,7 @@
 import { ArrowRight, Heart, CheckCircle, Star, Clock, MessageCircle, Smile, Users } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
+import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
@@ -30,6 +31,7 @@ export const GYNECOLOGY_FAQ = [
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /^гинеколог/i.test(d.specialization)
 )
+const GYNECOLOGY_PRICE_CATEGORY = getShortPriceCategoryBySlug('gynecology')
 
 const features = [
   {
@@ -255,20 +257,15 @@ export function Gynecology({ servicesData = [] }) {
             <p className="text-clay-muted">Стоимость зависит от объёма осмотра и обследований, которые нужны по показаниям</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {[
-              { name: 'Первичная консультация гинеколога', price: 'от 3 500 ₽' },
-              { name: 'УЗИ органов малого таза', price: 'от 2 500 ₽' },
-              { name: 'Кольпоскопия', price: 'от 3 000 ₽' },
-              { name: 'ПЦР-диагностика ИППП (расширенная)', price: 'от 4 500 ₽' },
-            ].map((item) => (
+            {GYNECOLOGY_PRICE_CATEGORY.items.map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
                 <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
-                <span className="font-bold text-sm whitespace-nowrap" style={{ color: '#C07050' }}>{item.price}</span>
+                <span className="font-bold text-sm whitespace-nowrap" style={{ color: '#C07050' }}>{formatPriceLabel(item.price, item.isFrom)}</span>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <a href="/prices" className="clay btn-clay-secondary text-sm">
+            <a href={GYNECOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
               Полный прайс-лист →
             </a>
           </div>
@@ -287,11 +284,11 @@ export function Gynecology({ servicesData = [] }) {
                 <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и опытом в профильной помощи</p>
               </div>
             </a>
-            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <a href={GYNECOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <CheckCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все гинекологические услуги</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Официальный полный прайс-лист клиники по гинекологии</p>
               </div>
             </a>
             <a href="/contacts" className="clay clay-card-soft-blue p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">

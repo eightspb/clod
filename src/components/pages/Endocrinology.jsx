@@ -1,6 +1,7 @@
 import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle, Users, Clock } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
+import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
@@ -30,6 +31,7 @@ export const ENDOCRINOLOGY_FAQ = [
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /^эндокринолог/i.test(d.specialization)
 )
+const ENDOCRINOLOGY_PRICE_CATEGORY = getShortPriceCategoryBySlug('endocrinology')
 
 const features = [
   {
@@ -224,20 +226,15 @@ export function Endocrinology() {
             <p className="text-clay-muted">Точная стоимость зависит от объёма приёма и обследований, которые нужны по ситуации</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {[
-              { name: 'Первичная консультация эндокринолога', price: 'от 3 500 ₽' },
-              { name: 'Повторная консультация с разбором анализов', price: 'от 2 500 ₽' },
-              { name: 'УЗИ щитовидной железы', price: 'от 2 000 ₽' },
-              { name: 'Комплексный гормональный скрининг', price: 'от 5 000 ₽' },
-            ].map((item) => (
+            {ENDOCRINOLOGY_PRICE_CATEGORY.items.map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
                 <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
-                <span className="text-clay-blue font-bold text-sm whitespace-nowrap">{item.price}</span>
+                <span className="text-clay-blue font-bold text-sm whitespace-nowrap">{formatPriceLabel(item.price, item.isFrom)}</span>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <a href="/prices" className="clay btn-clay-secondary text-sm">
+            <a href={ENDOCRINOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
               Полный прайс-лист →
             </a>
           </div>
@@ -256,11 +253,11 @@ export function Endocrinology() {
                 <p className="text-clay-muted text-xs leading-relaxed">Специалисты с доказательным подходом и клиническим опытом</p>
               </div>
             </a>
-            <a href="/prices" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <a href={ENDOCRINOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
               <CheckCircle size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-bold text-clay-dark text-sm mb-1">Цены на услуги</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Полный прайс-лист на все эндокринологические услуги</p>
+                <p className="text-clay-muted text-xs leading-relaxed">Официальный полный прайс-лист клиники по эндокринологии</p>
               </div>
             </a>
             <a href="/contacts" className="clay clay-card-soft-peach p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">

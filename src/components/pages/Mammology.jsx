@@ -1,6 +1,7 @@
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
+import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 
@@ -34,6 +35,7 @@ export const MAMMOLOGY_FAQ = [
 const SPECIALTY_DOCTORS = DOCTORS.filter((d) =>
   /онколог-маммолог/i.test(d.specialization)
 )
+const MAMMOLOGY_PRICE_CATEGORY = getShortPriceCategoryBySlug('mammology')
 
 const features = [
   {
@@ -251,16 +253,10 @@ export function Mammology() {
             <p className="text-clay-muted">Понятная структура оплаты и маршрута пациента</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {[
-              { name: 'Первичная консультация онколога-маммолога', price: 'от 3 500 ₽' },
-              { name: 'УЗИ молочных желёз', price: 'от 2 500 ₽' },
-              { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 'от 80 000 ₽' },
-              { name: 'Удаление образований молочной железы по показаниям', price: 'уточняется' },
-              { name: 'Второе мнение онколога-маммолога', price: 'Бесплатно' },
-            ].map((item) => (
+            {MAMMOLOGY_PRICE_CATEGORY.items.map((item) => (
               <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
                 <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
-                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{item.price}</span>
+                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{formatPriceLabel(item.price, item.isFrom)}</span>
               </div>
             ))}
           </div>
@@ -268,7 +264,7 @@ export function Mammology() {
             В базовую стоимость ВАБ входят консультация, УЗИ и сама процедура. Анестезия, гистология, наблюдение и контрольный снимок обсуждаются отдельно после очной оценки.
           </p>
           <div className="text-center">
-            <a href="/prices" className="clay btn-clay-secondary text-sm">
+            <a href={MAMMOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
               Полный прайс-лист →
             </a>
           </div>

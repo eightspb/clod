@@ -1,0 +1,132 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
+import {
+  FULL_PRICE_CATEGORIES,
+  OFFICIAL_PRICE_LIST_UPDATED_AT,
+  buildFullPriceSchemaItems,
+  formatPriceLabel,
+  groupPriceItemsBySection,
+} from '../../lib/price-list.js'
+
+const fullPriceSchemaItems = buildFullPriceSchemaItems()
+
+const pricesSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Полный прайс-лист Клиники Одинцова',
+  description: 'Полный официальный прейскурант медицинских услуг Клиники Одинцова в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/prices/full',
+  numberOfItems: fullPriceSchemaItems.length,
+  itemListElement: fullPriceSchemaItems,
+}
+
+const categories = FULL_PRICE_CATEGORIES.map((category) => ({
+  ...category,
+  sections: groupPriceItemsBySection(category.items),
+}))
+---
+
+<Layout
+  title="Полный прайс-лист - Клиника Одинцова"
+  description="Полный официальный прайс-лист Клиники Одинцова: маммология, гинекология, эндокринология, хирургия, УЗИ и лабораторная диагностика."
+  keywords="полный прайс-лист Клиника Одинцова, официальный прейскурант клиники, цены маммология СПб, цены гинекология СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(pricesSchema)} />
+  <BreadcrumbNav items={[{ label: 'Цены', href: '/prices' }, { label: 'Полный прайс-лист' }]} />
+
+  <section class="relative overflow-hidden pt-8 pb-12">
+    <div class="container-clay relative z-10">
+      <div class="max-w-4xl">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style="background: rgba(47, 143, 124, 0.10); color: #2F8F7C;">
+          Официальный прейскурант
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
+          Полный прайс-лист клиники
+        </h1>
+        <p class="text-clay-muted leading-relaxed mb-4 max-w-3xl text-lg">
+          Здесь собраны все позиции из официального прайс-листа клиники с кодами услуг и стоимостью. Для удобства короткий прайс остаётся на отдельной странице.
+        </p>
+        <p class="text-sm text-clay-muted leading-relaxed mb-6 max-w-3xl">
+          Прейскурант ООО «Клиника Одинцова» от {OFFICIAL_PRICE_LIST_UPDATED_AT}. Если нужен быстрый ориентир по популярным услугам, используйте короткую версию прайса.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a href="/prices" class="clay btn-clay-secondary">
+            Короткий прайс-лист
+          </a>
+          <button type="button" data-booking-btn="true" class="clay btn-clay-primary gap-2">
+            Записаться на консультацию
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="container-clay">
+      <div class="clay clay-card p-5 md:p-6">
+        <div class="flex flex-wrap gap-3">
+          {categories.map((category) => (
+            <a
+              href={`#${category.slug}`}
+              class={`clay ${category.cardClass} px-4 py-3 text-sm font-semibold text-clay-dark hover:shadow-lg transition-shadow`}
+            >
+              <span class="mr-2" aria-hidden="true">{category.icon}</span>
+              {category.title}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="container-clay space-y-6">
+      {categories.map((category) => (
+        <section id={category.slug} class={`clay ${category.cardClass} p-5 md:p-6 scroll-mt-24`}>
+          <div class="flex items-start gap-3 mb-5">
+            <div class="text-3xl" aria-hidden="true">{category.icon}</div>
+            <div>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-2">{category.title}</h2>
+              <p class="text-clay-muted max-w-3xl">{category.description}</p>
+            </div>
+          </div>
+
+          <div class="space-y-5">
+            {category.sections.map((section) => (
+              <div class="clay clay-card bg-white/75 p-4 md:p-5">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  <h3 class="text-lg font-bold text-clay-dark">{section.title}</h3>
+                  <div class="text-xs text-clay-muted">{section.items.length} поз.</div>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full min-w-[720px] border-separate border-spacing-y-2">
+                    <thead>
+                      <tr class="text-left text-xs uppercase tracking-wide text-clay-muted">
+                        <th class="px-3 py-2">Код</th>
+                        <th class="px-3 py-2">Услуга</th>
+                        <th class="px-3 py-2 text-right">Стоимость</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.items.map((item) => (
+                        <tr class="bg-white/80 rounded-2xl">
+                          <td class="px-3 py-3 text-sm font-semibold text-clay-dark whitespace-nowrap">{item.code}</td>
+                          <td class="px-3 py-3 text-sm text-clay-dark leading-relaxed">{item.title}</td>
+                          <td class="px-3 py-3 text-sm font-bold text-right whitespace-nowrap" style={`color: ${category.accent};`}>
+                            {formatPriceLabel(item.price)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</Layout>

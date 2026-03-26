@@ -1,118 +1,11 @@
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, CreditCard, Clock } from 'lucide-react'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
-
-const DEFAULT_PRICE_CATEGORIES = [
-  {
-    title: 'Маммология',
-    color: 'clay-card-soft-mint',
-    accent: '#2F8F7C',
-    icon: '🩺',
-    intro: 'Консультации, УЗИ, ВАБ и второе мнение по показаниям.',
-    items: [
-      { name: 'Консультация онколога-маммолога', price: 3500 },
-      { name: 'УЗИ молочных желёз', price: 2500 },
-      { name: 'ВАБ (вакуумная аспирационная биопсия)', price: 80000, isFrom: true },
-      { name: 'ВАБ + гистология (всё включено)', price: 85000, isFrom: true },
-      { name: 'Второе мнение по снимкам', price: 0 },
-    ],
-  },
-  {
-    title: 'Гинекология',
-    color: 'clay-card-soft-peach',
-    accent: '#B9654E',
-    icon: '🌸',
-    intro: 'Приём, УЗИ, кольпоскопия и исследования по показаниям.',
-    items: [
-      { name: 'Консультация гинеколога', price: 3000 },
-      { name: 'УЗИ органов малого таза', price: 2500 },
-      { name: 'Кольпоскопия', price: 3500 },
-      { name: 'ПЦР-диагностика ИППП (12 инфекций)', price: 4800 },
-      { name: 'Комплекс «Полный скрининг»', price: 8900, isFrom: true },
-    ],
-  },
-  {
-    title: 'Эндокринология',
-    color: 'clay-card-soft-blue',
-    accent: '#3F759E',
-    icon: '⚡',
-    intro: 'Консультации, УЗИ щитовидной железы и обследования по назначению.',
-    items: [
-      { name: 'Консультация эндокринолога', price: 3500 },
-      { name: 'Анализ на ТТГ, Т3, Т4 свободный', price: 2200 },
-      { name: 'Расширенный гормональный профиль', price: 7400 },
-      { name: 'Комплекс «Энергия и метаболизм»', price: 12900, isFrom: true },
-      { name: 'Повторная консультация + план', price: 2500 },
-    ],
-  },
-  {
-    title: 'Нутрициология',
-    color: 'clay-card-soft-lavender',
-    accent: '#64589B',
-    icon: '🥗',
-    intro: 'Разбор анализов, план питания и сопровождение по запросу.',
-    items: [
-      { name: 'Первичная консультация нутрициолога', price: 3500 },
-      { name: 'Повторная консультация (разбор анализов)', price: 2500 },
-      { name: 'Составление персонального плана питания', price: 5000 },
-      { name: 'Месячное сопровождение (ведение)', price: 12000, isFrom: true },
-      { name: 'Биоимпедансометрия', price: 1500 },
-    ],
-  },
-]
-
-function formatPriceLabel(amount, isFrom = false) {
-  if (amount === 0) return 'Бесплатно'
-  const formatted = amount.toLocaleString('ru-RU')
-  return `${isFrom ? 'от ' : ''}${formatted} ₽`
-}
-
-function buildCategoryItems(categoryTitle, servicesData) {
-  return servicesData
-    .filter((service) => service.direction === categoryTitle)
-    .map((service) => {
-      const price = Number(service.price) || 0
-      const isFrom = /ВАБ|комплекс|скрининг|сопровождение/i.test(service.title)
-
-      return {
-        name: service.title,
-        price,
-        isFrom: price > 0 ? isFrom : false,
-      }
-    })
-    .sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'ru'))
-}
-
-export function buildPriceCategories(servicesData = []) {
-  if (!servicesData.length) return DEFAULT_PRICE_CATEGORIES
-
-  return DEFAULT_PRICE_CATEGORIES.map((category) => ({
-    ...category,
-    items: buildCategoryItems(category.title, servicesData),
-  }))
-}
-
-export function buildPriceSchemaItems(servicesData = []) {
-  const categories = buildPriceCategories(servicesData)
-  let position = 1
-
-  return categories.flatMap((category) =>
-    category.items.map((item) => ({
-      '@type': 'ListItem',
-      position: position++,
-      item: {
-        '@type': 'MedicalProcedure',
-        name: item.name,
-        description: `${category.title}. ${item.price === 0 ? 'Стоимость обсуждается на консультации.' : `Стоимость ${formatPriceLabel(item.price, item.isFrom)}.`}`,
-        offers: {
-          '@type': 'Offer',
-          price: String(item.price),
-          priceCurrency: 'RUB',
-          seller: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
-        },
-      },
-    }))
-  )
-}
+import {
+  FULL_PRICE_LIST_PATH,
+  OFFICIAL_PRICE_LIST_UPDATED_AT,
+  SHORT_PRICE_CATEGORIES,
+  formatPriceLabel,
+} from '../../lib/price-list.js'
 
 const principles = [
   {
@@ -138,9 +31,7 @@ const principles = [
   },
 ]
 
-export function Prices({ servicesData = [] }) {
-  const priceCategories = buildPriceCategories(servicesData)
-
+export function Prices() {
   return (
     <div>
       {/* HERO */}
@@ -153,22 +44,21 @@ export function Prices({ servicesData = [] }) {
               Прозрачная стоимость
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Понятная стоимость и прозрачный маршрут лечения
+              Короткий прайс-лист и полный официальный прейскурант клиники
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
-              В прайсе видно, что входит в приём, какие позиции оплачиваются отдельно и когда стоимость обсуждается после осмотра.
+              Сначала показываем самые востребованные позиции по направлениям, а ниже можно перейти к полному официальному прайс-листу со всеми услугами.
             </p>
             <p className="text-sm text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
+              Официальный прейскурант ООО «Клиника Одинцова» обновлён {OFFICIAL_PRICE_LIST_UPDATED_AT}. Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                 Записаться на консультацию
                 <ArrowRight size={16} />
               </button>
-              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
-                <Phone size={16} />
-                Уточнить цену
+              <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary gap-2">
+                Открыть полный прайс-лист
               </a>
             </div>
           </div>
@@ -249,11 +139,13 @@ export function Prices({ servicesData = [] }) {
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Прайс-лист</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Актуальные цены по направлениям. Если объём услуги зависит от показаний, врач заранее это объяснит.</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Короткий прайс-лист</h2>
+            <p className="text-clay-muted max-w-2xl mx-auto">
+              Основные и самые популярные позиции по направлениям. Полный официальный прейскурант со всеми кодами и услугами доступен отдельной страницей.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {priceCategories.map((cat) => (
+            {SHORT_PRICE_CATEGORIES.map((cat) => (
               <div key={cat.title} className={`clay ${cat.color} p-6`}>
                 <div className="flex items-center gap-3 mb-5">
                   <span className="text-2xl">{cat.icon}</span>
@@ -270,12 +162,25 @@ export function Prices({ servicesData = [] }) {
                     </div>
                   ))}
                 </div>
+                {cat.note ? (
+                  <p className="text-xs text-clay-muted leading-relaxed mt-4">{cat.note}</p>
+                ) : null}
+                <div className="mt-5">
+                  <a href={cat.fullPriceHref} className="clay btn-clay-secondary text-sm">
+                    Перейти в полный прайс-лист
+                  </a>
+                </div>
               </div>
             ))}
           </div>
           <p className="text-xs text-clay-muted text-center mt-5">
-            * Цены указаны в рублях. Для услуг с пометкой «от» окончательная стоимость зависит от объёма вмешательства и показаний.
+            * Цены указаны в рублях. Для услуг с пометкой «от» окончательная стоимость зависит от объёма программы или вмешательства.
           </p>
+          <div className="text-center mt-6">
+            <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary text-sm">
+              Открыть полный прайс-лист
+            </a>
+          </div>
         </div>
       </section>
 

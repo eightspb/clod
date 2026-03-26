@@ -1,12 +1,10 @@
 ---
-export const prerender = false
 import Layout from '../layouts/Layout.astro'
-import { Prices, buildPriceSchemaItems } from '../components/pages/Prices.jsx'
+import { Prices } from '../components/pages/Prices.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
-import { db, Service } from 'astro:db'
+import { buildShortPriceSchemaItems } from '../lib/price-list.js'
 
-const services = await db.select().from(Service);
-const priceSchemaItems = buildPriceSchemaItems(services)
+const priceSchemaItems = buildShortPriceSchemaItems()
 
 const pricesSchema = {
   '@context': 'https://schema.org',
@@ -21,10 +19,10 @@ const pricesSchema = {
 
 <Layout
   title="Цены и состав услуг - Клиника Одинцова в Санкт-Петербурге"
-  description="Прайс-лист клиники в Санкт-Петербурге: маммология, гинекология, эндокринология и нутрициология. Видно, что входит в приём и что оплачивается отдельно."
+  description="Короткий прайс-лист клиники в Санкт-Петербурге: самые популярные услуги по направлениям и переход к полному официальному прейскуранту."
   keywords="цены клиника Одинцова, прайс СПб, стоимость ВАБ СПб, маммолог цены СПб, гинеколог цены СПб, эндокринолог цены СПб, нутрициолог цены СПб"
 >
   <script type="application/ld+json" set:html={JSON.stringify(pricesSchema)} />
   <BreadcrumbNav items={[{ label: 'Цены' }]} />
-  <Prices servicesData={services} client:load />
+  <Prices />
 </Layout>
