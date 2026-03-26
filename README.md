@@ -73,7 +73,7 @@ bun run preview  # превью собранного билда
 
 ### Покрытие тестами
 
-- **Юнит-тесты (Vitest)**: 154 теста, включая auth/session hardening, analytics API hardening, upload-validation, second-opinion API/form, shared lib-модули и ключевые React-компоненты
+- **Юнит-тесты (Vitest)**: 175 тестов, включая auth/session hardening, analytics API hardening, upload-validation, second-opinion и tax-form API/form, shared lib-модули и ключевые React-компоненты
 - **E2E-тесты (Playwright)**: 10 тестов - главная страница, навигация, blog detail route и базовая security-проверка админки
 
 ### GitHub Actions CI
@@ -239,6 +239,7 @@ clod/
 │   │   ├── endocrinology.astro    # /endocrinology
 │   │   ├── nutrition.astro        # /nutrition
 │   │   ├── second-opinion.astro   # /second-opinion
+│   │   ├── tax-form.astro         # /tax-form - форма запроса справки для налогового вычета
 │   │   ├── prices.astro           # /prices
 │   │   ├── prices/
 │   │   │   └── full.astro         # /prices/full - полный официальный прайс-лист
@@ -263,6 +264,7 @@ clod/
 │   │       ├── analytics/
 │   │       │   ├── event.js       # POST - приём событий трекера
 │   │       │   └── heartbeat.js   # POST - heartbeat сессий
+│   │       ├── tax-form.js        # POST - заявка на справку для налогового вычета
 │   │       ├── auth/
 │   │       │   ├── login.js       # POST - вход (rate limiting: 5 попыток / 15 мин)
 │   │       │   └── logout.js      # POST - выход
@@ -324,6 +326,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/vab` | `vab.astro` | `Vab.jsx` |
 | `/contacts` | `contacts.astro` | `Contacts.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
+| `/tax-form` | `tax-form.astro` | `TaxFormRequestForm.jsx` (island) |
 | `/prices` | `prices.astro` | `Prices.jsx` |
 | `/prices/full` | `prices/full.astro` | - (Astro) |
 | `/doctors` | `doctors.astro` | `Doctors.jsx` |
