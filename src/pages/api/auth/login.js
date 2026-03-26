@@ -1,6 +1,13 @@
 export const prerender = false
 
-import { createToken, buildSetCookie, validateOrigin } from '../../../lib/auth.js'
+import {
+  assertAuthConfiguration,
+  buildSetCookie,
+  createToken,
+  getAdminPassword,
+  timingSafeEqualText,
+  validateOrigin,
+} from '../../../lib/auth.js'
 
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
@@ -58,18 +65,19 @@ export async function POST({ request }) {
   }
 
   try {
+    assertAuthConfiguration()
+
     const body = await request.json()
     const { password } = body
+    const adminPassword = getAdminPassword()
 
-    const adminPassword = import.meta.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD
-    if (!adminPassword || password !== adminPassword) {
+    if (!timingSafeEqualText(password || '', adminPassword)) {
       return new Response(JSON.stringify({ error: 'Неверный пароль' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    // Reset rate limit counter on successful login
     loginAttempts.delete(ip)
 
     const token = await createToken()
