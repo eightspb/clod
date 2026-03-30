@@ -1,4 +1,4 @@
-import { ArrowRight, Award, Clock, Heart, Mail, Shield, Star, Users, Zap, Phone } from 'lucide-react'
+import { ArrowRight, Award, Clock, Heart, Mail, Microscope, Monitor, Phone, Radio, Shield, Star, TestTube, Users, Zap } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 
@@ -43,7 +43,7 @@ const ADVANTAGES = [
 
 const EQUIPMENT = [
   {
-    icon: '🔬',
+    icon: Microscope,
     title: 'Система XISHAN (Сишань)',
     desc: 'Оборудование для вакуумной аспирационной биопсии под контролем УЗИ. Используется для малоинвазивного лечения по показаниям.',
     tag: 'Основное направление',
@@ -51,7 +51,7 @@ const EQUIPMENT = [
     tagBg: 'rgba(78,200,168,0.12)',
   },
   {
-    icon: '📡',
+    icon: Radio,
     title: 'УЗИ экспертного класса',
     desc: 'Ультразвуковая диагностика помогает уточнять локализацию образования, объём вмешательства и дальнейшую тактику.',
     tag: 'Диагностика',
@@ -59,7 +59,7 @@ const EQUIPMENT = [
     tagBg: 'rgba(78,158,200,0.12)',
   },
   {
-    icon: '🧪',
+    icon: TestTube,
     title: 'Партнёрские лаборатории',
     desc: 'Гистологические и цитологические исследования выполняются в профильных партнёрских лабораториях. Сроки готовности зависят от вида исследования и обсуждаются на приёме.',
     tag: 'Лаборатория',
@@ -67,7 +67,7 @@ const EQUIPMENT = [
     tagBg: 'rgba(155,142,200,0.12)',
   },
   {
-    icon: '💻',
+    icon: Monitor,
     title: 'Удобная выдача документов',
     desc: 'Заключения, снимки и протоколы можно получить в клинике, а администратор подскажет, какие материалы подготовить для повторной консультации или второго мнения.',
     tag: 'Сервис',
@@ -126,7 +126,6 @@ export function About() {
                   alt="Владислав Александрович Одинцов"
                   className="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover"
                   loading="eager"
-                  // React 18 in this repo warns on camelCase here, but the DOM still supports the lowercase attribute.
                   // eslint-disable-next-line react/no-unknown-property
                   fetchpriority="high"
                   width="256"
@@ -361,13 +360,15 @@ export function About() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {EQUIPMENT.map((item) => (
+            {EQUIPMENT.map((item) => {
+              const Icon = item.icon
+              return (
               <div key={item.title} className="clay clay-card p-6 flex items-start gap-4">
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ background: item.tagBg }}
                 >
-                  {item.icon}
+                  <Icon size={24} style={{ color: item.tagColor }} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -382,7 +383,8 @@ export function About() {
                   <p className="text-clay-muted text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>

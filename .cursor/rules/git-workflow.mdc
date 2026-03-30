@@ -11,16 +11,28 @@ alwaysApply: true
 - Keep changes focused on the user request
 - Do not mix unrelated refactors into a feature or bug-fix change
 - Never use destructive commands such as hard reset or checkout-revert unless explicitly requested
+- Before running destructive operations, consider whether there is a safer alternative
 
 ## Commit Quality
 
 - Commit only after relevant linting, tests, or build validation for the touched area
 - Keep commits small enough to review and roll back safely
 - Do not commit secrets, `.env`, debug logs, or accidental build output
-- Generated artifacts should be committed only when the workflow explicitly requires them
+- Generated artifacts (`dist/`) should be committed only when the workflow explicitly requires them
+- Commit messages should describe the behavior change ("why"), not just the files touched ("what")
+- Every bug fix commit should reference the failing scenario it resolves
+- Every feature commit should describe the user-visible behavior it adds
 
 ## Branching and Review Readiness
 
 - Prefer short-lived branches for non-trivial work
 - Summaries should describe the behavior change, not just the files touched
 - If validation was skipped, call it out clearly in the final handoff
+
+## What NOT to Commit
+
+- `.env`, `.env.local`, or any file containing secrets
+- `node_modules/`, `dist/`, `.astro/` build output
+- Debug `console.log` statements left from development
+- Placeholder credentials or fake production secrets
+- Large binary files without explicit approval

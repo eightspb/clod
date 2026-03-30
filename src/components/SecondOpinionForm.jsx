@@ -64,9 +64,7 @@ async function getErrorMessage(response) {
     if (payload?.error?.message) {
       return payload.error.message
     }
-  } catch {
-    // Ignore malformed error payloads and use a generic fallback below.
-  }
+  } catch { /* malformed payload — fall through to generic message */ }
 
   return 'Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.'
 }

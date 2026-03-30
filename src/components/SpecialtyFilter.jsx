@@ -21,5 +21,3 @@ export function SpecialtyFilter({ active = 'all', onChange }) {
     </div>
   )
 }
-
-export default SpecialtyFilter

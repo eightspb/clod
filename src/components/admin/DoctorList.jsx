@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { DoctorEditForm } from './DoctorEditForm.jsx'
 
-export function DoctorManager() {
+export function DoctorList() {
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -107,5 +107,3 @@ export function DoctorManager() {
     </div>
   )
 }
-
-export default DoctorManager

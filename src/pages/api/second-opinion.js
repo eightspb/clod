@@ -158,50 +158,50 @@ function isAllowedFile(file) {
 function validateSubmission(fields, files) {
   const errors = []
 
-  if (!fields.firstName) errors.push({ field: 'firstName', message: 'Заполните имя.' })
-  if (!fields.lastName) errors.push({ field: 'lastName', message: 'Заполните фамилию.' })
-  if (!fields.birthDate) errors.push({ field: 'birthDate', message: 'Укажите дату рождения.' })
-  if (!fields.phone) errors.push({ field: 'phone', message: 'Заполните телефон.' })
+  if (!fields.firstName) errors.push({ field: 'firstName', message: 'Заполните имя' })
+  if (!fields.lastName) errors.push({ field: 'lastName', message: 'Заполните фамилию' })
+  if (!fields.birthDate) errors.push({ field: 'birthDate', message: 'Укажите дату рождения' })
+  if (!fields.phone) errors.push({ field: 'phone', message: 'Заполните телефон' })
 
   if (fields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
-    errors.push({ field: 'email', message: 'Укажите корректный email.' })
+    errors.push({ field: 'email', message: 'Укажите корректный email' })
   }
 
   if (!files.length) {
-    errors.push({ field: 'files', message: 'Прикрепите хотя бы один файл.' })
+    errors.push({ field: 'files', message: 'Прикрепите хотя бы один файл' })
     return errors
   }
 
   if (files.length > MAX_FILES) {
-    errors.push({ field: 'files', message: `Можно прикрепить не более ${MAX_FILES} файлов.` })
+    errors.push({ field: 'files', message: `Можно прикрепить не более ${MAX_FILES} файлов` })
   }
 
   let totalSize = 0
 
   for (const file of files) {
     if (!(file instanceof File)) {
-      errors.push({ field: 'files', message: 'Некорректный формат загрузки файлов.' })
+      errors.push({ field: 'files', message: 'Некорректный формат загрузки файлов' })
       continue
     }
 
     totalSize += file.size
 
     if (file.size <= 0) {
-      errors.push({ field: 'files', message: 'Пустые файлы загружать нельзя.' })
+      errors.push({ field: 'files', message: 'Пустые файлы загружать нельзя' })
       continue
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      errors.push({ field: 'files', message: 'Размер одного файла не должен превышать 10 МБ.' })
+      errors.push({ field: 'files', message: 'Размер одного файла не должен превышать 10 МБ' })
     }
 
     if (!isAllowedFile(file)) {
-      errors.push({ field: 'files', message: 'Поддерживаются только PDF, JPG, JPEG и PNG.' })
+      errors.push({ field: 'files', message: 'Поддерживаются только PDF, JPG, JPEG и PNG' })
     }
   }
 
   if (totalSize > MAX_TOTAL_FILE_SIZE_BYTES) {
-    errors.push({ field: 'files', message: 'Суммарный размер файлов не должен превышать 25 МБ.' })
+    errors.push({ field: 'files', message: 'Суммарный размер файлов не должен превышать 25 МБ' })
   }
 
   return errors
@@ -234,9 +234,32 @@ async function buildAttachments(files) {
   return attachments
 }
 
+async function sendAutoReply(transporter, config, fields) {
+  if (!fields.email) return false
+
+  try {
+    await transporter.sendMail({
+      from: config.from,
+      to: fields.email,
+      subject: 'Ваша заявка получена | Клиника Одинцова',
+      html: `
+        <h2>Здравствуйте, ${escapeHtml(fields.firstName)}!</h2>
+        <p>Ваша заявка на получение второго мнения успешно получена.</p>
+        <p>Мы изучим ваши данные и снимки, после чего специалист свяжется с вами по номеру ${escapeHtml(fields.phone)} в рабочие часы клиники.</p>
+        <br/>
+        <p>С уважением,<br/>Команда Клиники Одинцова<br/><a href="https://odintsovclinic.ru">odintsovclinic.ru</a></p>
+      `,
+    })
+    return true
+  } catch (error) {
+    console.error('[second-opinion] auto-reply failed', error)
+    return false
+  }
+}
+
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса.')
+    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса')
   }
 
   const ip = getClientIp(request)
@@ -246,7 +269,7 @@ export async function POST({ request }) {
     return errorResponse(
       429,
       'RATE_LIMITED',
-      'Слишком много заявок. Попробуйте позже.',
+      'Слишком много заявок. Попробуйте позже',
       undefined,
       { 'Retry-After': String(retryAfterSec) }
     )
@@ -258,7 +281,7 @@ export async function POST({ request }) {
     config = getSmtpConfig()
   } catch (error) {
     console.error('[second-opinion] missing SMTP configuration', error)
-    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже.')
+    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже')
   }
 
   try {
@@ -279,7 +302,7 @@ export async function POST({ request }) {
       return errorResponse(
         400,
         'VALIDATION_ERROR',
-        'Проверьте форму и попробуйте снова.',
+        'Проверьте форму и попробуйте снова',
         validationErrors
       )
     }
@@ -309,27 +332,7 @@ export async function POST({ request }) {
       attachments,
     })
 
-    let autoReplySent = false
-
-    if (fields.email) {
-      try {
-        await transporter.sendMail({
-          from: config.from,
-          to: fields.email,
-          subject: 'Ваша заявка получена | Клиника Одинцова',
-          html: `
-            <h2>Здравствуйте, ${escapeHtml(fields.firstName)}!</h2>
-            <p>Ваша заявка на получение второго мнения успешно получена.</p>
-            <p>Мы изучим ваши данные и снимки, после чего специалист свяжется с вами по номеру ${escapeHtml(fields.phone)} в рабочие часы клиники.</p>
-            <br/>
-            <p>С уважением,<br/>Команда Клиники Одинцова<br/><a href="https://odintsovclinic.ru">odintsovclinic.ru</a></p>
-          `,
-        })
-        autoReplySent = true
-      } catch (error) {
-        console.error('[second-opinion] auto-reply failed', error)
-      }
-    }
+    const autoReplySent = await sendAutoReply(transporter, config, fields)
 
     return jsonResponse(
       {
@@ -342,6 +345,6 @@ export async function POST({ request }) {
     )
   } catch (error) {
     console.error('[second-opinion] submit failed', error)
-    return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже.')
+    return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже')
   }
 }

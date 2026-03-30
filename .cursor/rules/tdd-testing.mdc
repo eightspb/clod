@@ -1,5 +1,5 @@
 ---
-description: Test-driven development and testing strategy for Astro, React, Vitest, and Playwright
+description: Test-driven development and Angry Tests methodology for Astro, React, Vitest, and Playwright
 globs:
   - "**/*.{js,jsx,mjs,astro}"
 alwaysApply: false
@@ -7,31 +7,72 @@ alwaysApply: false
 
 # Test-Driven Development
 
-This project follows **Red → Green → Refactor** for behavior changes.
+This project follows **Red → Green → Refactor** for behavior changes, with test design principles from [Angry Tests](https://github.com/yegor256/at).
 
 ## Mandatory Workflow
 
 - Write a failing test first for bugs and new behavior in `src/lib/**`, `src/components/**`, and `src/pages/api/**`
 - Implement the smallest change that makes the test pass
 - Refactor only after the test suite is green
-- Add tests for every regression-prone change, especially auth, uploads, filters, analytics, and admin behavior
+- Every bug must be reproduced by a test before being fixed
+- Every new feature must be covered by a test before implementation
+- Every time you change code, add more tests
 
 ## Test Pyramid
 
-- Use **Vitest** for domain logic, helpers, and isolated React components
-- Use **Playwright** for page flows, navigation, hydration, forms, and cross-route behavior
+- Use **Vitest** for domain logic, helpers, and isolated React components — classify as "fast" (<100ms)
+- Use **Playwright** for page flows, navigation, hydration, forms, and cross-route behavior — classify as "deep"
 - Do not use E2E tests to cover logic that is better and faster expressed in unit tests
+- Reproduce bugs with minimum scaffolding
 
-## Test Design
+## Test Design (Angry Tests)
 
-- Test one behavior per test
-- Keep tests short and intention-revealing
-- Make the final meaningful statement an assertion when practical
-- Prefer fakes and stubs over brittle mocks
-- Use irregular, realistic inputs instead of placeholder values
-- Do not share mutable state across tests
-- Prepare a clean state at the start of each test
+### Basics
+
+- **One assertion per test** — place it as the last statement
+- Keep every test shorter than a dozen lines; aim for single-statement tests
+- Name tests as full English sentences starting with a verb: `it('creates session cookie with valid credentials')`
+- Never write comments inside test methods
+- Assert in every test — no "setup-only" tests
+
+### Isolation
+
+- Never share mutable state between tests — no shared `beforeAll`/`beforeEach` with side effects
+- Prepare clean state at the start of each test; don't clean up after
+- Don't define constants (static literals) inside tests
+- Don't inline magic constants; assign them to named variables first
+- Code duplication in tests is the last problem to fix — clarity over DRY
+
+### Inputs and Fixtures
+
+- Use irregular, realistic inputs (non-ASCII, Unicode, edge cases) — no `"foo"`, `"bar"`, `"test"`
+- Use different inputs in every test, don't reuse them
+- Inline small fixtures instead of loading from files
+- Don't keep large fixtures in static files; let tests generate them at runtime
+- Don't call functions with default arguments in tests — provide explicit values
+
+### What to Test
+
+- Assert on the most vulnerable pain points
 - Test public behavior, not implementation details
+- Don't test getters, setters, or trivial functionality
+- Don't test constructors if they only do assignments
+- Don't assert on side effects like log output
+- Don't assert on details of error messages — assert on error type or status
+- Don't use mock framework verification (`.toHaveBeenCalled()`) when you can assert on output
+- Favor fake objects and stubs over brittle mocks
+
+### Quality
+
+- Tests must pass without Internet; use ephemeral ports and timeouts
+- Close resources after use (file handles, connections)
+- Don't keep temporary files next to source code; use a temp directory
+- Stop tests on timeout; don't let them run forever
+- Don't sleep for arbitrary durations; wait for events instead
+- Don't delete tests, disable/skip them instead (with a reason)
+- Don't write production code that is only used by tests
+- Parameterize tests when testing multiple inputs
+- Let different tests test the same feature from different angles
 
 ## What to Cover First
 
@@ -47,6 +88,12 @@ This project follows **Red → Green → Refactor** for behavior changes.
 - Coverage when the change is broad or risky: `bun run test:coverage`
 - Browser-level verification for route or UI flows: `bun run test:e2e`
 - Static quality gate: `bun run lint`
+
+## CI & Quality
+
+- All CI workflows must pass before code review
+- Use ESLint checks as a quality gate
+- Use Playwright for E2E/browser testing
 
 ## Practical Guidance
 

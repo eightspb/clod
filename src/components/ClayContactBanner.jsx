@@ -48,7 +48,7 @@ function CloudButton() {
       ))}
 
       <div className="clay-banner-cloud-base">
-        <span style={{ fontWeight: 600, fontSize: '16px', color: '#1a2540', position: 'relative', zIndex: 5 }}>
+        <span className="text-clay-dark" style={{ fontWeight: 600, fontSize: '16px', position: 'relative', zIndex: 5 }}>
           Позвонить
         </span>
       </div>
@@ -83,8 +83,8 @@ export function ClayContactBanner() {
           <Donut style={{ bottom: '16px', right: '16px' }} />
 
           <h2
-            className="text-2xl sm:text-3xl font-extrabold text-center relative z-10 leading-tight"
-            style={{ color: '#111c35', textShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+            className="text-2xl sm:text-3xl font-extrabold text-center relative z-10 leading-tight text-clay-dark"
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
           >
             Не знаете к кому обратиться?
           </h2>
@@ -98,5 +98,3 @@ export function ClayContactBanner() {
     </section>
   )
 }
-
-export default ClayContactBanner

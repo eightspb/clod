@@ -78,5 +78,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
   }
 
+  // Запрет кэширования API-ответов — предотвращает утечку данных через прокси и браузерный кэш
+  if (path.startsWith('/api/')) {
+    response.headers.set('Cache-Control', 'no-store')
+  }
+
   return response
 })

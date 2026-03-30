@@ -151,46 +151,46 @@ function validateSubmission(fields) {
   const errors = []
 
   if (!fields.patientFullName) {
-    errors.push({ field: 'patientFullName', message: 'Укажите ФИО пациента.' })
+    errors.push({ field: 'patientFullName', message: 'Укажите ФИО пациента' })
   }
 
   if (!fields.patientBirthDate) {
-    errors.push({ field: 'patientBirthDate', message: 'Укажите дату рождения пациента.' })
+    errors.push({ field: 'patientBirthDate', message: 'Укажите дату рождения пациента' })
   }
 
   if (!fields.taxpayerFullName) {
-    errors.push({ field: 'taxpayerFullName', message: 'Укажите ФИО налогоплательщика.' })
+    errors.push({ field: 'taxpayerFullName', message: 'Укажите ФИО налогоплательщика' })
   }
 
   if (!fields.taxpayerBirthDate) {
     errors.push({
       field: 'taxpayerBirthDate',
-      message: 'Укажите дату рождения налогоплательщика.',
+      message: 'Укажите дату рождения налогоплательщика',
     })
   }
 
   if (!fields.taxpayerInn) {
-    errors.push({ field: 'taxpayerInn', message: 'Укажите ИНН налогоплательщика.' })
+    errors.push({ field: 'taxpayerInn', message: 'Укажите ИНН налогоплательщика' })
   } else if (!isValidInn(fields.taxpayerInn)) {
-    errors.push({ field: 'taxpayerInn', message: 'Укажите корректный ИНН.' })
+    errors.push({ field: 'taxpayerInn', message: 'Укажите корректный ИНН' })
   }
 
   if (!fields.taxYear) {
-    errors.push({ field: 'taxYear', message: 'Укажите год, за который нужна справка.' })
+    errors.push({ field: 'taxYear', message: 'Укажите год, за который нужна справка' })
   } else if (!isValidTaxYear(fields.taxYear)) {
-    errors.push({ field: 'taxYear', message: 'Укажите корректный год.' })
+    errors.push({ field: 'taxYear', message: 'Укажите корректный год' })
   }
 
   if (!fields.email) {
-    errors.push({ field: 'email', message: 'Укажите email.' })
+    errors.push({ field: 'email', message: 'Укажите email' })
   } else if (!isValidEmail(fields.email)) {
-    errors.push({ field: 'email', message: 'Укажите корректный email.' })
+    errors.push({ field: 'email', message: 'Укажите корректный email' })
   }
 
   if (!fields.phone) {
-    errors.push({ field: 'phone', message: 'Заполните телефон.' })
+    errors.push({ field: 'phone', message: 'Заполните телефон' })
   } else if (!isValidPhone(fields.phone)) {
-    errors.push({ field: 'phone', message: 'Укажите корректный номер телефона.' })
+    errors.push({ field: 'phone', message: 'Укажите корректный номер телефона' })
   }
 
   return errors
@@ -210,7 +210,7 @@ function createTransporter(config) {
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса.')
+    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса')
   }
 
   const ip = getClientIp(request)
@@ -220,7 +220,7 @@ export async function POST({ request }) {
     return errorResponse(
       429,
       'RATE_LIMITED',
-      'Слишком много заявок. Попробуйте позже.',
+      'Слишком много заявок. Попробуйте позже',
       undefined,
       { 'Retry-After': String(retryAfterSec) }
     )
@@ -232,7 +232,7 @@ export async function POST({ request }) {
     config = getSmtpConfig()
   } catch (error) {
     console.error('[tax-form] missing SMTP configuration', error)
-    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже.')
+    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже')
   }
 
   try {
@@ -255,7 +255,7 @@ export async function POST({ request }) {
       return errorResponse(
         400,
         'VALIDATION_ERROR',
-        'Проверьте форму и попробуйте снова.',
+        'Проверьте форму и попробуйте снова',
         validationErrors
       )
     }
@@ -287,6 +287,6 @@ export async function POST({ request }) {
     return jsonResponse({ success: true }, 200)
   } catch (error) {
     console.error('[tax-form] submit failed', error)
-    return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже.')
+    return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже')
   }
 }

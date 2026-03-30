@@ -82,7 +82,7 @@ describe('analytics API hardening', () => {
       success: false,
       error: {
         code: 'FORBIDDEN_ORIGIN',
-        message: 'Недопустимый источник запроса.',
+        message: 'Недопустимый источник запроса',
       },
     })
   })
@@ -103,9 +103,9 @@ describe('analytics API hardening', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.details).toEqual(
       expect.arrayContaining([
-        { field: 'sessionId', message: 'Некорректный идентификатор сессии.' },
-        { field: 'visitorId', message: 'Некорректный идентификатор посетителя.' },
-        { field: 'data.page', message: 'Укажите страницу события.' },
+        { field: 'sessionId', message: 'Некорректный идентификатор сессии' },
+        { field: 'visitorId', message: 'Некорректный идентификатор посетителя' },
+        { field: 'data.page', message: 'Укажите страницу события' },
       ])
     )
     expect(insertCalls).toHaveLength(0)
@@ -147,7 +147,7 @@ describe('analytics API hardening', () => {
       success: false,
       error: {
         code: 'RATE_LIMITED',
-        message: 'Слишком много событий. Попробуйте позже.',
+        message: 'Слишком много событий. Попробуйте позже',
       },
     })
     expect(limitedResponse.headers.get('Retry-After')).toBeTruthy()
@@ -187,7 +187,7 @@ describe('analytics API hardening', () => {
       success: false,
       error: {
         code: 'FORBIDDEN_ORIGIN',
-        message: 'Недопустимый источник запроса.',
+        message: 'Недопустимый источник запроса',
       },
     })
   })
@@ -208,8 +208,8 @@ describe('analytics API hardening', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.details).toEqual(
       expect.arrayContaining([
-        { field: 'sessionId', message: 'Некорректный идентификатор сессии.' },
-        { field: 'page', message: 'Укажите текущую страницу.' },
+        { field: 'sessionId', message: 'Некорректный идентификатор сессии' },
+        { field: 'page', message: 'Укажите текущую страницу' },
       ])
     )
     expect(updateCalls).toHaveLength(0)

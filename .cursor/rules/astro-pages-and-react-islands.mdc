@@ -29,17 +29,21 @@ alwaysApply: false
 - Respect Astro file-based routing exactly
 - Do not introduce React Router, client-side route state, or SPA assumptions
 - Keep route slugs stable when they are public or indexed
+- Route files in `kebab-case` (`second-opinion.astro`, not `secondOpinion.astro`)
 
 ## SEO and Medical Content
 
 - Preserve canonical URLs, meta descriptions, headings, and structured data on SEO-sensitive pages
 - When editing blog or service pages, avoid weakening semantic structure such as `h1`, section headings, and FAQ markup
+- Preserve JSON-LD (MedicalBusiness, Physician, MedicalProcedure, FAQPage, BreadcrumbList) when touching indexed pages
 - User-facing copy is Russian-first unless the task explicitly introduces another language
 - Do not make unsupported medical, legal, or compliance claims
+- Do not represent the clinic as legally or medically certified unless such certification is explicitly confirmed
 
 ## Hydration Discipline
 
-- Use the lightest viable client directive and avoid hydrating more UI than needed
+- Use the lightest viable client directive: prefer `client:idle` over `client:load` when the component is below the fold
+- Avoid hydrating more UI than needed
 - Keep browser-only code inside interactive components, not in shared server-rendered modules
 - Prefer passing serialized props from Astro pages into React components instead of fetching the same data again on the client
 
@@ -48,3 +52,12 @@ alwaysApply: false
 - Keep page composition top-down: page -> section components -> small reusable components
 - Reuse existing page wrappers, headers, banners, and CTA blocks before adding new variants
 - Extract shared logic before copying the same section pattern across multiple medical pages
+- Shared components: `Header`, `Footer`, `StickyCTA`, `ClayContactBanner`, `CtaSection`, `BreadcrumbNav`, `ErrorBoundary`, `PageWrapper`
+
+## Blog Pages
+
+- Blog uses Astro Content Collections (`src/content/blog/`)
+- Articles in Markdown with frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
+- Schema: `src/content/config.ts`
+- Blog styles: `.prose-clay` class in `global.css`
+- When adding a new article: create `.md` file, fill frontmatter, include GEO keywords (СПб, Санкт-Петербург)

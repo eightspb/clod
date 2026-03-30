@@ -99,19 +99,19 @@ function normalizePage(value) {
 
 function normalizeInteger(value, min, max) {
   const parsed = typeof value === 'number' ? value : Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed)) return null
+  if (!Number.isFinite(parsed)) return undefined
   const rounded = Math.trunc(parsed)
-  if (rounded < min || rounded > max) return null
+  if (rounded < min || rounded > max) return undefined
   return rounded
 }
 
 function safeJsonStringify(value) {
   try {
     const json = JSON.stringify(value)
-    if (!json) return null
+    if (!json) return undefined
     return json.slice(0, MAX_EVENT_DETAILS_LENGTH)
   } catch {
-    return null
+    return undefined
   }
 }
 
@@ -120,22 +120,22 @@ function validateBasePayload(body) {
   const type = normalizeString(body?.type, MAX_TYPE_LENGTH)
   const sessionId = normalizeString(body?.sessionId, MAX_ID_LENGTH)
   const visitorId = normalizeString(body?.visitorId, MAX_ID_LENGTH)
-  const data = isRecord(body?.data) ? body.data : null
+  const data = isRecord(body?.data) ? body.data : undefined
 
   if (!sessionId) {
-    details.push({ field: 'sessionId', message: 'Некорректный идентификатор сессии.' })
+    details.push({ field: 'sessionId', message: 'Некорректный идентификатор сессии' })
   }
 
   if (!visitorId) {
-    details.push({ field: 'visitorId', message: 'Некорректный идентификатор посетителя.' })
+    details.push({ field: 'visitorId', message: 'Некорректный идентификатор посетителя' })
   }
 
   if (!ALLOWED_EVENT_TYPES.has(type)) {
-    details.push({ field: 'type', message: 'Неизвестный тип события.' })
+    details.push({ field: 'type', message: 'Неизвестный тип события' })
   }
 
   if (!data) {
-    details.push({ field: 'data', message: 'Передайте корректный payload события.' })
+    details.push({ field: 'data', message: 'Передайте корректный payload события' })
   }
 
   return {
@@ -153,7 +153,7 @@ function validateEventPayload(body) {
   if (!base.data) {
     return {
       details: base.details,
-      normalized: null,
+      normalized: undefined,
     }
   }
 
@@ -168,83 +168,83 @@ function validateEventPayload(body) {
   if (base.type === 'session_start') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      referrer: normalizeString(base.data.referrer, MAX_REFERRER_LENGTH) || null,
-      userAgent: normalizeString(base.data.userAgent, MAX_USER_AGENT_LENGTH) || null,
+      referrer: normalizeString(base.data.referrer, MAX_REFERRER_LENGTH) || undefined,
+      userAgent: normalizeString(base.data.userAgent, MAX_USER_AGENT_LENGTH) || undefined,
       screenWidth: normalizeInteger(base.data.screenWidth, 0, 10000),
       screenHeight: normalizeInteger(base.data.screenHeight, 0, 10000),
-      language: normalizeString(base.data.language, MAX_LANGUAGE_LENGTH) || null,
+      language: normalizeString(base.data.language, MAX_LANGUAGE_LENGTH) || undefined,
     }
 
     if (!normalized.data.page) {
-      details.push({ field: 'data.page', message: 'Укажите страницу события.' })
+      details.push({ field: 'data.page', message: 'Укажите страницу события' })
     }
   }
 
   if (base.type === 'page_enter') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      from: normalizePage(base.data.from) || null,
+      from: normalizePage(base.data.from) || undefined,
     }
 
     if (!normalized.data.page) {
-      details.push({ field: 'data.page', message: 'Укажите страницу события.' })
+      details.push({ field: 'data.page', message: 'Укажите страницу события' })
     }
   }
 
   if (base.type === 'page_leave') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      pageViewId: normalizeString(base.data.pageViewId, MAX_ID_LENGTH) || null,
+      pageViewId: normalizeString(base.data.pageViewId, MAX_ID_LENGTH) || undefined,
       duration: normalizeInteger(base.data.duration, 0, 24 * 60 * 60),
     }
 
     if (!normalized.data.page) {
-      details.push({ field: 'data.page', message: 'Укажите страницу события.' })
+      details.push({ field: 'data.page', message: 'Укажите страницу события' })
     }
   }
 
   if (base.type === 'click' || base.type === 'form_submit' || base.type === 'navigation') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      target: normalizeString(base.data.target, MAX_TARGET_LENGTH) || null,
-      tag: normalizeString(base.data.tag, MAX_TYPE_LENGTH) || null,
-      id: normalizeString(base.data.id, MAX_ID_LENGTH) || null,
-      classes: normalizeString(base.data.classes, MAX_TEXT_LENGTH) || null,
-      href: normalizeString(base.data.href, MAX_REFERRER_LENGTH) || null,
-      text: normalizeString(base.data.text, MAX_TEXT_LENGTH) || null,
-      from: normalizePage(base.data.from) || null,
-      action: normalizeString(base.data.action, MAX_REFERRER_LENGTH) || null,
-      name: normalizeString(base.data.name, MAX_TEXT_LENGTH) || null,
+      target: normalizeString(base.data.target, MAX_TARGET_LENGTH) || undefined,
+      tag: normalizeString(base.data.tag, MAX_TYPE_LENGTH) || undefined,
+      id: normalizeString(base.data.id, MAX_ID_LENGTH) || undefined,
+      classes: normalizeString(base.data.classes, MAX_TEXT_LENGTH) || undefined,
+      href: normalizeString(base.data.href, MAX_REFERRER_LENGTH) || undefined,
+      text: normalizeString(base.data.text, MAX_TEXT_LENGTH) || undefined,
+      from: normalizePage(base.data.from) || undefined,
+      action: normalizeString(base.data.action, MAX_REFERRER_LENGTH) || undefined,
+      name: normalizeString(base.data.name, MAX_TEXT_LENGTH) || undefined,
     }
 
     if (!normalized.data.page) {
-      details.push({ field: 'data.page', message: 'Укажите страницу события.' })
+      details.push({ field: 'data.page', message: 'Укажите страницу события' })
     }
   }
 
   if (base.type === 'batch') {
-    const rawEvents = Array.isArray(base.data.events) ? base.data.events : null
+    const rawEvents = Array.isArray(base.data.events) ? base.data.events : undefined
 
     if (!rawEvents?.length) {
-      details.push({ field: 'data.events', message: 'Передайте хотя бы одно событие в batch.' })
+      details.push({ field: 'data.events', message: 'Передайте хотя бы одно событие в batch' })
     } else if (rawEvents.length > MAX_BATCH_EVENTS) {
-      details.push({ field: 'data.events', message: `Batch не должен превышать ${MAX_BATCH_EVENTS} событий.` })
+      details.push({ field: 'data.events', message: `Batch не должен превышать ${MAX_BATCH_EVENTS} событий` })
     }
 
     normalized.data = {
       events: (rawEvents || [])
         .map((event) => {
-          if (!isRecord(event)) return null
+          if (!isRecord(event)) return undefined
           const eventType = normalizeString(event.type, MAX_TYPE_LENGTH)
           const page = normalizePage(event.page)
 
-          if (!eventType || !page) return null
+          if (!eventType || !page) return undefined
 
           return {
             type: eventType,
             page,
-            target: normalizeString(event.target, MAX_TARGET_LENGTH) || null,
-            details: isRecord(event.details) ? event.details : null,
+            target: normalizeString(event.target, MAX_TARGET_LENGTH) || undefined,
+            details: isRecord(event.details) ? event.details : undefined,
             timestamp: normalizeInteger(event.timestamp, 0, 9999999999999) || Date.now(),
           }
         })
@@ -252,7 +252,7 @@ function validateEventPayload(body) {
     }
 
     if (!normalized.data.events.length && !details.some((item) => item.field === 'data.events')) {
-      details.push({ field: 'data.events', message: 'Передайте корректные события в batch.' })
+      details.push({ field: 'data.events', message: 'Передайте корректные события в batch' })
     }
   }
 
@@ -305,7 +305,7 @@ async function insertEventLog(sessionId, eventType, page, target, details, creat
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса.')
+    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса')
   }
 
   const ip = getClientIp(request)
@@ -315,7 +315,7 @@ export async function POST({ request }) {
     return errorResponse(
       429,
       'RATE_LIMITED',
-      'Слишком много событий. Попробуйте позже.',
+      'Слишком много событий. Попробуйте позже',
       undefined,
       { 'Retry-After': String(retryAfterSec) }
     )
@@ -326,13 +326,13 @@ export async function POST({ request }) {
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'INVALID_JSON', 'Передайте корректный JSON.')
+    return errorResponse(400, 'INVALID_JSON', 'Передайте корректный JSON')
   }
 
   const { details, normalized } = validateEventPayload(body)
 
   if (details.length || !normalized) {
-    return errorResponse(400, 'VALIDATION_ERROR', 'Проверьте payload события.', details)
+    return errorResponse(400, 'VALIDATION_ERROR', 'Проверьте payload события', details)
   }
 
   const { type, sessionId, visitorId, data } = normalized
@@ -372,7 +372,6 @@ export async function POST({ request }) {
         sessionId,
         page: data.page,
         enteredAt: now,
-        duration: null,
       })
 
       await insertEventLog(sessionId, 'navigation', data.page, data.from, { from: data.from, to: data.page }, now)
@@ -381,14 +380,14 @@ export async function POST({ request }) {
     if (type === 'page_leave') {
       await touchSession(sessionId, { lastActiveAt: now })
 
-      if (data.pageViewId && data.duration !== null) {
+      if (data.pageViewId && data.duration !== undefined) {
         await analyticsDb
           .update(PageView)
           .set({ duration: data.duration })
           .where(eq(PageView.id, data.pageViewId))
       }
 
-      await insertEventLog(sessionId, 'page_leave', data.page, null, { duration: data.duration }, now)
+      await insertEventLog(sessionId, 'page_leave', data.page, undefined, { duration: data.duration }, now)
     }
 
     if (type === 'click' || type === 'form_submit' || type === 'navigation') {
@@ -415,6 +414,6 @@ export async function POST({ request }) {
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
     console.error('[analytics/event]', error)
-    return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось сохранить событие.')
+    return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось сохранить событие')
   }
 }

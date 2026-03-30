@@ -31,8 +31,7 @@ export async function POST({ request }) {
     return jsonResponse({ error: 'Unauthorized' }, 401)
   }
 
-  let filePath = null
-  let mediaId = null
+  const ctx = { filePath: null, mediaId: null }
 
   try {
     const formData = await request.formData()
@@ -68,15 +67,15 @@ export async function POST({ request }) {
       uniqueSuffix: crypto.randomUUID(),
     })
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'doctors')
-    filePath = join(uploadDir, filename)
+    ctx.filePath = join(uploadDir, filename)
     const publicUrl = `/uploads/doctors/${filename}`
 
     await mkdir(uploadDir, { recursive: true })
-    await writeFile(filePath, Buffer.from(await file.arrayBuffer()))
+    await writeFile(ctx.filePath, Buffer.from(await file.arrayBuffer()))
 
-    mediaId = crypto.randomUUID()
+    ctx.mediaId = crypto.randomUUID()
     await db.insert(Media).values({
-      id: mediaId,
+      id: ctx.mediaId,
       filename,
       mimeType: file.type,
       url: publicUrl,
@@ -86,12 +85,12 @@ export async function POST({ request }) {
 
     await db
       .update(Doctor)
-      .set({ photoMediaId: mediaId })
+      .set({ photoMediaId: ctx.mediaId })
       .where(eq(Doctor.id, doctorId))
 
     const previousPhotoMediaId = doctorCheck.doctor?.photoMediaId
 
-    if (previousPhotoMediaId && previousPhotoMediaId !== mediaId) {
+    if (previousPhotoMediaId && previousPhotoMediaId !== ctx.mediaId) {
       try {
         const previousMediaRows = await db.select().from(Media).where(eq(Media.id, previousPhotoMediaId))
         const previousMedia = previousMediaRows[0]
@@ -106,19 +105,19 @@ export async function POST({ request }) {
       }
     }
 
-    return jsonResponse({ ok: true, mediaId, url: publicUrl }, 200)
+    return jsonResponse({ ok: true, mediaId: ctx.mediaId, url: publicUrl }, 200)
   } catch (err) {
-    if (mediaId) {
+    if (ctx.mediaId) {
       try {
-        await db.delete(Media).where(eq(Media.id, mediaId))
+        await db.delete(Media).where(eq(Media.id, ctx.mediaId))
       } catch (cleanupError) {
         console.error('[upload/photo] media rollback failed', cleanupError)
       }
     }
 
-    if (filePath) {
+    if (ctx.filePath) {
       try {
-        await deleteFileIfExists(filePath)
+        await deleteFileIfExists(ctx.filePath)
       } catch (cleanupError) {
         console.error('[upload/photo] file rollback failed', cleanupError)
       }

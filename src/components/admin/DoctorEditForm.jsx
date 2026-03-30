@@ -119,5 +119,3 @@ export function DoctorEditForm({ doctor, onSave, onCancel }) {
     </div>
   )
 }
-
-export default DoctorEditForm

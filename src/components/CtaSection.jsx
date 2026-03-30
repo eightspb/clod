@@ -47,5 +47,3 @@ export function CtaSection({
     </section>
   )
 }
-
-export default CtaSection

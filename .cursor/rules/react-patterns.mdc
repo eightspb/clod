@@ -1,5 +1,5 @@
 ---
-description: React component patterns and Tailwind/claymorphism styling conventions
+description: React component patterns, Tailwind/claymorphism styling, and accessibility conventions
 globs: src/**/*.jsx
 alwaysApply: false
 ---
@@ -10,6 +10,7 @@ alwaysApply: false
 - Use `function`, not `const`, for component definitions
 - One component per file; named export only
 - Props via destructured object where it improves readability
+- No `-er` suffix in component names (no Managers, Controllers, Handlers)
 
 ```jsx
 // ✅ GOOD
@@ -26,6 +27,7 @@ export default ClayCard
 - Keep domain decisions and normalization in `src/lib/**` when they are reused or test-sensitive
 - Use hooks and effects only in interactive components that truly need them
 - Avoid turning static Astro-rendered sections into client components without a clear reason
+- Keep functions short — no blank lines inside function bodies
 
 ## Claymorphism Design System
 The project uses a custom clay design system. Use these CSS classes from `src/styles/global.css`:
@@ -39,10 +41,12 @@ clay-card-lavender - lavender colored card
 clay-card-soft-*   - pastel pale versions (soft-mint, soft-peach, soft-blue, soft-lavender)
 btn-clay-primary   - primary teal pill button
 btn-clay-secondary - white secondary pill button
+btn-clay-white     - white button
 icon-circle-*      - colored icon circle (mint, peach, blue, lavender, yellow)
 blob-mint/peach/blue/lavender - organic background blob shapes
 num-badge          - numbered step badge
 stat-pill          - small stat label
+avatar-ring-*      - colored ring around avatar (peach, blue, mint, lavender)
 ```
 
 Never use `box-shadow` inline when a clay utility class exists.
@@ -65,13 +69,15 @@ export function Nav() {
 - Prefer Tailwind utilities and shared clay classes over ad-hoc inline styles
 - When a visual pattern repeats, add or reuse a named utility in `src/styles/global.css`
 - Keep class composition readable; extract repeated class strings when necessary
+- Never use pure black text — use `clay-dark` or `clay-text` tokens
 
 ## Performance
 
 - Minimize client-side state and hydration
 - Always add `loading="lazy"` to non-critical `<img>` tags
-- Prefer modern compressed assets and always specify meaningful `alt`, `width`, and `height`
+- Prefer modern compressed assets (WebP) and always specify meaningful `alt`, `width`, and `height`
 - Avoid expensive effects that can be replaced by CSS or Astro-rendered markup
+- Use the lightest viable Astro client directive (`client:idle` > `client:load` when appropriate)
 
 ## Responsive
 - Mobile-first with Tailwind breakpoints: `sm:` `md:` `lg:`
@@ -83,3 +89,6 @@ export function Nav() {
 - Ensure interactive controls have accessible names
 - Keep keyboard interaction intact for menus, dialogs, and forms
 - Do not rely on color alone to communicate state
+- Minimum 4.5:1 contrast ratio for body text (WCAG AA)
+- Touch targets: minimum 44px for mobile
+- Icons: Lucide React only, never emojis

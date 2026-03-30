@@ -14,5 +14,3 @@ export function ClayBlobTitle({ children }) {
     </div>
   )
 }
-
-export default ClayBlobTitle
