@@ -6,15 +6,17 @@ alwaysApply: true
 # Клиника Одинцова - Project Context
 
 ## Stack
-- **Runtime**: Bun
+- **Runtime**: Bun (not npm/yarn)
 - **Framework**: Astro 4 + React 18 islands
 - **Language**: JavaScript (`.js`, `.jsx`) with selective TypeScript config files
 - **Routing**: Astro file-based routing in `src/pages/**`
 - **Database**: `@astrojs/db` with SQLite
 - **Styling**: Tailwind CSS 3 + custom clay utilities in `src/styles/global.css`
 - **Icons**: Lucide React
+- **CSS library**: `claymorphism-css` (npm package, imported in global.css)
 - **Testing**: Vitest + Testing Library + Playwright
 - **Deployment**: Docker + Docker Compose + Nginx
+- **CI/CD**: GitHub Actions (lint, test, build, e2e)
 
 ## Architecture
 - Public routes are primarily Astro pages composed from reusable sections and layout shells
@@ -32,12 +34,15 @@ alwaysApply: true
 - **TDD for behavior changes** in shared logic, interactive components, and API handlers
 - **Fail fast** on invalid input, bad auth, or broken configuration
 - **Accessibility and SEO are first-class concerns**, not polish items
+- **Immutability** — prefer `const`, never mutate props, arguments, or shared objects
 
 ## JavaScript Style
 - Use plain JavaScript patterns that are idiomatic for the existing codebase
 - Prefer `function` declarations for exported components and reusable helpers
-- Prefer named exports
-- Keep static content outside component bodies
+- Prefer named exports over default exports
+- Keep static content outside component bodies in UPPER_SNAKE_CASE
+- No blank lines inside function bodies
+- No inline comments — use JSDoc only for non-obvious "why"
 - Avoid introducing TypeScript-specific rules into JavaScript files unless the repo is being migrated intentionally
 
 ## Repository Landmarks
@@ -59,6 +64,7 @@ alwaysApply: true
 - Preserve Russian-first public content unless the task explicitly adds another locale
 - Preserve structured data, canonical metadata, and semantic markup when changing indexed pages
 - Treat admin auth, analytics, uploads, and form handling as sensitive change areas
+- Do not make unsupported medical, legal, or compliance claims
 
 ## Running the project
 ```bash
@@ -69,7 +75,7 @@ bun run preview  # preview build
 
 ## Validation Defaults
 
-- `bun run lint`
-- `bun run test:run`
-- `bun run test:e2e`
-- `bun run build`
+- `bun run lint` — ESLint quality gate
+- `bun run test:run` — unit tests (Vitest)
+- `bun run test:e2e` — browser tests (Playwright)
+- `bun run build` — production build verification

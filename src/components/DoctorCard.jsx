@@ -70,5 +70,3 @@ export function DoctorCard({ doctor }) {
     </article>
   )
 }
-
-export default DoctorCard

@@ -82,11 +82,11 @@ function validateHeartbeatPayload(body) {
   const page = normalizePage(body?.page)
 
   if (!sessionId) {
-    details.push({ field: 'sessionId', message: 'Некорректный идентификатор сессии.' })
+    details.push({ field: 'sessionId', message: 'Некорректный идентификатор сессии' })
   }
 
   if (!page) {
-    details.push({ field: 'page', message: 'Укажите текущую страницу.' })
+    details.push({ field: 'page', message: 'Укажите текущую страницу' })
   }
 
   return {
@@ -102,7 +102,7 @@ function validateHeartbeatPayload(body) {
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
-    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса.')
+    return errorResponse(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса')
   }
 
   const ip = getClientIp(request)
@@ -112,7 +112,7 @@ export async function POST({ request }) {
     return errorResponse(
       429,
       'RATE_LIMITED',
-      'Слишком много событий. Попробуйте позже.',
+      'Слишком много событий. Попробуйте позже',
       undefined,
       { 'Retry-After': String(retryAfterSec) }
     )
@@ -123,13 +123,13 @@ export async function POST({ request }) {
   try {
     body = await request.json()
   } catch {
-    return errorResponse(400, 'INVALID_JSON', 'Передайте корректный JSON.')
+    return errorResponse(400, 'INVALID_JSON', 'Передайте корректный JSON')
   }
 
   const { details, normalized } = validateHeartbeatPayload(body)
 
   if (details.length || !normalized) {
-    return errorResponse(400, 'VALIDATION_ERROR', 'Проверьте payload heartbeat.', details)
+    return errorResponse(400, 'VALIDATION_ERROR', 'Проверьте payload heartbeat', details)
   }
 
   try {
@@ -144,6 +144,6 @@ export async function POST({ request }) {
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
     console.error('[analytics/heartbeat]', error)
-    return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось обновить heartbeat.')
+    return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось обновить heartbeat')
   }
 }

@@ -16,7 +16,6 @@ Handle errors and edge cases at the top of functions so the happy path stays obv
 function DoctorCard({ doctor }) {
   if (!doctor) return null
   if (!doctor.name) return <SkeletonCard />
-
   return <div>{doctor.name}</div>
 }
 
@@ -48,6 +47,13 @@ if (isLoading) {
   return <Content />
 }
 ```
+
+## Fail Fast
+
+- Throw errors early with rich context for invalid state, misconfiguration, or broken invariants
+- Never silently swallow exceptions — either handle them or propagate them
+- In API handlers, fail closed: reject first, then proceed with valid data
+- For missing production credentials (SMTP, TOKEN_SECRET), fail immediately with a clear error instead of degrading silently
 
 ## Validate at the Boundary
 
@@ -88,7 +94,19 @@ async function submitAppointment(data) {
 
 ## Server Errors
 
-- Return explicit HTTP status codes
-- Use a stable JSON shape for API failures
+- Return explicit HTTP status codes and machine-readable JSON
+- Use a stable JSON shape for API failures: `{ error: string }`
+- Error messages: single sentence, no trailing period, include full context
 - Log enough context to diagnose the issue without leaking secrets or excessive PII
 - Do not swallow exceptions silently
+- Keep try/catch scope as small as possible — don't wrap entire functions
+
+## Error Messages
+
+```js
+// ✅ GOOD - specific, contextual, no trailing period
+throw new Error(`Doctor not found for slug: ${slug}`)
+
+// ❌ BAD - vague, no context
+throw new Error('Something went wrong.')
+```

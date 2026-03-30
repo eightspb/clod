@@ -67,8 +67,7 @@ export async function POST({ request }) {
         continue
       }
 
-      let filePath = null
-      let mediaId = null
+      const ctx = { filePath: null, mediaId: null }
 
       try {
         const filename = buildStorageFilename({
@@ -78,13 +77,13 @@ export async function POST({ request }) {
           uniqueSuffix: crypto.randomUUID(),
         })
         const publicUrl = `/uploads/certificates/${filename}`
-        filePath = join(uploadDir, filename)
+        ctx.filePath = join(uploadDir, filename)
 
-        await writeFile(filePath, Buffer.from(await file.arrayBuffer()))
+        await writeFile(ctx.filePath, Buffer.from(await file.arrayBuffer()))
 
-        mediaId = crypto.randomUUID()
+        ctx.mediaId = crypto.randomUUID()
         await db.insert(Media).values({
-          id: mediaId,
+          id: ctx.mediaId,
           filename,
           mimeType: file.type,
           url: publicUrl,
@@ -98,25 +97,25 @@ export async function POST({ request }) {
         await db.insert(DoctorCertificate).values({
           id: certId,
           doctorId,
-          mediaId,
+          mediaId: ctx.mediaId,
           title,
           sortOrder: 0,
           createdAt: new Date(),
         })
 
-        uploaded.push({ id: certId, mediaId, url: publicUrl, title })
+        uploaded.push({ id: certId, mediaId: ctx.mediaId, url: publicUrl, title })
       } catch (fileErr) {
-        if (mediaId) {
+        if (ctx.mediaId) {
           try {
-            await db.delete(Media).where(eq(Media.id, mediaId))
+            await db.delete(Media).where(eq(Media.id, ctx.mediaId))
           } catch (cleanupError) {
             console.error('[upload/certificates] media rollback failed', cleanupError)
           }
         }
 
-        if (filePath) {
+        if (ctx.filePath) {
           try {
-            await deleteFileIfExists(filePath)
+            await deleteFileIfExists(ctx.filePath)
           } catch (cleanupError) {
             console.error('[upload/certificates] file rollback failed', cleanupError)
           }

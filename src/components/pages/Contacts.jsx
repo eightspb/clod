@@ -229,11 +229,9 @@ export function Contacts() {
                     if (isLoaded) return;
                     isLoaded = true;
                     
-                    // Скрываем фасад
                     facade.style.display = 'none';
                     container.classList.remove('cursor-pointer', 'group');
                     
-                    // Создаем iframe
                     var iframe = document.createElement('iframe');
                     iframe.setAttribute('src', 'https://yandex.ru/map-widget/v1/?ll=30.251746%2C60.001014&z=16&pt=30.251746%2C60.001014,pm2rdm~&l=map');
                     iframe.setAttribute('width', '100%');

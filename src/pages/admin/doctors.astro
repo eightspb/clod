@@ -2,9 +2,9 @@
 export const prerender = false
 
 import AdminLayout from '../../layouts/AdminLayout.astro'
-import { DoctorManager } from '../../components/admin/DoctorManager.jsx'
+import { DoctorList } from '../../components/admin/DoctorList.jsx'
 ---
 
 <AdminLayout title="Доктора" activeSection="doctors">
-  <DoctorManager client:load />
+  <DoctorList client:load />
 </AdminLayout>

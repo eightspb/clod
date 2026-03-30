@@ -120,7 +120,7 @@ describe('POST /api/second-opinion', () => {
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Сервис временно недоступен. Попробуйте позже.',
+        message: 'Сервис временно недоступен. Попробуйте позже',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -139,7 +139,7 @@ describe('POST /api/second-opinion', () => {
       success: false,
       error: {
         code: 'FORBIDDEN_ORIGIN',
-        message: 'Недопустимый источник запроса.',
+        message: 'Недопустимый источник запроса',
       },
     })
   })
@@ -163,9 +163,9 @@ describe('POST /api/second-opinion', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.details).toEqual(
       expect.arrayContaining([
-        { field: 'firstName', message: 'Заполните имя.' },
-        { field: 'phone', message: 'Заполните телефон.' },
-        { field: 'files', message: 'Прикрепите хотя бы один файл.' },
+        { field: 'firstName', message: 'Заполните имя' },
+        { field: 'phone', message: 'Заполните телефон' },
+        { field: 'files', message: 'Прикрепите хотя бы один файл' },
       ])
     )
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -190,7 +190,7 @@ describe('POST /api/second-opinion', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.details).toContainEqual({
       field: 'files',
-      message: 'Поддерживаются только PDF, JPG, JPEG и PNG.',
+      message: 'Поддерживаются только PDF, JPG, JPEG и PNG',
     })
     expect(arrayBufferSpy).not.toHaveBeenCalled()
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -213,7 +213,7 @@ describe('POST /api/second-opinion', () => {
       success: false,
       error: {
         code: 'RATE_LIMITED',
-        message: 'Слишком много заявок. Попробуйте позже.',
+        message: 'Слишком много заявок. Попробуйте позже',
       },
     })
     expect(limitedResponse.headers.get('Retry-After')).toBeTruthy()

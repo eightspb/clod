@@ -8,14 +8,17 @@ alwaysApply: true
 ## Documentation Rules
 
 - Keep `README.md` aligned with the actual state of the repository
+- Be verbose and direct in README.md and code documentation
+- Keep documentation as short as possible, no code duplication in docs
 - Update documentation when changing:
-  - commands
+  - commands or scripts
   - environment variables
-  - architecture
-  - page structure
-  - API behavior
+  - architecture or stack
+  - page structure or routing
+  - API behavior or contracts
   - security behavior
   - test strategy
+  - deployment or infrastructure
 - If a new rule becomes part of team workflow, document it in `.cursor/rules/` and reference it from `AGENTS.md` or `CLAUDE.md`
 
 ## Environment and Ops
@@ -23,6 +26,16 @@ alwaysApply: true
 - When adding a new env var, update `.env.example` and mention it in `README.md`
 - When changing deploy or infrastructure behavior, update the relevant operational docs in the same change
 - Do not leave hidden setup steps only in code comments or commit messages
+- Never commit secrets, `.env` files, or credentials
+
+## Pre-Commit Review
+
+Before finalizing any significant change, verify:
+
+1. **README.md** — update if features, structure, commands, env vars, or architecture changed
+2. **`.env.example`** — update if new environment variables were introduced
+3. **`.cursor/rules/`** — update if new coding patterns or conventions were introduced
+4. **`AGENTS.md` / `CLAUDE.md`** — keep aligned if rules changed
 
 ## Delivery Checklist
 
@@ -31,10 +44,15 @@ alwaysApply: true
 - Run the smallest relevant validation for the change
 - Run broader validation when the blast radius is large
 - Summarize assumptions if a decision was made without explicit user input
+- If validation is skipped, state why explicitly
 
 ## Validation Expectations
 
-- UI/component logic: run `bun run test:run` or a narrower equivalent if available
-- Route or browser interaction changes: run `bun run test:e2e` when practical
-- Broad code changes: run `bun run lint` and `bun run build`
-- If validation is skipped, state why explicitly
+| Change scope | Validation command |
+|---|---|
+| UI/component logic | `bun run test:run` |
+| Domain logic in `src/lib/**` | `bun run test:run` (TDD mandatory) |
+| API handlers | `bun run test:run` (TDD mandatory) |
+| Route or browser interactions | `bun run test:e2e` |
+| Broad code changes | `bun run lint` + `bun run build` |
+| Security-sensitive areas | targeted tests + manual review |

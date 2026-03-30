@@ -130,6 +130,12 @@ const HOME_REASONS = [
   'После приёма подсказываем, какие документы и результаты взять с собой',
 ]
 
+const WHY_STATS = [
+  { val: '30 мин', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'типичная длительность ВАБ', desc: 'Процедура проходит амбулаторно, а дальнейшие рекомендации команда объясняет сразу после неё.' },
+  { val: '9', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'врачей в команде клиники', desc: 'Маммологи, гинекологи, эндокринологи и нутрициологи работают в одном маршруте пациента.' },
+  { val: '2', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'канала для связи с клиникой', desc: 'Сообщаем о готовности документов и подсказываем следующий шаг по телефону или в Telegram.' },
+]
+
 const WHY_ICONS = { Shield, Zap, Clock, Heart }
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
@@ -690,11 +696,7 @@ export function Home({ doctorsData = [] }) {
               </div>
             </div>
             <div className="space-y-4">
-              {[
-                { val: '30 мин', color: 'text-clay-mint', card: 'clay-card-soft-mint', label: 'типичная длительность ВАБ', desc: 'Процедура проходит амбулаторно, а дальнейшие рекомендации команда объясняет сразу после неё.' },
-                { val: '9', color: 'text-clay-peach', card: 'clay-card-soft-peach', label: 'врачей в команде клиники', desc: 'Маммологи, гинекологи, эндокринологи и нутрициологи работают в одном маршруте пациента.' },
-                { val: '2', color: 'text-clay-blue', card: 'clay-card-soft-blue', label: 'канала для связи с клиникой', desc: 'Сообщаем о готовности документов и подсказываем следующий шаг по телефону или в Telegram.' },
-              ].map((s) => (
+              {WHY_STATS.map((s) => (
                 <div key={s.val} className={`clay ${s.card} p-6`}>
                   <div className="flex items-start gap-4">
                     <div className={`text-4xl font-extrabold ${s.color} leading-none`}>{s.val}</div>

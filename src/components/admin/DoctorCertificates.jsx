@@ -230,5 +230,3 @@ export function DoctorCertificates({ doctor }) {
     </div>
   )
 }
-
-export default DoctorCertificates

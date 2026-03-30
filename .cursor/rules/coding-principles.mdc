@@ -1,19 +1,20 @@
 ---
-description: Clean coding principles for Astro + React + JavaScript, adapted from Elegant Objects and DDD
+description: Clean coding principles adapted from Elegant Objects and DDD for Astro + React + JavaScript
 alwaysApply: true
 ---
 
 # Coding Principles
 
-These rules adapt the strongest ideas from Elegant Objects, DDD, and production web engineering to this repository's real stack: Astro 4, React 18, JavaScript, Tailwind, Vitest, and Playwright.
+These rules adapt the strongest ideas from [Elegant Objects](https://github.com/yegor256/prompt), DDD, and production web engineering to this repository's real stack: Astro 4, React 18, JavaScript, Tailwind, Vitest, and Playwright.
 
 ## Core Paradigms
 
 - Respect **DDD-lite**: separate presentation, domain logic, and infrastructure even in a small codebase
 - Favor **fail fast** over silent fallbacks for invalid state, unexpected input, and misconfiguration
 - Reproduce a bug or a feature expectation with a test before fixing or implementing it
-- Preserve existing structure unless the refactor clearly improves clarity, safety, or reuse
+- Don't change existing code structure without a strong reason
 - Prefer small modules with one reason to change
+- Use extensive debug-logging when a problem is hard to fix
 
 ## Boundaries
 
@@ -23,20 +24,26 @@ These rules adapt the strongest ideas from Elegant Objects, DDD, and production 
 - Keep I/O and transport concerns in `src/pages/api/**`, `src/middleware.js`, and `scripts/**`
 - If logic is reused in more than one route or component, move it out of the page and into a focused module
 
-## JavaScript Conventions
+## Functions and Modules
 
 - Prefer **functions and modules** over classes unless stateful objects are genuinely the cleanest fit
 - Use `function` declarations for components and named helpers
 - Prefer named exports over default exports
-- Use `const` by default and only use `let` when mutation is intentional and local
-- Do not mutate props, arguments, imported constants, or shared objects
+- Don't put logic in constructors except assignments (when classes are used)
+- Encapsulate no more than four properties/attributes per class
+- Avoid the `-er` suffix in module/class names: no Managers, Controllers, Routers, Readers, Writers — name after what the thing *is*, not what it *does*
+- Don't create utility "god files" with unrelated static helpers — use focused modules
+- Don't create public static methods — prefer module-level named exports
+- Favor immutable data: use `const` by default, don't mutate props, arguments, imported constants, or shared objects
+- Only use `let` when mutation is intentional and local
 - Favor explicit objects and arrays over positional argument lists when a function needs several inputs
 - Avoid clever abstractions; choose readable data flow over compactness
 
 ## Naming
 
 - Name modules and variables after the domain: `doctor`, `session`, `filter`, `certificate`, `appointment`
-- Use verbs for actions: `validateOrigin`, `buildSetCookie`, `matchesFilter`
+- Use single descriptive nouns for variables, avoid compound/composite names
+- Use single verbs for actions: `validateOrigin`, `buildSetCookie`, `matchesFilter`
 - Use PascalCase for React components, camelCase for functions, and UPPER_SNAKE_CASE for static constants
 - Keep route files in Astro file-based routing conventions and avoid inventing SPA naming patterns
 
@@ -44,23 +51,33 @@ These rules adapt the strongest ideas from Elegant Objects, DDD, and production 
 
 - Keep functions short enough that their intent is obvious without comments
 - Prefer guard clauses and explicit branches over deeply nested conditionals
-- Avoid "god files" and dumping-ground utilities
+- No blank lines inside function bodies — if you feel the need, the function does too much; split it
 - Keep static content and lookup tables outside component bodies
-- Use comments sparingly and only for non-obvious intent or constraints
-- Use JSDoc where it materially improves the contract of a reusable module or exported function
+- Don't write production code that is only used by tests
+
+## Documentation
+
+- No inline comments — code should be self-explanatory
+- Use JSDoc only for non-obvious "why" or to clarify the contract of a reusable module or exported function
+- Prepend every exported module/function with a JSDoc block explaining purpose when the name alone is not sufficient
+- Be verbose and direct in README.md and code documentation
+- Use English only for JSDoc/docblocks, ASCII characters
+- Keep documentation as short as possible, no code duplication in docs
 
 ## Error Messages
 
 - Make errors and logs specific, contextual, and actionable
-- Keep each error message to one sentence
+- Keep each error message to one sentence, no trailing period
+- Include as much context as possible in error messages
 - Avoid vague messages like `Something went wrong`
 - Never expose secrets, credentials, raw tokens, or excessive PII in logs
 
 ## Defaults and Absence
 
 - In domain and API code, prefer explicit validation and meaningful return shapes over implicit `null`/`undefined`
+- Never return `null`/`undefined` from functions when avoidable — throw or return a meaningful default
+- Never pass `null`/`undefined` as an argument through multiple layers
 - In React rendering code, `return null` is acceptable when "render nothing" is the intended UI contract
-- Do not pass `null` or `undefined` through multiple layers when a clear default or early validation would be simpler
 
 ## Dependency and Architecture Discipline
 

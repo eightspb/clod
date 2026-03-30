@@ -196,7 +196,7 @@ clod/
 │   │   ├── admin/                 # Компоненты админ-панели
 │   │   │   ├── LoginForm.jsx
 │   │   │   ├── Dashboard.jsx
-│   │   │   ├── DoctorManager.jsx  # Контейнер списка докторов
+│   │   │   ├── DoctorList.jsx     # Контейнер списка докторов
 │   │   │   ├── DoctorEditForm.jsx # Форма редактирования (модалка)
 │   │   │   ├── DoctorPhotoUpload.jsx # Загрузка фото доктора
 │   │   │   ├── DoctorCertificates.jsx # Управление сертификатами

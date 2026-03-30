@@ -27,5 +27,5 @@ const doctorsSchema = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(doctorsSchema)} />
   <BreadcrumbNav items={[{ label: 'Доктора' }]} />
-  <Doctors client:load />
+  <Doctors client:idle />
 </Layout>

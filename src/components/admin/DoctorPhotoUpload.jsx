@@ -192,5 +192,3 @@ export function DoctorPhotoUpload({ doctor, onPhotoUpdated }) {
     </div>
   )
 }
-
-export default DoctorPhotoUpload

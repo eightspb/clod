@@ -101,7 +101,7 @@ describe('POST /api/tax-form', () => {
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Сервис временно недоступен. Попробуйте позже.',
+        message: 'Сервис временно недоступен. Попробуйте позже',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -120,7 +120,7 @@ describe('POST /api/tax-form', () => {
       success: false,
       error: {
         code: 'FORBIDDEN_ORIGIN',
-        message: 'Недопустимый источник запроса.',
+        message: 'Недопустимый источник запроса',
       },
     })
   })
@@ -144,9 +144,9 @@ describe('POST /api/tax-form', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR')
     expect(body.error.details).toEqual(
       expect.arrayContaining([
-        { field: 'patientFullName', message: 'Укажите ФИО пациента.' },
-        { field: 'taxpayerInn', message: 'Укажите корректный ИНН.' },
-        { field: 'phone', message: 'Заполните телефон.' },
+        { field: 'patientFullName', message: 'Укажите ФИО пациента' },
+        { field: 'taxpayerInn', message: 'Укажите корректный ИНН' },
+        { field: 'phone', message: 'Заполните телефон' },
       ])
     )
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -169,7 +169,7 @@ describe('POST /api/tax-form', () => {
       success: false,
       error: {
         code: 'RATE_LIMITED',
-        message: 'Слишком много заявок. Попробуйте позже.',
+        message: 'Слишком много заявок. Попробуйте позже',
       },
     })
     expect(limitedResponse.headers.get('Retry-After')).toBeTruthy()

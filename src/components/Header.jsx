@@ -51,7 +51,6 @@ export function Header({ currentPath = '/' }) {
     if (event.currentTarget.contains(event.relatedTarget)) {
       return
     }
-
     handleDropdownLeave()
   }
 
@@ -61,7 +60,6 @@ export function Header({ currentPath = '/' }) {
       closeDropdown()
       return
     }
-
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       handleDropdownEnter(label)
@@ -92,14 +90,12 @@ export function Header({ currentPath = '/' }) {
     if (!mobileOpen) {
       return undefined
     }
-
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault()
         closeMobileMenu()
       }
     }
-
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [mobileOpen])
@@ -305,5 +301,3 @@ export function Header({ currentPath = '/' }) {
     </header>
   )
 }
-
-export default Header

@@ -1,7 +1,6 @@
 ;(function () {
   'use strict'
 
-  // Skip tracking on admin pages
   if (window.location.pathname.startsWith('/admin')) return
 
   var API_EVENT = '/api/analytics/event'
@@ -9,7 +8,6 @@
   var HEARTBEAT_INTERVAL = 30000 // 30s
   var BATCH_INTERVAL = 5000 // 5s
 
-  // IDs
   var visitorId = localStorage.getItem('_vid')
   if (!visitorId) {
     visitorId = uuid()
@@ -136,7 +134,6 @@
   // Click tracking
   document.addEventListener('click', function (e) {
     var el = e.target
-    // Walk up to find meaningful element (button, a, [data-track])
     var tracked = el
     for (var i = 0; i < 5; i++) {
       if (!tracked) break

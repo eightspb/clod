@@ -16,13 +16,17 @@ alwaysApply: false
 - Fail closed on invalid auth, origin, file type, or malformed payloads
 - Keep handler code thin: parse request, validate, delegate logic, return explicit response
 - Use the same security posture for admin and public endpoints unless an endpoint is intentionally less privileged and documented
+- Treat all request data as untrusted, including `FormData`, query params, cookies, and headers
 
 ## Input Validation
 
 - Normalize and trim user input before business logic
 - Reject missing required fields with explicit `400` responses
 - Validate file uploads by allowed extensions, MIME types, and size limits
-- Treat all request data as untrusted, including `FormData`, query params, cookies, and headers
+- Guard against path traversal when handling file names (doctorId, extension, uploaded filenames)
+- Escape SQL LIKE wildcards in user-provided search terms
+- Guard against CSV formula injection when generating downloadable data
+- Sanitize and trim all text fields in admin API before persistence
 
 ## Auth, Cookies, and Mutations
 
@@ -30,26 +34,39 @@ alwaysApply: false
 - Reuse `src/lib/auth.js` validation primitives instead of duplicating cookie and origin logic
 - Do not weaken cookie flags or token signing behavior for convenience
 - When auth or cookie behavior changes, add or update focused tests
+- Use parameterized queries for all database operations — never interpolate user input into SQL
+- Never leak password hashes, JWT secrets, or internal tokens in API responses
+
+## Rate Limiting
+
+- Login: 5 attempts / 15 min
+- Analytics event: 100 req/min
+- Analytics heartbeat: 120 req/min
+- Apply rate limiting at the transport layer, not in business logic
+- Use consistent rate-limit response format across all endpoints
 
 ## Errors and Responses
 
 - Return explicit HTTP status codes and machine-readable JSON for API failures
+- Use a stable JSON shape: `{ error: string }` for failures
 - Do not leak stack traces, secrets, SMTP credentials, or raw upstream errors to the client
 - Log server-side failures with enough context to debug, but without excessive PII
 - Avoid silent fallback behavior for missing production credentials in new code
+- Error messages: single sentence, no trailing period, include context
 
 ## External Services
 
 - Wrap external side effects like SMTP, analytics sinks, or storage writes in a minimal abstraction when complexity grows
 - Guard against partial-failure ambiguity: know which failures should abort the request and which should be best-effort
 - Add timeouts or bounded waiting when integrating with external services
+- Guard against SSRF when accepting user-provided URLs
 
 ## Security-Sensitive Areas in This Repo
 
-- `src/lib/auth.js`
-- `src/lib/upload-validation.js`
-- `src/lib/upload-utils.js`
-- `src/middleware.js`
-- `src/pages/api/**`
+- `src/lib/auth.js` — HMAC token signing, cookie handling, origin validation
+- `src/lib/upload-validation.js` — file type/size validation
+- `src/lib/upload-utils.js` — file storage operations
+- `src/middleware.js` — security headers, cache control
+- `src/pages/api/**` — all API endpoints
 
 Any change in these areas should be treated as high-risk and validated with targeted tests.

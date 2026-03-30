@@ -17,14 +17,11 @@ export async function PUT({ request, params }) {
       headers: { 'Content-Type': 'application/json' },
     })
   }
-
   try {
     const { id } = params
     const body = await request.json()
     const { name, specialization, experienceYears, bio, slug, photoMediaId } = body
-
     const updates = {}
-
     if (name !== undefined) {
       const trimmed = String(name).trim()
       if (trimmed.length === 0 || trimmed.length > 200) {
@@ -35,7 +32,6 @@ export async function PUT({ request, params }) {
       }
       updates.name = trimmed
     }
-
     if (specialization !== undefined) {
       const trimmed = String(specialization).trim()
       if (trimmed.length > 300) {
@@ -46,7 +42,6 @@ export async function PUT({ request, params }) {
       }
       updates.specialization = trimmed
     }
-
     if (experienceYears !== undefined) {
       const years = Number(experienceYears)
       if (isNaN(years) || years < 0 || years > 80) {
@@ -57,7 +52,6 @@ export async function PUT({ request, params }) {
       }
       updates.experienceYears = years
     }
-
     if (bio !== undefined) {
       const trimmed = String(bio).trim()
       if (trimmed.length > 5000) {
@@ -68,7 +62,6 @@ export async function PUT({ request, params }) {
       }
       updates.bio = trimmed
     }
-
     if (slug !== undefined) {
       const trimmed = String(slug).trim().toLowerCase()
       if (!/^[a-z0-9-]+$/.test(trimmed) || trimmed.length > 100) {
@@ -79,18 +72,14 @@ export async function PUT({ request, params }) {
       }
       updates.slug = trimmed
     }
-
     if (photoMediaId !== undefined) updates.photoMediaId = photoMediaId || null
-
     if (Object.keys(updates).length === 0) {
       return new Response(JSON.stringify({ error: 'No fields to update' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       })
     }
-
     await db.update(Doctor).set(updates).where(eq(Doctor.id, id))
-
     const updated = await db.select().from(Doctor).where(eq(Doctor.id, id))
     return new Response(JSON.stringify({ doctor: updated[0] || null }), {
       status: 200,
