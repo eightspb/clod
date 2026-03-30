@@ -9,7 +9,7 @@
 - **Аккаунт Beget** с доступом к VPS.
 - **Домен** - нужен только для доступа по имени и HTTPS; без домена можно поднять сайт по IP по HTTP (см. часть 3А).
 - **Репозиторий на GitHub** (публичный или приватный; для приватного - SSH-ключ или токен).
-- **Терминал** с SSH-клиентом (на Windows: PowerShell + OpenSSH или PuTTY).
+- **Терминал** с SSH-клиентом (OpenSSH встроен в macOS и большинство дистрибутивов Linux).
 
 ---
 
@@ -27,7 +27,7 @@
 
 ### 1.2. Подключение по SSH
 
-Из PowerShell (или терминала):
+Из терминала на Mac или Linux:
 
 ```bash
 ssh root@ВАШ_IP_АДРЕС
@@ -39,9 +39,9 @@ ssh root@ВАШ_IP_АДРЕС
 
 Чтобы подключаться без пароля по ключу:
 
-1. **На вашем ПК используется ключ** (например, созданный для Beget):
-   - Приватный ключ: `%USERPROFILE%\.ssh\id_ed25519_beget`
-   - Публичный ключ: `%USERPROFILE%\.ssh\id_ed25519_beget.pub`
+1. **На вашем Mac используется ключ** (например, созданный для Beget):
+   - Приватный ключ: `~/.ssh/id_ed25519_beget`
+   - Публичный ключ: `~/.ssh/id_ed25519_beget.pub`
 
 2. **Один раз подключитесь по паролю** (см. 1.2), затем на сервере выполните:
 
@@ -52,21 +52,21 @@ echo "ВСТАВЬТЕ_СЮДА_СОДЕРЖИМОЕ_ФАЙЛА_id_ed25519_beget
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-Содержимое `id_ed25519_beget.pub` можно скопировать с ПК одной командой (PowerShell, подставьте свой IP):
+Содержимое `id_ed25519_beget.pub` можно вывести в терминале на Mac:
 
-```powershell
-Get-Content $env:USERPROFILE\.ssh\id_ed25519_beget.pub
+```bash
+cat ~/.ssh/id_ed25519_beget.pub
 ```
 
 Скопируйте вывод и вставьте его в `echo "..."` на сервере (одной строкой, в кавычках).
 
-3. **Подключение с ПК по ключу:**
+3. **Подключение с Mac по ключу:**
 
-```powershell
-ssh -i $env:USERPROFILE\.ssh\id_ed25519_beget root@ВАШ_IP_АДРЕС
+```bash
+ssh -i ~/.ssh/id_ed25519_beget root@ВАШ_IP_АДРЕС
 ```
 
-Чтобы не указывать `-i` каждый раз, добавьте в `%USERPROFILE%\.ssh\config`:
+Чтобы не указывать `-i` каждый раз, добавьте в `~/.ssh/config`:
 
 ```
 Host clod
@@ -182,28 +182,22 @@ ASTRO_DB_REMOTE_URL=file:/data/db.sqlite
 
 ## Часть 3А. Деплой по IP без домена (только HTTP)
 
-Если домен пока не подключаете, сайт можно поднять по IP: **только HTTP** (без HTTPS и без Certbot). Схема рабочая, меняется только конфиг Nginx и не делаются шаги с доменом и SSL.
+Если домен пока не подключаете, сайт можно поднять по IP: **только HTTP** (без HTTPS и без Certbot).
 
-**Что сделать после частей 1–2 и пункта 3.1** (без 3.2 и без части 4):
-
-1. **Поставить конфиг Nginx «без домена»:**
+В репозитории **`nginx.conf` по умолчанию уже без SSL** (только порт 80, прокси на приложение). Отдельно ничего копировать не нужно — после `git clone` и настройки `.env` достаточно:
 
 ```bash
 cd /srv/clod
-cp nginx.no-domain.conf nginx.conf
-```
-
-2. **Сразу запустить весь стек:**
-
-```bash
 docker compose up -d --build
 ```
 
-Контейнер Certbot будет запущен, но для работы по IP он не нужен - можно игнорировать. Nginx слушает только порт 80 и проксирует запросы на приложение при любом `Host` (в т.ч. по IP).
+Контейнер Certbot будет запущен, но для работы по IP он не нужен — можно игнорировать. Nginx слушает порт 80 и проксирует запросы при любом `Host` (в т.ч. по IP).
 
-3. **Открыть в браузере:** `http://ВАШ_IP` (подставьте IP вашего VPS).
+**Открыть в браузере:** `http://ВАШ_IP` (подставьте IP вашего VPS).
 
-**Позже, когда появится домен:** верните конфиг с доменом и HTTPS по части 4: настройте DNS (3.2), затем шаги 4.1–4.5 с `nginx.bootstrap.conf` и Certbot, в конце `git checkout nginx.conf` и `docker compose up -d --build`.
+**Позже, когда появится домен:** настройте DNS (3.2), затем часть 4: `nginx.bootstrap.conf` → Certbot → **`cp nginx.https.conf nginx.conf`** (с правками домена в файле) и `docker compose up -d --build`.
+
+> Если на сервере остался старый `nginx.conf` с HTTPS и несуществующими путями к сертификатам, nginx уходил в `restarting`. После `git pull` придёт актуальный HTTP-`nginx.conf`, либо вручную скопируйте его из репозитория.
 
 ---
 
@@ -249,13 +243,15 @@ docker compose run --rm certbot certonly \
 
 ### 4.4. Переключиться на финальный Nginx с HTTPS
 
-В репозитории уже есть финальный `nginx.conf` с HTTPS. Если вы его перезаписали на bootstrap - верните из git:
+Файл **`nginx.https.conf`** в репозитории — готовый конфиг с редиректом HTTP→HTTPS и SSL. Скопируйте его в рабочий `nginx.conf` (bootstrap вы перезаписали `nginx.conf`, поэтому `git checkout nginx.conf` не подойдёт):
 
 ```bash
-git checkout nginx.conf
+cd /srv/clod
+cp nginx.https.conf nginx.conf
+nano nginx.conf
 ```
 
-Если правили домен вручную - отредактируйте финальный `nginx.conf`: замените все вхождения `odintsovclinic.ru` на ваш домен (в `server_name` и путях к `ssl_certificate` / `ssl_certificate_key`).
+Замените все вхождения `odintsovclinic.ru` на ваш домен (в `server_name` и в путях `ssl_certificate` / `ssl_certificate_key` — каталог в `/etc/letsencrypt/live/` совпадает с основным именем сертификата).
 
 ### 4.5. Запустить весь стек (приложение + Nginx + Certbot)
 
@@ -293,8 +289,6 @@ bun run deploy
 ```bash
 sh scripts/deploy.sh
 ```
-
-Для старого Windows-сценария можно по-прежнему использовать `.\scripts\deploy.ps1`.
 
 ### 5.2. Вручную на сервере
 
@@ -359,9 +353,10 @@ docker compose down -v
 
 Если деплоите на другой домен:
 
-1. В `nginx.bootstrap.conf` и `nginx.conf` замените `odintsovclinic.ru` и `www.odintsovclinic.ru` на ваш домен.
-2. В команде `certbot certonly` укажите ваш домен и `www.ваш-домен`.
-3. В `astro.config.mjs` при необходимости измените `site: 'https://...'` на ваш домен (для sitemap и canonical).
+1. В `nginx.bootstrap.conf` замените `odintsovclinic.ru` и `www.odintsovclinic.ru` на ваш домен (для этапа получения сертификата).
+2. После Certbot в **`nginx.https.conf`** (или в скопированном `nginx.conf`) замените домен в `server_name` и в путях `ssl_certificate` / `ssl_certificate_key`.
+3. В команде `certbot certonly` укажите ваш домен и `www.ваш-домен`.
+4. В `astro.config.mjs` при необходимости измените `site: 'https://...'` на ваш домен (для sitemap и canonical).
 
 ---
 

@@ -54,7 +54,7 @@ bun run build    # production-сборка в dist/
 bun run preview  # превью собранного билда
 ```
 
-`bun run dev` и `bun run deploy` используют shell-скрипты и рассчитаны на macOS/Linux. Старые PowerShell-скрипты сохранены как legacy-вариант для Windows.
+`bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux).
 
 ---
 
@@ -288,9 +288,9 @@ clod/
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
 ├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
-├── nginx.conf                     # Nginx: HTTPS reverse proxy (финальный)
-├── nginx.bootstrap.conf           # Nginx: только HTTP (для первичного получения SSL)
-├── nginx.no-domain.conf           # Nginx: доступ по IP без домена (только HTTP)
+├── nginx.conf                     # Nginx: по умолчанию HTTP (IP / до SSL)
+├── nginx.https.conf               # Nginx: HTTPS после Let's Encrypt
+├── nginx.bootstrap.conf           # Nginx: HTTP для первичного ACME (Certbot)
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
 ├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
@@ -655,9 +655,9 @@ integrations: [
 | `Dockerfile` | Multi-stage сборка: builder (bun install + build) → runner (slim, node entry.mjs) |
 | `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
 | `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
-| `nginx.conf` | Финальная конфигурация Nginx с HTTPS (используется после получения сертификата) |
-| `nginx.bootstrap.conf` | Временная конфигурация только с HTTP - для первичного получения SSL-сертификата |
-| `nginx.no-domain.conf` | Конфиг для доступа по IP без домена (только HTTP, без SSL) |
+| `nginx.conf` | Рабочий конфиг по умолчанию: только HTTP (без путей к сертификатам — подходит для IP) |
+| `nginx.https.conf` | Шаблон с HTTPS; после Certbot копируют в `nginx.conf` (см. DEPLOY-BEGET.md) |
+| `nginx.bootstrap.conf` | Временная конфигурация HTTP для первичного выпуска сертификата Let's Encrypt |
 | `.env.example` | Шаблон переменных окружения для production |
 
 ### Переменные окружения (`.env` на сервере)
@@ -692,8 +692,9 @@ docker compose run --rm certbot certonly \
   -d odintsovclinic.ru -d www.odintsovclinic.ru \
   --email admin@odintsovclinic.ru --agree-tos --no-eff-email
 
-# 6. Переключить на финальный nginx.conf (с HTTPS) и поднять весь стек
-git checkout nginx.conf
+# 6. Переключить на HTTPS: скопировать шаблон в nginx.conf, править домен, поднять стек
+cp nginx.https.conf nginx.conf
+# отредактировать nginx.conf: server_name и пути /etc/letsencrypt/live/ВАШ_ДОМЕН/
 docker compose up -d --build
 ```
 
