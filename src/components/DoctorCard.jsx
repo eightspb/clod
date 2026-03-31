@@ -1,4 +1,5 @@
 import { RING_COLOR_MAP } from '../lib/constants.js'
+import { StarRating } from './StarRating.jsx'
 
 export function DoctorCard({ doctor }) {
   if (!doctor || !doctor.name) return null
@@ -9,9 +10,9 @@ export function DoctorCard({ doctor }) {
   return (
     <article className="clay clay-card p-6 flex flex-col relative overflow-visible group">
       {/* Decorative dots */}
-      <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style={{ background: '#FAC8B0' }} />
-      <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style={{ background: '#A8D8F4' }} />
-      <div className="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style={{ background: '#A0E4D4' }} />
+      <div className="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50 dot-peach-light" />
+      <div className="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35 dot-blue-light" />
+      <div className="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45 dot-mint-light" />
 
       {/* Top row: photo + experience badge */}
       <div className="flex items-start justify-between mb-4">
@@ -48,6 +49,18 @@ export function DoctorCard({ doctor }) {
         <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1 line-clamp-5">{doctor.tagline}</p>
       )}
 
+      {doctor.proDoctorovRating && (
+        <div className="mb-3 text-sm">
+          <StarRating
+            score={doctor.proDoctorovRating.score}
+            reviewCount={doctor.proDoctorovRating.reviewCount}
+            url={doctor.proDoctorovUrl}
+            size={14}
+            variant="compact"
+          />
+          <span className="ml-1.5 text-xs text-clay-muted">ПроДокторов</span>
+        </div>
+      )}
       {/* Specialization + link */}
       <div className="mt-auto pt-4 border-t border-clay-bg flex items-center justify-between gap-2">
         <div className="clay clay-card-soft-blue px-3 py-2 rounded-xl min-w-0 w-[61.8%]">

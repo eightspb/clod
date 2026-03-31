@@ -19,7 +19,7 @@ export function LoginForm() {
       if (res.ok) {
         window.location.href = '/admin'
       } else {
-        setError(data.error || 'Ошибка входа')
+        setError(data.error || 'Неправильный пароль. Проверьте введённый текст')
       }
     } catch {
       setError('Ошибка соединения')
@@ -87,10 +87,11 @@ export function LoginForm() {
                 border: `1px solid ${error ? '#fca5a5' : '#d1d5db'}`,
                 borderRadius: '8px',
                 fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.15s',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
                 background: error ? '#fff5f5' : 'white',
               }}
+              onFocus={(e) => { e.target.style.boxShadow = '0 0 0 2px rgba(77,200,168,0.3)'; e.target.style.borderColor = '#4DC8A8' }}
+              onBlur={(e) => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = error ? '#fca5a5' : '#d1d5db' }}
             />
           </div>
 

@@ -57,7 +57,7 @@ export function Footer() {
 
         {/* Main footer */}
         <div className="clay clay-card p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div>
               <div className="mb-4">
@@ -100,21 +100,44 @@ export function Footer() {
             </div>
 
             {/* Nav links */}
-            <div>
-              <h4 className="font-bold text-clay-dark mb-4 text-sm">Навигация по сайту</h4>
-              <nav aria-label="Навигация по сайту">
-                <ul className="flex flex-col gap-2">
-                  {FOOTER_LINKS.map((link) => (
-                    <li key={link.to}>
-                      <a
-                        href={link.to}
-                        className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200"
-                      >
-                        {link.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+            <div className="md:col-span-2">
+              <nav aria-label="Навигация по сайту" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Направления</h4>
+                  <ul className="flex flex-col gap-2">
+                    {FOOTER_LINKS.directions.map((link) => (
+                      <li key={link.to}>
+                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Клиника</h4>
+                  <ul className="flex flex-col gap-2">
+                    {FOOTER_LINKS.clinic.map((link) => (
+                      <li key={link.to}>
+                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Пациентам</h4>
+                  <ul className="flex flex-col gap-2">
+                    {FOOTER_LINKS.patients.map((link) => (
+                      <li key={link.to}>
+                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </nav>
             </div>
 

@@ -6,6 +6,10 @@ export default {
       colors: {
         clay: {
           mint: '#2E8C77',
+          'mint-400': '#6BC8A8',
+          'mint-500': '#4DC8A8',
+          'mint-600': '#2A9E80',
+          'mint-700': '#1E7A62',
           'mint-dark': '#226f63',
           'mint-light': '#8ccfbd',
           'mint-pale': '#dff3ed',
@@ -22,8 +26,13 @@ export default {
           bg: '#F5F0EA',
           card: '#fffdf9',
           dark: '#24322d',
-          text: '#42524c',
-          muted: '#61726d',
+          text: '#2D3A34',
+          muted: '#465550',
+          'admin-bg': '#F7F3EE',
+          'admin-card': '#FFFCF8',
+          'admin-dark': '#2D3A34',
+          'admin-border': '#E8E2DA',
+          'admin-muted': '#7A8C84',
         },
       },
       borderRadius: {

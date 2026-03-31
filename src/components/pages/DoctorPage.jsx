@@ -3,6 +3,7 @@ import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
+import { StarRating } from '../StarRating.jsx'
 
 export function DoctorPage({ doctor }) {
   if (!doctor) return null
@@ -91,8 +92,26 @@ export function DoctorPage({ doctor }) {
                   </a>
                 </div>
 
-                {/* Ссылка на ProDoctorov */}
-                {doctor.proDoctorovUrl && (
+                {doctor.proDoctorovRating && (
+                  <div className="mt-4 clay clay-card-soft-mint inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl">
+                    <StarRating
+                      score={doctor.proDoctorovRating.score}
+                      reviewCount={doctor.proDoctorovRating.reviewCount}
+                      url={doctor.proDoctorovUrl}
+                      size={16}
+                      variant="full"
+                    />
+                    <a
+                      href={doctor.proDoctorovUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-clay-mint hover:underline transition-colors"
+                    >
+                      Читать отзывы на ПроДокторов
+                    </a>
+                  </div>
+                )}
+                {!doctor.proDoctorovRating && doctor.proDoctorovUrl && (
                   <div className="mt-4">
                     <a
                       href={doctor.proDoctorovUrl}
@@ -284,8 +303,8 @@ export function DoctorPage({ doctor }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {doctor.reviews.map((review, i) => (
                 <div key={i} className="clay clay-card p-6 relative overflow-visible">
-                  <div className="pointer-events-none absolute top-3 right-8 w-2.5 h-2.5 rounded-full opacity-40" style={{ background: '#FAC8B0' }} />
-                  <div className="pointer-events-none absolute top-8 right-4 w-2 h-2 rounded-full opacity-30" style={{ background: '#A8D8F4' }} />
+                  <div className="pointer-events-none absolute top-3 right-8 w-2.5 h-2.5 rounded-full opacity-40 dot-peach-light" />
+                  <div className="pointer-events-none absolute top-8 right-4 w-2 h-2 rounded-full opacity-30 dot-blue-light" />
 
                   <div className="flex gap-1 mb-3">
                     {[...Array(5)].map((_, si) => (

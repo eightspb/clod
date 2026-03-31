@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
@@ -84,11 +84,11 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'Можно ли убрать фиброаденому с помощью ВАБ?',
-    answer: 'Да. ВАБ — малоинвазивный способ удаления фиброаденом через прокол 2 мм. Вместо разреза скальпелем — амбулаторная процедура под местной анестезией, а итоговое решение о показаниях принимается после очной консультации и УЗИ.',
+    answer: 'Да. ВАБ — малоинвазивный способ удаления фиброаденом через прокол 2 мм. Вместо разреза скальпелем — амбулаторная процедура под местной анестезией, а итоговое решение о показаниях принимается после очного приёма и УЗИ.',
   },
   {
     question: 'Нужно ли направление от врача?',
-    answer: 'Нет, направление не нужно. Вы можете записаться напрямую. На первичной консультации врач проведёт УЗИ и определит, показана ли вам процедура ВАБ.',
+    answer: 'Нет, направление не нужно. Вы можете записаться напрямую. На первичном приёме врач проведёт УЗИ и определит, показана ли вам процедура ВАБ.',
   },
   {
     question: 'Что делать, если мне уже назначили операцию?',
@@ -184,17 +184,22 @@ export function Vab() {
       {/* Как проходит */}
       <section className="mb-10">
         <h2 className="text-2xl font-bold text-clay-text mb-2">Как проходит процедура ВАБ</h2>
-        <p className="text-clay-muted mb-5">Пошагово - от консультации до выхода домой</p>
-        <div className="grid md:grid-cols-2 gap-4">
-          {STEPS.map((step) => (
-            <div key={step.num} className="clay-card p-5 flex gap-4">
-              <div className="num-badge shrink-0">{step.num}</div>
-              <div>
-                <div className="font-semibold text-clay-text mb-1">{step.title}</div>
-                <div className="text-sm text-clay-muted leading-relaxed">{step.desc}</div>
+        <p className="text-clay-muted mb-5">Пошагово — от приёма до выхода домой</p>
+        <div className="relative">
+          <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-clay-mint/20" />
+          <div className="space-y-4">
+            {STEPS.map((step) => (
+              <div key={step.num} className="flex items-start gap-4 relative">
+                <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint">
+                  <span className="text-sm font-bold text-white">{step.num}</span>
+                </div>
+                <div className="flex-1 clay-card p-4">
+                  <h3 className="font-bold text-clay-dark text-base mb-1">{step.title}</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed">{step.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -235,7 +240,8 @@ export function Vab() {
         <p className="text-clay-muted mb-6">
           Во многих случаях ВАБ позволяет избежать более объемной операции, если по результатам осмотра и диагностики метод подходит
         </p>
-        <div className="overflow-x-auto">
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full clay-card text-sm">
             <thead>
               <tr className="border-b border-clay-border">
@@ -259,6 +265,42 @@ export function Vab() {
               ))}
             </tbody>
           </table>
+        </div>
+        {/* Mobile stacked cards */}
+        <div className="md:hidden space-y-4">
+          <div className="clay-card-soft-mint p-5 relative">
+            <span className="inline-block bg-clay-mint/20 text-clay-teal text-xs font-semibold rounded-full px-3 py-1 mb-3">
+              Рекомендуем
+            </span>
+            <h3 className="text-lg font-bold text-clay-text mb-3">ВАБ</h3>
+            <ul className="space-y-2.5">
+              {COMPARE_ROWS.map((row) => (
+                <li key={row.param} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-clay-mint/20 shrink-0">
+                    <Check size={12} className="text-clay-teal" />
+                  </span>
+                  <span className="text-sm text-clay-text">
+                    <span className="text-clay-muted">{row.param}:</span>{' '}
+                    <span className="font-medium">{row.vab}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="clay-card p-5">
+            <h3 className="text-lg font-bold text-clay-text mb-3">Хирургическая операция</h3>
+            <ul className="space-y-2.5">
+              {COMPARE_ROWS.map((row) => (
+                <li key={row.param} className="flex items-start gap-2.5">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-clay-muted shrink-0" />
+                  <span className="text-sm text-clay-muted">
+                    <span>{row.param}:</span>{' '}
+                    <span>{row.op}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -294,7 +336,7 @@ export function Vab() {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-clay-muted mt-3">Точную смету врач назовёт после очной консультации и УЗИ</p>
+            <p className="text-xs text-clay-muted mt-3">Точную смету врач назовёт после очного приёма и УЗИ</p>
           </div>
         </div>
         <div className="clay-card-peach p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -309,7 +351,7 @@ export function Vab() {
             </p>
           </div>
           <a href="/second-opinion" className="btn-clay-white text-sm inline-flex items-center gap-2 shrink-0">
-            Получить второе мнение
+            Проверить, нужна ли операция
             <ArrowRight size={16} />
           </a>
         </div>
@@ -334,7 +376,7 @@ export function Vab() {
 
       {/* CTA */}
       <section className="clay-card-mint p-8 text-center">
-        <h2 className="text-2xl font-bold text-clay-dark mb-3">Запишитесь на консультацию</h2>
+        <h2 className="text-2xl font-bold text-clay-dark mb-3">Запишитесь на приём</h2>
         <p className="text-clay-text mb-6 max-w-lg mx-auto">
           Санкт-Петербург, пр. Богатырский 22 к.1, Приморский район, рядом с м. Комендантский проспект и м. Старая Деревня.
         </p>

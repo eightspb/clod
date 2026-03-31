@@ -31,7 +31,7 @@ export function StickyCTA() {
             aria-label="Записаться"
           >
             <CalendarCheck size={18} />
-            Записаться
+            Записаться сейчас
           </button>
         </div>
       </div>

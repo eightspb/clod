@@ -19,7 +19,7 @@ const principles = [
     Icon: Database,
     bg: 'clay-card-blue',
     title: 'Документы и рекомендации',
-    desc: 'После консультации вы получаете заключение и рекомендации, а администратор помогает с маршрутом дальнейших исследований и выдачей документов.',
+    desc: 'После приёма вы получаете заключение и рекомендации, а администратор помогает с маршрутом дальнейших исследований и выдачей документов.',
     tag: 'Документы',
   },
   {
@@ -44,21 +44,21 @@ export function Prices() {
               Прозрачная стоимость
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
-              Короткий прайс-лист и полный официальный прейскурант клиники
+              Короткий и полный прайс-лист клиники
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
               Сначала показываем самые востребованные позиции по направлениям, а ниже можно перейти к полному официальному прайс-листу со всеми услугами.
             </p>
             <p className="text-sm text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Официальный прейскурант ООО «Клиника Одинцова» обновлён {OFFICIAL_PRICE_LIST_UPDATED_AT}. Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
+              Официальный прайс-лист ООО «Клиника Одинцова» обновлён {OFFICIAL_PRICE_LIST_UPDATED_AT}. Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                Записаться на консультацию
+                Записаться на приём
                 <ArrowRight size={16} />
               </button>
               <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary gap-2">
-                Открыть полный прайс-лист
+                Смотреть все услуги и цены
               </a>
             </div>
           </div>
@@ -141,7 +141,7 @@ export function Prices() {
           <div className="text-center mb-7">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Короткий прайс-лист</h2>
             <p className="text-clay-muted max-w-2xl mx-auto">
-              Основные и самые популярные позиции по направлениям. Полный официальный прейскурант со всеми кодами и услугами доступен отдельной страницей.
+              Основные и самые популярные позиции по направлениям. Полный прайс-лист со всеми кодами и услугами доступен отдельной страницей.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -178,7 +178,7 @@ export function Prices() {
           </p>
           <div className="text-center mt-6">
             <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary text-sm">
-              Открыть полный прайс-лист
+              Смотреть все услуги и цены
             </a>
           </div>
         </div>
@@ -206,7 +206,7 @@ export function Prices() {
               <div>
                 <h3 className="font-bold text-clay-dark mb-2">Получение документов</h3>
                 <p className="text-clay-muted text-sm leading-relaxed">
-                  Заключения, снимки и протоколы можно получить в клинике. Если планируется повторная консультация, подскажем, какие материалы лучше взять с собой.
+                  Заключения, снимки и протоколы можно получить в клинике. Если планируется повторный приём, подскажем, какие материалы лучше взять с собой.
                 </p>
               </div>
             </div>

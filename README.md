@@ -73,7 +73,7 @@ bun run preview  # превью собранного билда
 
 ### Покрытие тестами
 
-- **Юнит-тесты (Vitest)**: 175 тестов, включая auth/session hardening, analytics API hardening, upload-validation, second-opinion и tax-form API/form, shared lib-модули и ключевые React-компоненты
+- **Юнит-тесты (Vitest)**: 191 тестов, включая auth/session hardening, analytics API hardening, upload-validation, second-opinion и tax-form API/form, shared lib-модули и ключевые React-компоненты
 - **E2E-тесты (Playwright)**: 10 тестов - главная страница, навигация, blog detail route и базовая security-проверка админки
 
 ### GitHub Actions CI
@@ -181,12 +181,20 @@ clod/
 │   ├── components/
 │   │   ├── pages/                 # React-компоненты страниц
 │   │   │   ├── Home.jsx           # Главная: герой-слайдер, услуги, доктора, отзывы, форма записи
-│   │   │   ├── About.jsx          # Страница "О клинике": миссия, руководство, документы, преимущества, оборудование
-│   │   │   ├── Mammology.jsx
-│   │   │   ├── Gynecology.jsx
-│   │   │   ├── Endocrinology.jsx
+│   │   │   ├── About.jsx          # Страница "О клинике": миссия, руководство, маршрут пациента, принципы
+│   │   │   ├── Mammology.jsx      # Маммология + секция "Заболевания" с condition-ссылками
+│   │   │   ├── Gynecology.jsx     # Гинекология + секция "Заболевания"
+│   │   │   ├── Endocrinology.jsx  # Эндокринология + секция "Заболевания"
 │   │   │   ├── Nutrition.jsx
-│   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры
+│   │   │   ├── Fibroadenoma.jsx   # Condition: Фиброаденома
+│   │   │   ├── Mastopatiya.jsx    # Condition: Мастопатия
+│   │   │   ├── KistaMolochnoyZhelezy.jsx  # Condition: Киста молочной железы
+│   │   │   ├── EroziyaSheykyMatki.jsx     # Condition: Эрозия шейки матки
+│   │   │   ├── Gipotireoz.jsx     # Condition: Гипотиреоз
+│   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры (с визуальным timeline)
+│   │   │   ├── DlyaInogorodnikh.jsx  # Для иногородних пациентов
+│   │   │   ├── NashiRezultaty.jsx # Наши результаты (count-up анимации)
+│   │   │   ├── Media.jsx          # Медиа / СМИ
 │   │   │   ├── Contacts.jsx       # Страница контактов с картой
 │   │   │   ├── SecondOpinion.jsx
 │   │   │   ├── Prices.jsx
@@ -202,11 +210,15 @@ clod/
 │   │   │   ├── DoctorCertificates.jsx # Управление сертификатами
 │   │   │   ├── SessionsViewer.jsx
 │   │   │   └── LogsViewer.jsx
-│   │   ├── Header.jsx             # Навигация (client:load, мобильное меню)
-│   │   ├── Footer.jsx             # Подвал сайта
+│   │   ├── Header.jsx             # Навигация (client:load, mega-menu, поиск Pagefind)
+│   │   ├── Footer.jsx             # Подвал сайта (4 колонки)
+│   │   ├── SearchModal.jsx        # Модалка поиска Pagefind
+│   │   ├── FadeInSection.jsx      # Scroll fade-in анимация (Intersection Observer)
+│   │   ├── StarRating.jsx         # Звёздный рейтинг ПроДокторов
+│   │   ├── RelatedArticles.jsx    # Блок "Читайте также" для блога
 │   │   ├── StickyCTA.jsx          # Фиксированная панель внизу экрана (только mobile, md:hidden)
 │   │   ├── ClayContactBanner.jsx  # Баннер с контактами
-│   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора
+│   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора (с ПроДокторов рейтингом)
 │   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
 │   │   ├── ErrorBoundary.jsx      # React Error Boundary для page-level компонентов
 │   │   └── PageWrapper.jsx        # Обёртка страницы с ErrorBoundary
@@ -238,6 +250,14 @@ clod/
 │   │   ├── gynecology.astro       # /gynecology
 │   │   ├── endocrinology.astro    # /endocrinology
 │   │   ├── nutrition.astro        # /nutrition
+│   │   ├── fibroadenoma.astro      # /fibroadenoma - Фиброаденома (MedicalCondition JSON-LD)
+│   │   ├── mastopatiya.astro      # /mastopatiya - Мастопатия
+│   │   ├── kista-molochnoy-zhelezy.astro  # /kista-molochnoy-zhelezy - Киста молочной железы
+│   │   ├── eroziya-sheyki-matki.astro  # /eroziya-sheyki-matki - Эрозия шейки матки
+│   │   ├── gipotireoz.astro       # /gipotireoz - Гипотиреоз
+│   │   ├── dlya-inogorodnikh.astro # /dlya-inogorodnikh - Для иногородних
+│   │   ├── nashi-rezultaty.astro  # /nashi-rezultaty - Наши результаты
+│   │   ├── media.astro            # /media - Медиа / СМИ
 │   │   ├── second-opinion.astro   # /second-opinion
 │   │   ├── tax-form.astro         # /tax-form - форма запроса справки для налогового вычета
 │   │   ├── prices.astro           # /prices
@@ -323,7 +343,15 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/gynecology` | `gynecology.astro` | `Gynecology.jsx` |
 | `/endocrinology` | `endocrinology.astro` | `Endocrinology.jsx` |
 | `/nutrition` | `nutrition.astro` | `Nutrition.jsx` |
+| `/fibroadenoma` | `fibroadenoma.astro` | `Fibroadenoma.jsx` |
+| `/mastopatiya` | `mastopatiya.astro` | `Mastopatiya.jsx` |
+| `/kista-molochnoy-zhelezy` | `kista-molochnoy-zhelezy.astro` | `KistaMolochnoyZhelezy.jsx` |
+| `/eroziya-sheyki-matki` | `eroziya-sheyki-matki.astro` | `EroziyaSheykyMatki.jsx` |
+| `/gipotireoz` | `gipotireoz.astro` | `Gipotireoz.jsx` |
 | `/vab` | `vab.astro` | `Vab.jsx` |
+| `/dlya-inogorodnikh` | `dlya-inogorodnikh.astro` | `DlyaInogorodnikh.jsx` |
+| `/nashi-rezultaty` | `nashi-rezultaty.astro` | `NashiRezultaty.jsx` |
+| `/media` | `media.astro` | `Media.jsx` |
 | `/contacts` | `contacts.astro` | `Contacts.jsx` |
 | `/second-opinion` | `second-opinion.astro` | `SecondOpinion.jsx` |
 | `/tax-form` | `tax-form.astro` | `TaxFormRequestForm.jsx` (island) |
@@ -716,9 +744,26 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ---
 
-## Последние изменения (февраль 2026)
+## Последние изменения (март 2026)
 
-### Глобальная ревизия терминологии и контента
+### Масштабное расширение сайта (roadmap-implementation)
+
+- **5 condition-лендингов**: `/fibroadenoma`, `/mastopatiya`, `/kista-molochnoy-zhelezy`, `/eroziya-sheyki-matki`, `/gipotireoz` — каждая с Hero, симптомами, диагностикой, лечением, timeline, FAQ (JSON-LD), CTA, перелинковкой
+- **Mega-menu навигация**: `Header.jsx` переписан с поддержкой 3-уровневой вложенности, колонки по специализациям, condition-ссылки, ВАБ CTA; mobile: аккордеоны
+- **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту (49 страниц), лупа в header, mobile search
+- **Новые страницы**: `/dlya-inogorodnikh` (для иногородних), `/nashi-rezultaty` (count-up анимации, статистика), `/media` (агрегация TV-выступлений)
+- **ПроДокторов интеграция**: `StarRating.jsx`, рейтинги в `DoctorCard.jsx` и `DoctorPage.jsx`, данные в `doctors-data.js`
+- **Scroll-анимации**: `FadeInSection.jsx` (Intersection Observer), `CountUp` в Home.jsx hero, визуальный timeline в Vab.jsx
+- **Интерлинковка**: секции «Заболевания» на pillar-страницах (Mammology, Gynecology, Endocrinology), `RelatedArticles.jsx` в блоге, `PillarPageLink` в sidebar
+- **About расширен**: секция «Маршрут пациента» (5-step flowchart), секция «Наши принципы» (4 карточки)
+- **Footer**: 4-колоночная раскладка с новыми группами
+- **FAQ на направлениях**: 6 вопросов на каждой странице специализации + FAQPage JSON-LD
+- **WCAG 2.1 AA**: контрастность обновлена (`clay-muted` → #465550, `clay-text` → #2D3A34), focus rings, dialog a11y, hero tablist
+- **Дизайн-токены**: mint-шкала 400-700, admin-палитра, `.dot-peach-light`/`.dot-blue-light`/`.dot-mint-light`
+- **UX-копирайтинг**: улучшены error/success messages, privacy notices, helper text для форм
+- **Конверсия**: hero slide indicators, CTA hierarchy (primary vs secondary), ВАБ stacked cards на mobile
+
+### Глобальная ревизия терминологии и контента (февраль 2026)
 
 - **Терминология**: «Аудит» → «Бесплатное второе мнение» во всём сайте; «Флагман» → «Основное направление»; «Неврология» → «Нутрициология» (меню, футер, мета-теги, URL breadcrumbs)
 - **Публичные claims**: неподтверждённые формулировки про «№1 в России», «99% пациентов», «личный кабинет» и фиксированные сроки выдачи результатов убраны или смягчены на публичных страницах

@@ -10,7 +10,7 @@ describe('Prices page', () => {
     expect(screen.getByText(/2 февраля 2026/i)).toBeInTheDocument()
     expect(screen.getByText(/87 000 ₽/i)).toBeInTheDocument()
 
-    const fullPriceLinks = screen.getAllByRole('link', { name: /открыть полный прайс-лист/i })
+    const fullPriceLinks = screen.getAllByRole('link', { name: /смотреть все услуги и цены/i })
     expect(fullPriceLinks.length).toBeGreaterThan(0)
     expect(fullPriceLinks[0]).toHaveAttribute('href', '/prices/full')
   })

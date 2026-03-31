@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Fibroadenoma, FIBROADENOMA_FAQ } from '../components/pages/Fibroadenoma.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Фиброаденома молочной железы',
+  alternateName: 'Fibroadenoma',
+  description: 'Доброкачественное опухолевидное образование молочной железы из железистой и соединительной ткани. Чаще встречается у женщин 15–35 лет.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Молочная железа',
+  },
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Вакуумная аспирационная биопсия (ВАБ)',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Хирургическое удаление',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(FIBROADENOMA_FAQ)
+---
+
+<Layout
+  title="Фиброаденома молочной железы — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Онколог-маммолог в Приморском районе Санкт-Петербурга. Консультация, УЗИ, ВАБ и второе мнение при фиброаденоме. Богатырский проспект, рядом с м. Комендантский проспект."
+  keywords="фиброаденома молочной железы, лечение фиброаденомы СПб, ВАБ фиброаденома, маммолог Санкт-Петербург, удаление фиброаденомы, Приморский район"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Фиброаденома' }]} />
+  <Fibroadenoma client:load />
+</Layout>

@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { KistaMolochnoyZhelezy, KISTA_FAQ } from '../components/pages/KistaMolochnoyZhelezy.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Киста молочной железы',
+  alternateName: 'Breast cyst',
+  description: 'Округлая полость, заполненная жидкостью, внутри молочной железы. Образуется при расширении молочных протоков. Бывает простой и сложной формы.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Молочная железа',
+  },
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Аспирация кисты под контролем УЗИ',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Склерозирование кисты',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Вакуумная аспирационная биопсия (ВАБ)',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(KISTA_FAQ)
+---
+
+<Layout
+  title="Киста молочной железы — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Консультация маммолога, УЗИ и лечение кисты молочной железы в Приморском районе Санкт-Петербурга. Аспирация, склерозирование, ВАБ по показаниям. Богатырский проспект."
+  keywords="киста молочной железы, лечение кисты СПб, маммолог Санкт-Петербург, аспирация кисты, УЗИ молочных желёз, Приморский район"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Киста молочной железы' }]} />
+  <KistaMolochnoyZhelezy client:load />
+</Layout>

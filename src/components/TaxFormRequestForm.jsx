@@ -108,7 +108,7 @@ async function getErrorMessage(response) {
     }
   } catch { /* malformed payload — fall through to generic message */ }
 
-  return 'Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.'
+  return 'Ошибка соединения. Проверьте интернет и попробуйте через минуту'
 }
 
 export function TaxFormRequestForm() {
@@ -143,7 +143,7 @@ export function TaxFormRequestForm() {
 
       setIsSuccess(true)
     } catch (error) {
-      setErrorMsg(error.message || 'Произошла ошибка')
+      setErrorMsg(error.message || 'Ошибка соединения. Проверьте интернет и попробуйте через минуту')
     } finally {
       setIsSubmitting(false)
     }
@@ -161,7 +161,7 @@ export function TaxFormRequestForm() {
           Заявка на справку успешно отправлена!
         </h2>
         <p className="text-clay-text text-sm leading-relaxed mb-6">
-          Мы получили ваши данные. Сотрудник клиники проверит заявку и свяжется с вами по указанным контактам, если потребуется уточнение.
+          Мы получили ваши данные. Сотрудник клиники проверит заявку и свяжется с вами в течение 3 рабочих дней по указанным контактам.
         </p>
         <button
           type="button"
@@ -315,6 +315,9 @@ export function TaxFormRequestForm() {
               className="w-full px-3.5 py-2 rounded-xl border border-clay-border bg-clay-bg focus:bg-white focus:outline-none focus:ring-2 focus:ring-clay-mint/30 focus:border-clay-mint transition-all text-sm"
               placeholder="123456789012"
             />
+            <p className="text-xs text-clay-muted mt-1">
+              Нужен для оформления справки. Хранится только на время обработки заявки.
+            </p>
           </div>
         </div>
 
@@ -385,6 +388,9 @@ export function TaxFormRequestForm() {
             'Отправить заявку'
           )}
         </button>
+        <p className="text-xs text-clay-muted text-center mt-2">
+          Данные защищены и не передаются третьим лицам
+        </p>
       </form>
     </div>
   )

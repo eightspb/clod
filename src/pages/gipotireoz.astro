@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Gipotireoz, GIPOTIREOZ_FAQ } from '../components/pages/Gipotireoz.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Гипотиреоз',
+  alternateName: 'Hypothyroidism',
+  description: 'Состояние, при котором щитовидная железа вырабатывает недостаточное количество тиреоидных гормонов. Приводит к замедлению обменных процессов.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Щитовидная железа',
+  },
+  signOrSymptom: [
+    { '@type': 'MedicalSymptom', name: 'Хроническая усталость' },
+    { '@type': 'MedicalSymptom', name: 'Набор веса' },
+    { '@type': 'MedicalSymptom', name: 'Зябкость' },
+    { '@type': 'MedicalSymptom', name: 'Отёчность' },
+    { '@type': 'MedicalSymptom', name: 'Выпадение волос' },
+  ],
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Заместительная терапия левотироксином',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение при субклиническом гипотиреозе',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(GIPOTIREOZ_FAQ)
+---
+
+<Layout
+  title="Гипотиреоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём эндокринолога при гипотиреозе в Приморском районе Санкт-Петербурга. Анализы ТТГ, Т4, УЗИ щитовидной железы, подбор лечения. Богатырский проспект, м. Комендантский проспект."
+  keywords="гипотиреоз лечение СПб, эндокринолог Санкт-Петербург, ТТГ анализ, щитовидная железа лечение, гипотиреоз симптомы, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Эндокринология', href: '/endocrinology' }, { label: 'Гипотиреоз' }]} />
+  <Gipotireoz client:load />
+</Layout>

@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { SecondOpinionForm } from '../SecondOpinionForm.jsx'
+
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 const steps = [
   {
@@ -61,15 +63,54 @@ export const SECOND_OPINION_FAQ = [
 
 export function SecondOpinion() {
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const triggerRef = useRef(null)
+  const modalRef = useRef(null)
+  const closeModal = useCallback(() => {
+    setIsFormOpen(false)
+    triggerRef.current?.focus()
+  }, [])
+  useEffect(() => {
+    if (!isFormOpen) return
+    const modal = modalRef.current
+    if (!modal) return
+    const focusableElements = modal.querySelectorAll(FOCUSABLE_SELECTOR)
+    const firstFocusable = focusableElements[0]
+    const lastFocusable = focusableElements[focusableElements.length - 1]
+    firstFocusable?.focus()
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        closeModal()
+        return
+      }
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault()
+          lastFocusable?.focus()
+        }
+      } else if (document.activeElement === lastFocusable) {
+        e.preventDefault()
+        firstFocusable?.focus()
+      }
+    }
+    modal.addEventListener('keydown', handleKeyDown)
+    return () => modal.removeEventListener('keydown', handleKeyDown)
+  }, [isFormOpen, closeModal])
 
   return (
     <div>
       {/* MODAL */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-clay-dark/60 backdrop-blur-sm" onClick={() => setIsFormOpen(false)}></div>
+        <div
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="second-opinion-modal-title"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        >
+          <div className="fixed inset-0 bg-clay-dark/60 backdrop-blur-sm" onClick={closeModal}></div>
           <div className="relative z-10 w-full max-w-[740px] max-h-[88vh] overflow-y-auto rounded-3xl mt-12 no-scrollbar">
-            <SecondOpinionForm onClose={() => setIsFormOpen(false)} />
+            <SecondOpinionForm onClose={closeModal} modalTitleId="second-opinion-modal-title" />
           </div>
         </div>
       )}
@@ -100,7 +141,7 @@ export function SecondOpinion() {
                 <Phone size={16} />
                 Позвонить в клинику
               </a>
-              <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
+              <button ref={triggerRef} onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
                 <FileText size={16} />
                 Отправить документы на проверку
               </button>

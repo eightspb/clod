@@ -155,11 +155,15 @@ const currentPath = Astro.url.pathname
       <div class="blob-blue absolute w-48 h-48 opacity-16" style="bottom:15%;right:-28px" />
       <div class="blob-lavender absolute w-44 h-44 opacity-16" style="top:20%;left:38%" />
     </div>
-    <Header currentPath={currentPath} client:load />
-    <main id="main-content" class="relative" style="z-index:1">
+    <div data-pagefind-ignore>
+      <Header currentPath={currentPath} client:load />
+    </div>
+    <main id="main-content" class="relative" style="z-index:1" data-pagefind-body>
       <slot />
     </main>
-    <Footer />
+    <div data-pagefind-ignore>
+      <Footer />
+    </div>
     <StickyCTA client:idle />
 
     <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 hidden md:flex flex-col gap-2">

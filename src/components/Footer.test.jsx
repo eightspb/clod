@@ -28,10 +28,10 @@ describe('Footer', () => {
     expect(link).toHaveAttribute('href', '/privacy-policy')
   })
 
-  it('renders licenses link', () => {
+  it('renders licenses links in nav and bottom bar', () => {
     render(<Footer />)
-    const link = screen.getByRole('link', { name: /лицензии/i })
-    expect(link).toHaveAttribute('href', '/licenses')
+    const links = screen.getAllByRole('link', { name: /лицензии/i })
+    expect(links.every((l) => l.getAttribute('href') === '/licenses')).toBe(true)
   })
 
   it('renders appointment CTA button (opens booking modal)', () => {
@@ -53,12 +53,24 @@ describe('Footer', () => {
 
   it('renders working hours', () => {
     render(<Footer />)
-    expect(screen.getByText(/Пн–Пт/)).toBeInTheDocument()
-    expect(screen.getByText(/Сб–Вс/)).toBeInTheDocument()
+    expect(screen.getByText(/Пн.Пт/)).toBeInTheDocument()
+    expect(screen.getByText(/Сб.Вс/)).toBeInTheDocument()
   })
 
   it('renders navigation section', () => {
     render(<Footer />)
     expect(screen.getByRole('navigation', { name: /навигация по сайту/i })).toBeInTheDocument()
+  })
+
+  it('renders three link group headings in footer nav', () => {
+    render(<Footer />)
+    expect(screen.getByText('Направления')).toBeInTheDocument()
+    expect(screen.getByText('Клиника')).toBeInTheDocument()
+    expect(screen.getByText('Пациентам')).toBeInTheDocument()
+  })
+
+  it('renders ВАБ link in directions group', () => {
+    render(<Footer />)
+    expect(screen.getByRole('link', { name: /ВАБ/ })).toBeInTheDocument()
   })
 })

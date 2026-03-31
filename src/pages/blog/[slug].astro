@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content'
 import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
+import { RelatedArticles, PillarPageLink } from '../../components/RelatedArticles.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 
@@ -38,10 +39,32 @@ if (!post) {
 
 const { Content } = await render(post)
 
-const relatedPosts = allPosts
-  .filter((p) => p.data.category === post.data.category && p.slug !== post.slug)
-  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
-  .slice(0, 3)
+function findRelatedPosts(currentPost, allEntries, limit = 3) {
+  const candidates = allEntries.filter((p) => p.slug !== currentPost.slug)
+  const currentTags = new Set(currentPost.data.tags || [])
+  const scored = candidates.map((p) => {
+    const categoryMatch = p.data.category === currentPost.data.category ? 10 : 0
+    const tagOverlap = (p.data.tags || []).filter((t) => currentTags.has(t)).length
+    return { post: p, score: categoryMatch + tagOverlap }
+  })
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    return b.post.data.publishDate.valueOf() - a.post.data.publishDate.valueOf()
+  })
+  return scored.slice(0, limit).map((s) => s.post)
+}
+
+const relatedPosts = findRelatedPosts(post, allPosts)
+
+const relatedArticlesData = relatedPosts.map((p) => ({
+  slug: p.slug,
+  title: p.data.title,
+  description: p.data.description,
+  category: p.data.category,
+  image: normalizeImageUrl(p.data.image),
+  imageAlt: p.data.imageAlt || p.data.title,
+  publishDate: p.data.publishDate.toISOString(),
+}))
 
 const author = post.data.authorSlug
   ? DOCTORS.find((d) => d.slug === post.data.authorSlug)
@@ -244,7 +267,7 @@ const breadcrumbItems = [
               Статья помогает сориентироваться, но тактику лечения и объём обследования лучше обсуждать на очной консультации. Если вы в Санкт-Петербурге, подскажем удобный маршрут визита.
             </p>
             <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-block">
-              Записаться на консультацию
+              Записаться на приём
             </a>
           </div>
 
@@ -263,9 +286,9 @@ const breadcrumbItems = [
             <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Автор</p>
             
             {/* Decorative dots */}
-            <div class="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50" style="background: #FAC8B0;"></div>
-            <div class="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35" style="background: #A8D8F4;"></div>
-            <div class="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45" style="background: #A0E4D4;"></div>
+            <div class="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50 dot-peach-light"></div>
+            <div class="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35 dot-blue-light"></div>
+            <div class="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45 dot-mint-light"></div>
 
             {/* Photo + name */}
             <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
@@ -303,6 +326,9 @@ const breadcrumbItems = [
         <div class="clay-card p-5 mb-5">
           <p class="text-xs font-medium text-clay-muted uppercase tracking-wide mb-3">Категория</p>
           <span class="blog-category-badge">{post.data.category}</span>
+          <div class="mt-3">
+            <PillarPageLink category={post.data.category} />
+          </div>
           {post.data.tags.length > 0 && (
             <div class="flex flex-wrap gap-1.5 mt-3">
               {post.data.tags.map((tag) => (
@@ -336,5 +362,7 @@ const breadcrumbItems = [
       </aside>
 
     </div>
+
+    <RelatedArticles articles={relatedArticlesData} />
   </div>
 </Layout>

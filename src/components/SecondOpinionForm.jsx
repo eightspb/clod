@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Shield, Paperclip, X, AlertCircle, CheckCircle } from 'lucide-react'
 
 const MAX_FILES = 5
@@ -66,14 +66,16 @@ async function getErrorMessage(response) {
     }
   } catch { /* malformed payload — fall through to generic message */ }
 
-  return 'Не удалось отправить заявку. Пожалуйста, попробуйте еще раз.'
+  return 'Ошибка соединения. Проверьте интернет и попробуйте через минуту'
 }
 
-export function SecondOpinionForm({ onClose }) {
+export function SecondOpinionForm({ onClose, modalTitleId }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isConfirming, setIsConfirming] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [files, setFiles] = useState([])
+  const formRef = useRef(null)
 
   const handleFileChange = (e) => {
     if (!e.target.files) return
@@ -103,37 +105,36 @@ export function SecondOpinionForm({ onClose }) {
     })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setErrorMsg('')
-
     const validationMessage = validateFiles(files)
     if (validationMessage) {
       setErrorMsg(validationMessage)
       return
     }
-
+    formRef.current = e.currentTarget
+    setIsConfirming(true)
+  }
+  const handleConfirmedSubmit = async () => {
+    setIsConfirming(false)
     setIsSubmitting(true)
-
     try {
-      const formData = new FormData(e.currentTarget)
+      const formData = new FormData(formRef.current)
       formData.delete('files')
       files.forEach((file) => {
         formData.append('files', file)
       })
-
       const res = await fetch('/api/second-opinion', {
         method: 'POST',
-        body: formData, // fetch automatically sets multipart/form-data with proper boundary
+        body: formData,
       })
-
       if (!res.ok) {
         throw new Error(await getErrorMessage(res))
       }
-
       setIsSuccess(true)
     } catch (err) {
-      setErrorMsg(err.message || 'Произошла ошибка')
+      setErrorMsg(err.message || 'Ошибка соединения. Проверьте интернет и попробуйте через минуту')
     } finally {
       setIsSubmitting(false)
     }
@@ -149,7 +150,7 @@ export function SecondOpinionForm({ onClose }) {
         </div>
         <h3 className="font-extrabold text-white text-xl mb-2">Заявка успешно отправлена!</h3>
         <p className="text-white/90 text-xs leading-relaxed mb-6">
-          Мы получили ваши данные и снимки. Наш специалист свяжется с вами в ближайшее время.
+          Мы получили ваши данные и снимки. Наш специалист свяжется с вами в течение рабочего дня (пн-пт 9:00–20:00).
         </p>
         <button
           onClick={onClose}
@@ -173,7 +174,7 @@ export function SecondOpinionForm({ onClose }) {
         </button>
       )}
 
-      <h3 className="text-xl md:text-2xl font-extrabold text-clay-dark mb-2">Отправить данные на проверку</h3>
+      <h3 id={modalTitleId} className="text-xl md:text-2xl font-extrabold text-clay-dark mb-2">Отправить данные на проверку</h3>
       <p className="text-clay-muted text-sm mb-5">
         Заполните форму и прикрепите снимки УЗИ или маммографии (не старше 3 месяцев) и заключение из предыдущей клиники. Если нужен очный осмотр в Санкт-Петербурге, мы подскажем дальнейший шаг.
       </p>
@@ -341,6 +342,9 @@ export function SecondOpinionForm({ onClose }) {
               PDF, JPG, JPEG, PNG. До 10 МБ на файл, суммарно до 25 МБ.
             </p>
           </div>
+          <p className="text-xs text-clay-muted mt-1.5 leading-relaxed">
+            Прикрепите снимки или заключения. Нужны для предварительной оценки вашего случая.
+          </p>
         </div>
 
         <div className="flex items-start gap-2 mt-3">
@@ -363,7 +367,33 @@ export function SecondOpinionForm({ onClose }) {
             'Отправить заявку'
           )}
         </button>
+        <p className="text-xs text-clay-muted text-center mt-2">
+          Данные защищены и не передаются третьим лицам
+        </p>
       </form>
+      {isConfirming && (
+        <div className="clay clay-card-soft-mint p-5 mt-4 text-center">
+          <p className="text-sm text-clay-dark font-medium mb-4">
+            Отправить снимки и данные? Наш врач свяжется в рабочее время.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              type="button"
+              onClick={handleConfirmedSubmit}
+              className="clay btn-clay-primary px-6 py-2 text-sm"
+            >
+              Подтвердить
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsConfirming(false)}
+              className="clay btn-clay-secondary px-6 py-2 text-sm"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

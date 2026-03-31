@@ -1,6 +1,11 @@
 import { getViteConfig } from 'astro/config'
 
 export default getViteConfig({
+  resolve: {
+    alias: {
+      '/pagefind/pagefind.js': '/Users/slava/dev/clod/src/test/pagefind-stub.js',
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

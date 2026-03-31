@@ -85,7 +85,7 @@ export function Doctors() {
         <CtaSection
           title="Нужна помощь с выбором врача?"
           subtitle="Если случай требует второго взгляда, подскажем, к кому лучше записаться, и поможем с маршрутом обращения."
-          primaryLabel="Получить второе мнение"
+          primaryLabel="Проверить, нужна ли операция"
           primaryHref="/second-opinion"
         />
       </div>

@@ -15,7 +15,7 @@ const pricesSchema = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: 'Полный прайс-лист Клиники Одинцова',
-  description: 'Полный официальный прейскурант медицинских услуг Клиники Одинцова в Санкт-Петербурге',
+  description: 'Полный официальный прайс-лист медицинских услуг Клиники Одинцова в Санкт-Петербурге',
   url: 'https://odintsovclinic.ru/prices/full',
   numberOfItems: fullPriceSchemaItems.length,
   itemListElement: fullPriceSchemaItems,
@@ -30,7 +30,7 @@ const categories = FULL_PRICE_CATEGORIES.map((category) => ({
 <Layout
   title="Полный прайс-лист - Клиника Одинцова"
   description="Полный официальный прайс-лист Клиники Одинцова: маммология, гинекология, эндокринология, хирургия, УЗИ и лабораторная диагностика."
-  keywords="полный прайс-лист Клиника Одинцова, официальный прейскурант клиники, цены маммология СПб, цены гинекология СПб"
+  keywords="полный прайс-лист Клиника Одинцова, официальный прайс-лист клиники, цены маммология СПб, цены гинекология СПб"
 >
   <script type="application/ld+json" set:html={JSON.stringify(pricesSchema)} />
   <BreadcrumbNav items={[{ label: 'Цены', href: '/prices' }, { label: 'Полный прайс-лист' }]} />
@@ -39,7 +39,7 @@ const categories = FULL_PRICE_CATEGORIES.map((category) => ({
     <div class="container-clay relative z-10">
       <div class="max-w-4xl">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style="background: rgba(47, 143, 124, 0.10); color: #2F8F7C;">
-          Официальный прейскурант
+          Официальный прайс-лист
         </div>
         <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
           Полный прайс-лист клиники
@@ -48,14 +48,14 @@ const categories = FULL_PRICE_CATEGORIES.map((category) => ({
           Здесь собраны все позиции из официального прайс-листа клиники с кодами услуг и стоимостью. Для удобства короткий прайс остаётся на отдельной странице.
         </p>
         <p class="text-sm text-clay-muted leading-relaxed mb-6 max-w-3xl">
-          Прейскурант ООО «Клиника Одинцова» от {OFFICIAL_PRICE_LIST_UPDATED_AT}. Если нужен быстрый ориентир по популярным услугам, используйте короткую версию прайса.
+          Прайс-лист ООО «Клиника Одинцова» от {OFFICIAL_PRICE_LIST_UPDATED_AT}. Если нужен быстрый ориентир по популярным услугам, используйте короткую версию прайса.
         </p>
         <div class="flex flex-wrap gap-3">
           <a href="/prices" class="clay btn-clay-secondary">
             Короткий прайс-лист
           </a>
           <button type="button" data-booking-btn="true" class="clay btn-clay-primary gap-2">
-            Записаться на консультацию
+            Записаться на приём
           </button>
         </div>
       </div>

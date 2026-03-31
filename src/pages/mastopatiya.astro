@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Mastopatiya, MASTOPATIYA_FAQ } from '../components/pages/Mastopatiya.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Мастопатия',
+  alternateName: 'Фиброзно-кистозная болезнь молочной железы',
+  description: 'Доброкачественное изменение структуры молочной железы с нарушением соотношения железистой, соединительной и жировой ткани. Встречается у 30–50% женщин репродуктивного возраста.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Молочная железа',
+  },
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Медикаментозная коррекция',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Вакуумная аспирационная биопсия (ВАБ) при узловых формах',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(MASTOPATIYA_FAQ)
+---
+
+<Layout
+  title="Мастопатия молочной железы — наблюдение и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём онколога-маммолога при мастопатии в Приморском районе Санкт-Петербурга. УЗИ, консультация и подбор тактики лечения. Богатырский проспект, рядом с м. Комендантский проспект."
+  keywords="мастопатия лечение СПб, фиброзно-кистозная болезнь, маммолог Санкт-Петербург, мастопатия симптомы, лечение мастопатии, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Мастопатия' }]} />
+  <Mastopatiya client:load />
+</Layout>

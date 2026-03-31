@@ -27,7 +27,7 @@ describe('price-list.js', () => {
     expect(mammology.fullPriceHref).toBe('/prices/full#mammology')
     expect(mammology.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'Первичная консультация онколога-маммолога', price: 5000 }),
+        expect.objectContaining({ name: 'Первичный приём онколога-маммолога', price: 5000 }),
         expect.objectContaining({ name: 'УЗИ молочных желёз', price: 2500 }),
         expect.objectContaining({ name: 'ВАБ', price: 87000 }),
       ])
@@ -40,14 +40,14 @@ describe('price-list.js', () => {
 
     expect(gynecology.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'Первичная консультация гинеколога', price: 3200 }),
+        expect.objectContaining({ name: 'Первичный приём гинеколога', price: 3200 }),
         expect.objectContaining({ name: 'Кольпоскопия', price: 2500 }),
       ])
     )
 
     expect(endocrinology.items).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'Первичная консультация эндокринолога', price: 4500 }),
+        expect.objectContaining({ name: 'Первичный приём эндокринолога', price: 4500 }),
         expect.objectContaining({ name: 'УЗИ щитовидной железы', price: 2000 }),
       ])
     )

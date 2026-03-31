@@ -32,7 +32,7 @@ const heroSlides = [
       { val: '1', unit: '', label: 'понятный план действий' },
       { val: 'СПб', unit: '', label: 'очная маршрутизация при необходимости' },
     ],
-    primaryBtn: { label: 'Получить второе мнение', href: '/second-opinion' },
+    primaryBtn: { label: 'Проверить, нужна ли операция', href: '/second-opinion' },
     secondaryBtn: { label: 'Записаться на приём', href: '/second-opinion' },
   },
   {
@@ -126,7 +126,7 @@ const HOME_WHY_ITEMS = WHY_ITEMS.map((item) => {
 const HOME_REASONS = [
   'Врачи объясняют решения простым языком и без давления',
   'Маршрут пациента строим от жалобы к следующему шагу',
-  'По необходимости организуем очную консультацию в Санкт-Петербурге',
+  'По необходимости организуем очный приём в Санкт-Петербурге',
   'После приёма подсказываем, какие документы и результаты взять с собой',
 ]
 
@@ -169,6 +169,41 @@ const REVIEWS = [
     text: 'На приёме по нутрициологии разобрали питание и дефициты без жёстких схем. Понравился спокойный, уважительный тон.',
   },
 ]
+
+function CountUp({ target, suffix = '' }) {
+  const ref = useRef(null)
+  const [count, setCount] = useState(0)
+  const [started, setStarted] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started) {
+          setStarted(true)
+          observer.unobserve(el)
+        }
+      },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [started])
+  useEffect(() => {
+    if (!started) return
+    const duration = 1500
+    const startTime = performance.now()
+    function animate(now) {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setCount(Math.round(target * eased))
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+    requestAnimationFrame(animate)
+  }, [started, target])
+  return <span ref={ref}>{count}{suffix}</span>
+}
 
 function StarRating({ count = 5 }) {
   return (
@@ -279,7 +314,7 @@ function AppointmentFormSection() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Например, Анна"
                     required
-                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted outline-none focus:ring-2 focus:ring-clay-mint/30 w-full"
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:outline-none focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -293,7 +328,7 @@ function AppointmentFormSection() {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+7 (___) ___-__-__"
                     required
-                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted outline-none focus:ring-2 focus:ring-clay-mint/30 w-full"
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:outline-none focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
                   />
                 </div>
                 <button
@@ -482,7 +517,7 @@ export function Home({ doctorsData = [] }) {
 
                     {/* CTA кнопки */}
                     <div className="flex flex-wrap gap-3 mb-6">
-                      <a href={slide.primaryBtn.href} data-booking-btn={slide.primaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-primary gap-2">
+                      <a href={slide.primaryBtn.href} data-booking-btn={slide.primaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-secondary gap-2">
                         {slide.primaryBtn.label}
                         <ArrowRight size={16} />
                       </a>
@@ -496,15 +531,23 @@ export function Home({ doctorsData = [] }) {
                   <div className="flex flex-col gap-4">
                     <div className="clay clay-card p-6">
                       <div className="grid grid-cols-3 gap-4">
-                        {slide.stats.map((s) => (
-                          <div key={s.label} className="text-center">
-                            <div className="flex items-end justify-center gap-0.5 mb-1">
-                              <span className="text-3xl sm:text-4xl font-extrabold text-clay-dark leading-none">{s.val}</span>
-                              {s.unit && <span className="text-lg font-bold pb-0.5" style={{ color: '#2A9E80' }}>{s.unit}</span>}
+                        {slide.stats.map((s) => {
+                          const numericVal = parseInt(s.val, 10)
+                          const isNumeric = !isNaN(numericVal) && String(numericVal) === String(s.val)
+                          return (
+                            <div key={s.label} className="text-center">
+                              <div className="flex items-end justify-center gap-0.5 mb-1">
+                                <span className="text-3xl sm:text-4xl font-extrabold text-clay-dark leading-none">
+                                  {isNumeric
+                                    ? <CountUp target={numericVal} />
+                                    : s.val}
+                                </span>
+                                {s.unit && <span className="text-lg font-bold pb-0.5" style={{ color: '#2A9E80' }}>{s.unit}</span>}
+                              </div>
+                              <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
                             </div>
-                            <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                       {slide.disclaimer && (
                         <p className="text-xs text-clay-muted mt-3 pt-3 border-t border-black/5 leading-relaxed">
@@ -519,61 +562,59 @@ export function Home({ doctorsData = [] }) {
             })}
           </div>
 
-          {/* Навигация */}
-          <div className="flex items-center gap-4 mt-10">
+          {/* Dot indicators */}
+          <div className="flex justify-center items-center gap-2.5 mt-8" role="tablist" aria-label="Слайды">
+            {heroSlides.map((_, idx) => (
+              <button
+                type="button"
+                key={idx}
+                role="tab"
+                onClick={() => goToSlide(idx)}
+                aria-label={`Слайд ${idx + 1}`}
+                aria-selected={activeSlide === idx}
+                className="p-1.5 transition-all duration-300"
+              >
+                <span
+                  className="rounded-full block transition-all duration-300"
+                  style={{
+                    width: activeSlide === idx ? '28px' : '8px',
+                    height: '8px',
+                    background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+          {/* Slider controls */}
+          <div className="flex justify-center items-center gap-3 mt-3">
             <button
               type="button"
               onClick={prevSlide}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
               style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
               aria-label="Предыдущий слайд"
             >
-              <ChevronLeft size={16} className="text-clay-mint" />
+              <ChevronLeft size={14} className="text-clay-mint" />
             </button>
             <button
               type="button"
               onClick={() => setIsAutoplayPaused((current) => !current)}
-              className="rounded-full px-4 py-2 text-xs font-semibold transition-colors"
+              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
               style={{ background: 'rgba(61,74,68,0.06)', color: '#3D4A44' }}
               aria-pressed={isAutoplayPaused}
               aria-label={isAutoplayPaused ? 'Возобновить автопрокрутку слайдов' : 'Пауза автопрокрутки слайдов'}
             >
               {isAutoplayPaused ? 'Возобновить автопрокрутку' : 'Пауза слайдов'}
             </button>
-            <div className="flex items-center gap-2">
-              {heroSlides.map((_, idx) => (
-                <button
-                  type="button"
-                  key={idx}
-                  onClick={() => goToSlide(idx)}
-                  aria-label={`Слайд ${idx + 1}`}
-                  className="flex items-center justify-center transition-all duration-300"
-                  style={{ padding: '8px', background: 'transparent', border: 'none' }}
-                >
-                  <span
-                    className="rounded-full block transition-all duration-300"
-                    style={{
-                      width: activeSlide === idx ? '28px' : '8px',
-                      height: '8px',
-                      background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
             <button
               type="button"
               onClick={nextSlide}
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
               style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
               aria-label="Следующий слайд"
             >
-              <ChevronRight size={16} className="text-clay-mint" />
+              <ChevronRight size={14} className="text-clay-mint" />
             </button>
-            {/* Счётчик слайдов */}
-            <span className="text-xs text-clay-muted ml-2 font-medium">
-              {activeSlide + 1} / {heroSlides.length}
-            </span>
           </div>
         </div>
       </section>
@@ -804,7 +845,7 @@ export function Home({ doctorsData = [] }) {
                   <p className="text-xs text-clay-muted">Подскажем удобный формат связи</p>
                 </div>
               </div>
-                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2 justify-center">
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2 justify-center">
                   <Phone size={16} />
                   Позвонить
                 </a>
@@ -838,7 +879,7 @@ export function Home({ doctorsData = [] }) {
                 Позвоните нам или напишите в мессенджер - поможем с маршрутом и подскажем, с чего лучше начать.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
                   <Phone size={16} />
                   Позвонить
                 </a>

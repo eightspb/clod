@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { DlyaInogorodnikh } from '../components/pages/DlyaInogorodnikh.jsx'
+---
+
+<Layout
+  title="Для иногородних пациентов — Клиника Одинцова, СПб"
+  description="Как записаться и спланировать визит в клинику из другого города. Помощь с логистикой для пациентов из России, Казахстана и Белоруссии."
+  keywords="клиника одинцова для иногородних, маммолог спб из другого города, ВАБ спб приехать, лечение в спб иногородним"
+  canonicalUrl="https://odintsovclinic.ru/dlya-inogorodnikh"
+>
+  <BreadcrumbNav items={[{ label: 'Для иногородних' }]} />
+  <DlyaInogorodnikh client:load />
+</Layout>

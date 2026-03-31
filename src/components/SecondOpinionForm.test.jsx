@@ -66,6 +66,9 @@ describe('SecondOpinionForm', () => {
     fireEvent.change(input, { target: { files: [validFile] } })
     fireEvent.submit(screen.getByRole('button', { name: /отправить/i }).closest('form'))
 
+    const confirmButton = await screen.findByRole('button', { name: /подтвердить/i })
+    fireEvent.click(confirmButton)
+
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1)
     })

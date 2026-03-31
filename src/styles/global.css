@@ -45,8 +45,8 @@
   :root {
     --clay-ink: #24322d;
     --clay-text-strong: #33433d;
-    --clay-text: #42524c;
-    --clay-text-muted: #61726d;
+    --clay-text: #2D3A34;
+    --clay-text-muted: #465550;
     --clay-surface: #fffdf9;
     --clay-surface-soft: #f6f1ea;
     --clay-surface-subtle: #f0ebe3;
@@ -446,6 +446,19 @@
   .icon-circle-yellow {
     --hue: 43;
     --clay-background: linear-gradient(145deg, #fbefca, #f3ddb1);
+  }
+
+  /* ─────────────────────────────
+     DECORATIVE DOTS (card accents)
+  ───────────────────────────── */
+  .dot-peach-light {
+    background: #FAC8B0;
+  }
+  .dot-blue-light {
+    background: #A8D8F4;
+  }
+  .dot-mint-light {
+    background: #A0E4D4;
   }
 
   /* ─────────────────────────────
@@ -1519,4 +1532,26 @@
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* ─────────────────────────────
+   SEARCH MODAL — result excerpt highlights
+───────────────────────────── */
+.search-result-excerpt mark {
+  background: transparent;
+  color: #4DC8A8;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────
+   SCROLL REVEAL ANIMATIONS
+───────────────────────────── */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }

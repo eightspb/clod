@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { EroziyaSheykyMatki, EROZIYA_FAQ } from '../components/pages/EroziyaSheykyMatki.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Эрозия шейки матки',
+  alternateName: 'Эктопия шейки матки',
+  description: 'Изменение эпителия шейки матки. Чаще речь идёт об эктопии — смещении цилиндрического эпителия цервикального канала на наружную поверхность шейки. При простой эктопии без атипии — вариант нормы у молодых женщин.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Шейка матки',
+  },
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Радиоволновое воздействие',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Лазерная коагуляция',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(EROZIYA_FAQ)
+---
+
+<Layout
+  title="Эрозия шейки матки — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём гинеколога при эрозии шейки матки в Приморском районе Санкт-Петербурга. Кольпоскопия, ПАП-тест, ВПЧ-тест, радиоволновое лечение. Богатырский проспект, м. Комендантский проспект."
+  keywords="эрозия шейки матки лечение СПб, гинеколог Санкт-Петербург, кольпоскопия, ПАП-тест, прижигание эрозии, радиоволновое лечение, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эрозия шейки матки' }]} />
+  <EroziyaSheykyMatki client:load />
+</Layout>

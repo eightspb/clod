@@ -69,10 +69,65 @@ const EQUIPMENT = [
   {
     icon: Monitor,
     title: 'Удобная выдача документов',
-    desc: 'Заключения, снимки и протоколы можно получить в клинике, а администратор подскажет, какие материалы подготовить для повторной консультации или второго мнения.',
+    desc: 'Заключения, снимки и протоколы можно получить в клинике, а администратор подскажет, какие материалы подготовить для повторного приёма или второго мнения.',
     tag: 'Сервис',
     tagColor: '#D07858',
     tagBg: 'rgba(240,168,136,0.12)',
+  },
+]
+
+const PATIENT_JOURNEY = [
+  {
+    num: '01',
+    title: 'Обращение',
+    desc: 'Звонок или заявка онлайн. Администратор согласует удобное время и формат приёма.',
+  },
+  {
+    num: '02',
+    title: 'Диагностика',
+    desc: 'Осмотр и УЗИ по показаниям. Врач объясняет, что видит и зачем нужно каждое исследование.',
+  },
+  {
+    num: '03',
+    title: 'Консилиум',
+    desc: 'При необходимости случай обсуждается командой специалистов: маммолог, гинеколог, эндокринолог.',
+  },
+  {
+    num: '04',
+    title: 'Лечение',
+    desc: 'Выбирается наименее инвазивный метод. Обсуждаем объём, риски и дальнейший план до начала.',
+  },
+  {
+    num: '05',
+    title: 'Наблюдение',
+    desc: 'После лечения врач сообщает, когда и как продолжить наблюдение и что делать при изменении состояния.',
+  },
+]
+
+const PRINCIPLES = [
+  {
+    icon: Shield,
+    iconBg: 'icon-circle-mint',
+    title: 'Доказательная медицина',
+    desc: 'Решения принимаются на основе показаний и проверенных протоколов, без лишних назначений и давления.',
+  },
+  {
+    icon: Award,
+    iconBg: 'icon-circle-peach',
+    title: 'Прозрачное ценообразование',
+    desc: 'Объём услуги и возможные дополнительные исследования обсуждаем до начала лечения.',
+  },
+  {
+    icon: Phone,
+    iconBg: 'icon-circle-blue',
+    title: 'Личная связь с врачом',
+    desc: 'После приёма можно уточнить вопросы по телефону или в Telegram — без ожидания следующего визита.',
+  },
+  {
+    icon: Users,
+    iconBg: 'icon-circle-lavender',
+    title: 'Командный подход',
+    desc: 'Маммологи, гинекологи, эндокринологи и нутрициологи работают в едином маршруте пациента.',
   },
 ]
 
@@ -383,6 +438,80 @@ export function About() {
                   <p className="text-clay-muted text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* МАРШРУТ ПАЦИЕНТА */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+              Маршрут пациента
+            </h2>
+            <p className="text-clay-muted max-w-xl mx-auto">
+              Понятный путь от обращения до наблюдения после лечения
+            </p>
+          </div>
+          <div className="relative">
+            <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-clay-mint/20 md:hidden" />
+            <div className="hidden md:flex items-start gap-0 mb-8">
+              {PATIENT_JOURNEY.map((step, i) => (
+                <div key={step.num} className="flex-1 flex flex-col items-center text-center relative">
+                  {i < PATIENT_JOURNEY.length - 1 && (
+                    <div className="absolute top-5 left-1/2 right-0 h-0.5 bg-clay-mint/25" />
+                  )}
+                  <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint mb-3">
+                    <span className="text-sm font-bold text-white">{step.num}</span>
+                  </div>
+                  <h3 className="font-bold text-clay-dark text-sm mb-1">{step.title}</h3>
+                  <p className="text-xs text-clay-muted leading-relaxed px-2">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-4 md:hidden">
+              {PATIENT_JOURNEY.map((step) => (
+                <div key={step.num} className="flex items-start gap-4 relative">
+                  <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint">
+                    <span className="text-sm font-bold text-white">{step.num}</span>
+                  </div>
+                  <div className="flex-1 clay clay-card p-4">
+                    <h3 className="font-bold text-clay-dark text-base mb-1">{step.title}</h3>
+                    <p className="text-clay-muted text-sm leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* НАШИ ПРИНЦИПЫ */}
+      <section className="section">
+        <div className="container-clay">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+              Наши принципы
+            </h2>
+            <p className="text-clay-muted max-w-xl mx-auto">
+              То, что остаётся неизменным в каждом приёме и решении
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {PRINCIPLES.map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.title} className="clay clay-card p-6 flex items-start gap-4">
+                  <div className={`${item.iconBg} flex-shrink-0`}>
+                    <Icon size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-clay-dark mb-2">{item.title}</h3>
+                    <p className="text-clay-muted text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
               )
             })}
           </div>

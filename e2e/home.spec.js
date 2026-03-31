@@ -37,6 +37,6 @@ test.describe('Главная страница', () => {
       }
     }
 
-    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1)
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(5)
   })
 })

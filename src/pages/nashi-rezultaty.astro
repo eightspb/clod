@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { NashiRezultaty } from '../components/pages/NashiRezultaty.jsx'
+---
+
+<Layout
+  title="Наши результаты — Клиника Одинцова, СПб"
+  description="Статистика работы клиники: количество процедур ВАБ, опыт врачей, география пациентов и рейтинги на ПроДокторов."
+  keywords="клиника одинцова результаты, статистика ВАБ, рейтинг клиники спб маммология, отзывы клиника одинцова санкт-петербург"
+  canonicalUrl="https://odintsovclinic.ru/nashi-rezultaty"
+  ogType="website"
+>
+  <BreadcrumbNav items={[{ label: 'Наши результаты' }]} />
+  <NashiRezultaty client:load />
+</Layout>

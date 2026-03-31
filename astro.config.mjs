@@ -26,10 +26,7 @@ export default defineConfig({
     '/doctors/yakhontova': '/doctors',
     '/doctors/strebkov': '/doctors',
     '/doctors/ovchinnicova': '/doctors',
-    '/fibroadenoma': '/blog/chto-takoe-fibroadenoma',
     '/bc': '/blog/rannyaya-diagnostika-raka-grudi',
-    '/ozonecyst': '/blog/kista-molochnoy-zhelezy',
-    '/esm': '/blog/eroziya-sheyki-matki',
     '/breastfeeding-rules': '/blog/15-pravil-grudnogo-vskarmlivaniya',
     '/cyst': '/blog/kista-molochnoy-zhelezy',
     '/terios': '/blog/gipotireoz-simptomy-lechenie',
@@ -46,6 +43,11 @@ export default defineConfig({
   vite: {
     resolve: {
       dedupe: ['react', 'react-dom'],
+    },
+    build: {
+      rollupOptions: {
+        external: ['/pagefind/pagefind.js'],
+      },
     },
   },
   integrations: [
@@ -69,6 +71,11 @@ export default defineConfig({
           'https://odintsovclinic.ru/endocrinology': 0.9,
           'https://odintsovclinic.ru/nutrition': 0.9,
           'https://odintsovclinic.ru/vab': 0.95,
+          'https://odintsovclinic.ru/fibroadenoma': 0.85,
+          'https://odintsovclinic.ru/mastopatiya': 0.85,
+          'https://odintsovclinic.ru/kista-molochnoy-zhelezy': 0.85,
+          'https://odintsovclinic.ru/eroziya-sheyki-matki': 0.85,
+          'https://odintsovclinic.ru/gipotireoz': 0.85,
           'https://odintsovclinic.ru/second-opinion': 0.85,
           'https://odintsovclinic.ru/tax-form': 0.75,
           'https://odintsovclinic.ru/prices': 0.8,

@@ -61,12 +61,63 @@ describe('Header', () => {
     expect(phoneLinks.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('opens desktop dropdown on keyboard focus and closes on Escape', () => {
+  it('opens mega-menu on keyboard focus for Направления', () => {
     render(<Header />)
     const dropdownButton = screen.getByRole('button', { name: /направления/i })
     fireEvent.focus(dropdownButton)
-    expect(screen.getByRole('link', { name: /маммология/i })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /маммология/i })).toBeInTheDocument()
+  })
+
+  it('closes mega-menu on Escape', () => {
+    render(<Header />)
+    const dropdownButton = screen.getByRole('button', { name: /направления/i })
+    fireEvent.focus(dropdownButton)
     fireEvent.keyDown(dropdownButton, { key: 'Escape' })
-    expect(screen.queryByRole('link', { name: /маммология/i })).toBeNull()
+    expect(screen.queryByRole('menuitem', { name: /маммология/i })).toBeNull()
+  })
+
+  it('renders ВАБ link inside mega-menu when Направления is open', () => {
+    render(<Header />)
+    const dropdownButton = screen.getByRole('button', { name: /направления/i })
+    fireEvent.focus(dropdownButton)
+    expect(screen.getByRole('menuitem', { name: /ВАБ/ })).toBeInTheDocument()
+  })
+
+  it('renders condition links inside mega-menu for mammology', () => {
+    render(<Header />)
+    const dropdownButton = screen.getByRole('button', { name: /направления/i })
+    fireEvent.focus(dropdownButton)
+    expect(screen.getByRole('menuitem', { name: /фиброаденома/i })).toBeInTheDocument()
+  })
+
+  it('opens О клинике dropdown showing about link', () => {
+    render(<Header />)
+    const aboutButton = screen.getByRole('button', { name: /о клинике/i })
+    fireEvent.focus(aboutButton)
+    expect(screen.getByRole('menuitem', { name: /^о клинике$/i })).toBeInTheDocument()
+  })
+
+  it('opens Пациентам dropdown showing second-opinion link', () => {
+    render(<Header />)
+    const patientsButton = screen.getByRole('button', { name: /пациентам/i })
+    fireEvent.focus(patientsButton)
+    expect(screen.getByRole('menuitem', { name: /бесплатное второе мнение/i })).toBeInTheDocument()
+  })
+
+  it('renders accordion groups in mobile menu', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /открыть меню/i }))
+    const accordionButtons = screen.getAllByRole('button', { name: /направления|о клинике|пациентам/i })
+    expect(accordionButtons.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('expands mobile accordion to show direction links', () => {
+    render(<Header />)
+    const menuBtn = screen.getByRole('button', { name: /открыть меню/i })
+    fireEvent.click(menuBtn)
+    const allDirectionsBtns = screen.getAllByRole('button').filter((btn) => btn.textContent.includes('Направления'))
+    const mobileAccordionBtn = allDirectionsBtns.find((btn) => btn.closest('#mobile-menu'))
+    fireEvent.click(mobileAccordionBtn)
+    expect(screen.getAllByText(/маммология/i).length).toBeGreaterThanOrEqual(1)
   })
 })
