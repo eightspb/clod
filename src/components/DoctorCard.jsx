@@ -14,7 +14,7 @@ export function DoctorCard({ doctor }) {
   const ring = RING_COLOR_MAP[doctor.ringColor] || 'avatar-ring-mint'
   const colors = COLOR_MAP[doctor.ringColor] || COLOR_MAP.mint
   return (
-    <article className={`clay clay-card card-interactive ${colors.line} flex flex-col relative overflow-visible pt-52`}>
+    <article className={`clay clay-card card-interactive ${colors.line} flex flex-col relative overflow-visible pt-52 h-full`}>
       <div className="absolute -top-4 -left-4 z-10">
         <div
           className={`${ring} flex-shrink-0`}

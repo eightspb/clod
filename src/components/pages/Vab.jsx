@@ -3,6 +3,7 @@ import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 
 const VAB_DOCTORS = DOCTORS.filter((d) =>
   /онколог/i.test(d.specialization)
@@ -102,33 +103,38 @@ export function Vab() {
 
       {/* Hero */}
       <section className="pt-6 pb-8">
-        <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-          <Zap size={15} className="text-clay-teal" />
-          Основное направление клиники
-        </div>
-        <h1 className="heading-serif text-3xl md:text-4xl lg:text-5xl font-normal text-clay-text mb-5 speakable">
-          ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
-        </h1>
-        <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
-          Малоинвазивное удаление доброкачественных образований молочной железы через прокол 2 мм.
-          Процедура обычно занимает 30–40 минут и проводится амбулаторно по показаниям.
-        </p>
-        <p className="text-sm text-clay-muted max-w-2xl mb-8">
-          Перед процедурой врач оценивает показания, проводит УЗИ и подробно обсуждает ожидаемый результат, цену и дальнейший план наблюдения.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
-            data-booking-btn="true"
-            className="btn-clay-primary inline-flex items-center gap-2"
-          >
-            <MessageCircle size={18} />
-            Записаться на ВАБ
-          </button>
-          <a href="/second-opinion" className="btn-clay-secondary inline-flex items-center gap-2">
-            Бесплатное второе мнение
-            <ArrowRight size={18} />
-          </a>
+        <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+              <Zap size={15} className="text-clay-teal" />
+              Основное направление клиники
+            </div>
+            <h1 className="heading-serif text-3xl md:text-4xl lg:text-5xl font-normal text-clay-text mb-5 speakable">
+              ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
+            </h1>
+            <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
+              Малоинвазивное удаление доброкачественных образований молочной железы через прокол 2 мм.
+              Процедура обычно занимает 30–40 минут и проводится амбулаторно по показаниям.
+            </p>
+            <p className="text-sm text-clay-muted max-w-2xl mb-8">
+              Перед процедурой врач оценивает показания, проводит УЗИ и подробно обсуждает ожидаемый результат, цену и дальнейший план наблюдения.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                data-booking-btn="true"
+                className="btn-clay-primary inline-flex items-center gap-2"
+              >
+                <MessageCircle size={18} />
+                Записаться на ВАБ
+              </button>
+              <a href="/second-opinion" className="btn-clay-secondary inline-flex items-center gap-2">
+                Бесплатное второе мнение
+                <ArrowRight size={18} />
+              </a>
+            </div>
+          </div>
+          <HeroDoctorCard doctors={VAB_DOCTORS} />
         </div>
       </section>
 

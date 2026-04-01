@@ -42,9 +42,9 @@ export function DoctorPage({ doctor }) {
                   {doctor.photo
                     ? (
                       <img
-                        src={doctor.photo}
+                        src={doctor.photoFull || doctor.photo}
                         alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
-                        className="w-[216px] h-[216px] rounded-full object-cover"
+                        className="w-[216px] h-[216px] rounded-full object-cover object-top"
                         loading="lazy"
                         width="216"
                         height="216"
@@ -71,7 +71,7 @@ export function DoctorPage({ doctor }) {
                   <p className="text-xs font-semibold text-clay-dark">{doctor.specialization}</p>
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark leading-tight mb-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl heading-serif text-clay-dark leading-tight mb-4">
                   {doctor.name}
                 </h1>
 
@@ -135,7 +135,7 @@ export function DoctorPage({ doctor }) {
         <section className="section">
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
-              <h2 className="text-xl font-extrabold text-clay-dark mb-4">О докторе</h2>
+              <h2 className="text-xl heading-serif text-clay-dark mb-4">О докторе</h2>
               <div className="text-clay-muted leading-relaxed space-y-3">
                 {doctor.aboutDoctor.split('\n').filter(Boolean).map((para, i) => (
                   <p key={i}>{para}</p>
@@ -153,7 +153,7 @@ export function DoctorPage({ doctor }) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <div className="clay clay-card p-6 md:p-8">
-                  <h2 className="text-xl font-extrabold text-clay-dark mb-4">Слово доктора</h2>
+                  <h2 className="text-xl heading-serif text-clay-dark mb-4">Слово доктора</h2>
                   <div className="text-clay-muted leading-relaxed space-y-3">
                     {doctor.bio.split('\n').filter(Boolean).map((para, i) => (
                       <p key={i}>{para}</p>
@@ -165,7 +165,7 @@ export function DoctorPage({ doctor }) {
               {/* Помощь при */}
               {doctor.helpsWith && doctor.helpsWith.length > 0 && (
                 <div className="clay clay-card-soft-mint p-6">
-                  <h3 className="text-base font-extrabold text-clay-dark mb-4 flex items-center gap-2">
+                  <h3 className="text-base font-bold text-clay-dark mb-4 flex items-center gap-2">
                     <CheckCircle size={18} className="text-clay-mint flex-shrink-0" />
                     Помогу при
                   </h3>
@@ -189,7 +189,7 @@ export function DoctorPage({ doctor }) {
         <section className="section">
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
-              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+              <h2 className="text-xl heading-serif text-clay-dark mb-6 flex items-center gap-3">
                 <div className="icon-circle-blue flex-shrink-0">
                   <GraduationCap size={18} className="text-white" />
                 </div>
@@ -218,7 +218,7 @@ export function DoctorPage({ doctor }) {
         <section className="section">
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
-              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+              <h2 className="text-xl heading-serif text-clay-dark mb-6 flex items-center gap-3">
                 <div className="icon-circle-mint flex-shrink-0">
                   <BookOpen size={18} className="text-white" />
                 </div>
@@ -254,7 +254,7 @@ export function DoctorPage({ doctor }) {
         <section className="section">
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
-              <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+              <h2 className="text-xl heading-serif text-clay-dark mb-6 flex items-center gap-3">
                 <div className="icon-circle-peach flex-shrink-0">
                   <Tv size={18} className="text-white" />
                 </div>
@@ -293,7 +293,7 @@ export function DoctorPage({ doctor }) {
       {doctor.reviews && doctor.reviews.length > 0 && (
         <section className="section">
           <div className="container-clay">
-            <h2 className="text-xl font-extrabold text-clay-dark mb-6 flex items-center gap-3">
+            <h2 className="text-xl heading-serif text-clay-dark mb-6 flex items-center gap-3">
               <div className="icon-circle-peach flex-shrink-0">
                 <Star size={18} className="text-white" />
               </div>
@@ -326,6 +326,8 @@ export function DoctorPage({ doctor }) {
         title={`Записаться к ${doctor.dativeShortName || doctor.name}`}
         subtitle="Звоните или оставьте заявку - мы перезвоним и подберём удобное время"
         primaryLabel="Онлайн-запись"
+        doctorPhoto={doctor.photoFull || doctor.photo}
+        doctorName={doctor.name}
       />
     </div>
     </ErrorBoundary>

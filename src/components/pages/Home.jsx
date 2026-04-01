@@ -11,7 +11,7 @@ import { DOCTORS } from '../../lib/doctors-data.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
 
-const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization) && !/гинеколог/i.test(d.specialization))
+const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
 const OTHER_DOCTORS = DOCTORS.filter(d => !MAMMOLOGISTS.includes(d))
 
 function pickRandom(arr) {
@@ -470,10 +470,20 @@ export function Home({ doctorsData = [] }) {
 
   function prevSlide() {
     setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
+    setHeroDoctor(old => ({
+      ...old,
+      0: pickRandom(MAMMOLOGISTS),
+      2: pickRandom(OTHER_DOCTORS),
+    }))
   }
 
   function nextSlide() {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length)
+    setHeroDoctor(old => ({
+      ...old,
+      0: pickRandom(MAMMOLOGISTS),
+      2: pickRandom(OTHER_DOCTORS),
+    }))
   }
 
   const filteredDoctors = useMemo(
@@ -562,10 +572,10 @@ export function Home({ doctorsData = [] }) {
                       <div className="clay clay-card hero-doctor-card-inner">
                         <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-photo-link group">
                           <img
-                            src={`/images/doctors/${heroDoctor[idx].slug}.webp`}
+                            src={heroDoctor[idx].photoFull || `/images/doctors/${heroDoctor[idx].slug}.webp`}
                             alt={heroDoctor[idx].name}
                             width={280}
-                            height={320}
+                            height={380}
                             className="hero-doctor-photo"
                             loading={idx === 0 ? 'eager' : 'lazy'}
                           />

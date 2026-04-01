@@ -3,6 +3,7 @@ import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
 
@@ -78,30 +79,33 @@ export function Gipotireoz() {
     <div>
       <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="badge-specialty-blue-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
-              <Zap size={12} />
-              Эндокринология · Приморский район СПб
+          <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
+            <div>
+              <div className="badge-specialty-blue-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
+                <Zap size={12} />
+                Эндокринология · Приморский район СПб
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Гипотиреоз:{' '}
+                <span className="heading-accent">диагностика и лечение в Санкт-Петербурге</span>
+              </h1>
+              <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
+                Приём эндокринолога, анализы на гормоны щитовидной железы и подбор лечения — в Клинике Одинцова на Богатырском проспекте, рядом с м. Комендантский проспект.
+              </p>
+              <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
+                Гипотиреоз хорошо поддаётся лечению при правильно подобранной дозе. Главное — вовремя выявить состояние и начать наблюдение у эндокринолога.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
+                  Записаться к эндокринологу
+                  <ArrowRight size={16} />
+                </button>
+                <button type="button" data-booking-btn="true" className="clay btn-clay-secondary">
+                  Проверить, нужна ли операция
+                </button>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              Гипотиреоз:{' '}
-              <span className="heading-accent">диагностика и лечение в Санкт-Петербурге</span>
-            </h1>
-            <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
-              Приём эндокринолога, анализы на гормоны щитовидной железы и подбор лечения — в Клинике Одинцова на Богатырском проспекте, рядом с м. Комендантский проспект.
-            </p>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Гипотиреоз хорошо поддаётся лечению при правильно подобранной дозе. Главное — вовремя выявить состояние и начать наблюдение у эндокринолога.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
-                Записаться к эндокринологу
-                <ArrowRight size={16} />
-              </button>
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary">
-                Проверить, нужна ли операция
-              </button>
-            </div>
+            <HeroDoctorCard doctors={SPECIALTY_DOCTORS} />
           </div>
         </div>
       </section>

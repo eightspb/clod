@@ -3,6 +3,7 @@ import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
 
@@ -111,30 +112,33 @@ export function Gynecology({ servicesData = [] }) {
       <section className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="badge-specialty-peach inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
-              <Heart size={12} />
-              Бережная гинекология
+          <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
+            <div>
+              <div className="badge-specialty-peach inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
+                <Heart size={12} />
+                Бережная гинекология
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Гинекология в Санкт-Петербурге:{' '}
+                <span className="heading-accent">спокойный приём</span> и понятный план наблюдения
+              </h1>
+              <p className="text-lg text-clay-muted font-medium mb-3">
+                Бережный приём с уважением к вашему времени, деликатному осмотру и объяснением каждого шага
+              </p>
+              <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
+                Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Мы работаем спокойно: без давления, без лишних назначений и с опорой на показания.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
+                  Записаться на приём
+                  <ArrowRight size={16} />
+                </button>
+                <a href="/prices" className="clay btn-clay-secondary">
+                  Посмотреть цены
+                </a>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              Гинекология в Санкт-Петербурге:{' '}
-              <span className="heading-accent">спокойный приём</span> и понятный план наблюдения
-            </h1>
-            <p className="text-lg text-clay-muted font-medium mb-3">
-              Бережный приём с уважением к вашему времени, деликатному осмотру и объяснением каждого шага
-            </p>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Мы работаем спокойно: без давления, без лишних назначений и с опорой на показания.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
-                Записаться на приём
-                <ArrowRight size={16} />
-              </button>
-              <a href="/prices" className="clay btn-clay-secondary">
-                Посмотреть цены
-              </a>
-            </div>
+            <HeroDoctorCard doctors={SPECIALTY_DOCTORS} />
           </div>
         </div>
       </section>

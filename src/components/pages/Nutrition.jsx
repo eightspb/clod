@@ -1,6 +1,8 @@
 import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, Users, Clock } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
+import { DOCTORS } from '../../lib/doctors-data.js'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
+import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
 
@@ -88,6 +90,7 @@ const myths = [
     truth: 'Генетика влияет лишь на часть факторов. Правильно подобранный рацион и образ жизни могут заметно улучшить самочувствие и повседневную устойчивость привычек.',
   },
 ]
+const NUTRITION_DOCTORS = DOCTORS.filter(d => /нутрициолог/i.test(d.specialization))
 const NUTRITION_PRICE_CATEGORY = getShortPriceCategoryBySlug('nutrition')
 
 export function Nutrition() {
@@ -96,30 +99,33 @@ export function Nutrition() {
       {/* HERO */}
       <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="badge-specialty-mint inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
-              <Apple size={12} />
-              Нутрициология
+          <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
+            <div>
+              <div className="badge-specialty-mint inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
+                <Apple size={12} />
+                Нутрициология
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Нутрициология в Санкт-Петербурге:{' '}
+                <span className="heading-accent">персональный план питания</span> без жёстких диет
+              </h1>
+              <p className="text-lg text-clay-muted font-medium mb-3">
+                Если хочется выстроить питание спокойно и без крайностей, начнём с анализа привычек и результатов обследований
+              </p>
+              <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
+                Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Сначала оцениваем привычки и дефициты, затем обсуждаем реалистичный план.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
+                  Записаться к нутрициологу
+                  <ArrowRight size={16} />
+                </button>
+                <a href="/prices" className="clay btn-clay-secondary">
+                  Посмотреть цены
+                </a>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              Нутрициология в Санкт-Петербурге:{' '}
-              <span className="heading-accent">персональный план питания</span> без жёстких диет
-            </h1>
-            <p className="text-lg text-clay-muted font-medium mb-3">
-              Если хочется выстроить питание спокойно и без крайностей, начнём с анализа привычек и результатов обследований
-            </p>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Сначала оцениваем привычки и дефициты, затем обсуждаем реалистичный план.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
-                Записаться к нутрициологу
-                <ArrowRight size={16} />
-              </button>
-              <a href="/prices" className="clay btn-clay-secondary">
-                Посмотреть цены
-              </a>
-            </div>
+            <HeroDoctorCard doctors={NUTRITION_DOCTORS} />
           </div>
         </div>
       </section>
