@@ -53,7 +53,7 @@ export function Contacts() {
       />
 
       <section className="pt-6 pb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-clay-text mb-3 speakable">
+        <h1 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3 speakable">
           Контакты клиники в Санкт-Петербурге
         </h1>
         <p className="text-clay-muted text-lg leading-relaxed max-w-3xl">
@@ -171,7 +171,7 @@ export function Contacts() {
 
       {/* Как добраться */}
       <section className="mb-6">
-        <h2 className="text-2xl font-bold text-clay-text mb-4">Как добраться</h2>
+        <h2 className="text-2xl heading-serif text-clay-dark mb-4">Как добраться</h2>
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
           {METRO_STATIONS.map((station) => (
             <div key={station.name} className="clay-card p-4 text-center">
@@ -193,7 +193,7 @@ export function Contacts() {
 
       {/* Карта */}
       <section className="mb-6">
-        <h2 className="text-2xl font-bold text-clay-text mb-4">Карта</h2>
+        <h2 className="text-2xl heading-serif text-clay-dark mb-4">Карта</h2>
         <div 
           id="yandex-map-container"
           className="clay-card overflow-hidden relative cursor-pointer group bg-slate-50" 
@@ -252,7 +252,7 @@ export function Contacts() {
 
       {/* ДМС */}
       <section className="clay-card-mint p-6 md:p-8">
-        <h2 className="text-xl font-bold text-clay-dark mb-4">Принимаем по ДМС</h2>
+        <h2 className="text-xl heading-serif text-clay-dark mb-4">Принимаем по ДМС</h2>
         <p className="text-clay-text mb-4">
           Принимаем пациентов по полисам добровольного медицинского страхования. Список программ и объём покрытия можно уточнить у администратора при записи:
         </p>

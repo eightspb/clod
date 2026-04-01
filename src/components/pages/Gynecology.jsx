@@ -266,9 +266,16 @@ export function Gynecology({ servicesData = [] }) {
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Гинекологи клиники</h2>
               <p className="text-clay-muted">Специалисты, с которыми можно спокойно обсудить жалобы, обследования и дальнейший план</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
               {SPECIALTY_DOCTORS.map((doc) => (
                 <DoctorCard key={doc.slug} doctor={doc} />
+              ))}
+            </div>
+            <div className="sm:hidden flex gap-4 pt-10 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4 pb-4">
+              {SPECIALTY_DOCTORS.map((doc) => (
+                <div key={doc.slug} className="snap-start flex-shrink-0 w-[80vw]">
+                  <DoctorCard doctor={doc} />
+                </div>
               ))}
             </div>
           </div>

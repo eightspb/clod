@@ -300,88 +300,6 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* DOCUMENTS */}
-      <FadeInSection>
-        <section className="section">
-          <div className="container-clay">
-            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">
-              Документы, регламентирующие деятельность Клиники
-            </h2>
-            <div className="clay clay-card p-6 md:p-8 space-y-6">
-              <p className="text-clay-muted leading-relaxed">
-                Медицинская деятельность в ООО «Клиника Одинцова» осуществляется в соответствии с Лицензией на осуществление медицинской деятельности, выданной Федеральной службой по надзору в сфере здравоохранения.
-              </p>
-              <p className="text-clay-muted leading-relaxed">
-                ООО «Клиника Одинцова» включена в Единый государственный реестр юридических лиц.
-              </p>
-              <p className="text-clay-muted leading-relaxed">
-                Учреждение в своей деятельности руководствуется Конституцией РФ, федеральными конституционными законами, актами Президента РФ, Правительства РФ, нормативными правовыми актами Министерства и Уставом.
-              </p>
-              <div>
-                <h3 className="font-bold text-clay-dark mb-3">СОУТ</h3>
-                <p className="text-clay-muted leading-relaxed">
-                  Сводные данные о результатах специальной оценки условий труда (СОУТ) 2019 г.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark mb-3">Права граждан при оказании медицинской помощи закреплены</h3>
-                <ul className="list-disc list-inside text-clay-muted space-y-1">
-                  <li>Закон РФ от 07.02.1992 №2300-1 «О защите прав потребителей»</li>
-                  <li>Федеральный закон от 21.11.2011 N 323-ФЗ «Об основах охраны здоровья граждан в Российской Федерации»</li>
-                  <li>Федеральный закон от 29.11.2010 N 326-ФЗ «Об обязательном медицинском страховании в Российской Федерации»</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark mb-3">Контакты контролирующих организаций</h3>
-                <ul className="list-disc list-inside text-clay-muted space-y-1">
-                  <li>
-                    <a href="https://minzdrav.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Министерство здравоохранения РФ
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Федеральная служба по надзору в сфере здравоохранения
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Федеральная служба по надзору в сфере защиты прав потребителей и благополучия человека
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://spboms.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Территориальный фонд обязательного медицинского страхования
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://78reg.roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Территориальный орган Росздравнадзора по Санкт-Петербургу и Ленинградской области
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://78.rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">
-                      Управление Роспотребнадзора по городу Санкт-Петербургу
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="clay clay-card-soft-mint p-5 mt-6">
-                <h3 className="font-bold text-clay-dark mb-3">Наши реквизиты</h3>
-                <div className="text-clay-muted text-sm leading-relaxed space-y-2">
-                  <p>ООО «Клиника Одинцова»</p>
-                  <p>г. Санкт-Петербург, пр. Богатырский д.22 корп. 1</p>
-                  <p>ОГРН 1137847430412, ИНН 7801615591, КПП 781401001, ОКПО 31040358</p>
-                  <p>Р/с 40702810903500008239 Точка ООО «Банк Точка», БИК 044525104, к/с 301 018 107 453 745 251 04</p>
-                  <p>Генеральный директор Борисенкова Юлия Игоревна</p>
-                  <p className="mt-4">Контактное лицо по вопросам о сотрудничестве: Никитинас Анна Анатольевна, Исполнительный директор ООО «Клиника Одинцова». Телефон: {PHONE_DISPLAY}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </FadeInSection>
-
       {/* ADVANTAGES */}
       <FadeInSection>
         <section className="section">
@@ -539,6 +457,64 @@ export function About() {
                   </FadeInSection>
                 )
               })}
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* DOCUMENTS */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">
+              Документы, регламентирующие деятельность Клиники
+            </h2>
+            <div className="clay clay-card p-6 md:p-8 space-y-6">
+              <p className="text-clay-muted leading-relaxed">
+                Медицинская деятельность в ООО «Клиника Одинцова» осуществляется в соответствии с Лицензией на осуществление медицинской деятельности, выданной Федеральной службой по надзору в сфере здравоохранения.
+              </p>
+              <p className="text-clay-muted leading-relaxed">
+                ООО «Клиника Одинцова» включена в Единый государственный реестр юридических лиц.
+              </p>
+              <p className="text-clay-muted leading-relaxed">
+                Учреждение в своей деятельности руководствуется Конституцией РФ, федеральными конституционными законами, актами Президента РФ, Правительства РФ, нормативными правовыми актами Министерства и Уставом.
+              </p>
+              <div>
+                <h3 className="font-bold text-clay-dark mb-3">СОУТ</h3>
+                <p className="text-clay-muted leading-relaxed">
+                  Сводные данные о результатах специальной оценки условий труда (СОУТ) 2019 г.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-bold text-clay-dark mb-3">Права граждан при оказании медицинской помощи закреплены</h3>
+                <ul className="list-disc list-inside text-clay-muted space-y-1">
+                  <li>Закон РФ от 07.02.1992 №2300-1 «О защите прав потребителей»</li>
+                  <li>Федеральный закон от 21.11.2011 N 323-ФЗ «Об основах охраны здоровья граждан в Российской Федерации»</li>
+                  <li>Федеральный закон от 29.11.2010 N 326-ФЗ «Об обязательном медицинском страховании в Российской Федерации»</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold text-clay-dark mb-3">Контакты контролирующих организаций</h3>
+                <ul className="list-disc list-inside text-clay-muted space-y-1">
+                  <li><a href="https://minzdrav.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Министерство здравоохранения РФ</a></li>
+                  <li><a href="https://roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Федеральная служба по надзору в сфере здравоохранения</a></li>
+                  <li><a href="https://rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Федеральная служба по надзору в сфере защиты прав потребителей и благополучия человека</a></li>
+                  <li><a href="https://spboms.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Территориальный фонд обязательного медицинского страхования</a></li>
+                  <li><a href="https://78reg.roszdravnadzor.gov.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Территориальный орган Росздравнадзора по Санкт-Петербургу и Ленинградской области</a></li>
+                  <li><a href="https://78.rospotrebnadzor.ru/" target="_blank" rel="noopener noreferrer" className="hover:text-clay-mint transition-colors underline underline-offset-2">Управление Роспотребнадзора по городу Санкт-Петербургу</a></li>
+                </ul>
+              </div>
+              <div className="clay clay-card-soft-mint p-5 mt-6">
+                <h3 className="font-bold text-clay-dark mb-3">Наши реквизиты</h3>
+                <div className="text-clay-muted text-sm leading-relaxed space-y-2">
+                  <p>ООО «Клиника Одинцова»</p>
+                  <p>г. Санкт-Петербург, пр. Богатырский д.22 корп. 1</p>
+                  <p>ОГРН 1137847430412, ИНН 7801615591, КПП 781401001, ОКПО 31040358</p>
+                  <p>Р/с 40702810903500008239 Точка ООО «Банк Точка», БИК 044525104, к/с 301 018 107 453 745 251 04</p>
+                  <p>Генеральный директор Борисенкова Юлия Игоревна</p>
+                  <p className="mt-4">Контактное лицо по вопросам о сотрудничестве: Никитинас Анна Анатольевна, Исполнительный директор ООО «Клиника Одинцова». Телефон: {PHONE_DISPLAY}</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

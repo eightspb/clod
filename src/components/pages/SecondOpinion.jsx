@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
+import { DOCTORS } from '../../lib/doctors-data.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { SecondOpinionForm } from '../SecondOpinionForm.jsx'
+import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
+
+const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -120,33 +124,36 @@ export function SecondOpinion() {
       <section className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
-              <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
-              <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              Сомневаетесь в необходимости операции?{' '}
-              <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога
-            </h1>
-            <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
-              Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
-            </p>
-            <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
-              <p className="text-clay-dark font-medium text-sm leading-relaxed">
-                Второе мнение подходит пациентам из любого региона России. Если понадобится очный осмотр, пригласим в Санкт-Петербург, в Приморский район.
+          <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
+            <div>
+              <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
+                <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
+                <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Сомневаетесь в необходимости операции?{' '}
+                <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога
+              </h1>
+              <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
+                Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
               </p>
+              <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
+                <p className="text-clay-dark font-medium text-sm leading-relaxed">
+                  Второе мнение подходит пациентам из любого региона России. Если понадобится очный осмотр, пригласим в Санкт-Петербург, в Приморский район.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
+                  <Phone size={16} />
+                  Позвонить в клинику
+                </a>
+                <button ref={triggerRef} onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
+                  <FileText size={16} />
+                  Отправить документы на проверку
+                </button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
-                <Phone size={16} />
-                Позвонить в клинику
-              </a>
-              <button ref={triggerRef} onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
-                <FileText size={16} />
-                Отправить документы на проверку
-              </button>
-            </div>
+            <HeroDoctorCard doctors={MAMMOLOGISTS} ctaHref="/second-opinion" />
           </div>
         </div>
       </section>
