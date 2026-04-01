@@ -2,6 +2,7 @@
 import { Header } from '../components/Header.jsx'
 import { Footer } from '../components/Footer.jsx'
 import { StickyCTA } from '../components/StickyCTA.jsx'
+import { ThemeSwitcher } from '../components/ThemeSwitcher.jsx'
 import '../styles/global.css'
 
 interface Props {
@@ -71,8 +72,68 @@ const currentPath = Astro.url.pathname
     <!-- Шрифт Golos Text - самохостинг (без внешнего CDN) -->
     <link rel="preload" href="/fonts/golos-text-var-cyrillic.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
     <link rel="preload" href="/fonts/golos-text-var-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <!-- Cormorant Garamond — display serif для заголовков -->
+    <link rel="preload" href="/fonts/cormorant-garamond-v21-cyrillic_latin-300.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="/fonts/cormorant-garamond-v21-cyrillic_latin-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
 
   <slot name="head" />
+
+    <!-- Restore theme settings before paint (prevent FOUC) -->
+    <script is:inline>
+      (function() {
+        try {
+          var raw = localStorage.getItem('clod-theme-settings')
+          if (!raw) return
+          var s = JSON.parse(raw)
+          var root = document.documentElement.style
+
+          var themes = {
+            'emerald':    { accent:'#1B6B5A', hover:'#155A4B', light:'#E8F5F0', surface:'#EDF5F2', strong:'#D6EDE5', ring:'rgba(27,107,90,0.5)', glow:'rgba(27,107,90,0.14)', shadow:'0 8px 20px rgba(27,107,90,0.18),0 3px 8px rgba(27,107,90,0.10)', badge:'linear-gradient(135deg,#3D9E88 0%,#1B6B5A 100%)', card:'linear-gradient(135deg,#EDF5F2 0%,rgba(255,255,255,0) 60%)' },
+            'slate-blue': { accent:'#64748B', hover:'#475569', light:'#F1F5F9', surface:'#F1F5F9', strong:'#E2E8F0', ring:'rgba(100,116,139,0.5)', glow:'rgba(100,116,139,0.14)', shadow:'0 8px 20px rgba(100,116,139,0.18),0 3px 8px rgba(100,116,139,0.10)', badge:'linear-gradient(135deg,#94A3B8 0%,#64748B 100%)', card:'linear-gradient(135deg,#F1F5F9 0%,rgba(255,255,255,0) 60%)' },
+            'dusty-rose': { accent:'#9D6B7B', hover:'#7D5363', light:'#FDF2F5', surface:'#FBF0F3', strong:'#F5E1E7', ring:'rgba(157,107,123,0.5)', glow:'rgba(157,107,123,0.14)', shadow:'0 8px 20px rgba(157,107,123,0.18),0 3px 8px rgba(157,107,123,0.10)', badge:'linear-gradient(135deg,#C49AAB 0%,#9D6B7B 100%)', card:'linear-gradient(135deg,#FBF0F3 0%,rgba(255,255,255,0) 60%)' },
+            'warm-clay':  { accent:'#8B6F52', hover:'#6E5740', light:'#FAF5EF', surface:'#F8F2EB', strong:'#EDE3D6', ring:'rgba(139,111,82,0.5)', glow:'rgba(139,111,82,0.14)', shadow:'0 8px 20px rgba(139,111,82,0.18),0 3px 8px rgba(139,111,82,0.10)', badge:'linear-gradient(135deg,#B89A7D 0%,#8B6F52 100%)', card:'linear-gradient(135deg,#F8F2EB 0%,rgba(255,255,255,0) 60%)' },
+            'sage':       { accent:'#6B8F71', hover:'#567459', light:'#F0F5F1', surface:'#EFF5F0', strong:'#DCE8DE', ring:'rgba(107,143,113,0.5)', glow:'rgba(107,143,113,0.14)', shadow:'0 8px 20px rgba(107,143,113,0.18),0 3px 8px rgba(107,143,113,0.10)', badge:'linear-gradient(135deg,#97B89C 0%,#6B8F71 100%)', card:'linear-gradient(135deg,#EFF5F0 0%,rgba(255,255,255,0) 60%)' }
+          }
+          var headings = {
+            'cormorant': "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+            'playfair': "'Playfair Display', Georgia, serif",
+            'lora': "'Lora', Georgia, serif",
+            'merriweather': "'Merriweather', Georgia, serif",
+            'pt-serif': "'PT Serif', Georgia, serif"
+          }
+          var bodies = {
+            'golos': "'Golos Text', 'Segoe UI', system-ui, sans-serif",
+            'commissioner': "'Commissioner', 'Segoe UI', system-ui, sans-serif",
+            'onest': "'Onest', 'Segoe UI', system-ui, sans-serif",
+            'manrope': "'Manrope', 'Segoe UI', system-ui, sans-serif",
+            'rubik': "'Rubik', 'Segoe UI', system-ui, sans-serif"
+          }
+
+          if (s.colorId && themes[s.colorId]) {
+            var t = themes[s.colorId]
+            root.setProperty('--accent', t.accent)
+            root.setProperty('--accent-hover', t.hover)
+            root.setProperty('--accent-light', t.light)
+            root.setProperty('--accent-text', '#FFFFFF')
+            root.setProperty('--color-mint', t.accent)
+            root.setProperty('--surface-mint', t.surface)
+            root.setProperty('--surface-accent', t.surface)
+            root.setProperty('--surface-accent-strong', t.strong)
+            root.setProperty('--focus-ring', t.ring)
+            root.setProperty('--focus-ring-glow', t.glow)
+            root.setProperty('--shadow-mint', t.shadow)
+            root.setProperty('--gradient-badge-mint', t.badge)
+            root.setProperty('--gradient-card-mint', t.card)
+          }
+          if (s.headingId && headings[s.headingId]) {
+            root.setProperty('--font-serif', headings[s.headingId])
+          }
+          if (s.bodyId && bodies[s.bodyId]) {
+            root.setProperty('--font-body', bodies[s.bodyId])
+          }
+        } catch(e) {}
+      })()
+    </script>
 
     <!-- JSON-LD: MedicalBusiness -->
     <script type="application/ld+json" set:html={JSON.stringify({
@@ -144,20 +205,18 @@ const currentPath = Astro.url.pathname
       }
     })} />
   </head>
-  <body class="relative min-h-screen bg-clay-bg font-sans">
+  <body class="relative min-h-screen bg-clay-bg">
     <a href="#main-content" class="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-[9999] focus-visible:px-4 focus-visible:py-2 focus-visible:bg-clay-mint-dark focus-visible:text-white focus-visible:rounded-xl focus-visible:font-semibold focus-visible:shadow-lg">
       Перейти к содержимому
     </a>
     <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->
     <div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
-      <div class="blob-mint absolute w-72 h-72 opacity-24" style="top:-56px;right:-56px" />
-      <div class="blob-peach absolute w-60 h-60 opacity-18" style="bottom:-36px;left:-56px" />
-      <div class="blob-blue absolute w-48 h-48 opacity-16" style="bottom:15%;right:-28px" />
-      <div class="blob-lavender absolute w-44 h-44 opacity-16" style="top:20%;left:38%" />
+      <div class="blob-mint absolute w-72 h-72" style="top:-56px;right:-56px;opacity:0.15" />
+      <div class="blob-peach absolute w-60 h-60" style="bottom:-36px;left:-56px;opacity:0.12" />
+      <div class="blob-blue absolute w-48 h-48" style="bottom:15%;right:-28px;opacity:0.10" />
+      <div class="blob-lavender absolute w-44 h-44" style="top:20%;left:38%;opacity:0.10" />
     </div>
-    <div data-pagefind-ignore>
-      <Header currentPath={currentPath} client:load />
-    </div>
+    <Header currentPath={currentPath} client:load />
     <main id="main-content" class="relative" style="z-index:1" data-pagefind-body>
       <slot />
     </main>
@@ -165,6 +224,7 @@ const currentPath = Astro.url.pathname
       <Footer />
     </div>
     <StickyCTA client:idle />
+    <ThemeSwitcher client:idle />
 
     <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 hidden md:flex flex-col gap-2">
       <button

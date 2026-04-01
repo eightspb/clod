@@ -1,18 +1,28 @@
-import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star, User, Send } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, Shield, Zap, Heart, ChevronRight, Phone, MessageCircle, ChevronLeft, Star, User, Send, Award } from 'lucide-react'
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
+import { FadeInSection } from '../FadeInSection.jsx'
+import { StarRating } from '../StarRating.jsx'
 import { FILTER_TABS_SHORT, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'
 import { SERVICES, WHY_ITEMS } from '../../lib/clinic-info.js'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
+import { DOCTORS } from '../../lib/doctors-data.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
+
+const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization) && !/гинеколог/i.test(d.specialization))
+const OTHER_DOCTORS = DOCTORS.filter(d => !MAMMOLOGISTS.includes(d))
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
 
 const heroSlides = [
   {
     trustBadge: 'Маммология и ВАБ',
     badge: 'Приморский район · Санкт-Петербург',
-    title: <>Вакуумная аспирационная биопсия<br /><span style={{ color: '#2A9E80' }}>по показаниям и под УЗ-контролем</span></>,
+    title: <>Вакуумная аспирационная биопсия<br /><span className="heading-accent">по показаниям и под УЗ-контролем</span></>,
     desc: 'Обсуждаем объём вмешательства, показания и дальнейшее наблюдение заранее. Процедура обычно проходит амбулаторно и занимает около 30 минут.',
     stats: [
       { val: '30', unit: 'мин', label: 'обычная длительность' },
@@ -25,7 +35,7 @@ const heroSlides = [
   {
     trustBadge: 'Второе мнение',
     badge: 'Для пациентов из любого региона России',
-    title: <>Второе мнение по маммологии<br /><span style={{ color: '#2A9E80' }}>с разбором снимков и заключений</span></>,
+    title: <>Второе мнение по маммологии<br /><span className="heading-accent">с разбором снимков и заключений</span></>,
     desc: 'Перепроверяем документы, обсуждаем тактику и объясняем следующий шаг спокойным, понятным языком. При необходимости помогаем с очной маршрутизацией в Санкт-Петербурге.',
     stats: [
       { val: '0', unit: '₽', label: 'второе мнение бесплатно' },
@@ -38,7 +48,7 @@ const heroSlides = [
   {
     trustBadge: 'Гинекология, эндокринология, нутрициология',
     badge: 'Понятный маршрут пациента',
-    title: <>Приём по показаниям<br /><span style={{ color: '#2A9E80' }}>с уважительным и спокойным подходом</span></>,
+    title: <>Приём по показаниям<br /><span className="heading-accent">с уважительным и спокойным подходом</span></>,
     desc: 'Разбираем жалобы, результаты анализов и план наблюдения без спешки. Объясняем следующий шаг понятным и спокойным языком.',
     stats: [
       { val: '4', unit: '', label: 'ключевых направления' },
@@ -205,11 +215,11 @@ function CountUp({ target, suffix = '' }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-function StarRating({ count = 5 }) {
+function ReviewStars({ count = 5 }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: count }).map((_, i) => (
-        <Star key={i} size={14} fill="#F0A888" style={{ color: '#F0A888' }} />
+        <Star key={i} size={14} fill="currentColor" className="text-clay-peach" />
       ))}
     </div>
   )
@@ -220,7 +230,7 @@ function ReviewsSection() {
     <section className="section">
       <div className="container-clay">
         <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+          <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
             Отзывы пациентов
           </h2>
           <p className="text-clay-muted max-w-xl mx-auto">
@@ -240,7 +250,7 @@ function ReviewsSection() {
                     <p className="text-xs text-clay-muted">{review.date}</p>
                   </div>
                 </div>
-                <StarRating count={review.rating} />
+                <ReviewStars count={review.rating} />
               </div>
               <p className="text-clay-muted text-sm leading-relaxed flex-1">{review.text}</p>
             </div>
@@ -277,11 +287,11 @@ function AppointmentFormSection() {
           <div className="blob-peach absolute -bottom-10 -left-10 w-32 h-32 opacity-25 pointer-events-none" />
           <div className="relative z-10">
             <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-3" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-3 badge-specialty-mint">
                 <Phone size={12} />
                 Запись онлайн
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-2">
+              <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-2">
                 Записаться на приём
               </h2>
               <p className="text-clay-muted">
@@ -314,7 +324,7 @@ function AppointmentFormSection() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Например, Анна"
                     required
-                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:outline-none focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -328,7 +338,7 @@ function AppointmentFormSection() {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+7 (___) ___-__-__"
                     required
-                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:outline-none focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
+                    className="clay clay-card px-4 py-3 text-sm text-clay-dark placeholder:text-clay-muted focus:ring-2 focus:ring-clay-mint focus:ring-offset-2 w-full"
                   />
                 </div>
                 <button
@@ -362,6 +372,11 @@ export function Home({ doctorsData = [] }) {
   const [sliderHeight, setSliderHeight] = useState(0)
   const slideRefs = useRef([])
   const [activeFilter, setActiveFilter] = useState('all')
+  const [heroDoctor, setHeroDoctor] = useState({
+    0: MAMMOLOGISTS[0],
+    1: DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
+    2: OTHER_DOCTORS[0],
+  })
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return false
@@ -431,13 +446,26 @@ export function Home({ doctorsData = [] }) {
     if (isAutoplayPaused) return undefined
 
     const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % heroSlides.length)
+      setActiveSlide((prev) => {
+        const next = (prev + 1) % heroSlides.length
+        setHeroDoctor(old => ({
+          ...old,
+          0: pickRandom(MAMMOLOGISTS),
+          2: pickRandom(OTHER_DOCTORS),
+        }))
+        return next
+      })
     }, HERO_AUTOPLAY_INTERVAL)
     return () => clearInterval(timer)
   }, [isAutoplayPaused])
 
   function goToSlide(idx) {
     setActiveSlide(idx)
+    setHeroDoctor(old => ({
+      ...old,
+      0: pickRandom(MAMMOLOGISTS),
+      2: pickRandom(OTHER_DOCTORS),
+    }))
   }
 
   function prevSlide() {
@@ -457,7 +485,8 @@ export function Home({ doctorsData = [] }) {
     <ErrorBoundary>
     <div>
       {/* ── HERO SLIDER ── */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden grain-overlay">
+        <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
         {/* Фоновые блобы */}
         <div className="blob-mint absolute top-12 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
         <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
@@ -491,22 +520,22 @@ export function Home({ doctorsData = [] }) {
                   <div>
                     {/* Верхние плашки - всегда друг под другом */}
                     <div className="flex flex-col gap-2 w-fit mb-5">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.1)', border: '1px solid rgba(78,200,168,0.25)', color: '#2BA888' }}>
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider badge-specialty-mint">
                         <CheckCircle size={12} />
                         {slide.trustBadge}
                       </div>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-clay-muted" style={{ background: 'rgba(61,74,68,0.06)' }}>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-clay-muted bg-gray-50">
                         <span className="w-1.5 h-1.5 rounded-full bg-clay-mint animate-pulse" />
                         {slide.badge}
                       </div>
                     </div>
 
                     {activeSlide === idx ? (
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
                         {slide.title}
                       </h1>
                     ) : (
-                      <div role="heading" aria-level="1" aria-hidden="true" className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
+                      <div role="heading" aria-level="1" aria-hidden="true" className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
                         {slide.title}
                       </div>
                     )}
@@ -527,34 +556,53 @@ export function Home({ doctorsData = [] }) {
                     </div>
                   </div>
 
-                  {/* ── Правая колонка: цифровой блок ── */}
-                  <div className="flex flex-col gap-4">
-                    <div className="clay clay-card p-6">
-                      <div className="grid grid-cols-3 gap-4">
-                        {slide.stats.map((s) => {
-                          const numericVal = parseInt(s.val, 10)
-                          const isNumeric = !isNaN(numericVal) && String(numericVal) === String(s.val)
-                          return (
-                            <div key={s.label} className="text-center">
-                              <div className="flex items-end justify-center gap-0.5 mb-1">
-                                <span className="text-3xl sm:text-4xl font-extrabold text-clay-dark leading-none">
-                                  {isNumeric
-                                    ? <CountUp target={numericVal} />
-                                    : s.val}
-                                </span>
-                                {s.unit && <span className="text-lg font-bold pb-0.5" style={{ color: '#2A9E80' }}>{s.unit}</span>}
-                              </div>
-                              <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
-                            </div>
-                          )
-                        })}
+                  {/* ── Правая колонка: крупная карточка врача ── */}
+                  <div className="hero-doctor-card">
+                    {heroDoctor[idx] && (
+                      <div className="clay clay-card hero-doctor-card-inner">
+                        <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-photo-link group">
+                          <img
+                            src={`/images/doctors/${heroDoctor[idx].slug}.webp`}
+                            alt={heroDoctor[idx].name}
+                            width={280}
+                            height={320}
+                            className="hero-doctor-photo"
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                          />
+                        </a>
+                        <div className="hero-doctor-info">
+                          <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-name-link group">
+                            <h3 className="hero-doctor-name">{heroDoctor[idx].name}</h3>
+                          </a>
+                          <p className="hero-doctor-spec">{heroDoctor[idx].specialization}</p>
+                          <div className="hero-doctor-meta">
+                            {heroDoctor[idx].experienceYears && (
+                              <span className="hero-doctor-experience">
+                                <Award size={14} />
+                                Стаж {heroDoctor[idx].experienceYears} лет
+                              </span>
+                            )}
+                            {heroDoctor[idx].proDoctorovRating && (
+                              <StarRating
+                                score={heroDoctor[idx].proDoctorovRating.score}
+                                reviewCount={heroDoctor[idx].proDoctorovRating.reviewCount}
+                                url={heroDoctor[idx].proDoctorovUrl}
+                                size={14}
+                                variant="compact"
+                              />
+                            )}
+                          </div>
+                          <a
+                            href={slide.primaryBtn.href}
+                            data-booking-btn="true"
+                            className="btn-clay-primary hero-doctor-cta"
+                          >
+                            Записаться к {heroDoctor[idx].dativeShortName || 'врачу'}
+                            <ArrowRight size={16} />
+                          </a>
+                        </div>
                       </div>
-                      {slide.disclaimer && (
-                        <p className="text-xs text-clay-muted mt-3 pt-3 border-t border-black/5 leading-relaxed">
-                          {slide.disclaimer}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -599,8 +647,7 @@ export function Home({ doctorsData = [] }) {
             <button
               type="button"
               onClick={() => setIsAutoplayPaused((current) => !current)}
-              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
-              style={{ background: 'rgba(61,74,68,0.06)', color: '#3D4A44' }}
+              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors bg-gray-50 text-gray-700"
               aria-pressed={isAutoplayPaused}
               aria-label={isAutoplayPaused ? 'Возобновить автопрокрутку слайдов' : 'Пауза автопрокрутки слайдов'}
             >
@@ -619,7 +666,57 @@ export function Home({ doctorsData = [] }) {
         </div>
       </section>
 
+      {/* ── БЕСПЛАТНОЕ ВТОРОЕ МНЕНИЕ ── */}
+      <FadeInSection>
+      <section className="section">
+        <div className="container-clay">
+          <div className="clay clay-card-soft-peach p-6 md:p-8 relative overflow-hidden">
+            <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-20 pointer-events-none" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider badge-specialty-peach">
+                  <Shield size={12} />
+                  Бесплатно
+                </div>
+                <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
+                  Второе мнение по маммологии
+                </h2>
+                <p className="text-clay-muted leading-relaxed mb-4">
+                  Если вам назначили операцию — перепроверим документы, обсудим тактику и объясним, нужна ли она на самом деле.
+                </p>
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-clay-peach flex-shrink-0" />
+                    <span className="text-sm text-clay-dark">Разбираем снимки, заключения и результаты анализов</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-clay-peach flex-shrink-0" />
+                    <span className="text-sm text-clay-dark">Объясняем следующий шаг понятным языком</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-clay-peach flex-shrink-0" />
+                    <span className="text-sm text-clay-dark">Для пациентов из любого региона России</span>
+                  </div>
+                </div>
+                <a href="/second-opinion" className="clay btn-clay-primary gap-2">
+                  Проверить, нужна ли операция
+                  <ArrowRight size={16} />
+                </a>
+              </div>
+              <div className="clay clay-card p-6">
+                <div className="text-center p-4">
+                  <div className="font-serif font-light text-4xl text-clay-dark mb-1">1 день</div>
+                  <p className="text-xs text-clay-muted">ответ в день обращения</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      </FadeInSection>
+
       {/* ── ВАБ FLAGSHIP ── */}
+      <FadeInSection>
       <section className="section">
         <div className="container-clay">
           <div className="clay clay-card-mint p-6 md:p-8 relative overflow-hidden">
@@ -629,7 +726,7 @@ export function Home({ doctorsData = [] }) {
               <div className="inline-block px-4 py-1.5 rounded-full bg-white/70 text-clay-dark text-xs font-bold mb-4 uppercase tracking-wider border border-white/80">
                 Маммология и ВАБ
               </div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+              <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
                 Вакуумная аспирационная биопсия по показаниям
               </h2>
               <p className="text-clay-text text-lg mb-2">Помогаем пройти путь от диагностики до малоинвазивного лечения в одном месте.</p>
@@ -649,11 +746,11 @@ export function Home({ doctorsData = [] }) {
                 <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-[#EAF7F4] shadow-inner flex items-center justify-center flex-shrink-0">
-                      <Shield size={24} className="text-[#2A9E80]" />
+                      <Clock size={24} className="text-[#2A9E80]" />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Бесплатное второе мнение</h3>
-                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Если вам уже предложили операцию, мы перепроверим документы, обсудим риски и поможем определить следующий шаг.</p>
+                      <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Амбулаторно за 30 минут</h3>
+                      <p className="text-[#3D4A44] text-sm leading-relaxed font-medium">Процедура проходит без госпитализации. Дальнейшие рекомендации обсуждаем сразу после неё.</p>
                     </div>
                   </div>
                 </div>
@@ -663,26 +760,29 @@ export function Home({ doctorsData = [] }) {
                   Подробнее о ВАБ
                   <ArrowRight size={16} />
                 </a>
-                <a href="/second-opinion" className="clay btn-clay-secondary text-sm py-3 px-6 shadow-lg">
-                  Бесплатное второе мнение
+                <a href="/prices" className="clay btn-clay-secondary text-sm py-3 px-6 shadow-lg">
+                  Узнать стоимость
                 </a>
               </div>
             </div>
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── SERVICES ── */}
+      <FadeInSection>
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Направления клиники</h2>
+            <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">Направления клиники</h2>
             <p className="text-clay-muted max-w-xl mx-auto">Понятный маршрут от первичного обращения до следующего шага без лишнего давления</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {HOME_SERVICES.map((s) => (
-              <a key={s.to} href={s.to} className="group block">
-                <div className={`clay ${s.color} p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
+            {HOME_SERVICES.map((s, i) => (
+              <FadeInSection key={s.to} staggerIndex={i} className="h-full">
+              <a href={s.to} className="group block">
+                <div className={`clay ${s.color} card-interactive p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`${s.iconBg} text-2xl`}>
@@ -704,19 +804,26 @@ export function Home({ doctorsData = [] }) {
                   </div>
                 </div>
               </a>
+              </FadeInSection>
             ))}
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── WHY US ── */}
-      <section className="section">
+      <FadeInSection>
+      <section className="section" style={{ background: 'var(--surface-accent)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-4">
+              <div className="badge-specialty-mint-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4">
+                <Shield size={12} />
+                Наши гарантии
+              </div>
+              <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-4">
                 Почему выбирают<br />
-                <span className="text-clay-mint-dark">Клинику Одинцова</span>
+                <span className="heading-accent">Клинику Одинцова</span>
               </h2>
               <p className="text-clay-muted leading-relaxed mb-8">
                 Мы не просто лечим - мы помогаем вам принимать осознанные решения. Доказательная медицина, современные технологии и уважение к вашему времени.
@@ -725,7 +832,7 @@ export function Home({ doctorsData = [] }) {
                 {HOME_WHY_ITEMS.map((item) => {
                   const Icon = WHY_ICONS[item.iconName]
                   return (
-                    <div key={item.title} className="clay clay-card p-4 flex items-start gap-3">
+                    <div key={item.title} className="clay clay-card card-interactive p-4 flex items-start gap-3">
                       <div className={item.bg}><Icon size={20} className="text-white" /></div>
                       <div>
                         <h3 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h3>
@@ -740,7 +847,7 @@ export function Home({ doctorsData = [] }) {
               {WHY_STATS.map((s) => (
                 <div key={s.val} className={`clay ${s.card} p-6`}>
                   <div className="flex items-start gap-4">
-                    <div className={`text-4xl font-extrabold ${s.color} leading-none`}>{s.val}</div>
+                    <div className={`font-serif font-light text-4xl sm:text-5xl text-clay-dark leading-none`}>{s.val}</div>
                     <div>
                       <p className="font-bold text-clay-dark mb-1">{s.label}</p>
                       <p className="text-clay-muted text-sm leading-relaxed">{s.desc}</p>
@@ -752,12 +859,14 @@ export function Home({ doctorsData = [] }) {
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── DOCTORS ── */}
+      <FadeInSection>
       <section className="section">
         <div className="container-clay">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">Наши доктора</h2>
+            <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">Наши доктора</h2>
             <p className="text-clay-muted">Онкологи-маммологи, гинекологи, эндокринологи и нутрициологи - все владеют УЗИ</p>
           </div>
 
@@ -787,9 +896,11 @@ export function Home({ doctorsData = [] }) {
           </div>
 
           {/* Карточки докторов */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDoctors.map((doc) => (
-              <DoctorCard key={doc.slug || doc.name} doctor={doc} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
+            {filteredDoctors.map((doc, i) => (
+              <FadeInSection key={doc.slug || doc.name} staggerIndex={i} className="h-full">
+                <DoctorCard doctor={doc} />
+              </FadeInSection>
             ))}
           </div>
 
@@ -807,20 +918,22 @@ export function Home({ doctorsData = [] }) {
           </div>
         </div>
       </section>
+      </FadeInSection>
 
 
 
       {/* ── ПРЯМАЯ СВЯЗЬ ── */}
+      <FadeInSection>
       <section className="section">
         <div className="container-clay">
           <div className="clay clay-card-soft-mint p-6 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider" style={{ background: 'rgba(78,200,168,0.15)', color: '#2BA888' }}>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider badge-specialty-mint">
                   <MessageCircle size={12} />
                   Прямая связь
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
+                <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
                   Связь с лечащим врачом
                 </h2>
                 <p className="text-clay-muted leading-relaxed mb-4">
@@ -858,21 +971,27 @@ export function Home({ doctorsData = [] }) {
           </div>
         </div>
       </section>
+      </FadeInSection>
 
       {/* ── REVIEWS ── */}
-      <ReviewsSection />
+      <FadeInSection>
+        <ReviewsSection />
+      </FadeInSection>
 
       {/* ── APPOINTMENT FORM ── */}
-      <AppointmentFormSection />
+      <FadeInSection>
+        <AppointmentFormSection />
+      </FadeInSection>
 
       {/* ── CTA ── */}
+      <FadeInSection>
       <section className="section">
         <div className="container-clay">
           <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
             <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-50 pointer-events-none" />
             <div className="blob-mint absolute -bottom-10 -left-10 w-40 h-40 opacity-40 pointer-events-none" />
             <div className="relative z-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-clay-dark mb-3">
+              <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
                 Не знаете, к кому обратиться?
               </h2>
               <p className="text-clay-muted text-lg mb-5 max-w-xl mx-auto">
@@ -892,6 +1011,7 @@ export function Home({ doctorsData = [] }) {
           </div>
         </div>
       </section>
+      </FadeInSection>
     </div>
     </ErrorBoundary>
   )

@@ -4,6 +4,7 @@ import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
+import { FadeInSection } from '../FadeInSection.jsx'
 
 export const MAMMOLOGY_FAQ = [
   {
@@ -102,17 +103,17 @@ export function Mammology() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-12">
+      <section className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 text-white" style={{ background: 'linear-gradient(145deg, #4EBA9D, #3A9F85)' }}>
+            <div className="badge-specialty-mint-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">
               <Zap size={12} />
               Приём в Приморском районе Санкт-Петербурга
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Маммология в Санкт-Петербурге:{' '}
-              <span className="text-clay-mint">консультация, УЗИ и ВАБ</span> по показаниям
+              <span className="heading-accent">консультация, УЗИ и ВАБ</span> по показаниям
             </h1>
             <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
               Приём ведут онкологи-маммологи. Работаем в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
@@ -121,7 +122,7 @@ export function Mammology() {
               Если нужно удалить образование, врач спокойно объяснит показания, возможные альтернативы и дальнейший план наблюдения.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
                 Записаться на приём
                 <ArrowRight size={16} />
               </button>
@@ -134,221 +135,242 @@ export function Mammology() {
       </section>
 
       {/* KEY STATS */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { val: '30', unit: 'мин', label: 'Длительность процедуры' },
-              { val: '2', unit: 'мм', label: 'Размер прокола' },
-              { val: '3', unit: 'см', label: 'Размер образований, которые оцениваем' },
-              { val: 'Гистология', unit: '', label: 'Материал отправляем на исследование' },
-            ].map((s) => (
-              <div key={s.label} className="clay clay-card p-4 text-center">
-                <div className="flex items-end justify-center gap-0.5">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-clay-mint leading-none">{s.val}</span>
-                  {s.unit && <span className="text-lg font-bold text-clay-mint leading-none pb-0.5">{s.unit}</span>}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { val: '30', unit: 'мин', label: 'Длительность процедуры' },
+                { val: '2', unit: 'мм', label: 'Размер прокола' },
+                { val: '3', unit: 'см', label: 'Размер образований, которые оцениваем' },
+                { val: 'Гистология', unit: '', label: 'Материал отправляем на исследование' },
+              ].map((s) => (
+                <div key={s.label} className="clay clay-card p-4 text-center">
+                  <div className="flex items-end justify-center gap-0.5">
+                    <span className="text-3xl sm:text-4xl font-serif font-light text-clay-mint leading-none">{s.val}</span>
+                    {s.unit && <span className="text-lg font-bold text-clay-mint leading-none pb-0.5">{s.unit}</span>}
+                  </div>
+                  <p className="text-xs text-clay-muted mt-1.5 leading-tight">{s.label}</p>
                 </div>
-                <p className="text-xs text-clay-muted mt-1.5 leading-tight">{s.label}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* FEATURES */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">4 причины выбрать ВАБ</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Щадящий вариант вмешательства, когда врач считает его уместным по результатам осмотра и диагностики</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {features.map((f) => (
-              <div key={f.title} className={`clay ${f.card} p-6`}>
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={f.bg}>{f.icon}</div>
-                  <div>
-                    <h3 className="font-bold text-clay-dark text-lg leading-tight">{f.title}</h3>
-                    <p className="text-clay-mint text-sm font-medium">{f.subtitle}</p>
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-7">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">4 причины выбрать ВАБ</h2>
+              <p className="text-clay-muted max-w-lg mx-auto">Щадящий вариант вмешательства, когда врач считает его уместным по результатам осмотра и диагностики</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {features.map((f, i) => (
+                <FadeInSection key={f.title} staggerIndex={i} className="h-full">
+                  <div className={`clay ${f.card} card-interactive p-6`}>
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className={f.bg}>{f.icon}</div>
+                      <div>
+                        <h3 className="font-bold text-clay-dark text-lg leading-tight">{f.title}</h3>
+                        <p className="text-clay-mint text-sm font-medium">{f.subtitle}</p>
+                      </div>
+                    </div>
+                    <p className="text-clay-muted text-sm leading-relaxed mb-3">{f.desc}</p>
+                    <div className="badge-specialty-mint inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold">
+                      <CheckCircle size={12} />
+                      {f.detail}
+                    </div>
                   </div>
-                </div>
-                <p className="text-clay-muted text-sm leading-relaxed mb-3">{f.desc}</p>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
-                  <CheckCircle size={12} />
-                  {f.detail}
-                </div>
-              </div>
-            ))}
+                </FadeInSection>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* WHO NEEDS IT */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-4">
-                Кому подходит ВАБ?
-              </h2>
-              <p className="text-clay-muted mb-6 leading-relaxed">
-                ВАБ рассматриваем при доброкачественных и некоторых пограничных образованиях. Перед процедурой онколог-маммолог обязательно проведёт консультацию и оценит показания.
-              </p>
-              <div className="space-y-2.5">
-                {checks.map((item) => (
-                  <div key={item} className="clay clay-card flex items-center gap-3 px-4 py-3">
-                    <CheckCircle size={18} className="text-clay-mint flex-shrink-0" />
-                    <span className="text-sm font-medium text-clay-dark">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="clay clay-card-mint p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
-                <h3 className="font-bold text-clay-dark text-xl mb-2">Бесплатное второе мнение</h3>
-                <p className="text-clay-text text-sm leading-relaxed mb-4">
-                  Если вам уже рекомендовали операцию в другой клинике, принесите снимки. Наш онколог-маммолог спокойно проверит показания и расскажет о вариантах.
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-4">
+                  Кому подходит ВАБ?
+                </h2>
+                <p className="text-clay-muted mb-6 leading-relaxed">
+                  ВАБ рассматриваем при доброкачественных и некоторых пограничных образованиях. Перед процедурой онколог-маммолог обязательно проведёт консультацию и оценит показания.
                 </p>
-                <div className="flex items-center gap-2 bg-white/60 border border-white/80 rounded-xl px-4 py-2.5 text-clay-dark text-sm font-bold">
-                  Цена: 0 ₽
-                </div>
-                <button type="button" data-booking-btn="true" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
-                  Проверить, нужна ли операция
-                </button>
-              </div>
-              <div className="clay clay-card p-6">
-                <h3 className="font-bold text-clay-dark text-lg mb-4">Как проходит процедура</h3>
-                <div className="space-y-4">
-                  {steps.map((s) => (
-                    <div key={s.n} className="flex items-start gap-3">
-                      <div className="num-badge text-sm w-8 h-8">{s.n}</div>
-                      <div>
-                        <p className="font-semibold text-clay-dark text-sm">{s.title}</p>
-                        <p className="text-clay-muted text-xs leading-relaxed mt-0.5">{s.desc}</p>
-                      </div>
+                <div className="space-y-2.5">
+                  {checks.map((item) => (
+                    <div key={item} className="clay clay-card flex items-center gap-3 px-4 py-3">
+                      <CheckCircle size={18} className="text-clay-mint flex-shrink-0" />
+                      <span className="text-sm font-medium text-clay-dark">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
+              <div className="space-y-4">
+                <div className="clay clay-card-mint p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
+                  <h3 className="font-bold text-clay-dark text-xl mb-2">Бесплатное второе мнение</h3>
+                  <p className="text-clay-text text-sm leading-relaxed mb-4">
+                    Если вам уже рекомендовали операцию в другой клинике, принесите снимки. Наш онколог-маммолог спокойно проверит показания и расскажет о вариантах.
+                  </p>
+                  <div className="flex items-center gap-2 bg-white/60 border border-white/80 rounded-xl px-4 py-2.5 text-clay-dark text-sm font-bold">
+                    Цена: 0 ₽
+                  </div>
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-white mt-4 text-sm py-2.5 w-full justify-center">
+                    Проверить, нужна ли операция
+                  </button>
+                </div>
+                <div className="clay clay-card p-6">
+                  <h3 className="font-bold text-clay-dark text-lg mb-4">Как проходит процедура</h3>
+                  <div className="space-y-4">
+                    {steps.map((s) => (
+                      <div key={s.n} className="flex items-start gap-3 relative">
+                        <div className="num-badge text-sm w-8 h-8">{s.n}</div>
+                        <div>
+                          <p className="font-semibold text-clay-dark text-sm">{s.title}</p>
+                          <p className="text-clay-muted text-xs leading-relaxed mt-0.5">{s.desc}</p>
+                        </div>
+                        <span className="deco-numeral absolute -top-4 -right-2 opacity-30">{s.n}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* DOCTORS */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Доктора-маммологи клиники</h2>
-            <p className="text-clay-muted">Специалисты, которые проведут консультацию и процедуру</p>
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Доктора-маммологи клиники</h2>
+              <p className="text-clay-muted">Специалисты, которые проведут консультацию и процедуру</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
+              {SPECIALTY_DOCTORS.map((doc) => (
+                <DoctorCard key={doc.slug} doctor={doc} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SPECIALTY_DOCTORS.map((doc) => (
-              <DoctorCard key={doc.slug} doctor={doc} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* PRICES */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Цены на маммологию в СПб</h2>
-            <p className="text-clay-muted">Понятная структура оплаты и маршрута пациента</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {MAMMOLOGY_PRICE_CATEGORY.items.map((item) => (
-              <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
-                <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
-                <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{formatPriceLabel(item.price, item.isFrom)}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-clay-muted max-w-2xl mx-auto leading-relaxed mb-5">
-            В базовую стоимость ВАБ входят консультация, УЗИ и сама процедура. Анестезия, гистология, наблюдение и контрольный снимок обсуждаются отдельно после очной оценки.
-          </p>
-          <div className="text-center">
-            <a href={MAMMOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
-              Полный прайс-лист →
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* CONDITIONS */}
-      <section className="section">
-        <div className="container-clay">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Заболевания молочных желёз</h2>
-          <p className="text-clay-muted mb-6 max-w-2xl">Подробно о каждом заболевании: симптомы, диагностика, современные методы лечения</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {MAMMOLOGY_CONDITIONS.map((c) => (
-              <a key={c.href} href={c.href} className="clay clay-card p-6 flex flex-col group hover:shadow-lg transition-shadow">
-                <h3 className="font-bold text-clay-dark text-lg mb-2 group-hover:text-clay-mint transition-colors">{c.title}</h3>
-                <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1">{c.desc}</p>
-                <span className="text-sm font-semibold text-clay-mint flex items-center gap-1">
-                  Подробнее <ArrowRight size={14} />
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* INTERNAL LINKS */}
-      <section className="section">
-        <div className="container-clay">
-          <h2 className="text-xl font-extrabold text-clay-dark mb-5">Полезные разделы</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <a href="/vab" className="clay clay-card-soft-mint p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
-              <Zap size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">ВАБ - подробнее о процедуре</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Как проходит, показания, сравнение с операцией, цены</p>
-              </div>
-            </a>
-            <a href="/doctors" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
-              <CheckCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Наши врачи-маммологи</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Онкологи-хирурги с опытом более 20 лет</p>
-              </div>
-            </a>
-              <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left w-full">
-              <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Бесплатное второе мнение</p>
-                <p className="text-clay-muted text-xs leading-relaxed">Рекомендовали операцию? Проверим показания и расскажем о вариантах</p>
-              </div>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card-soft-mint p-6 md:p-8 text-center">
-            <Clock size={40} className="text-clay-mint mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-              Нужна спокойная очная оценка?
-            </h2>
-            <p className="text-clay-muted mb-5 max-w-md mx-auto">
-              Запишитесь на приём или получите бесплатное второе мнение. Клиника находится в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Цены на маммологию в СПб</h2>
+              <p className="text-clay-muted">Понятная структура оплаты и маршрута пациента</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {MAMMOLOGY_PRICE_CATEGORY.items.map((item) => (
+                <div key={item.name} className="clay clay-card flex items-center justify-between gap-4 px-5 py-4">
+                  <span className="text-sm font-medium text-clay-dark leading-snug">{item.name}</span>
+                  <span className="text-clay-mint font-bold text-sm whitespace-nowrap">{formatPriceLabel(item.price, item.isFrom)}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-clay-muted max-w-2xl mx-auto leading-relaxed mb-5">
+              В базовую стоимость ВАБ входят консультация, УЗИ и сама процедура. Анестезия, гистология, наблюдение и контрольный снимок обсуждаются отдельно после очной оценки.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                Записаться на ВАБ
-                <ArrowRight size={16} />
-              </button>
-              <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                Telegram
+            <div className="text-center">
+              <a href={MAMMOLOGY_PRICE_CATEGORY.fullPriceHref} className="clay btn-clay-secondary text-sm">
+                Полный прайс-лист →
               </a>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
+
+      {/* CONDITIONS */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Заболевания молочных желёз</h2>
+            <p className="text-clay-muted mb-6 max-w-2xl">Подробно о каждом заболевании: симптомы, диагностика, современные методы лечения</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {MAMMOLOGY_CONDITIONS.map((c, i) => (
+                <FadeInSection key={c.href} staggerIndex={i} className="h-full">
+                  <a href={c.href} className="clay clay-card p-6 flex flex-col group hover:shadow-lg transition-shadow">
+                    <h3 className="font-bold text-clay-dark text-lg mb-2 group-hover:text-clay-mint transition-colors">{c.title}</h3>
+                    <p className="text-clay-muted text-sm leading-relaxed mb-4 flex-1">{c.desc}</p>
+                    <span className="text-sm font-semibold text-clay-mint flex items-center gap-1">
+                      Подробнее <ArrowRight size={14} />
+                    </span>
+                  </a>
+                </FadeInSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* INTERNAL LINKS */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <h2 className="text-xl heading-serif text-clay-dark mb-5">Полезные разделы</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <a href="/vab" className="clay clay-card-soft-mint p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+                <Zap size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">ВАБ - подробнее о процедуре</p>
+                  <p className="text-clay-muted text-xs leading-relaxed">Как проходит, показания, сравнение с операцией, цены</p>
+                </div>
+              </a>
+              <a href="/doctors" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+                <CheckCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Наши врачи-маммологи</p>
+                  <p className="text-clay-muted text-xs leading-relaxed">Онкологи-хирурги с опытом более 20 лет</p>
+                </div>
+              </a>
+                <button type="button" data-booking-btn="true" className="clay clay-card p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow text-left w-full">
+                <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Бесплатное второе мнение</p>
+                  <p className="text-clay-muted text-xs leading-relaxed">Рекомендовали операцию? Проверим показания и расскажем о вариантах</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* CTA */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card-soft-mint p-6 md:p-8 text-center">
+              <Clock size={40} className="text-clay-mint mx-auto mb-4" />
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
+                Нужна спокойная очная оценка?
+              </h2>
+              <p className="text-clay-muted mb-5 max-w-md mx-auto">
+                Запишитесь на приём или получите бесплатное второе мнение. Клиника находится в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+                  Записаться на ВАБ
+                  <ArrowRight size={16} />
+                </button>
+                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                  Telegram
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
 
       <div className="container-clay">
         <FaqSection items={MAMMOLOGY_FAQ} title="Частые вопросы о маммологии" />

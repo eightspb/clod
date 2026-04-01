@@ -40,7 +40,7 @@ export function Footer() {
           {FOOTER_FACTS.map((fact) => {
             const Icon = FACT_ICONS[fact.iconName]
             return (
-              <div key={fact.title} className={`clay ${fact.color} p-4 overflow-hidden`}>
+              <div key={fact.title} className={`clay ${fact.color} p-4 overflow-hidden card-interactive`}>
                 <div className="rounded-[16px] bg-white/74 backdrop-blur-sm p-4 h-full">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-clay-card flex items-center justify-center shadow-sm">

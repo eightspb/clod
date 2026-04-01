@@ -16,7 +16,7 @@ function DesktopDropdown({ item, currentPath, activeDropdown, onEnter, onLeave, 
       onBlur={onBlur}
     >
       <button
-        className="flex items-center gap-1 px-3 py-2 rounded-full text-base font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
+        className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
         onClick={() => onToggle(item.label)}
         onFocus={() => onEnter(item.label)}
         onKeyDown={(event) => onKeyDown(event, item.label)}
@@ -32,13 +32,13 @@ function DesktopDropdown({ item, currentPath, activeDropdown, onEnter, onLeave, 
       </button>
       {activeDropdown === item.label && (
         <div id={`nav-dropdown-${item.label}`} data-dropdown-panel className="absolute top-full left-0 pt-2 min-w-52 z-50">
-          <div className="clay clay-card p-2 w-full" role="menu" aria-label={item.label}>
+          <div className="clay clay-card p-3 w-full rounded-2xl" role="menu" aria-label={item.label}>
             {item.children.map((child) => (
               <a
                 key={child.to}
                 href={child.to}
                 role="menuitem"
-                className={`block px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors duration-200 ${
+                className={`block px-4 py-2.5 rounded-2xl text-base font-medium transition-colors duration-200 ${
                   currentPath === child.to
                     ? 'text-clay-mint bg-clay-mint-pale'
                     : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
@@ -74,7 +74,7 @@ function MegaMenuPanel({ item, currentPath }) {
                 <a
                   href={direction.to}
                   role="menuitem"
-                  className={`block text-base font-bold mb-3 transition-colors duration-200 ${
+                  className={`block text-lg font-bold mb-3 transition-colors duration-200 ${
                     currentPath === direction.to ? 'text-clay-mint' : 'text-clay-dark hover:text-clay-mint'
                   }`}
                   aria-current={currentPath === direction.to ? 'page' : undefined}
@@ -88,7 +88,7 @@ function MegaMenuPanel({ item, currentPath }) {
                         <a
                           href={condition.to}
                           role="menuitem"
-                          className={`block px-3 py-1.5 rounded-xl text-sm transition-colors duration-200 ${
+                          className={`block px-3 py-1.5 rounded-xl text-base transition-colors duration-200 ${
                             currentPath === condition.to
                               ? 'text-clay-mint bg-clay-mint-pale font-medium'
                               : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
@@ -105,11 +105,11 @@ function MegaMenuPanel({ item, currentPath }) {
             ))}
           </div>
           {item.vab && (
-            <div className="mt-5 pt-5 border-t border-clay-bg">
+            <div className="mt-5 pt-5 border-t border-clay-bg flex flex-wrap gap-3">
               <a
                 href={item.vab.to}
                 role="menuitem"
-                className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold transition-colors duration-200 ${
+                className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-base font-bold transition-colors duration-200 ${
                   currentPath === item.vab.to
                     ? 'text-white bg-clay-mint'
                     : 'text-clay-mint bg-clay-mint/10 hover:bg-clay-mint hover:text-white'
@@ -118,6 +118,19 @@ function MegaMenuPanel({ item, currentPath }) {
               >
                 <ArrowRight size={16} />
                 {item.vab.label}
+              </a>
+              <a
+                href="/second-opinion"
+                role="menuitem"
+                className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-base font-bold transition-colors duration-200 ${
+                  currentPath === '/second-opinion'
+                    ? 'text-white bg-clay-mint'
+                    : 'text-clay-peach bg-clay-peach/10 hover:bg-clay-peach hover:text-white'
+                }`}
+                aria-current={currentPath === '/second-opinion' ? 'page' : undefined}
+              >
+                <ArrowRight size={16} />
+                Бесплатное второе мнение
               </a>
             </div>
           )}
@@ -347,30 +360,23 @@ export function Header({ currentPath = '/' }) {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-1' : 'py-2'}`}
       style={{
-        background: scrolled ? 'rgba(247,243,239,0.95)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.12)' : 'none',
+        background: scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
       }}
       role="banner"
+      data-pagefind-ignore
     >
       <div className="container-clay flex items-center justify-between gap-4 pb-1 relative z-[80]">
         <a href="/" className="flex-shrink-0">
-          <div
-            className="flex items-center justify-center px-5 py-3"
-            style={{
-              borderRadius: '34px',
-              background: '#FFFCF8',
-              boxShadow: '0px 8px 20px hsl(140,10%,70%), inset -3px -3px 7px hsla(140,20%,55%,0.2), inset 0px 3px 8px hsl(140,20%,97%)',
-            }}
-          >
-            <img
-              src="/images/logo.png"
-              alt="Клиника Одинцова"
-              width="180"
-              height="44"
-              className="h-10 w-auto"
-            />
-          </div>
+          <img
+            src="/images/logo.png"
+            alt="Клиника Одинцова"
+            width="200"
+            height="48"
+            className="h-12 w-auto"
+          />
         </a>
         <div className="hidden lg:flex items-center gap-3">
           <button
@@ -384,6 +390,7 @@ export function Header({ currentPath = '/' }) {
           <a
             href={`tel:${PHONE_NUMBER}`}
             className="flex items-center gap-2 text-sm font-medium text-clay-text hover:text-clay-mint transition-colors"
+            aria-label={`Позвонить: ${PHONE_DISPLAY}`}
           >
             <Phone size={15} />
             {PHONE_DISPLAY}
@@ -422,7 +429,7 @@ export function Header({ currentPath = '/' }) {
                     onBlur={handleDropdownBlur}
                   >
                     <button
-                      className="flex items-center gap-1 px-3 py-2 rounded-full text-base font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
+                      className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
                       onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
                       onFocus={() => handleDropdownEnter(item.label)}
                       onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
@@ -457,7 +464,7 @@ export function Header({ currentPath = '/' }) {
                 <a
                   key={item.to}
                   href={item.to}
-                  className={`px-3 py-2 rounded-full text-base font-medium transition-colors duration-200 ${
+                  className={`px-3 py-2 rounded-full text-lg font-medium transition-colors duration-200 ${
                     currentPath === item.to
                       ? 'text-clay-mint'
                       : 'text-clay-text hover:text-clay-mint'

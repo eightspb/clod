@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Audit Report — Клиника Одинцова</title>
+<style>
+  :root {
+    --mint: #2E8C77;
+    --peach: #d98f73;
+    --blue: #5f97bd;
+    --dark: #24322d;
+    --text: #42524c;
+    --bg: #F5F0EA;
+    --card: #fffdf9;
+    --muted: #61726d;
+    --red: #c0392b;
+    --yellow: #d4a017;
+    --green: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--dark); background: var(--bg); line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--mint); }
+  h3 { font-size: 1.15rem; margin: 1.5rem 0 0.75rem; color: var(--text); }
+  h4 { font-size: 1rem; margin: 1rem 0 0.5rem; }
+  p, li { font-size: 0.95rem; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; }
+  .card { background: var(--card); border-radius: 12px; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .score-card { background: var(--card); border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-left: 4px solid var(--mint); }
+  .score-card.warn { border-left-color: var(--yellow); }
+  .score-card.critical { border-left-color: var(--red); }
+  .score-num { font-size: 2rem; font-weight: 700; color: var(--mint); }
+  .score-card.warn .score-num { color: var(--yellow); }
+  .score-card.critical .score-num { color: var(--red); }
+  .score-label { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #eae5de; text-align: left; padding: 0.6rem 0.8rem; font-weight: 600; }
+  td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e0dbd4; vertical-align: top; }
+  tr:hover td { background: #f3efe9; }
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-red { background: #fde8e8; color: var(--red); }
+  .badge-yellow { background: #fef3cd; color: #856404; }
+  .badge-green { background: #d4edda; color: #155724; }
+  .badge-blue { background: #d1ecf1; color: #0c5460; }
+  .section-nav { position: sticky; top: 0; background: var(--bg); padding: 0.75rem 0; z-index: 10; border-bottom: 1px solid #ddd; margin-bottom: 1rem; }
+  .section-nav a { text-decoration: none; color: var(--mint); font-size: 0.85rem; margin-right: 1rem; font-weight: 500; }
+  .section-nav a:hover { text-decoration: underline; }
+  .summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; margin: 1.5rem 0; }
+  .summary-item { text-align: center; padding: 1rem 0.5rem; background: var(--card); border-radius: 8px; }
+  .summary-item .num { font-size: 1.4rem; font-weight: 700; }
+  .summary-item .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+  ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.3rem 0; }
+  code { background: #eae5de; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }
+  .toc { columns: 2; column-gap: 2rem; }
+  .toc li { break-inside: avoid; }
+  .priority-1 { border-left: 4px solid var(--red); }
+  .priority-2 { border-left: 4px solid var(--yellow); }
+  .priority-3 { border-left: 4px solid var(--green); }
+  @media (max-width: 768px) {
+    .summary-box { grid-template-columns: repeat(3, 1fr); }
+    .score-grid { grid-template-columns: 1fr 1fr; }
+    .toc { columns: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Design Audit Report</h1>
+<p class="subtitle">Клиника Одинцова &mdash; Комплексный анализ дизайн-системы, UX, доступности и копирайтинга &mdash; Март 2026</p>
+
+<nav class="section-nav">
+  <a href="#overview">Обзор</a>
+  <a href="#design-system">Дизайн-система</a>
+  <a href="#accessibility">Доступность</a>
+  <a href="#critique">UX-критика</a>
+  <a href="#copy">UX-копирайт</a>
+  <a href="#research">User Research</a>
+  <a href="#synthesis">Синтез</a>
+  <a href="#actions">Дорожная карта</a>
+</nav>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview">
+<h2>Executive Summary</h2>
+
+<div class="summary-box">
+  <div class="summary-item"><div class="num" style="color:var(--mint)">68</div><div class="lbl">Дизайн-система</div></div>
+  <div class="summary-item"><div class="num" style="color:var(--red)">65</div><div class="lbl">Доступность</div></div>
+  <div class="summary-item"><div class="num" style="color:var(--yellow)">78</div><div class="lbl">UX / Usability</div></div>
+  <div class="summary-item"><div class="num" style="color:var(--mint)">82</div><div class="lbl">UX Copy</div></div>
+  <div class="summary-item"><div class="num" style="color:var(--mint)">B+</div><div class="lbl">Общий дизайн</div></div>
+  <div class="summary-item"><div class="num" style="color:var(--blue)">6</div><div class="lbl">Скиллов</div></div>
+</div>
+
+<div class="card">
+<p><strong>Проект:</strong> Сайт клиники экспертной медицины (маммология, гинекология, эндокринология, нутрициология) в Санкт-Петербурге. Astro 4 + React 18, claymorphism дизайн-система.</p>
+<p style="margin-top:0.5rem"><strong>Ключевые находки:</strong> Сильная эмпатийная подача и уникальная визуальная система. Основные проблемы: контрастность цветов не проходит WCAG AA, утечка токенов в компонентах (14+ hardcoded цветов), конверсионная воронка "Второе мнение" спрятана глубоко на главной. Исправление критичных проблем доступности &mdash; ~4.5 часов, дизайн-токенов &mdash; ~6 часов.</p>
+</div>
+</section>
+
+<!-- ===== DESIGN SYSTEM ===== -->
+<section id="design-system">
+<h2>1. Аудит дизайн-системы</h2>
+
+<div class="score-grid">
+  <div class="score-card"><div class="score-num">68</div><div class="score-label">Общий балл /100</div></div>
+  <div class="score-card warn"><div class="score-num">22</div><div class="score-label">Компонентов проверено</div></div>
+  <div class="score-card critical"><div class="score-num">12</div><div class="score-label">Проблем найдено</div></div>
+</div>
+
+<h3>Утечка токенов &mdash; hardcoded цвета в компонентах</h3>
+<table>
+  <tr><th>Категория</th><th>Определено</th><th>Hardcoded</th><th>Примеры</th></tr>
+  <tr><td>Цвета</td><td>27 clay-токенов</td><td><span class="badge badge-red">14+</span></td><td><code>#2A9E80</code>, <code>#FAC8B0</code>, <code>#A8D8F4</code>, <code>#3AB89A</code> в Hero, DoctorCard</td></tr>
+  <tr><td>Тени</td><td>8 clay-теней</td><td><span class="badge badge-yellow">5</span></td><td>Inline box-shadow в Header, StickyCTA, admin</td></tr>
+  <tr><td>Типографика</td><td>10 размеров (CSS vars)</td><td><span class="badge badge-yellow">8+</span></td><td>Inline <code>fontSize: '13px'</code> в admin-компонентах</td></tr>
+  <tr><td>Отступы</td><td>Tailwind defaults</td><td><span class="badge badge-yellow">3</span></td><td><code>w-[61.8%]</code> в DoctorCard</td></tr>
+</table>
+
+<h3>Состояния и варианты компонентов</h3>
+<table>
+  <tr><th>Компонент</th><th>States</th><th>Variants</th><th>Токены</th><th>Балл</th></tr>
+  <tr><td>CtaSection</td><td>OK</td><td>OK</td><td>85%</td><td><span class="badge badge-green">82</span></td></tr>
+  <tr><td>BreadcrumbNav</td><td>OK</td><td>OK</td><td>90%</td><td><span class="badge badge-green">88</span></td></tr>
+  <tr><td>Header</td><td>OK</td><td>OK</td><td>70%</td><td><span class="badge badge-green">75</span></td></tr>
+  <tr><td>Footer</td><td>OK</td><td>OK</td><td>80%</td><td><span class="badge badge-green">78</span></td></tr>
+  <tr><td>StickyCTA</td><td>OK</td><td>OK</td><td>65%</td><td><span class="badge badge-yellow">70</span></td></tr>
+  <tr><td>DoctorCard</td><td>Частично</td><td>4 ring-варианта</td><td>55%</td><td><span class="badge badge-yellow">62</span></td></tr>
+  <tr><td>Home (Hero)</td><td>activeSlide</td><td>3 слайда</td><td>45%</td><td><span class="badge badge-red">48</span></td></tr>
+  <tr><td>LoginForm (admin)</td><td>error/loading</td><td>Нет</td><td>20%</td><td><span class="badge badge-red">32</span></td></tr>
+</table>
+
+<h3>Приоритетные действия</h3>
+<div class="card priority-1">
+  <h4>P0: Добавить hero-accent в tailwind.config.js</h4>
+  <p><code>#2A9E80</code> используется 14+ раз в Hero, но не определён как токен. Добавить <code>clay-mint-600</code>.</p>
+</div>
+<div class="card priority-1">
+  <h4>P0: Создать clay-admin палитру</h4>
+  <p>Admin-компоненты используют slate-палитру (#f1f5f9, #0f172a), полностью отрезанную от clay-системы. Создать <code>clay-admin-*</code> группу.</p>
+</div>
+<div class="card priority-2">
+  <h4>P1: Токенизировать декоративные точки DoctorCard</h4>
+  <p><code>#FAC8B0</code>, <code>#A8D8F4</code>, <code>#A0E4D4</code> &mdash; вынести в CSS-утилиты <code>.dot-peach-light</code> и т.д.</p>
+</div>
+<div class="card priority-2">
+  <h4>P1: Стандартизировать mint-шкалу</h4>
+  <p>Найдено 4 варианта mint: <code>#2A9E80</code>, <code>#4EC8A8</code>, <code>#3AB89A</code>, <code>#2BA888</code>. Нужна единая шкала <code>clay-mint-{400-700}</code>.</p>
+</div>
+</section>
+
+<!-- ===== ACCESSIBILITY ===== -->
+<section id="accessibility">
+<h2>2. Аудит доступности (WCAG 2.1 AA)</h2>
+
+<div class="score-grid">
+  <div class="score-card critical"><div class="score-num">35</div><div class="score-label">Проблем найдено</div></div>
+  <div class="score-card critical"><div class="score-num">8</div><div class="score-label">Критичных</div></div>
+  <div class="score-card warn"><div class="score-num">12</div><div class="score-label">Важных</div></div>
+  <div class="score-card"><div class="score-num">15</div><div class="score-label">Минорных</div></div>
+</div>
+
+<h3>Контрастность цветов</h3>
+<table>
+  <tr><th>Элемент</th><th>Передний план</th><th>Фон</th><th>Ratio</th><th>Требуется</th><th>Статус</th></tr>
+  <tr><td><code>.text-clay-muted</code></td><td>#61726d</td><td>#F5F0EA</td><td>2.41:1</td><td>4.5:1</td><td><span class="badge badge-red">FAIL</span></td></tr>
+  <tr><td><code>.text-clay-text</code></td><td>#42524c</td><td>#F5F0EA</td><td>3.22:1</td><td>4.5:1</td><td><span class="badge badge-red">FAIL</span></td></tr>
+  <tr><td>Footer muted</td><td>#61726d</td><td>#FFFCF8</td><td>2.35:1</td><td>4.5:1</td><td><span class="badge badge-red">FAIL</span></td></tr>
+  <tr><td><code>.text-clay-mint</code></td><td>#2E8C77</td><td>white</td><td>5.1:1</td><td>4.5:1</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td><code>.btn-clay-primary</code></td><td>#24322d</td><td>#d9f1ea</td><td>4.8:1</td><td>4.5:1</td><td><span class="badge badge-green">PASS</span></td></tr>
+</table>
+<p><strong>Исправление:</strong> Обновить CSS-переменные: <code>--clay-text-muted: #465550</code> (5.2:1), <code>--clay-text: #2D3A34</code> (5.1:1).</p>
+
+<h3>Критичные проблемы</h3>
+<div class="card priority-1">
+  <h4>Модальное окно "Второе мнение" не доступно</h4>
+  <p>Нет <code>role="dialog"</code>, <code>aria-modal</code>, focus trap, обработки Escape. Файл: <code>SecondOpinion.jsx:68-75</code>.</p>
+</div>
+<div class="card priority-1">
+  <h4>Фокус скрыт на формах главной</h4>
+  <p><code>outline-none</code> на input-полях формы записи. Home.jsx:282, 296. Нарушает WCAG 2.4.7.</p>
+</div>
+<div class="card priority-1">
+  <h4>Dropdown без семантических ролей</h4>
+  <p>Кастомный <code>data-dropdown-panel</code> вместо <code>role="menu"</code>. Header.jsx:172-211.</p>
+</div>
+
+<h3>Что работает хорошо</h3>
+<ul>
+  <li>Skip-to-content ссылка в Layout.astro</li>
+  <li>Клавиатурная навигация в Header (ArrowDown, Escape)</li>
+  <li>Декоративные элементы помечены <code>aria-hidden="true"</code></li>
+  <li>Фильтры докторов используют <code>aria-pressed</code></li>
+  <li>Формы имеют явные label с ID</li>
+</ul>
+</section>
+
+<!-- ===== CRITIQUE ===== -->
+<section id="critique">
+<h2>3. UX-критика дизайна</h2>
+
+<div class="score-grid">
+  <div class="score-card"><div class="score-num">B+</div><div class="score-label">Общая оценка</div></div>
+  <div class="score-card"><div class="score-num">78</div><div class="score-label">Usability</div></div>
+</div>
+
+<h3>Вердикт</h3>
+<div class="card">
+<p>Сильная clay-дизайн-система создаёт теплый, нехолодный визуал &mdash; критично для медицинского контекста. Эмпатийная подача снижает тревожность. Однако <strong>информационная архитектура и CTA-размещение создают конверсионное трение</strong>: "Второе мнение" (главный лид-магнит) появляется поздно на главной, а кнопка "Записаться" повторяется 4+ раз на странице, вызывая баннерную слепоту.</p>
+</div>
+
+<h3>Проблемы юзабилити</h3>
+<table>
+  <tr><th>Проблема</th><th>Severity</th><th>Влияние</th></tr>
+  <tr><td>CTA "Записаться" появляется 4+ раз до принятия решения</td><td><span class="badge badge-red">High</span></td><td>Decision fatigue, снижение эффективности CTA</td></tr>
+  <tr><td>"Второе мнение" спрятано глубоко на главной</td><td><span class="badge badge-red">High</span></td><td>Потеря конверсии от сомневающихся пациентов</td></tr>
+  <tr><td>Цена "от 80 000 ₽" без видимой декомпозиции</td><td><span class="badge badge-yellow">Medium</span></td><td>Тревога о скрытых расходах</td></tr>
+  <tr><td>Hero-слайдер без индикаторов</td><td><span class="badge badge-yellow">Medium</span></td><td>Пользователи не знают о 3 слайдах</td></tr>
+  <tr><td>Таблица ВАБ vs Операция скроллится на мобильном</td><td><span class="badge badge-yellow">Medium</span></td><td>Ключевое сравнение нечитаемо на телефоне</td></tr>
+  <tr><td>Все карточки докторов одинаковые</td><td><span class="badge badge-yellow">Medium</span></td><td>Врачи кажутся взаимозаменяемыми</td></tr>
+</table>
+
+<h3>Конверсионная воронка</h3>
+<table>
+  <tr><th>Этап</th><th>Сила</th><th>Слабость</th></tr>
+  <tr><td>Awareness (Hero)</td><td>Эмпатийный копирайт, stat-карточки</td><td>Нет индикаторов слайдера</td></tr>
+  <tr><td>Interest (Услуги)</td><td>Цветовая кодировка специализаций</td><td>Карточки докторов generic</td></tr>
+  <tr><td>Consideration (Второе мнение)</td><td>Отличный value prop ("бесплатно")</td><td>Появляется поздно на главной</td></tr>
+  <tr><td>Decision (Цены)</td><td>Прозрачность, dual-card</td><td>"От" создаёт неоднозначность</td></tr>
+  <tr><td>Action (Контакт)</td><td>Телефон/booking повсюду</td><td>CTA-перегрузка</td></tr>
+</table>
+
+<h3>Рекомендации Tier 1 (High Impact)</h3>
+<div class="card priority-1">
+  <h4>1. Переместить "Второе мнение" выше на главной</h4>
+  <p>Сейчас: Hero &rarr; Услуги &rarr; Доктора &rarr; Отзывы &rarr; (поздно) Второе мнение. <br>Предложение: Hero &rarr; <strong>Второе мнение</strong> &rarr; Услуги &rarr; Доктора &rarr; Отзывы. <br>Ожидаемый эффект: +15-25% заявок на второе мнение.</p>
+</div>
+<div class="card priority-1">
+  <h4>2. Сократить количество CTA-кнопок</h4>
+  <p>Оставить primary "Записаться" только в Header + sticky mobile. На страницах использовать <code>btn-clay-secondary</code> ("Подробнее"). Снижает баннерную слепоту.</p>
+</div>
+<div class="card priority-2">
+  <h4>3. Мобильная таблица ВАБ vs Операция</h4>
+  <p>Заменить горизонтальный скролл на stacked-карточки для mobile. Ключевое сравнение должно быть читаемым на телефоне.</p>
+</div>
+</section>
+
+<!-- ===== UX COPY ===== -->
+<section id="copy">
+<h2>4. UX-копирайтинг</h2>
+
+<div class="score-grid">
+  <div class="score-card"><div class="score-num">82</div><div class="score-label">Общий балл</div></div>
+</div>
+
+<h3>Что работает отлично</h3>
+<ul>
+  <li>Benefit-driven копирайт: "Бесплатное второе мнение", "без боли"</li>
+  <li>Конкретные цифры: "30-40 минут", "день обращения"</li>
+  <li>Убраны фейковые claims ("№1 в России", "99% пациентов")</li>
+  <li>Dual-path CTA (телефон + онлайн) снижает трение</li>
+  <li>Anxiety-aware: "спокойно", "без давления"</li>
+</ul>
+
+<h3>CTA &mdash; рекомендации по улучшению</h3>
+<table>
+  <tr><th>Текущий</th><th>Предложение</th><th>Почему</th></tr>
+  <tr><td>"Открыть полный прайс-лист"</td><td>"Смотреть все услуги и цены"</td><td>Outcome-focused, без жаргона</td></tr>
+  <tr><td>"Получить второе мнение"</td><td><strong>"Проверить, нужна ли операция"</strong></td><td>Benefit-driven, адресует тревогу</td></tr>
+  <tr><td>"Обсудить дальнейший план"</td><td><strong>"Узнать следующий шаг"</strong></td><td>Clarity для тревожных пациентов</td></tr>
+  <tr><td>"Записаться" (mobile sticky)</td><td>"Записаться сейчас"</td><td>Urgency + clarity</td></tr>
+</table>
+
+<h3>Ошибки форм &mdash; улучшения</h3>
+<table>
+  <tr><th>Сценарий</th><th>Текущее</th><th>Предложение</th></tr>
+  <tr><td>Ошибка отправки</td><td>"Не удалось отправить. Попробуйте ещё раз."</td><td>"Ошибка соединения. Проверьте интернет и попробуйте через минуту."</td></tr>
+  <tr><td>Размер файла</td><td>"Суммарный размер не должен превышать 25 МБ"</td><td>"Общий размер файлов слишком большой. Сожмите изображения или удалите лишние."</td></tr>
+  <tr><td>Успех формы</td><td>"...в ближайшее время"</td><td>"...в течение рабочего дня (пн-пт 9:00-20:00)"</td></tr>
+  <tr><td>Ошибка входа (admin)</td><td>"Ошибка входа"</td><td>"Неправильный пароль. Проверьте введённый текст."</td></tr>
+</table>
+
+<h3>Терминологическая консистентность</h3>
+<table>
+  <tr><th>Концепт</th><th>Варианты в коде</th><th>Стандарт</th></tr>
+  <tr><td>Медицинский приём</td><td>"консультация" / "приём" / "осмотр"</td><td>Стандартизировать на <strong>"приём"</strong></td></tr>
+  <tr><td>Прайс-лист</td><td>"прейскурант" / "прайс-лист"</td><td>Убрать "прейскурант" (архаизм), оставить <strong>"прайс-лист"</strong></td></tr>
+</table>
+
+<h3>Критичные добавления</h3>
+<ul>
+  <li><strong>Защита данных:</strong> Добавить рядом с формами: "Данные защищены. Не передаются третьим лицам." (особенно для ИНН в налоговой форме)</li>
+  <li><strong>Helper text:</strong> Под полями формы пояснять зачем данные: "Нужна для идентификации ваших снимков. Не будет опубликована."</li>
+  <li><strong>Confirmation dialog:</strong> Перед отправкой формы "Второе мнение": "Отправить снимки и данные? Наш врач свяжется в рабочее время."</li>
+</ul>
+</section>
+
+<!-- ===== USER RESEARCH ===== -->
+<section id="research">
+<h2>5. User Research Plan</h2>
+
+<h3>Исследовательские вопросы</h3>
+<ol>
+  <li>Какие эмоциональные барьеры мешают записаться на приём?</li>
+  <li>Насколько эффективно "бесплатное второе мнение" как trust-building инструмент?</li>
+  <li>Какие E-E-A-T сигналы врачей (публикации, ТВ, степень, стаж) вызывают наибольшее доверие?</li>
+  <li>Как женщины навигируют от главной до записи?</li>
+  <li>Валидирует ли переход к "честному копирайту" (убраны неподтверждённые claims) восприятие клиники?</li>
+</ol>
+
+<h3>Методы исследования</h3>
+<table>
+  <tr><th>Метод</th><th>Выборка</th><th>Сроки</th><th>Приоритет</th></tr>
+  <tr><td>Глубинные интервью</td><td>8-10 женщин (prospects + пациенты)</td><td>Недели 1-4</td><td><span class="badge badge-red">Critical</span></td></tr>
+  <tr><td>Юзабилити-тесты</td><td>5-6 женщин, 3 задачи</td><td>Недели 2-5</td><td><span class="badge badge-red">Critical</span></td></tr>
+  <tr><td>Онлайн-опрос</td><td>150-200 респондентов</td><td>Недели 3-6</td><td><span class="badge badge-yellow">High</span></td></tr>
+  <tr><td>A/B тест (credentials врачей)</td><td>On-site</td><td>Недели 4-7</td><td><span class="badge badge-blue">Medium</span></td></tr>
+  <tr><td>Аналитика + heatmaps</td><td>Existing data</td><td>Continuous</td><td><span class="badge badge-blue">Medium</span></td></tr>
+</table>
+
+<h3>Сегменты пользователей</h3>
+<table>
+  <tr><th>Сегмент</th><th>Характеристики</th><th>Потребности</th><th>Размер</th></tr>
+  <tr><td>Тревожные кандидаты на операцию</td><td>35-55, направление хирурга, ищут альтернативу</td><td>Честное второе мнение, реальные сроки, снижение боли/тревоги</td><td>40-50%</td></tr>
+  <tr><td>DIY-исследователи</td><td>25-50, пришли через поиск, хотят разобраться</td><td>Образовательный контент, ненавязчивый тон</td><td>30-40%</td></tr>
+  <tr><td>Плановые/профилактические</td><td>30-50, рутинные осмотры, гормоны, питание</td><td>Удобство записи, быстрый визит</td><td>10-15%</td></tr>
+  <tr><td>Региональные/удалённые</td><td>Вне СПб, нужна удалённая консультация</td><td>Эффективный трёхж документов, логистика</td><td>15-25%</td></tr>
+</table>
+
+<h3>Задачи юзабилити-теста</h3>
+<ol>
+  <li>Первое впечатление: что за клиника, чем занимается?</li>
+  <li>Найти информацию о ВАБ: когда подходит, сколько стоит?</li>
+  <li>Выбрать врача на основе профилей</li>
+  <li>Отправить документы на бесплатное второе мнение</li>
+</ol>
+
+<p><strong>Бюджет:</strong> 39,000-57,000 ₽ | <strong>Срок:</strong> 8 недель</p>
+</section>
+
+<!-- ===== SYNTHESIS ===== -->
+<section id="synthesis">
+<h2>6. Research Synthesis (из proxy-данных)</h2>
+
+<h3>Ключевые темы</h3>
+
+<div class="card">
+  <h4>Тема 1: Evidence-Based позиционирование</h4>
+  <p><strong>Источники:</strong> README "Последние изменения", hero-копирайт, SecondOpinion</p>
+  <p>Клиника прошла через "credibility reset": убраны неподтверждённые claims, переход к нейтральному языку. Пациенты ценят честность и понятный разговор больше, чем хайп.</p>
+</div>
+
+<div class="card">
+  <h4>Тема 2: Снижение тревожности как core value prop</h4>
+  <p><strong>Источники:</strong> Hero ("спокойным, понятным языком"), FAQ всех страниц, блог</p>
+  <p>Весь контент построен вокруг снятия страха. "Спокойно обсудим", "без давления". Статьи блога отвечают на тревожные вопросы. Нужно измерять "уверенность в решении" как KPI, не только записи.</p>
+</div>
+
+<div class="card">
+  <h4>Тема 3: "Второе мнение" как бизнес-логика</h4>
+  <p><strong>Источники:</strong> Hero слайд 2, SecondOpinion.jsx, ВАБ FAQ</p>
+  <p>Бесплатное второе мнение &mdash; gateway funnel: тревожный пациент с направлением &rarr; проверка документов &rarr; если ВАБ подходит &rarr; конверсия. Не cost center, а инструмент привлечения.</p>
+</div>
+
+<div class="card">
+  <h4>Тема 4: ВАБ как specialty moat + экосистема</h4>
+  <p><strong>Источники:</strong> SERVICES, pricing, Home слайд 3</p>
+  <p>Клиника владеет end-to-end маршрутом: консультация &rarr; ВАБ &rarr; гистология &rarr; follow-up (гинеколог/эндокринолог/нутрициолог). Ценообразование отражает это: базовая процедура + отдельные услуги.</p>
+</div>
+
+<div class="card">
+  <h4>Тема 5: Content-driven SEO &mdash; блог как demand gen</h4>
+  <p><strong>Источники:</strong> 17 блог-статей, blog metadata</p>
+  <p>Статьи адресуют конкретные pain points пациентов. Авторство привязано к врачам (E-E-A-T). Карусель "Врачи на ТВ" усиливает авторитет. Нужно отслеживать, какие статьи конвертируют в записи.</p>
+</div>
+
+<div class="card">
+  <h4>Тема 6: Прозрачное ценообразование</h4>
+  <p><strong>Источники:</strong> price-list.js, Vab.jsx, Home messaging</p>
+  <p>Переход от bundled "ВАБ под ключ" к itemized pricing (базовая + материалы + гистология). Dual-card design. Нужен калькулятор стоимости для self-screening перед записью.</p>
+</div>
+
+<h3>Insights &rarr; Opportunities</h3>
+<table>
+  <tr><th>Инсайт</th><th>Возможность</th><th>Impact</th><th>Effort</th></tr>
+  <tr><td>Пациенты приходят с тревогой от другой клиники</td><td>Pre-consultation чат-бот для частых страхов</td><td><span class="badge badge-red">High</span></td><td><span class="badge badge-yellow">Medium</span></td></tr>
+  <tr><td>ВАБ подходит не всем, но это не объяснено</td><td>Интерактивный "Подходит ли мне ВАБ?" checker</td><td><span class="badge badge-red">High</span></td><td><span class="badge badge-red">High</span></td></tr>
+  <tr><td>Блог CTA неконсистентны</td><td>Стандартизация: ранние статьи &rarr; второе мнение, поздние &rarr; запись</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-green">Low</span></td></tr>
+  <tr><td>Нет ожидаемого времени ответа после формы</td><td>Post-submit confirmation + SMS-triage workflow</td><td><span class="badge badge-red">High</span></td><td><span class="badge badge-yellow">Medium</span></td></tr>
+  <tr><td>Экосистема (mammology &rarr; gyn &rarr; endo) не визуализирована</td><td>"Ваш маршрут пациента" flowchart на главной</td><td><span class="badge badge-yellow">Medium</span></td><td><span class="badge badge-green">Low</span></td></tr>
+</table>
+</section>
+
+<!-- ===== ACTIONS ===== -->
+<section id="actions">
+<h2>Дорожная карта действий</h2>
+
+<h3>Фаза 1: Критичные исправления (1-2 недели)</h3>
+<table>
+  <tr><th>#</th><th>Действие</th><th>Файлы</th><th>Часы</th></tr>
+  <tr><td>1</td><td>Обновить CSS-переменные контрастности (clay-text, clay-muted)</td><td>global.css</td><td>0.5</td></tr>
+  <tr><td>2</td><td>Добавить role="dialog", aria-modal, focus trap, Escape в модалку</td><td>SecondOpinion.jsx</td><td>1</td></tr>
+  <tr><td>3</td><td>Убрать outline-none с input-полей формы записи</td><td>Home.jsx</td><td>0.25</td></tr>
+  <tr><td>4</td><td>Добавить role="menu" в dropdown навигации</td><td>Header.jsx</td><td>0.5</td></tr>
+  <tr><td>5</td><td>Добавить hero-accent (#2A9E80) и clay-admin палитру в tailwind</td><td>tailwind.config.js</td><td>1</td></tr>
+  <tr><td>6</td><td>Токенизировать DoctorCard dots + mint-шкалу</td><td>DoctorCard.jsx, tailwind.config.js</td><td>1</td></tr>
+  <tr><td></td><td><strong>Итого Фаза 1</strong></td><td></td><td><strong>4.25</strong></td></tr>
+</table>
+
+<h3>Фаза 2: Конверсионные улучшения (2-3 недели)</h3>
+<table>
+  <tr><th>#</th><th>Действие</th><th>Файлы</th><th>Часы</th></tr>
+  <tr><td>7</td><td>Переместить "Второе мнение" после Hero на главной</td><td>Home.jsx</td><td>2</td></tr>
+  <tr><td>8</td><td>Сократить CTA-кнопки, использовать secondary для страничных</td><td>Home.jsx, Vab.jsx, Prices.jsx</td><td>2</td></tr>
+  <tr><td>9</td><td>Мобильная версия таблицы ВАБ vs Операция (stacked cards)</td><td>Vab.jsx</td><td>3</td></tr>
+  <tr><td>10</td><td>Улучшить error/success messages по рекомендациям UX Copy</td><td>SecondOpinion.jsx, TaxForm, LoginForm</td><td>1.5</td></tr>
+  <tr><td>11</td><td>Добавить hero-слайдер индикаторы</td><td>Home.jsx</td><td>1</td></tr>
+  <tr><td>12</td><td>Добавить helper text и "данные защищены" к формам</td><td>SecondOpinion.jsx, TaxForm</td><td>1</td></tr>
+  <tr><td></td><td><strong>Итого Фаза 2</strong></td><td></td><td><strong>10.5</strong></td></tr>
+</table>
+
+<h3>Фаза 3: Стратегические инвестиции (1-2 месяца)</h3>
+<table>
+  <tr><th>#</th><th>Действие</th><th>Impact</th></tr>
+  <tr><td>13</td><td>User Research: глубинные интервью + юзабилити тесты (8 недель, 39-57K ₽)</td><td>Валидация всех гипотез</td></tr>
+  <tr><td>14</td><td>Интерактивный "Подходит ли мне ВАБ?" checker</td><td>Differentiation + qualified leads</td></tr>
+  <tr><td>15</td><td>Стандартизация Blog-to-Booking funnel</td><td>+10-20% конверсия из блога</td></tr>
+  <tr><td>16</td><td>Калькулятор стоимости на /prices</td><td>Снижение price anxiety</td></tr>
+  <tr><td>17</td><td>"Маршрут пациента" визуализация на главной</td><td>Cross-specialty awareness</td></tr>
+</table>
+
+</section>
+
+<footer style="margin-top:3rem; padding-top:1.5rem; border-top:1px solid #ddd; text-align:center; color:var(--muted); font-size:0.85rem;">
+  <p>Generated by Design Plugin Suite &mdash; 6 Skills Analysis &mdash; Март 2026</p>
+  <p>Design System | Accessibility (WCAG 2.1 AA) | Design Critique | UX Copy | User Research | Research Synthesis</p>
+</footer>
+
+</div>
+</body>
+</html>

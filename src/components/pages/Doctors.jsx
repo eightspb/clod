@@ -17,9 +17,9 @@ export function Doctors() {
         <section className="section pb-0">
           <div className="container-clay text-center">
             <div className="clay clay-card-soft-mint inline-flex px-4 py-2 rounded-2xl mb-4">
-              <span className="text-sm font-semibold text-clay-mint">Команда врачей</span>
+              <span className="text-sm font-semibold text-clay-mint">Команда специалистов</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark mb-4">
               Врачи клиники Одинцова
             </h1>
             <p className="text-clay-muted text-lg max-w-2xl mx-auto leading-relaxed">
@@ -68,7 +68,7 @@ export function Doctors() {
         {/* ── Карточки ── */}
         <section className="section">
           <div className="container-clay">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-16">
               {filtered.map((doc) => (
                 <DoctorCard key={doc.slug} doctor={doc} />
               ))}

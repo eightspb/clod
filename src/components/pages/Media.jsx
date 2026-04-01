@@ -171,10 +171,10 @@ export function Media() {
         <div className="container-clay">
           <div className="clay-card-mint p-8 sm:p-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
+              <h2 className="text-xl sm:text-2xl heading-serif text-white">
                 Хотите пригласить нашего эксперта для комментария?
               </h2>
-              <p className="mt-2 text-white/80 text-sm sm:text-base max-w-lg">
+              <p className="mt-2 text-white text-sm sm:text-base max-w-lg">
                 Главный врач клиники Одинцов В.А. и специалисты клиники открыты для экспертных
                 комментариев, интервью и участия в медицинских программах
               </p>

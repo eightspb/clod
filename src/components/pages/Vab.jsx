@@ -106,7 +106,7 @@ export function Vab() {
           <Zap size={15} className="text-clay-teal" />
           Основное направление клиники
         </div>
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-clay-text mb-5 speakable">
+        <h1 className="heading-serif text-3xl md:text-4xl lg:text-5xl font-normal text-clay-text mb-5 speakable">
           ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
         </h1>
         <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
@@ -141,7 +141,7 @@ export function Vab() {
           { value: 'УЗИ', label: 'контроль процедуры в реальном времени' },
         ].map((stat) => (
           <div key={stat.label} className="clay-card text-center py-5 px-3">
-            <div className="text-2xl md:text-3xl font-bold text-clay-teal mb-1">{stat.value}</div>
+            <div className="font-serif font-light text-2xl md:text-3xl text-clay-teal mb-1">{stat.value}</div>
             <div className="text-xs text-clay-muted leading-tight">{stat.label}</div>
           </div>
         ))}
@@ -149,18 +149,18 @@ export function Vab() {
 
       {/* Блок достижений клиники */}
       <section className="clay-card-soft-mint clay-card p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-bold text-clay-text mb-5">Что важно знать о процедуре</h2>
+        <h2 className="heading-serif text-xl font-normal text-clay-text mb-5">Что важно знать о процедуре</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">2 мм</div>
+            <div className="font-serif font-light text-4xl text-clay-teal mb-2">2 мм</div>
             <p className="text-sm text-clay-muted leading-tight">микропрокол вместо хирургического разреза</p>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">30–40 мин</div>
+            <div className="font-serif font-light text-4xl text-clay-teal mb-2">30–40 мин</div>
             <p className="text-sm text-clay-muted leading-tight">средняя длительность процедуры</p>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-clay-teal mb-2">7–10 дней</div>
+            <div className="font-serif font-light text-4xl text-clay-teal mb-2">7–10 дней</div>
             <p className="text-sm text-clay-muted leading-tight">срок готовности гистологии после удаления</p>
           </div>
         </div>
@@ -168,7 +168,7 @@ export function Vab() {
 
       {/* Показания */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-5">Когда показана процедура ВАБ</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-5">Когда показана процедура ВАБ</h2>
         <div className="clay-card p-6 md:p-8">
           <ul className="grid sm:grid-cols-2 gap-3">
             {INDICATIONS.map((item) => (
@@ -183,7 +183,7 @@ export function Vab() {
 
       {/* Как проходит */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-2">Как проходит процедура ВАБ</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Как проходит процедура ВАБ</h2>
         <p className="text-clay-muted mb-5">Пошагово — от приёма до выхода домой</p>
         <div className="relative">
           <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-clay-mint/20" />
@@ -211,7 +211,7 @@ export function Vab() {
               <Shield size={22} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-clay-dark mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
+              <h2 className="heading-serif text-xl font-normal text-clay-dark mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
               <p className="text-clay-text leading-relaxed mb-4">
                 Клиника Одинцова использует систему Xishan DK-B-MS производства Xishan (Сишань)
                 для проведения ВАБ под постоянным контролем УЗИ. Решение о применении метода принимается врачом после очной оценки.
@@ -236,7 +236,7 @@ export function Vab() {
 
       {/* ВАБ vs Операция */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-2">ВАБ или операция: в чём разница</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">ВАБ или операция: в чём разница</h2>
         <p className="text-clay-muted mb-6">
           Во многих случаях ВАБ позволяет избежать более объемной операции, если по результатам осмотра и диагностики метод подходит
         </p>
@@ -306,12 +306,12 @@ export function Vab() {
 
       {/* Цены */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
         <p className="text-clay-muted mb-6">Базовая стоимость и дополнительные этапы разделены заранее, без скрытых формулировок</p>
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <div className="clay-card p-6">
             <div className="text-sm font-semibold text-clay-text mb-1">Базовая стоимость процедуры ВАБ</div>
-            <div className="text-3xl font-bold text-clay-teal mb-4">от 80 000 ₽</div>
+            <div className="font-serif font-light text-3xl text-clay-teal mb-4">от 80 000 ₽</div>
             <ul className="space-y-1.5 text-sm text-clay-muted">
               {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ'].map((item) => (
                 <li key={item} className="flex items-center gap-2">
@@ -362,7 +362,7 @@ export function Vab() {
 
       {/* Наши врачи */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-2">Доктора, выполняющие ВАБ</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Доктора, выполняющие ВАБ</h2>
         <p className="text-clay-muted mb-6">Онкологи-маммологи с опытом от 12 лет</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {VAB_DOCTORS.map((doctor) => (
@@ -376,7 +376,7 @@ export function Vab() {
 
       {/* CTA */}
       <section className="clay-card-mint p-8 text-center">
-        <h2 className="text-2xl font-bold text-clay-dark mb-3">Запишитесь на приём</h2>
+        <h2 className="heading-serif text-2xl font-normal text-clay-dark mb-3">Запишитесь на приём</h2>
         <p className="text-clay-text mb-6 max-w-lg mx-auto">
           Санкт-Петербург, пр. Богатырский 22 к.1, Приморский район, рядом с м. Комендантский проспект и м. Старая Деревня.
         </p>

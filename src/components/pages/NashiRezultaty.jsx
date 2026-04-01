@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
+import { FadeInSection } from '../FadeInSection.jsx'
 
 const KEY_STATS = [
   {
@@ -79,16 +80,18 @@ const RATING_CARDS = [
     rating: 4.8,
     url: 'https://prodoctorov.ru/spb/lpu/72209-klinika-odntsova/',
     color: 'clay-card-soft-mint',
-    starColor: '#4DC8A8',
+    starColor: '#1B6B5A',
+    linkLabel: 'Читать на ПроДокторов',
   },
   {
-    platform: 'ПроДокторов',
-    subLabel: 'Д-р Одинцов',
-    reviewCount: 126,
-    rating: 4.9,
-    url: 'https://prodoctorov.ru/spb/vrach/70120-odincov/',
+    platform: 'Яндекс Карты',
+    subLabel: 'Профиль клиники',
+    reviewCount: 247,
+    rating: 5.0,
+    url: 'https://yandex.ru/maps/org/klinika_doktora_odintsova/124591604873/',
     color: 'clay-card-soft-peach',
-    starColor: '#F5A88C',
+    starColor: '#C4785C',
+    linkLabel: 'Читать на Яндекс Картах',
   },
 ]
 
@@ -135,11 +138,11 @@ function StatCard({ stat }) {
   const { count, ref } = useCountUp(stat.value)
   const Icon = stat.icon
   return (
-    <div ref={ref} className={`clay ${stat.card} p-6 flex flex-col items-center text-center gap-3`}>
+    <div ref={ref} className={`clay ${stat.card} card-interactive p-6 flex flex-col items-center text-center gap-3`}>
       <div className={`${stat.iconBg} clay flex items-center justify-center w-12 h-12 rounded-full`}>
         <Icon size={22} />
       </div>
-      <div className={`text-5xl font-extrabold ${stat.color} tabular-nums`}>
+      <div className={`text-5xl font-serif font-light ${stat.color} tabular-nums`}>
         {count}{stat.suffix}
       </div>
       <div className="text-clay-muted text-sm leading-snug">{stat.label}</div>
@@ -165,16 +168,16 @@ function ProcedureBar({ item, index }) {
   const widthPercent = Math.round((item.count / MAX_PROCEDURES) * 100)
   return (
     <div ref={ref} className="flex items-center gap-4">
-      <div className="w-10 text-sm font-bold text-clay-dark shrink-0 text-right">{item.year}</div>
-      <div className="flex-1 bg-clay-bg rounded-full h-8 overflow-hidden">
+      <div className="w-12 text-sm font-bold text-clay-dark shrink-0 text-right">{item.year}</div>
+      <div className="flex-1 bg-clay-mint-pale rounded-full h-8 overflow-hidden">
         <div
-          className="clay-card-soft-mint h-full rounded-full flex items-center justify-end pr-3 transition-all duration-700 ease-out"
+          className="bg-clay-mint h-full rounded-full flex items-center justify-end pr-3 transition-all duration-700 ease-out"
           style={{
             width: visible ? `${widthPercent}%` : '0%',
             transitionDelay: `${index * 80}ms`,
           }}
         >
-          <span className="text-xs font-bold text-clay-mint">{item.label}</span>
+          <span className="text-xs font-bold text-white">{item.label}</span>
         </div>
       </div>
     </div>
@@ -241,7 +244,7 @@ function RatingCard({ card }) {
       href={card.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`clay ${card.color} p-6 flex flex-col gap-4 group hover:shadow-clay-lg transition-shadow duration-200`}
+      className={`clay ${card.color} card-interactive p-6 flex flex-col gap-4 group hover:shadow-clay-lg transition-shadow duration-200`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -256,7 +259,7 @@ function RatingCard({ card }) {
       <StarRating rating={card.rating} color={card.starColor} />
       <div className="text-clay-muted text-sm">{card.reviewCount}+ отзывов</div>
       <div className="flex items-center gap-1 text-sm font-semibold group-hover:gap-2 transition-all duration-150" style={{ color: card.starColor }}>
-        Читать на ПроДокторов
+        {card.linkLabel}
         <ArrowRight size={14} />
       </div>
     </a>
@@ -283,11 +286,11 @@ function TeamStats() {
       {items.map((item) => {
         const Icon = item.icon
         return (
-          <div key={item.label} className="clay clay-card p-5 flex flex-col items-center text-center gap-2">
+          <div key={item.label} className="clay clay-card card-interactive p-5 flex flex-col items-center text-center gap-2">
             <div className={`${item.iconBg} clay flex items-center justify-center w-10 h-10 rounded-full`}>
               <Icon size={18} />
             </div>
-            <div className="text-3xl font-extrabold text-clay-dark tabular-nums">
+            <div className="text-3xl font-serif font-light text-clay-dark tabular-nums">
               {item.value}{item.suffix ?? ''}
             </div>
             <div className="text-clay-muted text-xs leading-snug">{item.label}</div>
@@ -301,25 +304,24 @@ function TeamStats() {
 export function NashiRezultaty() {
   return (
     <div>
-      <section className="relative overflow-hidden pt-8 pb-12">
+      <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
             <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5"
-              style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 badge-specialty-mint"
             >
               <Activity size={12} />
               Клиника Одинцова · Санкт-Петербург
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Наши{' '}
-              <span className="text-clay-mint">результаты</span>
+              <span className="heading-accent">результаты</span>
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
               Цифры, которые говорят за нас. Статистика процедур, опыт команды, география пациентов и независимые рейтинги.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
                 Записаться на приём
                 <ArrowRight size={16} />
               </button>
@@ -332,131 +334,147 @@ export function NashiRezultaty() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container-clay">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-2">
-            Ключевые показатели
-          </h2>
-          <p className="text-clay-muted mb-8 max-w-xl">
-            Опыт, накопленный с момента основания клиники в 2014 году.
-          </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {KEY_STATS.map((stat) => (
-              <StatCard key={stat.label} stat={stat} />
-            ))}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-2">
+              Ключевые показатели
+            </h2>
+            <p className="text-clay-muted mb-8 max-w-xl">
+              Опыт, накопленный с момента основания клиники в 2014 году.
+            </p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {KEY_STATS.map((stat, i) => (
+                <FadeInSection key={stat.label} staggerIndex={i} className="h-full">
+                  <StatCard stat={stat} />
+                </FadeInSection>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="icon-circle-mint clay flex items-center justify-center w-10 h-10 rounded-full">
-                <TrendingUp size={18} />
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="icon-circle-mint clay flex items-center justify-center w-10 h-10 rounded-full">
+                  <TrendingUp size={18} />
+                </div>
+                <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                  Процедуры ВАБ по годам
+                </h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark">
-                Процедуры ВАБ по годам
+              <div className="flex flex-col gap-4">
+                {PROCEDURES_BY_YEAR.map((item, index) => (
+                  <ProcedureBar key={item.year} item={item} index={index} />
+                ))}
+              </div>
+              <p className="text-clay-muted text-xs mt-5">
+                * 2025 год — данные за отчётный период, учёт продолжается.
+              </p>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="icon-circle-blue clay flex items-center justify-center w-10 h-10 rounded-full">
+                <MapPin size={18} />
+              </div>
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                География пациентов
               </h2>
             </div>
-            <div className="flex flex-col gap-4">
-              {PROCEDURES_BY_YEAR.map((item, index) => (
-                <ProcedureBar key={item.year} item={item} index={index} />
+            <div className="clay clay-card p-6 md:p-8 max-w-2xl">
+              <div className="flex flex-col gap-6">
+                {GEOGRAPHY.map((item, index) => (
+                  <GeographyBar key={item.label} item={item} index={index} />
+                ))}
+              </div>
+              <p className="text-clay-muted text-xs mt-6">
+                Пациенты приезжают из других городов на консультацию и процедуру ВАБ, в том числе в рамках программы «Бесплатное второе мнение».
+              </p>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="icon-circle-peach clay flex items-center justify-center w-10 h-10 rounded-full">
+                <Star size={18} />
+              </div>
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                Независимые рейтинги
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl">
+              {RATING_CARDS.map((card, i) => (
+                <FadeInSection key={card.platform} staggerIndex={i} className="h-full">
+                  <RatingCard card={card} />
+                </FadeInSection>
               ))}
             </div>
-            <p className="text-clay-muted text-xs mt-5">
-              * 2025 год — данные за отчётный период, учёт продолжается.
-            </p>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
-      <section className="section">
-        <div className="container-clay">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="icon-circle-blue clay flex items-center justify-center w-10 h-10 rounded-full">
-              <MapPin size={18} />
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="icon-circle-lavender clay flex items-center justify-center w-10 h-10 rounded-full">
+                <Users size={18} />
+              </div>
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                Наша команда в цифрах
+              </h2>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark">
-              География пациентов
-            </h2>
-          </div>
-          <div className="clay clay-card p-6 md:p-8 max-w-2xl">
-            <div className="flex flex-col gap-6">
-              {GEOGRAPHY.map((item, index) => (
-                <GeographyBar key={item.label} item={item} index={index} />
-              ))}
-            </div>
-            <p className="text-clay-muted text-xs mt-6">
-              Пациенты приезжают из других городов на консультацию и процедуру ВАБ, в том числе в рамках программы «Бесплатное второе мнение».
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container-clay">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="icon-circle-peach clay flex items-center justify-center w-10 h-10 rounded-full">
-              <Star size={18} />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark">
-              Независимые рейтинги
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl">
-            {RATING_CARDS.map((card) => (
-              <RatingCard key={card.subLabel} card={card} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container-clay">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="icon-circle-lavender clay flex items-center justify-center w-10 h-10 rounded-full">
-              <Users size={18} />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark">
-              Наша команда в цифрах
-            </h2>
-          </div>
-          <TeamStats />
-          <div className="mt-6">
-            <a href="/doctors" className="clay btn-clay-secondary gap-2 inline-flex items-center">
-              Все врачи клиники
-              <ArrowRight size={16} />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card-mint p-8 md:p-12 text-center max-w-2xl mx-auto">
-            <div className="icon-circle-mint clay flex items-center justify-center w-14 h-14 rounded-full mx-auto mb-5">
-              <Heart size={24} />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-              Готовы помочь
-            </h2>
-            <p className="text-clay-muted leading-relaxed mb-7 max-w-md mx-auto">
-              Запишитесь на приём или задайте вопрос — ответим в день обращения.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                Записаться на приём
+            <TeamStats />
+            <div className="mt-6">
+              <a href="/doctors" className="clay btn-clay-secondary gap-2 inline-flex items-center">
+                Все врачи клиники
                 <ArrowRight size={16} />
-              </button>
-              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-white gap-2 inline-flex items-center">
-                <Phone size={16} />
-                Позвонить
               </a>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
+
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card-mint p-8 md:p-12 text-center max-w-2xl mx-auto">
+              <div className="icon-circle-mint clay flex items-center justify-center w-14 h-14 rounded-full mx-auto mb-5">
+                <Heart size={24} />
+              </div>
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
+                Готовы помочь
+              </h2>
+              <p className="text-clay-muted leading-relaxed mb-7 max-w-md mx-auto">
+                Запишитесь на приём или задайте вопрос — ответим в день обращения.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+                  Записаться на приём
+                  <ArrowRight size={16} />
+                </button>
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-white gap-2 inline-flex items-center">
+                  <Phone size={16} />
+                  Позвонить
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
     </div>
   )
 }

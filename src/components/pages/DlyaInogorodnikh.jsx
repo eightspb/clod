@@ -128,7 +128,7 @@ export function DlyaInogorodnikh() {
       <section className="section">
         <div className="container-clay">
           <div className="max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-clay-dark leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Для иногородних пациентов
             </h1>
             <p className="text-clay-muted text-lg leading-relaxed">
@@ -141,7 +141,7 @@ export function DlyaInogorodnikh() {
 
       <section className="section">
         <div className="container-clay">
-          <h2 className="text-2xl font-extrabold text-clay-dark mb-6">Как записаться дистанционно</h2>
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">Как записаться дистанционно</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {CONTACT_CARDS.map((card) => (
               <div key={card.title} className={`clay-card p-6 flex flex-col gap-3`}>
@@ -159,7 +159,7 @@ export function DlyaInogorodnikh() {
         <div className="container-clay">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div>
-              <h2 className="text-2xl font-extrabold text-clay-dark mb-5">Что привезти с собой</h2>
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-5">Что привезти с собой</h2>
               <div className="clay-card p-6">
                 <ul className="space-y-3">
                   {DOCUMENTS_CHECKLIST.map((item) => (
@@ -197,7 +197,7 @@ export function DlyaInogorodnikh() {
 
       <section className="section">
         <div className="container-clay">
-          <h2 className="text-2xl font-extrabold text-clay-dark mb-2">Планирование поездки</h2>
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-2">Планирование поездки</h2>
           <p className="text-clay-muted mb-8 max-w-xl">
             Для процедуры ВАБ достаточно трёх дней. Для первичной консультации — одного визита на 1–2 часа.
           </p>
@@ -228,7 +228,7 @@ export function DlyaInogorodnikh() {
 
       <section className="section">
         <div className="container-clay">
-          <h2 className="text-2xl font-extrabold text-clay-dark mb-6">Как добраться</h2>
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">Как добраться</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="clay-card p-6">
               <div className="flex items-start gap-3 mb-4">
@@ -287,7 +287,7 @@ export function DlyaInogorodnikh() {
 
       <section className="section">
         <div className="container-clay">
-          <h2 className="text-2xl font-extrabold text-clay-dark mb-6">Где остановиться</h2>
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">Где остановиться</h2>
           <div className="clay-card p-6 md:p-8">
             <div className="flex items-start gap-4 mb-5">
               <div className="icon-circle-mint shrink-0">
@@ -316,7 +316,7 @@ export function DlyaInogorodnikh() {
 
       <section className="section">
         <div className="container-clay">
-          <h2 className="text-2xl font-extrabold text-clay-dark mb-6">
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-6">
             Для пациентов из Казахстана и Белоруссии
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -334,7 +334,7 @@ export function DlyaInogorodnikh() {
       <section className="section">
         <div className="container-clay">
           <div className="clay-card-mint p-8 md:p-10 text-center">
-            <h2 className="text-2xl font-extrabold text-clay-dark mb-3">
+            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
               Свяжитесь с нами для планирования визита
             </h2>
             <p className="text-clay-text mb-6 max-w-md mx-auto text-sm leading-relaxed">

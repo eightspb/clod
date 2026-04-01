@@ -22,7 +22,6 @@
     "@astrojs/sitemap": "3.1.6",
     "@astrojs/tailwind": "^5",
     "astro": "^4.16.19",
-    "claymorphism-css": "^1.0.5",
     "lucide-react": "^0.468.0",
     "nodemailer": "^8.0.1",
     "react": "^18.3.1",
