@@ -372,8 +372,8 @@ export function Header({ currentPath = '/' }) {
         <a href="/" className="flex-shrink-0">
           <img
             src="/images/logo.png"
-            alt="Клиника Одинцова"
-            width="200"
+            alt="Клиника доктора Одинцова"
+            width="220"
             height="48"
             className="h-12 w-auto"
           />

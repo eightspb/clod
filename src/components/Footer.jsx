@@ -63,9 +63,9 @@ export function Footer() {
               <div className="mb-4">
                 <img
                   src="/images/logo.png"
-                  alt="Клиника Одинцова"
-                  width="180"
-                  height="44"
+                  alt="Клиника доктора Одинцова"
+                  width="184"
+                  height="40"
                   className="h-10 w-auto"
                 />
               </div>
