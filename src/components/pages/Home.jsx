@@ -680,10 +680,10 @@ export function Home({ doctorsData = [] }) {
       <FadeInSection>
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card-soft-peach p-6 md:p-8 relative overflow-hidden">
+          <div className="clay clay-card-soft-peach p-0 relative overflow-hidden">
             <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-20 pointer-events-none" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch">
+              <div className="p-6 md:p-8 flex flex-col justify-center">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wider badge-specialty-peach">
                   <Shield size={12} />
                   Бесплатно
@@ -713,12 +713,14 @@ export function Home({ doctorsData = [] }) {
                   <ArrowRight size={16} />
                 </a>
               </div>
-              <div className="clay clay-card p-6">
-                <div className="text-center p-4">
-                  <div className="font-serif font-light text-4xl text-clay-dark mb-1">1 день</div>
-                  <p className="text-xs text-clay-muted">ответ в день обращения</p>
-                </div>
-              </div>
+              <img
+                src="/images/vab-alternative.png"
+                alt="Второе мнение по маммологии"
+                width={400}
+                height={400}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>

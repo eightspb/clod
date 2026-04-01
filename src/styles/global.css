@@ -916,12 +916,12 @@
     padding-right: 2rem;
   }
   .cta-doctor-photo {
-    height: 400px;
+    height: 520px;
     width: auto;
     object-fit: contain;
     object-position: bottom;
     margin-bottom: 0;
-    transform: translateY(-90px);
+    margin-top: -240px;
     filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08));
   }
   @media (max-width: 767px) {
@@ -935,11 +935,11 @@
     .cta-doctor-photo-wrap {
       justify-content: center;
       padding-right: 0;
-      max-height: 260px;
+      max-height: 300px;
     }
     .cta-doctor-photo {
-      height: 260px;
-      transform: none;
+      height: 300px;
+      margin-top: 0;
     }
   }
 
