@@ -628,7 +628,11 @@ export function Header({ currentPath = '/' }) {
                   <a
                     key={item.to}
                     href={item.to}
-                    className="px-4 py-2 rounded-2xl text-sm font-medium text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale transition-colors duration-200"
+                    className={`px-3 py-2 text-sm font-semibold uppercase tracking-wider transition-colors duration-200 ${
+                      currentPath === item.to
+                        ? 'text-clay-mint'
+                        : 'text-clay-muted hover:text-clay-mint'
+                    }`}
                     onClick={closeMobileMenu}
                     aria-current={currentPath === item.to ? 'page' : undefined}
                   >
@@ -637,6 +641,13 @@ export function Header({ currentPath = '/' }) {
                 )
               )}
               <div className="pt-3 flex flex-col gap-2">
+                <a
+                  href="/second-opinion"
+                  className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm font-bold"
+                  onClick={closeMobileMenu}
+                >
+                  Бесплатное второе мнение
+                </a>
                 <a
                   href={`tel:${PHONE_NUMBER}`}
                   className="clay btn-clay-secondary flex items-center justify-center gap-2 py-3 text-sm"
