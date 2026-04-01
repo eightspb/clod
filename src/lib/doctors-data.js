@@ -2,6 +2,7 @@ export const DOCTORS = [
   {
     slug: 'odintsov',
     photo: '/images/doctors/odintsov.webp',
+    photoFull: '/images/doctors/odintsov.png',
     name: 'Одинцов Владислав Александрович',
     dativeShortName: 'Владиславу Александровичу',
     specialization: 'Онколог-маммолог, врач УЗД, ДМН',
@@ -57,6 +58,7 @@ export const DOCTORS = [
   {
     slug: 'prikhodko',
     photo: '/images/doctors/prikhodko.webp',
+    photoFull: '/images/doctors/prikhodko.png',
     name: 'Приходько Кирилл Андреевич',
     dativeShortName: 'Кириллу Андреевичу',
     specialization: 'Онколог-маммолог, хирург, врач УЗД',
@@ -92,6 +94,7 @@ export const DOCTORS = [
   {
     slug: 'macuchov',
     photo: '/images/doctors/macuchov.webp',
+    photoFull: '/images/doctors/macuchov.png',
     name: 'Мацухов Алим Суфьянович',
     dativeShortName: 'Алиму Суфьяновичу',
     specialization: 'Онколог-маммолог, хирург, врач УЗД',
@@ -123,6 +126,7 @@ export const DOCTORS = [
   {
     slug: 'skurihin',
     photo: '/images/doctors/skurihin.webp',
+    photoFull: '/images/doctors/skurihin.png',
     name: 'Скурихин Семён Сергеевич',
     dativeShortName: 'Семёну Сергеевичу',
     specialization: 'Онколог-маммолог, хирург, врач УЗД',
@@ -165,6 +169,7 @@ export const DOCTORS = [
   {
     slug: 'egorova',
     photo: '/images/doctors/egorova.webp',
+    photoFull: '/images/doctors/egorova.png',
     name: 'Егорова Анастасия Александровна',
     dativeShortName: 'Анастасии Александровне',
     specialization: 'Онколог-маммолог, гинеколог, врач УЗД',
@@ -201,6 +206,7 @@ export const DOCTORS = [
   {
     slug: 'vlasenko',
     photo: '/images/doctors/vlasenko.webp',
+    photoFull: '/images/doctors/vlasenko.png',
     name: 'Власенко Ольга Сергеевна',
     dativeShortName: 'Ольге Сергеевне',
     specialization: 'Гинеколог, акушер-гинеколог, врач УЗД',
@@ -237,6 +243,7 @@ export const DOCTORS = [
   {
     slug: 'zaharova',
     photo: '/images/doctors/zaharova.webp',
+    photoFull: '/images/doctors/zaharova.png',
     name: 'Захарова Татьяна Николаевна',
     dativeShortName: 'Татьяне Николаевне',
     specialization: 'Гинеколог, акушер-гинеколог, врач УЗД',
@@ -275,6 +282,7 @@ export const DOCTORS = [
   {
     slug: 'nevzorova',
     photo: '/images/doctors/nevzorova.webp',
+    photoFull: '/images/doctors/nevzorova.png',
     name: 'Невзорова Елена Александровна',
     dativeShortName: 'Елене Александровне',
     specialization: 'Гинеколог, акушер-гинеколог, нутрициолог, врач УЗД',
@@ -318,6 +326,7 @@ export const DOCTORS = [
   {
     slug: 'kalinina',
     photo: '/images/doctors/kalinina.webp',
+    photoFull: '/images/doctors/kalinina.png',
     name: 'Калинина Ирина Аркадьевна',
     dativeShortName: 'Ирине Аркадьевне',
     specialization: 'Эндокринолог, нутрициолог',

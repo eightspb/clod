@@ -456,6 +456,13 @@
   /* ─────────────────────────────
      HERO DOCTOR CARD
   ───────────────────────────── */
+  .hero-doctor-fade {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+  .hero-doctor-fade-out {
+    opacity: 0;
+  }
   .hero-doctor-card-inner {
     display: flex;
     flex-direction: column;
@@ -467,14 +474,12 @@
   }
   .hero-doctor-photo-link {
     display: block;
-    overflow: hidden;
     background: transparent;
   }
   .hero-doctor-photo {
     width: 100%;
-    height: 320px;
-    object-fit: cover;
-    object-position: top;
+    height: auto;
+    display: block;
     transition: transform 0.5s ease;
   }
   .hero-doctor-photo-link:hover .hero-doctor-photo {
@@ -563,18 +568,15 @@
   @media (max-width: 1023px) {
     .hero-doctor-card-inner {
       flex-direction: row;
-      align-items: stretch;
+      align-items: flex-end;
     }
     .hero-doctor-photo-link {
       flex-shrink: 0;
-      width: 160px;
+      width: 180px;
     }
     .hero-doctor-photo {
-      height: 100%;
-      min-height: 220px;
-    }
-    .hero-doctor-stats {
-      display: none;
+      height: auto;
+      width: 100%;
     }
   }
   @media (max-width: 639px) {
@@ -582,13 +584,11 @@
       flex-direction: column;
     }
     .hero-doctor-photo-link {
-      width: 100%;
+      width: 65%;
+      margin: 0 auto;
     }
     .hero-doctor-photo {
-      height: 240px;
-    }
-    .hero-doctor-stats {
-      display: grid;
+      height: auto;
     }
   }
 
@@ -880,6 +880,67 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     color: var(--text-secondary);
+  }
+
+  /* ─────────────────────────────
+     CTA DOCTOR CARD
+  ───────────────────────────── */
+  .cta-doctor-card {
+    padding: 0;
+    min-height: 280px;
+    overflow: visible;
+  }
+  .cta-doctor-blobs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .cta-doctor-layout {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    min-height: 280px;
+  }
+  .cta-doctor-content {
+    padding: 2.5rem 3rem;
+    align-self: center;
+  }
+  .cta-doctor-photo-wrap {
+    position: relative;
+    align-self: end;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding-right: 2rem;
+  }
+  .cta-doctor-photo {
+    height: 400px;
+    width: auto;
+    object-fit: contain;
+    object-position: bottom;
+    margin-bottom: 0;
+    transform: translateY(-90px);
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08));
+  }
+  @media (max-width: 767px) {
+    .cta-doctor-layout {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+    .cta-doctor-content {
+      padding: 1.5rem 1.5rem 1rem;
+    }
+    .cta-doctor-photo-wrap {
+      justify-content: center;
+      padding-right: 0;
+      max-height: 260px;
+    }
+    .cta-doctor-photo {
+      height: 260px;
+      transform: none;
+    }
   }
 
   /* ─────────────────────────────

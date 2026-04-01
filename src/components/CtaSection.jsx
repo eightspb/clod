@@ -10,6 +10,8 @@ export function CtaSection({
   secondaryLabel = PHONE_DISPLAY,
   secondaryHref = `tel:${PHONE_NUMBER}`,
   cardClass = 'cta-gradient-card',
+  doctorPhoto,
+  doctorName,
 }) {
   const primaryCta = primaryHref ? (
     <a href={primaryHref} className="clay btn-clay-primary gap-2">
@@ -26,23 +28,59 @@ export function CtaSection({
     <FadeInSection>
       <section className="section">
         <div className="container-clay">
-          <div className={`clay ${cardClass} p-6 md:p-8 text-center relative overflow-hidden`}>
-            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
-            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
-            <div className="relative">
-              <h2 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
-                {title}
-              </h2>
-              <p className="text-clay-muted mb-6 max-w-lg mx-auto">
-                {subtitle}
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {primaryCta}
-                <a href={secondaryHref} className="clay btn-clay-secondary gap-2">
-                  {secondaryLabel}
-                </a>
+          <div className={`clay ${cardClass} relative ${doctorPhoto ? 'cta-doctor-card' : 'p-6 md:p-8 text-center overflow-hidden'}`}>
+            {doctorPhoto ? (
+              <div className="cta-doctor-blobs">
+                <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
+                <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
+                <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
+              </>
+            )}
+            {doctorPhoto ? (
+              <div className="cta-doctor-layout relative">
+                <div className="cta-doctor-content">
+                  <h2 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
+                    {title}
+                  </h2>
+                  <p className="text-clay-muted mb-6 max-w-lg">
+                    {subtitle}
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {primaryCta}
+                    <a href={secondaryHref} className="clay btn-clay-secondary gap-2">
+                      {secondaryLabel}
+                    </a>
+                  </div>
+                </div>
+                <div className="cta-doctor-photo-wrap">
+                  <img
+                    src={doctorPhoto}
+                    alt={doctorName || ''}
+                    className="cta-doctor-photo"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <h2 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
+                  {title}
+                </h2>
+                <p className="text-clay-muted mb-6 max-w-lg mx-auto">
+                  {subtitle}
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  {primaryCta}
+                  <a href={secondaryHref} className="clay btn-clay-secondary gap-2">
+                    {secondaryLabel}
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

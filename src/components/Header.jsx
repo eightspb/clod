@@ -140,6 +140,81 @@ function MegaMenuPanel({ item, currentPath }) {
   )
 }
 
+function DoctorsMegaMenuPanel({ item, currentPath }) {
+  const panelRef = useRef(null)
+  const [leftOffset, setLeftOffset] = useState(0)
+  useEffect(() => {
+    if (panelRef.current) {
+      const rect = panelRef.current.offsetParent?.getBoundingClientRect()
+      if (rect) setLeftOffset(-rect.left)
+    }
+  }, [])
+  return (
+    <div ref={panelRef} data-dropdown-panel className="absolute top-full z-50 pt-2" style={{ left: `${leftOffset}px`, width: '100vw' }}>
+      <div className="container-clay">
+        <div className="clay clay-card p-6 rounded-3xl" role="menu" aria-label={item.label}>
+          <div className="grid grid-cols-4 gap-6">
+            {item.groups.map((group) => (
+              <div key={group.id} role="group" aria-label={group.label}>
+                <a
+                  href={group.to}
+                  role="menuitem"
+                  className={`block text-lg font-bold mb-3 transition-colors duration-200 ${
+                    currentPath === group.to ? 'text-clay-mint' : 'text-clay-dark hover:text-clay-mint'
+                  }`}
+                >
+                  {group.label}
+                </a>
+                <ul className="flex flex-col gap-1">
+                  {group.doctors.map((doc) => (
+                    <li key={doc.slug} role="none">
+                      <a
+                        href={`/doctors/${doc.slug}`}
+                        role="menuitem"
+                        className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-base transition-colors duration-200 ${
+                          currentPath === `/doctors/${doc.slug}`
+                            ? 'text-clay-mint bg-clay-mint-pale font-medium'
+                            : 'text-clay-text hover:text-clay-mint hover:bg-clay-mint-pale'
+                        }`}
+                        aria-current={currentPath === `/doctors/${doc.slug}` ? 'page' : undefined}
+                      >
+                        <img
+                          src={doc.photo}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                          loading="lazy"
+                        />
+                        {doc.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 pt-5 border-t border-clay-bg">
+            <a
+              href="/doctors"
+              role="menuitem"
+              className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-base font-bold transition-colors duration-200 ${
+                currentPath === '/doctors'
+                  ? 'text-white bg-clay-mint'
+                  : 'text-clay-mint bg-clay-mint/10 hover:bg-clay-mint hover:text-white'
+              }`}
+              aria-current={currentPath === '/doctors' ? 'page' : undefined}
+            >
+              <ArrowRight size={16} />
+              Все доктора
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCloseMenu }) {
   const isExpanded = expandedGroup === item.label
   const isMega = item.mega
@@ -158,7 +233,44 @@ function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCl
       </button>
       {isExpanded && (
         <div className="pb-1">
-          {isMega ? (
+          {isMega === 'doctors' ? (
+            <>
+              {item.groups.map((group) => (
+                <div key={group.id} className="mb-2">
+                  <a
+                    href={group.to}
+                    className="block px-4 py-1.5 text-xs font-bold text-clay-muted uppercase tracking-wider"
+                    onClick={onCloseMenu}
+                  >
+                    {group.label}
+                  </a>
+                  {group.doctors.map((doc) => (
+                    <a
+                      key={doc.slug}
+                      href={`/doctors/${doc.slug}`}
+                      className={`flex items-center gap-2 px-5 py-1.5 text-sm font-medium transition-colors duration-200 ${
+                        currentPath === `/doctors/${doc.slug}`
+                          ? 'text-clay-mint'
+                          : 'text-clay-text hover:text-clay-mint'
+                      }`}
+                      onClick={onCloseMenu}
+                    >
+                      <img src={doc.photo} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover" loading="lazy" />
+                      {doc.name}
+                    </a>
+                  ))}
+                </div>
+              ))}
+              <a
+                href="/doctors"
+                className="flex items-center gap-2 mx-3 mt-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-clay-mint bg-clay-mint/10 transition-colors duration-200 hover:bg-clay-mint hover:text-white"
+                onClick={onCloseMenu}
+              >
+                <ArrowRight size={14} />
+                Все доктора
+              </a>
+            </>
+          ) : isMega ? (
             <>
               {item.children.map((direction) => (
                 <MobileDirectionGroup
@@ -419,35 +531,36 @@ export function Header({ currentPath = '/' }) {
         <div className="container-clay">
           <nav className="flex items-center justify-between gap-0.5 py-1">
             {NAV_ITEMS.map((item) =>
-              item.children ? (
-                item.mega ? (
-                  <div
-                    key={item.label}
-                    className="relative"
-                    onMouseEnter={() => handleDropdownEnter(item.label)}
-                    onMouseLeave={handleDropdownLeave}
-                    onBlur={handleDropdownBlur}
+              item.mega ? (
+                <div
+                  key={item.label}
+                  className="relative"
+                  onMouseEnter={() => handleDropdownEnter(item.label)}
+                  onMouseLeave={handleDropdownLeave}
+                  onBlur={handleDropdownBlur}
+                >
+                  <button
+                    className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
+                    onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                    onFocus={() => handleDropdownEnter(item.label)}
+                    onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
+                    aria-expanded={activeDropdown === item.label}
+                    aria-haspopup="menu"
+                    aria-controls={`nav-dropdown-${item.label}`}
                   >
-                    <button
-                      className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
-                      onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
-                      onFocus={() => handleDropdownEnter(item.label)}
-                      onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
-                      aria-expanded={activeDropdown === item.label}
-                      aria-haspopup="menu"
-                      aria-controls={`nav-dropdown-${item.label}`}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-                    {activeDropdown === item.label && (
-                      <MegaMenuPanel item={item} currentPath={currentPath} />
-                    )}
-                  </div>
-                ) : (
+                    {item.label}
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {activeDropdown === item.label && (
+                    item.mega === 'doctors'
+                      ? <DoctorsMegaMenuPanel item={item} currentPath={currentPath} />
+                      : <MegaMenuPanel item={item} currentPath={currentPath} />
+                  )}
+                </div>
+              ) : item.children ? (
                   <DesktopDropdown
                     key={item.label}
                     item={item}
@@ -459,7 +572,6 @@ export function Header({ currentPath = '/' }) {
                     onToggle={(label) => setActiveDropdown(activeDropdown === label ? null : label)}
                     onKeyDown={handleDropdownKeyDown}
                   />
-                )
               ) : (
                 <a
                   key={item.to}
@@ -503,7 +615,7 @@ export function Header({ currentPath = '/' }) {
                 Поиск по сайту
               </button>
               {NAV_ITEMS.map((item) =>
-                item.children ? (
+                (item.children || item.mega) ? (
                   <MobileAccordion
                     key={item.label}
                     item={item}

@@ -1,3 +1,6 @@
+import { DOCTORS } from './doctors-data.js'
+import { matchesFilter } from './filters.js'
+
 export const DIRECTIONS = [
   {
     label: 'Маммология', to: '/mammology',
@@ -24,6 +27,18 @@ export const DIRECTIONS = [
 
 export const VAB_ITEM = { label: 'ВАБ — основное направление', to: '/vab' }
 
+const DOCTOR_GROUPS = [
+  { id: 'mammology', label: 'Маммология', to: '/mammology' },
+  { id: 'gynecology', label: 'Гинекология', to: '/gynecology' },
+  { id: 'endocrinology', label: 'Эндокринология', to: '/endocrinology' },
+  { id: 'nutrition', label: 'Нутрициология', to: '/nutrition' },
+].map((group) => ({
+  ...group,
+  doctors: DOCTORS
+    .filter((d) => matchesFilter(d, group.id))
+    .map((d) => ({ name: d.name.split(' ').slice(0, 2).join(' '), slug: d.slug, photo: d.photo })),
+}))
+
 export const NAV_ITEMS = [
   {
     label: 'О клинике',
@@ -35,7 +50,7 @@ export const NAV_ITEMS = [
     ]
   },
   { label: 'Направления', mega: true, children: DIRECTIONS, vab: VAB_ITEM },
-  { label: 'Доктора', to: '/doctors' },
+  { label: 'Доктора', mega: 'doctors', to: '/doctors', groups: DOCTOR_GROUPS },
   {
     label: 'Пациентам',
     children: [
