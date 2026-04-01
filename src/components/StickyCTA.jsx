@@ -26,8 +26,7 @@ export function StickyCTA() {
           <button
             type="button"
             data-booking-btn="true"
-            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-clay-dark"
-            style={{ background: 'linear-gradient(145deg, #d9f1ea, #bddfd4)' }}
+            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-clay-dark bg-clay-mint-pale"
             aria-label="Записаться"
           >
             <CalendarCheck size={18} />

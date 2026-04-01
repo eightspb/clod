@@ -6,6 +6,7 @@ import {
   SHORT_PRICE_CATEGORIES,
   formatPriceLabel,
 } from '../../lib/price-list.js'
+import { FadeInSection } from '../FadeInSection.jsx'
 
 const principles = [
   {
@@ -35,15 +36,15 @@ export function Prices() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-12">
+      <section className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5" style={{ background: 'rgba(47,143,124,0.10)', color: '#2F8F7C' }}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 badge-specialty-mint">
               <Shield size={12} />
               Прозрачная стоимость
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Короткий и полный прайс-лист клиники
             </h1>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
@@ -53,265 +54,281 @@ export function Prices() {
               Официальный прайс-лист ООО «Клиника Одинцова» обновлён {OFFICIAL_PRICE_LIST_UPDATED_AT}. Принимаем в Санкт-Петербурге, в Приморском районе, рядом с м. Комендантский проспект и м. Старая Деревня.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                Записаться на приём
-                <ArrowRight size={16} />
-              </button>
-              <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary gap-2">
+              <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-primary gap-2">
                 Смотреть все услуги и цены
+                <ArrowRight size={16} />
               </a>
+              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
+                Записаться на приём
+              </button>
             </div>
           </div>
         </div>
       </section>
 
       {/* PRINCIPLES */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Три принципа прозрачности</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Поясняем состав услуги и варианты оплаты без лишней рекламной формы.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {principles.map((p) => (
-              <div key={p.title} className={`clay ${p.bg} p-5 flex flex-col relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
-                <div className="relative z-10">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/75 shadow-sm">
-                    <p.Icon size={24} className="text-clay-dark" />
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-7">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Три принципа прозрачности</h2>
+              <p className="text-clay-muted max-w-lg mx-auto">Поясняем состав услуги и варианты оплаты без лишней рекламной формы.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {principles.map((p, i) => (
+                <FadeInSection key={p.title} staggerIndex={i} className="h-full">
+                  <div className={`clay ${p.bg} card-interactive p-5 flex flex-col relative overflow-hidden`}>
+                    <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
+                    <div className="relative z-10">
+                      <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/75 shadow-sm">
+                        <p.Icon size={24} className="text-clay-dark" />
+                      </div>
+                      <div className="inline-block px-3 py-1 rounded-full bg-white/70 text-clay-dark text-xs font-bold mb-4">{p.tag}</div>
+                      <h3 className="font-bold text-clay-dark text-xl mb-3">{p.title}</h3>
+                      <p className="text-clay-dark/85 text-sm leading-relaxed">{p.desc}</p>
+                    </div>
                   </div>
-                  <div className="inline-block px-3 py-1 rounded-full bg-white/70 text-clay-dark text-xs font-bold mb-4">{p.tag}</div>
-                  <h3 className="font-bold text-clay-dark text-xl mb-3">{p.title}</h3>
-                  <p className="text-clay-dark/85 text-sm leading-relaxed">{p.desc}</p>
-                </div>
-              </div>
-            ))}
+                </FadeInSection>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* ВАБ ALL INCLUSIVE */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-6 md:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
-                <div className="stat-pill mb-4">Ключевая процедура</div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-                  ВАБ — вакуумная аспирационная биопсия
-                </h2>
-                <p className="text-clay-muted leading-relaxed mb-4">
-                  Базовую стоимость и дополнительные позиции обсуждаем заранее. Итоговая сумма зависит от объёма вмешательства и клинической ситуации.
-                </p>
-                <div className="text-4xl font-extrabold text-clay-mint mb-1">от 80 000 ₽</div>
-                <p className="text-sm text-clay-muted mb-6">Базовая стоимость процедуры</p>
-                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
-                  Записаться на ВАБ
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-clay-dark mb-2">Базовая стоимость включает:</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-                  {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ', 'Все расходные материалы'].map((item) => (
-                    <div key={item} className="clay clay-card flex items-center gap-2.5 px-3 py-2.5">
-                      <CheckCircle size={15} className="text-clay-mint flex-shrink-0" />
-                      <span className="text-xs font-medium text-clay-dark">{item}</span>
-                    </div>
-                  ))}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="stat-pill mb-4">Ключевая процедура</div>
+                  <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
+                    ВАБ — вакуумная аспирационная биопсия
+                  </h2>
+                  <p className="text-clay-muted leading-relaxed mb-4">
+                    Базовую стоимость и дополнительные позиции обсуждаем заранее. Итоговая сумма зависит от объёма вмешательства и клинической ситуации.
+                  </p>
+                  <div className="text-4xl font-serif font-light text-clay-mint mb-1">от 80 000 ₽</div>
+                  <p className="text-sm text-clay-muted mb-6">Базовая стоимость процедуры</p>
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+                    Записаться на ВАБ
+                    <ArrowRight size={16} />
+                  </button>
                 </div>
-                <p className="text-sm font-semibold text-clay-dark mb-2">Дополнительные услуги (оплачиваются отдельно):</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {['Подготовка к процедуре', 'Местная анестезия', 'Гистологическое исследование', 'Послеоперационное наблюдение', 'Контрольный снимок после процедуры'].map((item) => (
-                    <div key={item} className="clay clay-card-soft-peach clay flex items-center gap-2.5 px-3 py-2.5">
-                      <CheckCircle size={15} className="text-clay-peach flex-shrink-0" />
-                      <span className="text-xs font-medium text-clay-dark">{item}</span>
-                    </div>
-                  ))}
+                <div>
+                  <p className="text-sm font-semibold text-clay-dark mb-2">Базовая стоимость включает:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                    {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ', 'Все расходные материалы'].map((item) => (
+                      <div key={item} className="clay clay-card flex items-center gap-2.5 px-3 py-2.5">
+                        <CheckCircle size={15} className="text-clay-mint flex-shrink-0" />
+                        <span className="text-xs font-medium text-clay-dark">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm font-semibold text-clay-dark mb-2">Дополнительные услуги (оплачиваются отдельно):</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {['Подготовка к процедуре', 'Местная анестезия', 'Гистологическое исследование', 'Послеоперационное наблюдение', 'Контрольный снимок после процедуры'].map((item) => (
+                      <div key={item} className="clay clay-card-soft-peach clay flex items-center gap-2.5 px-3 py-2.5">
+                        <CheckCircle size={15} className="text-clay-peach flex-shrink-0" />
+                        <span className="text-xs font-medium text-clay-dark">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
       {/* PRICE TABLES */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Короткий прайс-лист</h2>
-            <p className="text-clay-muted max-w-2xl mx-auto">
-              Основные и самые популярные позиции по направлениям. Полный прайс-лист со всеми кодами и услугами доступен отдельной страницей.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {SHORT_PRICE_CATEGORIES.map((cat) => (
-              <div key={cat.title} className={`clay ${cat.color} p-6`}>
-                <div className="flex items-center gap-3 mb-5">
-                  <span className="text-2xl">{cat.icon}</span>
-                  <h3 className="font-bold text-clay-dark text-lg">{cat.title}</h3>
-                </div>
-                <p className="text-sm text-clay-muted leading-relaxed mb-4">{cat.intro}</p>
-                <div className="space-y-2.5">
-                  {cat.items.map((item) => (
-                    <div key={item.name} className="bg-white/60 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                      <span className="text-sm text-clay-dark flex-1">{item.name}</span>
-                      <span className="text-sm font-bold flex-shrink-0" style={{ color: cat.accent }}>
-                        {formatPriceLabel(item.price, item.isFrom)}
-                      </span>
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-7">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Короткий прайс-лист</h2>
+              <p className="text-clay-muted max-w-2xl mx-auto">
+                Основные и самые популярные позиции по направлениям. Полный прайс-лист со всеми кодами и услугами доступен отдельной страницей.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {SHORT_PRICE_CATEGORIES.map((cat, i) => (
+                <FadeInSection key={cat.title} staggerIndex={i} className="h-full">
+                  <div className={`clay ${cat.color} p-6`}>
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="text-2xl">{cat.icon}</span>
+                      <h3 className="font-bold text-clay-dark text-lg">{cat.title}</h3>
                     </div>
-                  ))}
+                    <p className="text-sm text-clay-muted leading-relaxed mb-4">{cat.intro}</p>
+                    <div className="space-y-2.5">
+                      {cat.items.map((item) => (
+                        <div key={item.name} className="bg-white/60 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                          <span className="text-sm text-clay-dark flex-1">{item.name}</span>
+                          <span className="text-sm font-bold flex-shrink-0" style={{ color: cat.accent }}>
+                            {formatPriceLabel(item.price, item.isFrom)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {cat.note ? (
+                      <p className="text-xs text-clay-muted leading-relaxed mt-4">{cat.note}</p>
+                    ) : null}
+                    <div className="mt-5">
+                      <a href={cat.fullPriceHref} className="clay btn-clay-secondary text-sm">
+                        Перейти в полный прайс-лист
+                      </a>
+                    </div>
+                  </div>
+                </FadeInSection>
+              ))}
+            </div>
+            <p className="text-xs text-clay-muted text-center mt-5">
+              * Цены указаны в рублях. Для услуг с пометкой «от» окончательная стоимость зависит от объёма программы или вмешательства.
+            </p>
+            <div className="text-center mt-6">
+              <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary text-sm">
+                Смотреть все услуги и цены
+              </a>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* PRIVACY / DIGITAL */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="clay clay-card p-6 flex items-start gap-4">
+                <div className="icon-circle-mint flex-shrink-0">
+                  <Lock size={20} className="text-white" />
                 </div>
-                {cat.note ? (
-                  <p className="text-xs text-clay-muted leading-relaxed mt-4">{cat.note}</p>
-                ) : null}
-                <div className="mt-5">
-                  <a href={cat.fullPriceHref} className="clay btn-clay-secondary text-sm">
-                    Перейти в полный прайс-лист
+                <div>
+                  <h3 className="font-bold text-clay-dark mb-2">Защита данных</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed">
+                    Мы бережно относимся к медицинской информации и выдаём документы пациенту или его законному представителю в предусмотренном порядке.
+                  </p>
+                </div>
+              </div>
+              <div className="clay clay-card p-6 flex items-start gap-4">
+                <div className="icon-circle-blue flex-shrink-0">
+                  <Database size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-clay-dark mb-2">Получение документов</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed">
+                    Заключения, снимки и протоколы можно получить в клинике. Если планируется повторный приём, подскажем, какие материалы лучше взять с собой.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* PAYMENT METHODS */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-7">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Способы оплаты</h2>
+              <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат - принимаем все основные способы оплаты</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="clay clay-card-soft-mint p-5 flex flex-col gap-4">
+                <div className="icon-circle-mint">
+                  <CreditCard size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-clay-dark text-lg mb-2">Наличные и карты</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                    Принимаем наличные и банковские карты любых платёжных систем: Visa, Mastercard, МИР. Оплата в день процедуры или по счёту.
+                  </p>
+                  <div className="space-y-2">
+                    {['Наличные рубли', 'Банковские карты', 'Оплата по QR-коду', 'Безналичный расчёт'].map((item) => (
+                      <div key={item} className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-clay-mint flex-shrink-0" />
+                        <span className="text-sm text-clay-dark">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="clay clay-card-soft-blue p-5 flex flex-col gap-4">
+                <div className="icon-circle-blue">
+                  <Shield size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-clay-dark text-lg mb-2">ДМС</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                    Работаем с полисами добровольного медицинского страхования ведущих страховых компаний. Уточните наличие вашей страховой при записи.
+                  </p>
+                  <div className="space-y-2">
+                    {['СОГАЗ', 'Ингосстрах', 'АльфаСтрахование', 'ВСК и другие'].map((item) => (
+                      <div key={item} className="flex items-center gap-2">
+                        <CheckCircle size={14} className="flex-shrink-0 text-clay-blue" />
+                        <span className="text-sm text-clay-dark">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="clay clay-card-soft-peach p-5 flex flex-col gap-4">
+                <div className="icon-circle-peach">
+                  <Clock size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-clay-dark text-lg mb-2">Рассрочка</h3>
+                  <p className="text-clay-muted text-sm leading-relaxed mb-4">
+                    Разделите стоимость лечения на удобные платежи без переплат. Рассрочка доступна для процедур от 10 000 ₽ через партнёрские банки.
+                  </p>
+                  <div className="space-y-2">
+                    {['От 0% переплаты', 'Срок до 12 месяцев', 'Решение за 5 минут', 'Без первоначального взноса'].map((item) => (
+                      <div key={item} className="flex items-center gap-2">
+                        <CheckCircle size={14} className="flex-shrink-0 text-clay-peach" />
+                        <span className="text-sm text-clay-dark">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* CTA */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
+              <div className="blob-mint absolute -top-10 -right-10 w-36 h-36 opacity-25 pointer-events-none" />
+              <div className="blob-peach absolute -bottom-10 -left-10 w-36 h-36 opacity-22 pointer-events-none" />
+              <div className="relative z-10">
+                <Star size={40} className="text-clay-mint mx-auto mb-4" />
+                <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
+                  Остались вопросы по ценам?
+                </h2>
+                <p className="text-clay-muted mb-5 max-w-md mx-auto">
+                  Подскажем ориентир по стоимости и составу услуги удобным для вас способом.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
+                    <Phone size={16} />
+                    Позвонить
+                  </a>
+                  <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                    Написать в Telegram
                   </a>
                 </div>
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-clay-muted text-center mt-5">
-            * Цены указаны в рублях. Для услуг с пометкой «от» окончательная стоимость зависит от объёма программы или вмешательства.
-          </p>
-          <div className="text-center mt-6">
-            <a href={FULL_PRICE_LIST_PATH} className="clay btn-clay-secondary text-sm">
-              Смотреть все услуги и цены
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* PRIVACY / DIGITAL */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="clay clay-card p-6 flex items-start gap-4">
-              <div className="icon-circle-mint flex-shrink-0">
-                <Lock size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark mb-2">Защита данных</h3>
-                <p className="text-clay-muted text-sm leading-relaxed">
-                  Мы бережно относимся к медицинской информации и выдаём документы пациенту или его законному представителю в предусмотренном порядке.
-                </p>
-              </div>
-            </div>
-            <div className="clay clay-card p-6 flex items-start gap-4">
-              <div className="icon-circle-blue flex-shrink-0">
-                <Database size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark mb-2">Получение документов</h3>
-                <p className="text-clay-muted text-sm leading-relaxed">
-                  Заключения, снимки и протоколы можно получить в клинике. Если планируется повторный приём, подскажем, какие материалы лучше взять с собой.
-                </p>
-              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* PAYMENT METHODS */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Способы оплаты</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Выбирайте удобный для вас формат - принимаем все основные способы оплаты</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div className="clay clay-card-soft-mint p-5 flex flex-col gap-4">
-              <div className="icon-circle-mint">
-                <CreditCard size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark text-lg mb-2">Наличные и карты</h3>
-                <p className="text-clay-muted text-sm leading-relaxed mb-4">
-                  Принимаем наличные и банковские карты любых платёжных систем: Visa, Mastercard, МИР. Оплата в день процедуры или по счёту.
-                </p>
-                <div className="space-y-2">
-                  {['Наличные рубли', 'Банковские карты', 'Оплата по QR-коду', 'Безналичный расчёт'].map((item) => (
-                    <div key={item} className="flex items-center gap-2">
-                      <CheckCircle size={14} className="text-clay-mint flex-shrink-0" />
-                      <span className="text-sm text-clay-dark">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="clay clay-card-soft-blue p-5 flex flex-col gap-4">
-              <div className="icon-circle-blue">
-                <Shield size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark text-lg mb-2">ДМС</h3>
-                <p className="text-clay-muted text-sm leading-relaxed mb-4">
-                  Работаем с полисами добровольного медицинского страхования ведущих страховых компаний. Уточните наличие вашей страховой при записи.
-                </p>
-                <div className="space-y-2">
-                  {['СОГАЗ', 'Ингосстрах', 'АльфаСтрахование', 'ВСК и другие'].map((item) => (
-                    <div key={item} className="flex items-center gap-2">
-                      <CheckCircle size={14} style={{ color: '#4880B0' }} className="flex-shrink-0" />
-                      <span className="text-sm text-clay-dark">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="clay clay-card-soft-peach p-5 flex flex-col gap-4">
-              <div className="icon-circle-peach">
-                <Clock size={20} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-dark text-lg mb-2">Рассрочка</h3>
-                <p className="text-clay-muted text-sm leading-relaxed mb-4">
-                  Разделите стоимость лечения на удобные платежи без переплат. Рассрочка доступна для процедур от 10 000 ₽ через партнёрские банки.
-                </p>
-                <div className="space-y-2">
-                  {['От 0% переплаты', 'Срок до 12 месяцев', 'Решение за 5 минут', 'Без первоначального взноса'].map((item) => (
-                    <div key={item} className="flex items-center gap-2">
-                      <CheckCircle size={14} style={{ color: '#D07858' }} className="flex-shrink-0" />
-                      <span className="text-sm text-clay-dark">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
-            <div className="blob-mint absolute -top-10 -right-10 w-36 h-36 opacity-25 pointer-events-none" />
-            <div className="blob-peach absolute -bottom-10 -left-10 w-36 h-36 opacity-22 pointer-events-none" />
-            <div className="relative z-10">
-              <Star size={40} className="text-clay-mint mx-auto mb-4" />
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">
-                Остались вопросы по ценам?
-              </h2>
-              <p className="text-clay-muted mb-5 max-w-md mx-auto">
-                Подскажем ориентир по стоимости и составу услуги удобным для вас способом.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-primary gap-2">
-                  <Phone size={16} />
-                  Позвонить
-                </a>
-                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                  Написать в Telegram
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
     </div>
   )
 }

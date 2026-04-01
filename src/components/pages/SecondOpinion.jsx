@@ -3,6 +3,7 @@ import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } fr
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { SecondOpinionForm } from '../SecondOpinionForm.jsx'
+import { FadeInSection } from '../FadeInSection.jsx'
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -116,7 +117,7 @@ export function SecondOpinion() {
       )}
 
       {/* HERO */}
-      <section className="relative overflow-hidden pt-8 pb-12">
+      <section className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">
@@ -124,9 +125,9 @@ export function SecondOpinion() {
               <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
               <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-5">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Сомневаетесь в необходимости операции?{' '}
-              <span className="text-clay-mint">Перепроверьте заключение</span> у онколога-маммолога
+              <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога
             </h1>
             <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
               Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
@@ -151,105 +152,113 @@ export function SecondOpinion() {
       </section>
 
       {/* STAT BANNER */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { val: '0 ₽', desc: 'стоимость второго мнения - полностью бесплатно' },
-              { val: '30–40 мин', desc: 'консультация и разбор случая с онкологом-маммологом' },
-              { val: 'В день обращения', desc: 'обычно обсуждаем дальнейший план без лишнего ожидания' },
-            ].map((s) => (
-              <div key={s.val} className="clay clay-card p-5 text-center">
-                <div className="text-3xl sm:text-4xl font-extrabold text-clay-mint mb-1.5">{s.val}</div>
-                <p className="text-sm text-clay-muted leading-tight">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* STEPS */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="text-center mb-7">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-clay-dark mb-3">Как это работает</h2>
-            <p className="text-clay-muted max-w-lg mx-auto">Три понятных шага до ясности и спокойствия</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {steps.map((s) => (
-              <div key={s.n} className={`clay ${s.card} p-6 flex flex-col relative`}>
-                <div className="absolute top-4 right-4 text-5xl font-extrabold opacity-10 text-clay-dark leading-none">
-                  {s.n}
-                </div>
-                <div className={`${s.bg} mb-4`}>{s.icon}</div>
-                <h3 className="font-bold text-clay-dark text-lg mb-2">{s.title}</h3>
-                <p className="text-clay-muted text-sm leading-relaxed flex-1 mb-4">{s.desc}</p>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold self-start" style={{ background: 'rgba(78,200,168,0.12)', color: '#3AB89A' }}>
-                  <CheckCircle size={12} />
-                  {s.note}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* GUARANTEES */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="clay clay-card p-6 md:p-8">
-            <h2 className="text-xl font-extrabold text-clay-dark mb-5">Наши гарантии</h2>
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {guarantees.map((g, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="clay clay-card p-2 rounded-2xl flex-shrink-0">{g.icon}</div>
-                  <p className="text-sm text-clay-muted leading-relaxed">{g.text}</p>
+              {[
+                { val: '0 ₽', desc: 'стоимость второго мнения - полностью бесплатно' },
+                { val: '30–40 мин', desc: 'консультация и разбор случая с онкологом-маммологом' },
+                { val: 'В день обращения', desc: 'обычно обсуждаем дальнейший план без лишнего ожидания' },
+              ].map((s) => (
+                <div key={s.val} className="clay clay-card card-interactive p-5 text-center">
+                  <div className="font-serif font-light text-3xl sm:text-4xl text-clay-mint mb-1.5">{s.val}</div>
+                  <p className="text-sm text-clay-muted leading-tight">{s.desc}</p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
 
-      {/* FAQ */}
-      <section className="section">
-        <div className="container-clay">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div>
-              <FaqSection items={SECOND_OPINION_FAQ} title="Часто задаваемые вопросы" />
+      {/* STEPS */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="text-center mb-7">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Как это работает</h2>
+              <p className="text-clay-muted max-w-lg mx-auto">Три понятных шага до ясности и спокойствия</p>
             </div>
-            <div className="sticky top-24">
-              <div className="clay clay-card-mint p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-white/70 border border-white/80 flex items-center justify-center mb-4">
-                    <span className="text-2xl font-extrabold text-clay-mint">0₽</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {steps.map((s, i) => (
+                <FadeInSection key={s.n} staggerIndex={i} className="h-full">
+                  <div className={`clay ${s.card} card-interactive p-6 flex flex-col relative`}>
+                    <span className="deco-numeral absolute -top-4 -right-2 opacity-30">{s.n}</span>
+                    <div className={`${s.bg} mb-4`}>{s.icon}</div>
+                    <h3 className="font-bold text-clay-dark text-lg mb-2">{s.title}</h3>
+                    <p className="text-clay-muted text-sm leading-relaxed flex-1 mb-4">{s.desc}</p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold self-start badge-specialty-mint">
+                      <CheckCircle size={12} />
+                      {s.note}
+                    </div>
                   </div>
-                  <h3 className="font-extrabold text-clay-dark text-2xl mb-3">
-                    Второе мнение - бесплатно
-                  </h3>
-                  <p className="text-clay-text text-sm leading-relaxed mb-6">
-                    Нам важно, чтобы вы приняли осознанное решение. Изучение заключения нашим онкологом-маммологом - без каких-либо условий.
-                  </p>
-                  <div className="space-y-3">
-                    <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-white w-full justify-center gap-2">
-                      <Phone size={16} />
-                      Позвонить: {PHONE_DISPLAY}
-                    </a>
-                    <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary w-full justify-center gap-2">
-                      <FileText size={16} />
-                      Отправить данные на проверку
-                    </button>
-                  </div>
-                  <p className="text-clay-muted text-xs text-center mt-4">
-                    Обычно отвечаем в рабочее время без долгого ожидания
-                  </p>
+                </FadeInSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* GUARANTEES */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="clay clay-card-mint p-8 md:p-10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/3" />
+              <div className="relative z-10">
+                <h2 className="text-2xl heading-serif text-clay-dark mb-6">Наши гарантии</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {guarantees.map((g, i) => (
+                    <div key={i} className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-2xl bg-white/70 border border-white/80 flex items-center justify-center flex-shrink-0">{g.icon}</div>
+                      <p className="text-sm text-clay-dark leading-relaxed font-medium">{g.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FadeInSection>
+
+      {/* FAQ */}
+      <FadeInSection>
+        <section className="section">
+          <div className="container-clay">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div>
+                <FaqSection items={SECOND_OPINION_FAQ} title="Часто задаваемые вопросы" />
+              </div>
+              <div className="sticky top-24">
+                <div className="clay clay-card-mint p-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/15 -translate-y-1/2 translate-x-1/3" />
+                  <div className="relative z-10">
+                    <h3 className="heading-serif text-clay-dark text-2xl mb-3">
+                      Второе мнение - бесплатно
+                    </h3>
+                    <p className="text-clay-text text-sm leading-relaxed mb-6">
+                      Нам важно, чтобы вы приняли осознанное решение. Изучение заключения нашим онкологом-маммологом - без каких-либо условий.
+                    </p>
+                    <div className="space-y-3">
+                      <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-white w-full justify-center gap-2">
+                        <Phone size={16} />
+                        Позвонить: {PHONE_DISPLAY}
+                      </a>
+                      <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary w-full justify-center gap-2">
+                        <FileText size={16} />
+                        Отправить данные на проверку
+                      </button>
+                    </div>
+                    <p className="text-clay-muted text-xs text-center mt-4">
+                      Обычно отвечаем в рабочее время без долгого ожидания
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
     </div>
   )
 }
