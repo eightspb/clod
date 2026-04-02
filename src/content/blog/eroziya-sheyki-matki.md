@@ -7,7 +7,6 @@ author: "Кондратьева К. С."
 authorSlug: "kondratyeva"
 category: "Гинекология"
 tags: ["эрозия", "гинекология", "мифы", "женское здоровье"]
-ctaType: second-opinion
 image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=800&auto=format&fit=crop"
 imageAlt: "Эрозия шейки матки"
 readingTime: 4

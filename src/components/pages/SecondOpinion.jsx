@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
+import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield, Activity } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { FaqSection } from '../FaqSection.jsx'
@@ -130,9 +130,9 @@ export function SecondOpinion() {
         <div className="container-clay relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
             <div>
-              <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
-                <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
-                <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
+              <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2.5 mb-5">
+                <Activity size={18} className="text-clay-mint" />
+                <span className="text-sm font-semibold text-clay-dark">Клиника Одинцова · Санкт-Петербург</span>
               </div>
               <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                 Сомневаетесь в необходимости операции?{' '}

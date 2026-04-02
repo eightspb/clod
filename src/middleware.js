@@ -2,7 +2,9 @@ import { defineMiddleware } from 'astro:middleware'
 import { isAuthenticated } from './lib/auth.js'
 
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
-// Fonts are self-hosted (/fonts/inter-var.woff2) - no external font CDN on public pages.
+// Primary fonts are self-hosted (/fonts/); Google Fonts are loaded dynamically
+// by ThemeSwitcher for alternative font selection — fonts.googleapis.com (CSS)
+// and fonts.gstatic.com (woff2 files) must be allowed.
 // tracker.js makes fetch calls only to same-origin /api/* endpoints.
 // Astro SSG hydration and JSON-LD scripts require 'unsafe-inline' for script-src.
 // NOTE: 'require-trusted-types-for' is intentionally omitted — it conflicts with
@@ -16,8 +18,8 @@ function getCspDirectives() {
   return [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://booking.medflex.ru",
-    "style-src 'self' 'unsafe-inline'",
-    "font-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https:",
     "frame-src https://yandex.ru https://booking.medflex.ru",
     `connect-src ${connectSrc} https://booking.medflex.ru`,
