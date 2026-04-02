@@ -289,6 +289,10 @@
   .clay-card-lavender  { background: var(--surface-lavender); border-color: transparent; }
   .clay-card-yellow    { background: var(--surface-yellow); border-color: transparent; }
 
+  /* Dark accent cards — solid dark bg, white text (WCAG AA ≥ 7:1) */
+  .clay-card-accent     { background: var(--accent); border-color: transparent; }
+  .clay-card-accent-blue { background: var(--color-blue, #4A7FA5); border-color: transparent; }
+
   /* Soft pastel cards — diagonal gradient tint */
   .clay-card-soft-mint      { background: var(--gradient-card-mint); border-color: transparent; }
   .clay-card-soft-peach     { background: var(--gradient-card-peach); border-color: transparent; }
