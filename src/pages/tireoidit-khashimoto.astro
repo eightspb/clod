@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { TireoiditKhashimoto, TIREOIDIT_FAQ } from '../components/pages/TireoiditKhashimoto.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Тиреоидит Хашимото',
+  alternateName: 'Hashimoto thyroiditis',
+  description: 'Аутоиммунное заболевание щитовидной железы, при котором иммунная система вырабатывает антитела против клеток железы, вызывая хроническое воспаление и постепенное снижение функции (гипотиреоз).',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Щитовидная железа',
+  },
+  signOrSymptom: [
+    { '@type': 'MedicalSymptom', name: 'Хроническая усталость' },
+    { '@type': 'MedicalSymptom', name: 'Набор веса' },
+    { '@type': 'MedicalSymptom', name: 'Зябкость' },
+    { '@type': 'MedicalSymptom', name: 'Увеличение щитовидной железы (зоб)' },
+    { '@type': 'MedicalSymptom', name: 'Повышенные антитела к ТПО' },
+  ],
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Заместительная терапия левотироксином',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Динамическое наблюдение при эутиреозе',
+    },
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Коррекция микронутриентов (селен, витамин D)',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(TIREOIDIT_FAQ)
+---
+
+<Layout
+  title="Тиреоидит Хашимото — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём эндокринолога при тиреоидите Хашимото в Приморском районе Санкт-Петербурга. Анализы на антитела, ТТГ, УЗИ щитовидной железы, подбор терапии. Богатырский проспект, м. Комендантский проспект."
+  keywords="тиреоидит Хашимото лечение СПб, аутоиммунный тиреоидит, эндокринолог Санкт-Петербург, антитела к ТПО, щитовидная железа, гипотиреоз лечение, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Эндокринология', href: '/endocrinology' }, { label: 'Тиреоидит Хашимото' }]} />
+  <TireoiditKhashimoto client:load />
+</Layout>

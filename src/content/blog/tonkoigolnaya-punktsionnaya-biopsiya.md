@@ -7,8 +7,8 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Маммология"
 tags: ["биопсия", "УЗИ", "диагностика", "маммология"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Тонкоигольная пункционная биопсия молочных желёз"
+image: "/images/blog/tonkoigolnaya-punktsionnaya-biopsiya.webp"
+imageAlt: "Процедура биопсии — тонкоигольная пункция молочной железы"
 readingTime: 2
 ---
 

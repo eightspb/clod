@@ -33,7 +33,7 @@ export function Licenses() {
             <Shield size={15} className="text-clay-teal" />
             Официальные документы
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-clay-text mb-5 speakable">
+          <h1 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-5 speakable">
             Лицензии и сертификаты клиники
           </h1>
           <p className="text-lg text-clay-muted leading-relaxed">
@@ -46,7 +46,7 @@ export function Licenses() {
 
       {/* Лицензии */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-5">Лицензия на медицинскую деятельность</h2>
+        <h2 className="text-2xl heading-serif text-clay-dark mb-5">Лицензия на медицинскую деятельность</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {LICENSE_ITEMS.map((item) => (
             <div key={item.number} className={`clay-card ${item.color} p-6 flex gap-4`}>
@@ -85,7 +85,7 @@ export function Licenses() {
 
       {/* Специальности */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-5">Лицензированные виды деятельности</h2>
+        <h2 className="text-2xl heading-serif text-clay-dark mb-5">Лицензированные виды деятельности</h2>
         <div className="clay-card p-6 md:p-8">
           <ul className="grid sm:grid-cols-2 gap-3">
             {SPECIALTIES.map((spec) => (
@@ -100,7 +100,7 @@ export function Licenses() {
 
       {/* Сертификаты врачей */}
       <section className="mb-10">
-        <h2 className="text-2xl font-bold text-clay-text mb-4">Сертификаты и аккредитации врачей</h2>
+        <h2 className="text-2xl heading-serif text-clay-dark mb-4">Сертификаты и аккредитации врачей</h2>
         <p className="text-clay-muted leading-relaxed mb-6">
           Каждый врач клиники регулярно проходит повышение квалификации и подтверждает свою аккредитацию
           в соответствии с требованиями Министерства здравоохранения РФ. Документы об образовании и
@@ -113,7 +113,7 @@ export function Licenses() {
 
       {/* CTA */}
       <section className="clay-card-soft-mint clay-card p-8 text-center">
-        <h2 className="text-xl font-bold text-clay-text mb-3">Есть вопросы о документах?</h2>
+        <h2 className="text-xl heading-serif text-clay-dark mb-3">Есть вопросы о документах?</h2>
         <p className="text-clay-muted mb-6 max-w-lg mx-auto">
           Свяжитесь с нами - предоставим полный пакет документов по запросу.
         </p>

@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["ВАБ", "подготовка", "маммология", "фиброаденома", "процедура"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Подготовка к ВАБ"
+image: "/images/blog/kak-podgotovitsya-k-vab.webp"
+imageAlt: "Подготовка к амбулаторной процедуре ВАБ"
 readingTime: 5
 ---
 

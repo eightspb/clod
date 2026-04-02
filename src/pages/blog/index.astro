@@ -48,15 +48,6 @@ const FALLBACK_COLORS = [
   'clay-card-soft-lavender',
 ]
 
-// Картинки направлений с сайта odintsovclinic.ru (Tilda CDN)
-const CATEGORY_IMAGES = {
-  'Маммология':     'https://static.tildacdn.com/tild3633-3438-4663-b938-306434333039/Radetzky2_3Breastreduction11280x640_1.jpg',
-  'Эндокринология': 'https://static.tildacdn.com/tild3133-6231-4538-a162-643234333132/shchitovidnayazheleza3.jpg',
-  'Гинекология':    'https://static.tildacdn.com/tild6633-3765-4236-a638-356138616239/1115x741xplazmoliftingvginekologiiotzivyjpgpagespeedicNtiiBtqsEX.jpg',
-  'Неврология':     'https://static.tildacdn.com/tild6231-3339-4938-a539-646461653165/Reflex-Testing-1.jpg',
-  'Диагностика':    'https://static.tildacdn.com/tild3065-3562-4066-a135-303636303863/9001900.jpg',
-  'Нутрициология':  'https://static.tildacdn.com/tild6633-3765-4236-a638-356138616239/1115x741xplazmoliftingvginekologiiotzivyjpgpagespeedicNtiiBtqsEX.jpg',
-}
 
 const ALL_CATEGORIES = ['Все', 'Маммология', 'Гинекология', 'Эндокринология', 'Нутрициология', 'Диагностика', 'События клиники', 'Клинические случаи', 'Видео']
 
@@ -241,7 +232,7 @@ const itemListSchema = {
                 {/* Изображение карточки */}
                 <div class="w-full h-52 overflow-hidden relative bg-gray-100">
                   <img
-                    src={CATEGORY_IMAGES[post.data.category] || normalizeImageUrl(post.data.image)}
+                    src={normalizeImageUrl(post.data.image)}
                     alt={post.data.imageAlt || post.data.title}
                     loading="lazy"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"

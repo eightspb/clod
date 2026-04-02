@@ -6,8 +6,8 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Диагностика"
 tags: [диагностика, менопауза, гормоны, анализы]
-image: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=1200&q=80"
-imageAlt: "Врач изучает результаты гормональных анализов"
+image: "/images/blog/testirovaniye-gormonov-menopauza.webp"
+imageAlt: "Гормональные анализы при менопаузе — что показывают результаты"
 readingTime: 4
 ctaType: appointment
 ---

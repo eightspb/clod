@@ -6,8 +6,8 @@ publishDate: 2026-04-01
 author: "Редакция клиники"
 category: "Маммология"
 tags: [маммология, онкология, диагностика, масталгия]
-image: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=1200&q=80"
-imageAlt: "Женщина на консультации у маммолога"
+image: "/images/blog/bol-v-grudi-i-risk-raka.webp"
+imageAlt: "Маммологический осмотр — боль в груди и диагностика"
 readingTime: 4
 ctaType: appointment
 ---

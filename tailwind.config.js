@@ -5,18 +5,18 @@ export default {
     extend: {
       colors: {
         clay: {
-          mint: '#1B6B5A',
+          mint: 'rgb(var(--color-mint-rgb) / <alpha-value>)',
           'mint-400': '#3D9E88',
           'mint-500': '#2E8C77',
-          'mint-600': '#1B6B5A',
+          'mint-600': 'rgb(var(--color-mint-rgb) / <alpha-value>)',
           'mint-700': '#155A4B',
           'mint-dark': '#155A4B',
           'mint-light': '#A0D4C4',
           'mint-pale': '#E8F5F0',
-          peach: '#C4785C',
+          peach: 'rgb(var(--color-peach-rgb) / <alpha-value>)',
           'peach-light': '#E8B8A0',
           'peach-pale': '#FDF3EE',
-          blue: '#4A7FA5',
+          blue: 'rgb(var(--color-blue-rgb) / <alpha-value>)',
           'blue-light': '#8CB8D4',
           'blue-pale': '#EDF4F9',
           lavender: '#7B68A0',
@@ -34,7 +34,7 @@ export default {
           'admin-border': '#E8E2DA',
           'admin-muted': '#7A8C84',
           border: '#E5E7EB',
-          teal: '#1B6B5A',
+          teal: 'rgb(var(--color-mint-rgb) / <alpha-value>)',
         },
       },
       borderRadius: {

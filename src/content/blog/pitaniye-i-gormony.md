@@ -6,7 +6,7 @@ publishDate: 2026-04-01
 author: "Редакция клиники"
 category: "Нутрициология"
 tags: [нутрициология, гормоны, питание, ПМС]
-image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200&q=80"
+image: "/images/blog/pitaniye-i-gormony.webp"
 imageAlt: "Тарелка с разнообразными овощами, орехами и здоровой едой"
 readingTime: 4
 ctaType: appointment

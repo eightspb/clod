@@ -121,7 +121,7 @@ export function Media() {
         <div className="container-clay">
           <BreadcrumbNav items={[{ label: 'СМИ и телевидение' }]} />
           <div className="max-w-2xl mt-6">
-            <h1 className="text-3xl sm:text-4xl font-bold text-clay-dark leading-tight">
+            <h1 className="text-3xl sm:text-4xl heading-serif text-clay-dark leading-tight">
               Врачи клиники в СМИ
             </h1>
             <p className="mt-4 text-clay-muted text-lg leading-relaxed">
@@ -136,7 +136,7 @@ export function Media() {
       {ALL_TV_APPEARANCES.length > 0 && (
         <section className="section">
           <div className="container-clay">
-            <h2 className="text-2xl font-bold text-clay-dark mb-8">
+            <h2 className="text-2xl heading-serif text-clay-dark mb-8">
               Телевизионные выступления
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -151,7 +151,7 @@ export function Media() {
       <section className="section bg-clay-bg">
         <div className="container-clay">
           <div className="max-w-xl mb-8">
-            <h2 className="text-2xl font-bold text-clay-dark">
+            <h2 className="text-2xl heading-serif text-clay-dark">
               Экспертиза наших врачей
             </h2>
             <p className="mt-3 text-clay-muted">

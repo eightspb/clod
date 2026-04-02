@@ -6,8 +6,8 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "тазовая боль", "эндометриоз", "аденомиоз"]
-image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&q=80"
-imageAlt: "Женщина держится за живот из-за тазовой боли"
+image: "/images/blog/tazovye-boli-u-zhenshchin.webp"
+imageAlt: "Женщина с тазовой болью — причины и диагностика"
 readingTime: 4
 ctaType: appointment
 ---

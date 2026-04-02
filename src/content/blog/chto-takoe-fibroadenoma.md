@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["фиброаденома", "маммология", "диагностика", "лечение"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Фиброаденома молочной железы - диагностика и лечение"
+image: "/images/blog/chto-takoe-fibroadenoma.webp"
+imageAlt: "Консультация маммолога — диагностика фиброаденомы молочной железы"
 readingTime: 8
 ---
 

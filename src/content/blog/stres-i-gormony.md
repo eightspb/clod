@@ -6,8 +6,8 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Женское здоровье"
 tags: [женское здоровье, стресс, гормоны, цикл, кортизол]
-image: "https://images.unsplash.com/photo-1541199249251-f713e6145474?w=1200&q=80"
-imageAlt: "Женщина у окна в состоянии усталости и стресса"
+image: "/images/blog/stres-i-gormony.webp"
+imageAlt: "Стресс и гормональный баланс — влияние на менструальный цикл"
 readingTime: 4
 ctaType: appointment
 ---
