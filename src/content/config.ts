@@ -15,6 +15,7 @@ const blog = defineCollection({
     image: z.string().optional(),
     imageAlt: z.string().optional(),
     readingTime: z.number().optional(),
+    ctaType: z.enum(['appointment', 'second-opinion']).default('appointment'),
   }),
 })
 

@@ -209,7 +209,7 @@ const breadcrumbItems = [
             ))}
           </div>
 
-          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-clay-text leading-tight mb-5">
+          <h1 class="heading-serif text-3xl md:text-4xl lg:text-5xl text-clay-dark leading-tight mb-5">
             {post.data.title}
           </h1>
 
@@ -261,15 +261,27 @@ const breadcrumbItems = [
         </div>
 
         <footer class="mt-14 pt-10 border-t border-gray-100">
-          <div class="clay-card clay-card-mint p-8 md:p-10 text-center mt-8">
-            <h2 class="text-xl font-bold text-white mb-3">Нужен очный разбор ситуации?</h2>
-            <p class="text-white/85 mb-6 max-w-md mx-auto">
-              Статья помогает сориентироваться, но тактику лечения и объём обследования лучше обсуждать на очной консультации. Если вы в Санкт-Петербурге, подскажем удобный маршрут визита.
-            </p>
-            <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-block">
-              Записаться на приём
-            </a>
-          </div>
+          {post.data.ctaType === 'second-opinion' ? (
+            <div class="clay-card clay-card-accent-blue p-8 md:p-10 text-center mt-8">
+              <h2 class="text-xl font-bold text-white mb-3">Хотите сверить рекомендацию?</h2>
+              <p class="text-white/90 mb-6 max-w-md mx-auto leading-relaxed">
+                Если вам уже поставили диагноз или предложили операцию — можно получить бесплатное второе мнение. Разберём снимки и документы очно в Санкт-Петербурге.
+              </p>
+              <a href="/second-opinion" class="btn-clay-white inline-block">
+                Получить второе мнение
+              </a>
+            </div>
+          ) : (
+            <div class="clay-card clay-card-accent p-8 md:p-10 text-center mt-8">
+              <h2 class="text-xl font-bold text-white mb-3">Нужен очный разбор ситуации?</h2>
+              <p class="text-white/90 mb-6 max-w-md mx-auto leading-relaxed">
+                Статья помогает сориентироваться, но тактику лечения и объём обследования лучше обсуждать на очной консультации. Если вы в Санкт-Петербурге, подскажем удобный маршрут визита.
+              </p>
+              <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-block">
+                Записаться на приём
+              </a>
+            </div>
+          )}
 
           <div class="mt-8 text-center">
             <a href="/blog" class="text-clay-teal hover:underline text-sm font-medium">

@@ -131,7 +131,7 @@ export function DlyaInogorodnikh() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Для иногородних пациентов
             </h1>
-            <p className="text-clay-muted text-lg leading-relaxed">
+            <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
               Мы принимаем пациентов со всей России, а также из Казахстана и Белоруссии.
               Поможем спланировать визит так, чтобы вы получили всё необходимое за один приезд.
             </p>

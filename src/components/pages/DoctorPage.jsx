@@ -1,5 +1,4 @@
 import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star, BookOpen, Tv, ExternalLink } from 'lucide-react'
-import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
@@ -13,14 +12,13 @@ export function DoctorPage({ doctor }) {
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
-
-  const ring = RING_COLOR_MAP[doctor.ringColor] || 'avatar-ring-mint'
+  const alignRight = doctor.photoAlign === 'right'
 
   return (
     <ErrorBoundary>
     <div>
       {/* ── Hero ── */}
-      <section className="section pt-8 pb-0">
+      <section className="section pt-8 pb-10">
         <div className="container-clay">
           <a
             href="/doctors"
@@ -30,43 +28,55 @@ export function DoctorPage({ doctor }) {
             Все доктора
           </a>
 
-          <div className="clay clay-card p-5 md:p-8 relative overflow-hidden">
-            {/* Декоративные блобы */}
-            <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 opacity-20 blob-mint" />
-            <div className="pointer-events-none absolute bottom-0 left-0 w-48 h-48 opacity-15 blob-peach" />
+          <div className="clay clay-card relative" style={{ overflow: 'visible', padding: '0' }}>
+            {/* Декоративные блобы — обрезаются радиусом карточки */}
+            <div className="pointer-events-none absolute inset-0 rounded-[inherit] overflow-hidden">
+              <div className={`absolute w-64 h-64 opacity-20 blob-mint ${alignRight ? 'top-0 left-0' : 'top-0 right-0'}`} />
+              <div className={`absolute w-48 h-48 opacity-15 blob-peach ${alignRight ? 'bottom-0 right-0' : 'bottom-0 left-0'}`} />
+            </div>
 
-            <div className="relative flex flex-col md:flex-row gap-8 items-start">
-              {/* Фото */}
-              <div className="flex-shrink-0 flex flex-col items-start gap-4">
-                <div className={ring}>
-                  {doctor.photo
-                    ? (
-                      <img
-                        src={doctor.photoFull || doctor.photo}
-                        alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
-                        className="w-[216px] h-[216px] rounded-full object-cover object-top"
-                        loading="lazy"
-                        width="216"
-                        height="216"
-                      />
-                    )
-                    : (
-                      <div className="w-[216px] h-[216px] rounded-full flex items-center justify-center" style={{ background: 'rgba(78,200,168,0.08)' }}>
-                        <span className="text-5xl font-bold text-clay-muted">{initials}</span>
-                      </div>
-                    )
-                  }
-                </div>
-
-                {/* Стаж */}
-                <div className="clay clay-card-soft-mint px-5 py-3 rounded-2xl text-center">
-                  <p className="text-xs text-clay-muted leading-none mb-1">Стаж работы</p>
-                  <p className="text-xl font-extrabold text-clay-mint leading-none">{doctor.experienceYears} лет</p>
+            {/* Фото: absolute, выходит сверху за карточку (right +20%, left +10%) */}
+            {(doctor.photoFull || doctor.photo) && (
+              <div
+                className="hidden md:block absolute bottom-0 z-10"
+                style={alignRight
+                  ? { right: '10%', width: '280px', top: '-20%', height: '120%' }
+                  : { left: '-1rem', width: '280px', top: '-10%', height: '110%' }}
+              >
+                <img
+                  src={doctor.photoFull || doctor.photo}
+                  alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
+                  className="h-full w-auto max-w-none object-contain object-bottom doctor-photo-shadow"
+                  loading="lazy"
+                />
+                <div className="clay clay-card-soft-mint px-4 py-2.5 rounded-2xl text-center absolute bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap shadow-clay-sm">
+                  <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж работы</p>
+                  <p className="text-lg font-extrabold text-clay-mint leading-none">{doctor.experienceYears} лет</p>
                 </div>
               </div>
+            )}
 
-              {/* Основная информация */}
-              <div className="flex-1 min-w-0">
+            {/* Mobile: фото сверху */}
+            {(doctor.photoFull || doctor.photo) && (
+              <div className="md:hidden flex flex-col items-center pt-6 px-5">
+                <div className="relative">
+                  <img
+                    src={doctor.photoFull || doctor.photo}
+                    alt={doctor.name}
+                    className="w-48 h-auto object-contain doctor-photo-shadow"
+                    loading="lazy"
+                  />
+                  <div className="clay clay-card-soft-mint px-4 py-2.5 rounded-2xl text-center absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap shadow-clay-sm">
+                    <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж работы</p>
+                    <p className="text-lg font-extrabold text-clay-mint leading-none">{doctor.experienceYears} лет</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Контент — отступ слева или справа под фото на desktop */}
+            <div className="relative p-5 md:p-8 flex flex-col justify-center" style={{ minHeight: '340px', marginLeft: '0' }}>
+              <div className={alignRight ? 'md:mr-[300px]' : 'md:ml-[300px]'}>
                 <div className="clay clay-card-soft-blue inline-flex px-3 py-1.5 rounded-xl mb-3">
                   <p className="text-xs font-semibold text-clay-dark">{doctor.specialization}</p>
                 </div>
@@ -81,7 +91,6 @@ export function DoctorPage({ doctor }) {
                   </p>
                 )}
 
-                {/* Кнопка записи */}
                 <div className="flex flex-wrap gap-3">
                   <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                     <Phone size={16} />
@@ -328,6 +337,7 @@ export function DoctorPage({ doctor }) {
         primaryLabel="Онлайн-запись"
         doctorPhoto={doctor.photoFull || doctor.photo}
         doctorName={doctor.name}
+        photoAlign={doctor.ctaPhotoAlign}
       />
     </div>
     </ErrorBoundary>

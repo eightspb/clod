@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Shield, Paperclip, X, AlertCircle, CheckCircle } from 'lucide-react'
 
 const MAX_FILES = 5
@@ -76,6 +76,19 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
   const [errorMsg, setErrorMsg] = useState('')
   const [files, setFiles] = useState([])
   const formRef = useRef(null)
+  const confirmRef = useRef(null)
+  useEffect(() => {
+    if (!isConfirming) return
+    confirmRef.current?.focus()
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setIsConfirming(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isConfirming])
 
   const handleFileChange = (e) => {
     if (!e.target.files) return
@@ -154,6 +167,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
         </p>
         <button
           onClick={onClose}
+          aria-label="Закрыть и вернуться на страницу"
           className="clay btn-clay-white justify-center w-full py-2 text-sm"
         >
           Отлично
@@ -329,9 +343,10 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
                       type="button"
                       onClick={() => removeFile(i)}
                       disabled={isSubmitting}
+                      aria-label={`Удалить файл ${file.name}`}
                       className="text-clay-muted hover:text-clay-peach p-0.5"
                     >
-                      <X size={16} />
+                      <X size={16} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -372,12 +387,18 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
         </p>
       </form>
       {isConfirming && (
-        <div className="clay clay-card-soft-mint p-5 mt-4 text-center">
-          <p className="text-sm text-clay-dark font-medium mb-4">
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          className="clay clay-card-soft-mint p-5 mt-4 text-center"
+        >
+          <p id="confirm-dialog-title" className="text-sm text-clay-dark font-medium mb-4">
             Отправить снимки и данные? Наш врач свяжется в рабочее время.
           </p>
           <div className="flex gap-3 justify-center">
             <button
+              ref={confirmRef}
               type="button"
               onClick={handleConfirmedSubmit}
               className="clay btn-clay-primary px-6 py-2 text-sm"

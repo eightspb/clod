@@ -109,7 +109,7 @@ export function Nutrition() {
                 Нутрициология в Санкт-Петербурге:{' '}
                 <span className="heading-accent">персональный план питания</span> без жёстких диет
               </h1>
-              <p className="text-lg text-clay-muted font-medium mb-3">
+              <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
                 Если хочется выстроить питание спокойно и без крайностей, начнём с анализа привычек и результатов обследований
               </p>
               <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">

@@ -19,7 +19,7 @@ export function Doctors() {
             <div className="clay clay-card-soft-mint inline-flex px-4 py-2 rounded-2xl mb-4">
               <span className="text-sm font-semibold text-clay-mint">Команда специалистов</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
               Врачи клиники Одинцова
             </h1>
             <p className="text-clay-muted text-lg max-w-2xl mx-auto leading-relaxed">

@@ -317,7 +317,7 @@ export function NashiRezultaty() {
               Наши{' '}
               <span className="heading-accent">результаты</span>
             </h1>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
+            <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
               Цифры, которые говорят за нас. Статистика процедур, опыт команды, география пациентов и независимые рейтинги.
             </p>
             <div className="flex flex-wrap gap-3">

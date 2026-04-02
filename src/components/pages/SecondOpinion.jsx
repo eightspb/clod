@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield } from 'lucide-react'
+import { CheckCircle, FileText, Search, MessageCircle, Phone, Clock, Shield, Activity } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { FaqSection } from '../FaqSection.jsx'
@@ -68,11 +68,15 @@ export const SECOND_OPINION_FAQ = [
 
 export function SecondOpinion() {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const triggerRef = useRef(null)
+  const lastFocusedTrigger = useRef(null)
   const modalRef = useRef(null)
+  const openModal = useCallback((triggerElement) => {
+    lastFocusedTrigger.current = triggerElement
+    setIsFormOpen(true)
+  }, [])
   const closeModal = useCallback(() => {
     setIsFormOpen(false)
-    triggerRef.current?.focus()
+    lastFocusedTrigger.current?.focus()
   }, [])
   useEffect(() => {
     if (!isFormOpen) return
@@ -126,15 +130,15 @@ export function SecondOpinion() {
         <div className="container-clay relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
             <div>
-              <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2 mb-5">
-                <span className="text-2xl font-extrabold text-clay-mint">0 ₽</span>
-                <span className="text-sm font-semibold text-clay-dark">Второе мнение бесплатно</span>
+              <div className="clay clay-card inline-flex items-center gap-2 px-5 py-2.5 mb-5">
+                <Activity size={18} className="text-clay-mint" />
+                <span className="text-sm font-semibold text-clay-dark">Клиника Одинцова · Санкт-Петербург</span>
               </div>
               <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                 Сомневаетесь в необходимости операции?{' '}
                 <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога
               </h1>
-              <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
+              <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
                 Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
               </p>
               <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
@@ -147,7 +151,7 @@ export function SecondOpinion() {
                   <Phone size={16} />
                   Позвонить в клинику
                 </a>
-                <button ref={triggerRef} onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
+                <button onClick={(e) => openModal(e.currentTarget)} className="clay btn-clay-secondary gap-2">
                   <FileText size={16} />
                   Отправить документы на проверку
                 </button>
@@ -251,7 +255,7 @@ export function SecondOpinion() {
                         <Phone size={16} />
                         Позвонить: {PHONE_DISPLAY}
                       </a>
-                      <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary w-full justify-center gap-2">
+                      <button onClick={(e) => openModal(e.currentTarget)} className="clay btn-clay-secondary w-full justify-center gap-2">
                         <FileText size={16} />
                         Отправить данные на проверку
                       </button>

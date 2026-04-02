@@ -114,7 +114,7 @@ export function Endocrinology() {
                 Эндокринология в Санкт-Петербурге:{' '}
                 <span className="heading-accent">спокойный разбор</span> гормонов и обмена веществ
               </h1>
-              <p className="text-lg text-clay-muted font-medium mb-3">
+              <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
                 Если усталость, вес или сон мешают повседневной жизни, разберём причины по анализам и симптомам
               </p>
               <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">

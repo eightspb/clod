@@ -12,6 +12,7 @@ export function CtaSection({
   cardClass = 'cta-gradient-card',
   doctorPhoto,
   doctorName,
+  photoAlign = 'right',
 }) {
   const primaryCta = primaryHref ? (
     <a href={primaryHref} className="clay btn-clay-primary gap-2">
@@ -41,7 +42,7 @@ export function CtaSection({
               </>
             )}
             {doctorPhoto ? (
-              <div className="cta-doctor-layout relative">
+              <div className={`cta-doctor-layout relative ${photoAlign === 'left' ? 'cta-doctor-photo-left' : ''}`}>
                 <div className="cta-doctor-content">
                   <h2 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
                     {title}
@@ -60,7 +61,7 @@ export function CtaSection({
                   <img
                     src={doctorPhoto}
                     alt={doctorName || ''}
-                    className="cta-doctor-photo"
+                    className="cta-doctor-photo doctor-photo-shadow"
                     loading="lazy"
                   />
                 </div>

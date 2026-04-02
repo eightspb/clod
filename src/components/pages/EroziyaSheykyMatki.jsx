@@ -1,4 +1,4 @@
-import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCircle, BookOpen } from 'lucide-react'
+import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, BookOpen } from 'lucide-react'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
@@ -327,19 +327,12 @@ export function EroziyaSheykyMatki() {
                 </a>
               ))}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <a href="/gynecology" className="clay clay-card card-interactive p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
+            <div className="mt-4">
+              <a href="/gynecology" className="clay clay-card card-interactive p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow inline-flex max-w-md">
                 <Zap size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-peach transition-colors">Гинекология — обзор направления</p>
                   <p className="text-clay-muted text-xs leading-relaxed">Приём гинеколога и диагностика в Клинике Одинцова</p>
-                </div>
-              </a>
-              <a href="/second-opinion" className="clay clay-card card-interactive p-5 flex items-start gap-3 group hover:shadow-lg transition-shadow">
-                <MessageCircle size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-peach transition-colors">Бесплатное второе мнение</p>
-                  <p className="text-clay-muted text-xs leading-relaxed">Рекомендовали лечение? Обсудим показания</p>
                 </div>
               </a>
             </div>

@@ -183,7 +183,7 @@ function DoctorsMegaMenuPanel({ item, currentPath }) {
                           alt=""
                           width={28}
                           height={28}
-                          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                          className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm"
                           loading="lazy"
                         />
                         {doc.name}
@@ -255,7 +255,7 @@ function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCl
                       }`}
                       onClick={onCloseMenu}
                     >
-                      <img src={doc.photo} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover" loading="lazy" />
+                      <img src={doc.photo} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover shadow-sm" loading="lazy" />
                       {doc.name}
                     </a>
                   ))}
