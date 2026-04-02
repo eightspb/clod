@@ -122,7 +122,7 @@ export function Gynecology({ servicesData = [] }) {
                 Гинекология в Санкт-Петербурге:{' '}
                 <span className="heading-accent">спокойный приём</span> и понятный план наблюдения
               </h1>
-              <p className="text-lg text-clay-muted font-medium mb-3">
+              <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
                 Бережный приём с уважением к вашему времени, деликатному осмотру и объяснением каждого шага
               </p>
               <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">

@@ -541,16 +541,16 @@ export function Home({ doctorsData = [] }) {
                     </div>
 
                     {activeSlide === idx ? (
-                      <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
+                      <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                         {slide.title}
                       </h1>
                     ) : (
-                      <div role="heading" aria-level="1" aria-hidden="true" className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5" style={{ lineHeight: '1.15' }}>
+                      <div role="heading" aria-level="1" aria-hidden="true" className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                         {slide.title}
                       </div>
                     )}
 
-                    <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg" style={{ lineHeight: '1.75' }}>
+                    <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg">
                       {slide.desc}
                     </p>
 

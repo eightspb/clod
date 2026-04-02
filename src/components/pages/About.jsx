@@ -148,7 +148,7 @@ export function About() {
               О клинике{' '}
               <span className="heading-accent">Одинцова</span>
             </h1>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl text-lg">
+            <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
               Клиника в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня. Работаем в маммологии, гинекологии, эндокринологии и нутрициологии.
             </p>
             <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">

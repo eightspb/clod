@@ -112,7 +112,7 @@ export function Vab() {
             <h1 className="heading-serif text-3xl md:text-4xl lg:text-5xl font-normal text-clay-text mb-5 speakable">
               ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
             </h1>
-            <p className="text-lg text-clay-muted max-w-2xl mb-4 speakable">
+            <p className="text-lg text-clay-muted leading-relaxed max-w-2xl mb-4 speakable">
               Малоинвазивное удаление доброкачественных образований молочной железы через прокол 2 мм.
               Процедура обычно занимает 30–40 минут и проводится амбулаторно по показаниям.
             </p>

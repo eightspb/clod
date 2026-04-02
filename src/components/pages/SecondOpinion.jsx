@@ -138,7 +138,7 @@ export function SecondOpinion() {
                 Сомневаетесь в необходимости операции?{' '}
                 <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога
               </h1>
-              <p className="text-clay-muted leading-relaxed mb-6 max-w-2xl text-lg">
+              <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
                 Мы внимательно изучим снимки и заключения, чтобы спокойно обсудить, нужна ли операция сейчас и какие варианты лечения доступны в вашем случае.
               </p>
               <div className="clay clay-card-soft-mint p-5 mb-5 max-w-xl">
