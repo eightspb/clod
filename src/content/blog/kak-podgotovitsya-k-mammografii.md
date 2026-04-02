@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Диагностика"
 tags: ["маммография", "диагностика", "подготовка", "скрининг", "маммология"]
-image: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Подготовка к маммографии"
+image: "/images/blog/kak-podgotovitsya-k-mammografii.webp"
+imageAlt: "Маммография — подготовка к процедуре скрининга"
 readingTime: 4
 ---
 

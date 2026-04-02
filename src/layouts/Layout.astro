@@ -86,76 +86,51 @@ const currentPath = Astro.url.pathname
           if (!raw) return
           var s = JSON.parse(raw)
           var root = document.documentElement.style
-
-          var themes = {
-            'emerald':    { accent:'#1B6B5A', hover:'#155A4B', light:'#E8F5F0', surface:'#EDF5F2', strong:'#D6EDE5', ring:'rgba(27,107,90,0.5)', glow:'rgba(27,107,90,0.14)', shadow:'0 8px 20px rgba(27,107,90,0.18),0 3px 8px rgba(27,107,90,0.10)', badge:'linear-gradient(135deg,#3D9E88 0%,#1B6B5A 100%)', card:'linear-gradient(135deg,#EDF5F2 0%,rgba(255,255,255,0) 60%)' },
-            'slate-blue': { accent:'#64748B', hover:'#475569', light:'#F1F5F9', surface:'#F1F5F9', strong:'#E2E8F0', ring:'rgba(100,116,139,0.5)', glow:'rgba(100,116,139,0.14)', shadow:'0 8px 20px rgba(100,116,139,0.18),0 3px 8px rgba(100,116,139,0.10)', badge:'linear-gradient(135deg,#94A3B8 0%,#64748B 100%)', card:'linear-gradient(135deg,#F1F5F9 0%,rgba(255,255,255,0) 60%)' },
-            'dusty-rose': { accent:'#9D6B7B', hover:'#7D5363', light:'#FDF2F5', surface:'#FBF0F3', strong:'#F5E1E7', ring:'rgba(157,107,123,0.5)', glow:'rgba(157,107,123,0.14)', shadow:'0 8px 20px rgba(157,107,123,0.18),0 3px 8px rgba(157,107,123,0.10)', badge:'linear-gradient(135deg,#C49AAB 0%,#9D6B7B 100%)', card:'linear-gradient(135deg,#FBF0F3 0%,rgba(255,255,255,0) 60%)' },
-            'warm-clay':  { accent:'#8B6F52', hover:'#6E5740', light:'#FAF5EF', surface:'#F8F2EB', strong:'#EDE3D6', ring:'rgba(139,111,82,0.5)', glow:'rgba(139,111,82,0.14)', shadow:'0 8px 20px rgba(139,111,82,0.18),0 3px 8px rgba(139,111,82,0.10)', badge:'linear-gradient(135deg,#B89A7D 0%,#8B6F52 100%)', card:'linear-gradient(135deg,#F8F2EB 0%,rgba(255,255,255,0) 60%)' },
-            'sage':       { accent:'#6B8F71', hover:'#567459', light:'#F0F5F1', surface:'#EFF5F0', strong:'#DCE8DE', ring:'rgba(107,143,113,0.5)', glow:'rgba(107,143,113,0.14)', shadow:'0 8px 20px rgba(107,143,113,0.18),0 3px 8px rgba(107,143,113,0.10)', badge:'linear-gradient(135deg,#97B89C 0%,#6B8F71 100%)', card:'linear-gradient(135deg,#EFF5F0 0%,rgba(255,255,255,0) 60%)' },
-            'indigo':     { accent:'#4F46E5', hover:'#3730A3', light:'#EEF2FF', surface:'#EEF2FF', strong:'#E0E7FF', ring:'rgba(79,70,229,0.5)', glow:'rgba(79,70,229,0.14)', shadow:'0 8px 20px rgba(79,70,229,0.18),0 3px 8px rgba(79,70,229,0.10)', badge:'linear-gradient(135deg,#818CF8 0%,#4F46E5 100%)', card:'linear-gradient(135deg,#EEF2FF 0%,rgba(255,255,255,0) 60%)' },
-            'teal':       { accent:'#0D9488', hover:'#0F766E', light:'#F0FDFA', surface:'#F0FDFA', strong:'#CCFBF1', ring:'rgba(13,148,136,0.5)', glow:'rgba(13,148,136,0.14)', shadow:'0 8px 20px rgba(13,148,136,0.18),0 3px 8px rgba(13,148,136,0.10)', badge:'linear-gradient(135deg,#2DD4BF 0%,#0D9488 100%)', card:'linear-gradient(135deg,#F0FDFA 0%,rgba(255,255,255,0) 60%)' },
-            'amber':      { accent:'#B45309', hover:'#92400E', light:'#FFFBEB', surface:'#FFFBEB', strong:'#FDE68A', ring:'rgba(180,83,9,0.5)', glow:'rgba(180,83,9,0.14)', shadow:'0 8px 20px rgba(180,83,9,0.18),0 3px 8px rgba(180,83,9,0.10)', badge:'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)', card:'linear-gradient(135deg,#FFFBEB 0%,rgba(255,255,255,0) 60%)' },
-            'plum':       { accent:'#7E22CE', hover:'#6B21A8', light:'#FAF5FF', surface:'#FAF5FF', strong:'#EDE9FE', ring:'rgba(126,34,206,0.5)', glow:'rgba(126,34,206,0.14)', shadow:'0 8px 20px rgba(126,34,206,0.18),0 3px 8px rgba(126,34,206,0.10)', badge:'linear-gradient(135deg,#A855F7 0%,#7E22CE 100%)', card:'linear-gradient(135deg,#FAF5FF 0%,rgba(255,255,255,0) 60%)' },
-            'crimson':    { accent:'#BE123C', hover:'#9F1239', light:'#FFF1F2', surface:'#FFF1F2', strong:'#FFE4E6', ring:'rgba(190,18,60,0.5)', glow:'rgba(190,18,60,0.14)', shadow:'0 8px 20px rgba(190,18,60,0.18),0 3px 8px rgba(190,18,60,0.10)', badge:'linear-gradient(135deg,#FB7185 0%,#BE123C 100%)', card:'linear-gradient(135deg,#FFF1F2 0%,rgba(255,255,255,0) 60%)' },
-            'ocean':      { accent:'#0369A1', hover:'#075985', light:'#F0F9FF', surface:'#F0F9FF', strong:'#BAE6FD', ring:'rgba(3,105,161,0.5)', glow:'rgba(3,105,161,0.14)', shadow:'0 8px 20px rgba(3,105,161,0.18),0 3px 8px rgba(3,105,161,0.10)', badge:'linear-gradient(135deg,#38BDF8 0%,#0369A1 100%)', card:'linear-gradient(135deg,#F0F9FF 0%,rgba(255,255,255,0) 60%)' },
-            'forest':     { accent:'#166534', hover:'#14532D', light:'#F0FDF4', surface:'#F0FDF4', strong:'#BBFBD8', ring:'rgba(22,101,52,0.5)', glow:'rgba(22,101,52,0.14)', shadow:'0 8px 20px rgba(22,101,52,0.18),0 3px 8px rgba(22,101,52,0.10)', badge:'linear-gradient(135deg,#4ADE80 0%,#166534 100%)', card:'linear-gradient(135deg,#F0FDF4 0%,rgba(255,255,255,0) 60%)' },
-            'graphite':   { accent:'#374151', hover:'#1F2937', light:'#F9FAFB', surface:'#F9FAFB', strong:'#E5E7EB', ring:'rgba(55,65,81,0.5)', glow:'rgba(55,65,81,0.14)', shadow:'0 8px 20px rgba(55,65,81,0.18),0 3px 8px rgba(55,65,81,0.10)', badge:'linear-gradient(135deg,#6B7280 0%,#374151 100%)', card:'linear-gradient(135deg,#F9FAFB 0%,rgba(255,255,255,0) 60%)' },
-            'copper':     { accent:'#B87333', hover:'#9A5E28', light:'#FDF8F0', surface:'#FDF8F0', strong:'#F5E6CC', ring:'rgba(184,115,51,0.5)', glow:'rgba(184,115,51,0.14)', shadow:'0 8px 20px rgba(184,115,51,0.18),0 3px 8px rgba(184,115,51,0.10)', badge:'linear-gradient(135deg,#E0A060 0%,#B87333 100%)', card:'linear-gradient(135deg,#FDF8F0 0%,rgba(255,255,255,0) 60%)' },
-            'midnight':   { accent:'#1E3A5F', hover:'#152A46', light:'#EFF4FB', surface:'#EFF4FB', strong:'#D6E4F5', ring:'rgba(30,58,95,0.5)', glow:'rgba(30,58,95,0.14)', shadow:'0 8px 20px rgba(30,58,95,0.18),0 3px 8px rgba(30,58,95,0.10)', badge:'linear-gradient(135deg,#4A7DB5 0%,#1E3A5F 100%)', card:'linear-gradient(135deg,#EFF4FB 0%,rgba(255,255,255,0) 60%)' },
-            'mauve':      { accent:'#8B5CF6', hover:'#7C3AED', light:'#F5F3FF', surface:'#F5F3FF', strong:'#EDE9FE', ring:'rgba(139,92,246,0.5)', glow:'rgba(139,92,246,0.14)', shadow:'0 8px 20px rgba(139,92,246,0.18),0 3px 8px rgba(139,92,246,0.10)', badge:'linear-gradient(135deg,#A78BFA 0%,#8B5CF6 100%)', card:'linear-gradient(135deg,#F5F3FF 0%,rgba(255,255,255,0) 60%)' },
-            'moss':       { accent:'#5C7A3E', hover:'#4A6230', light:'#F4F8F0', surface:'#F4F8F0', strong:'#DDE8D0', ring:'rgba(92,122,62,0.5)', glow:'rgba(92,122,62,0.14)', shadow:'0 8px 20px rgba(92,122,62,0.18),0 3px 8px rgba(92,122,62,0.10)', badge:'linear-gradient(135deg,#8AB06A 0%,#5C7A3E 100%)', card:'linear-gradient(135deg,#F4F8F0 0%,rgba(255,255,255,0) 60%)' },
-            'terracotta': { accent:'#C1440E', hover:'#A33A0C', light:'#FEF3EE', surface:'#FEF3EE', strong:'#FDE0CF', ring:'rgba(193,68,14,0.5)', glow:'rgba(193,68,14,0.14)', shadow:'0 8px 20px rgba(193,68,14,0.18),0 3px 8px rgba(193,68,14,0.10)', badge:'linear-gradient(135deg,#E8764A 0%,#C1440E 100%)', card:'linear-gradient(135deg,#FEF3EE 0%,rgba(255,255,255,0) 60%)' },
-            'steel':      { accent:'#2E6D9E', hover:'#255B87', light:'#EFF6FF', surface:'#EFF6FF', strong:'#DBEAFE', ring:'rgba(46,109,158,0.5)', glow:'rgba(46,109,158,0.14)', shadow:'0 8px 20px rgba(46,109,158,0.18),0 3px 8px rgba(46,109,158,0.10)', badge:'linear-gradient(135deg,#60A5FA 0%,#2E6D9E 100%)', card:'linear-gradient(135deg,#EFF6FF 0%,rgba(255,255,255,0) 60%)' },
-            'burgundy':   { accent:'#722F37', hover:'#5C252C', light:'#FDF0F1', surface:'#FDF0F1', strong:'#F5D6D8', ring:'rgba(114,47,55,0.5)', glow:'rgba(114,47,55,0.14)', shadow:'0 8px 20px rgba(114,47,55,0.18),0 3px 8px rgba(114,47,55,0.10)', badge:'linear-gradient(135deg,#C05070 0%,#722F37 100%)', card:'linear-gradient(135deg,#FDF0F1 0%,rgba(255,255,255,0) 60%)' }
+          var presets = {'emerald':'#1B6B5A','slate-blue':'#64748B','dusty-rose':'#9D6B7B','warm-clay':'#8B6F52','sage':'#6B8F71','indigo':'#4F46E5','teal':'#0D9488','amber':'#B45309','plum':'#7E22CE','crimson':'#BE123C','ocean':'#0369A1','forest':'#166534','graphite':'#374151','copper':'#B87333','midnight':'#1E3A5F','mauve':'#8B5CF6','moss':'#5C7A3E','terracotta':'#C1440E','steel':'#2E6D9E','burgundy':'#722F37'}
+          var headings = {'cormorant':"'Cormorant Garamond',Georgia,'Times New Roman',serif",'playfair':"'Playfair Display',Georgia,serif",'lora':"'Lora',Georgia,serif",'merriweather':"'Merriweather',Georgia,serif",'pt-serif':"'PT Serif',Georgia,serif",'eb-garamond':"'EB Garamond',Georgia,serif",'libre-baskerville':"'Libre Baskerville',Georgia,serif",'spectral':"'Spectral',Georgia,serif",'crimson-pro':"'Crimson Pro',Georgia,serif",'dm-serif':"'DM Serif Display',Georgia,serif"}
+          var bodies = {'golos':"'Golos Text','Segoe UI',system-ui,sans-serif",'commissioner':"'Commissioner','Segoe UI',system-ui,sans-serif",'onest':"'Onest','Segoe UI',system-ui,sans-serif",'manrope':"'Manrope','Segoe UI',system-ui,sans-serif",'rubik':"'Rubik','Segoe UI',system-ui,sans-serif",'nunito':"'Nunito','Segoe UI',system-ui,sans-serif",'inter':"'Inter','Segoe UI',system-ui,sans-serif",'pt-sans':"'PT Sans','Segoe UI',system-ui,sans-serif",'open-sans':"'Open Sans','Segoe UI',system-ui,sans-serif",'raleway':"'Raleway','Segoe UI',system-ui,sans-serif"}
+          function h2r(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+          function hsl2hex(h,ss,l){var q=l<.5?l*(1+ss):l+ss-l*ss,p=2*l-q;function f(t){t=t<0?t+1:t>1?t-1:t;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p}return'#'+[f(h/360+1/3),f(h/360),f(h/360-1/3)].map(function(v){return Math.round(v*255).toString(16).padStart(2,'0')}).join('')}
+          function hex2hsl(hex){var r=h2r(hex),R=r[0]/255,G=r[1]/255,B=r[2]/255,mx=Math.max(R,G,B),mn=Math.min(R,G,B),l=(mx+mn)/2;if(mx===mn)return{h:0,s:0,l:l};var d=mx-mn,ss=l>.5?d/(2-mx-mn):d/(mx+mn),hh=0;if(mx===R)hh=((G-B)/d+(G<B?6:0))/6;else if(mx===G)hh=((B-R)/d+2)/6;else hh=((R-G)/d+4)/6;return{h:hh*360,s:ss,l:l}}
+          function rS(hex){var c=h2r(hex);return c[0]+' '+c[1]+' '+c[2]}
+          function rA(hex,a){var c=h2r(hex);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'}
+          function apply(hex){
+            var o=hex2hsl(hex),h=o.h,ss=o.s,l=o.l
+            var hover=hsl2hex(h,ss,Math.max(0,l-.08))
+            var light=hsl2hex(h,ss*.4,.96)
+            var surf=hsl2hex(h,ss*.35,.95)
+            var strong=hsl2hex(h,ss*.4,.88)
+            var peach=hsl2hex((h+30)%360,ss*.85,Math.min(.55,l+.12))
+            var blue=hsl2hex((h+210)%360,ss*.8,Math.min(.55,l+.08))
+            var lav=hsl2hex((h+270)%360,ss*.6,Math.min(.55,l+.1))
+            var yel=hsl2hex((h+60)%360,ss*.7,Math.min(.5,l+.1))
+            var sP=hsl2hex((h+30)%360,ss*.3,.96),sB=hsl2hex((h+210)%360,ss*.3,.96),sL=hsl2hex((h+270)%360,ss*.25,.96),sY=hsl2hex((h+60)%360,ss*.25,.96)
+            var mL=hsl2hex(h,ss*.5,.72),pL=hsl2hex((h+30)%360,ss*.45,.75),bL=hsl2hex((h+210)%360,ss*.4,.75)
+            root.setProperty('--accent',hex);root.setProperty('--accent-hover',hover);root.setProperty('--accent-light',light);root.setProperty('--accent-text','#FFFFFF')
+            root.setProperty('--color-mint',hex);root.setProperty('--color-mint-rgb',rS(hex))
+            root.setProperty('--color-peach',peach);root.setProperty('--color-peach-rgb',rS(peach))
+            root.setProperty('--color-blue',blue);root.setProperty('--color-blue-rgb',rS(blue))
+            root.setProperty('--color-lavender',lav);root.setProperty('--color-yellow',yel)
+            root.setProperty('--color-peach-hover',hsl2hex((h+30)%360,ss*.85,Math.max(0,Math.min(.55,l+.12)-.08)))
+            root.setProperty('--color-blue-hover',hsl2hex((h+210)%360,ss*.8,Math.max(0,Math.min(.55,l+.08)-.08)))
+            root.setProperty('--surface-mint',surf);root.setProperty('--surface-accent',surf);root.setProperty('--surface-accent-strong',strong)
+            root.setProperty('--surface-peach',sP);root.setProperty('--surface-blue',sB);root.setProperty('--surface-lavender',sL);root.setProperty('--surface-yellow',sY)
+            root.setProperty('--focus-ring',rA(hex,.5));root.setProperty('--focus-ring-glow',rA(hex,.14))
+            root.setProperty('--shadow-mint','0 8px 20px '+rA(hex,.18)+',0 3px 8px '+rA(hex,.1))
+            root.setProperty('--shadow-peach','0 8px 20px '+rA(peach,.18)+',0 3px 8px '+rA(peach,.1))
+            root.setProperty('--shadow-blue','0 8px 20px '+rA(blue,.18)+',0 3px 8px '+rA(blue,.1))
+            root.setProperty('--gradient-badge-mint','linear-gradient(135deg,'+mL+' 0%,'+hex+' 100%)')
+            root.setProperty('--gradient-badge-peach','linear-gradient(135deg,'+pL+' 0%,'+peach+' 100%)')
+            root.setProperty('--gradient-badge-blue','linear-gradient(135deg,'+bL+' 0%,'+blue+' 100%)')
+            root.setProperty('--gradient-card-mint','linear-gradient(135deg,'+surf+' 0%,rgba(255,255,255,0) 60%)')
+            root.setProperty('--gradient-card-peach','linear-gradient(135deg,'+sP+' 0%,rgba(255,255,255,0) 60%)')
+            root.setProperty('--gradient-card-blue','linear-gradient(135deg,'+sB+' 0%,rgba(255,255,255,0) 60%)')
+            root.setProperty('--gradient-cta','linear-gradient(135deg,'+surf+' 0%,'+sP+' 100%)')
           }
-          var headings = {
-            'cormorant': "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
-            'playfair': "'Playfair Display', Georgia, serif",
-            'lora': "'Lora', Georgia, serif",
-            'merriweather': "'Merriweather', Georgia, serif",
-            'pt-serif': "'PT Serif', Georgia, serif",
-            'eb-garamond': "'EB Garamond', Georgia, serif",
-            'libre-baskerville': "'Libre Baskerville', Georgia, serif",
-            'spectral': "'Spectral', Georgia, serif",
-            'crimson-pro': "'Crimson Pro', Georgia, serif",
-            'dm-serif': "'DM Serif Display', Georgia, serif"
-          }
-          var bodies = {
-            'golos': "'Golos Text', 'Segoe UI', system-ui, sans-serif",
-            'commissioner': "'Commissioner', 'Segoe UI', system-ui, sans-serif",
-            'onest': "'Onest', 'Segoe UI', system-ui, sans-serif",
-            'manrope': "'Manrope', 'Segoe UI', system-ui, sans-serif",
-            'rubik': "'Rubik', 'Segoe UI', system-ui, sans-serif",
-            'nunito': "'Nunito', 'Segoe UI', system-ui, sans-serif",
-            'inter': "'Inter', 'Segoe UI', system-ui, sans-serif",
-            'pt-sans': "'PT Sans', 'Segoe UI', system-ui, sans-serif",
-            'open-sans': "'Open Sans', 'Segoe UI', system-ui, sans-serif",
-            'raleway': "'Raleway', 'Segoe UI', system-ui, sans-serif"
-          }
-
-          if (s.colorId && themes[s.colorId]) {
-            var t = themes[s.colorId]
-            root.setProperty('--accent', t.accent)
-            root.setProperty('--accent-hover', t.hover)
-            root.setProperty('--accent-light', t.light)
-            root.setProperty('--accent-text', '#FFFFFF')
-            root.setProperty('--color-mint', t.accent)
-            root.setProperty('--surface-mint', t.surface)
-            root.setProperty('--surface-accent', t.surface)
-            root.setProperty('--surface-accent-strong', t.strong)
-            root.setProperty('--focus-ring', t.ring)
-            root.setProperty('--focus-ring-glow', t.glow)
-            root.setProperty('--shadow-mint', t.shadow)
-            root.setProperty('--gradient-badge-mint', t.badge)
-            root.setProperty('--gradient-card-mint', t.card)
-          }
-          if (s.headingId && headings[s.headingId]) {
-            root.setProperty('--font-serif', headings[s.headingId])
-          }
-          if (s.bodyId && bodies[s.bodyId]) {
-            root.setProperty('--font-body', bodies[s.bodyId])
-          }
+          var hex = s.colorId==='custom'&&s.customHex ? s.customHex : presets[s.colorId]
+          if(hex) apply(hex)
+          if(s.headingId&&headings[s.headingId]) root.setProperty('--font-serif',headings[s.headingId])
+          if(s.bodyId&&bodies[s.bodyId]) root.setProperty('--font-body',bodies[s.bodyId])
         } catch(e) {}
       })()
     </script>

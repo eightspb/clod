@@ -1,0 +1,63 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Adenomioz, ADENOMIOZ_FAQ } from '../components/pages/Adenomioz.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Аденомиоз',
+  alternateName: 'Adenomyosis',
+  description: 'Состояние, при котором ткань эндометрия врастает в мышечный слой матки (миометрий), вызывая болезненные и обильные менструации, хроническую тазовую боль.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Матка',
+  },
+  signOrSymptom: [
+    { '@type': 'MedicalSymptom', name: 'Дисменорея (болезненные менструации)' },
+    { '@type': 'MedicalSymptom', name: 'Меноррагия (обильные менструации)' },
+    { '@type': 'MedicalSymptom', name: 'Хроническая тазовая боль' },
+    { '@type': 'MedicalSymptom', name: 'Анемия' },
+  ],
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Гормональная терапия (прогестины, ЛНГ-ВМС, агонисты ГнРГ)',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Эмболизация маточных артерий',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Гистерэктомия',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(ADENOMIOZ_FAQ)
+---
+
+<Layout
+  title="Аденомиоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём гинеколога при аденомиозе в Приморском районе Санкт-Петербурга. УЗИ, МРТ малого таза, гормональная терапия, подбор лечения. Богатырский проспект, м. Комендантский проспект."
+  keywords="аденомиоз лечение СПб, гинеколог Санкт-Петербург, аденомиоз симптомы, обильные менструации, болезненные месячные лечение, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Аденомиоз' }]} />
+  <Adenomioz client:load />
+</Layout>

@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { Endometrioz, ENDOMETRIOZ_FAQ } from '../components/pages/Endometrioz.jsx'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { generateFaqSchema } from '../utils/schema.js'
+
+const conditionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalCondition',
+  name: 'Эндометриоз',
+  alternateName: 'Endometriosis',
+  description: 'Заболевание, при котором ткань, подобная эндометрию, разрастается за пределами полости матки — на яичниках, маточных трубах, брюшине. Вызывает хроническую тазовую боль и может приводить к бесплодию.',
+  associatedAnatomy: {
+    '@type': 'AnatomicalStructure',
+    name: 'Органы малого таза',
+  },
+  signOrSymptom: [
+    { '@type': 'MedicalSymptom', name: 'Дисменорея (болезненные менструации)' },
+    { '@type': 'MedicalSymptom', name: 'Хроническая тазовая боль' },
+    { '@type': 'MedicalSymptom', name: 'Диспареуния (боль при половом контакте)' },
+    { '@type': 'MedicalSymptom', name: 'Бесплодие' },
+  ],
+  possibleTreatment: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Гормональная терапия (КОК, прогестины, агонисты ГнРГ)',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'Лапароскопическое удаление очагов эндометриоза',
+    },
+  ],
+  recognizingAuthority: {
+    '@type': 'MedicalOrganization',
+    name: 'Клиника Одинцова',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'пр. Богатырский, д. 22, к. 1',
+      addressLocality: 'Санкт-Петербург',
+      postalCode: '197374',
+      addressRegion: 'Санкт-Петербург',
+      addressCountry: 'RU',
+    },
+  },
+}
+
+const faqSchema = generateFaqSchema(ENDOMETRIOZ_FAQ)
+---
+
+<Layout
+  title="Эндометриоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
+  description="Приём гинеколога при эндометриозе в Приморском районе Санкт-Петербурга. УЗИ малого таза, МРТ, гормональная терапия, лапароскопическое лечение. Богатырский проспект, м. Комендантский проспект."
+  keywords="эндометриоз лечение СПб, гинеколог Санкт-Петербург, эндометриоз симптомы, тазовая боль, лапароскопия эндометриоз, Приморский район СПб"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эндометриоз' }]} />
+  <Endometrioz client:load />
+</Layout>

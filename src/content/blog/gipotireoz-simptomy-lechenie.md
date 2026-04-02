@@ -7,7 +7,7 @@ author: "Калинина Ирина Аркадьевна"
 authorSlug: "kalinina"
 category: "Эндокринология"
 tags: ["гипотиреоз", "щитовидная железа", "эндокринология", "ТТГ", "гормоны"]
-image: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?q=80&w=800&auto=format&fit=crop"
+image: "/images/blog/gipotireoz-simptomy-lechenie.webp"
 imageAlt: "Гипотиреоз - симптомы и лечение"
 readingTime: 7
 ---

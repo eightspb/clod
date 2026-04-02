@@ -6,7 +6,7 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Нутрициология"
 tags: ["нутрициология", "метаболизм", "вес", "гормоны", "диабет"]
-image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=80"
+image: "/images/blog/metabolicheskoe-zdorovye-i-ves.webp"
 imageAlt: "Здоровое питание и метаболическое здоровье женщины"
 readingTime: 4
 ctaType: appointment

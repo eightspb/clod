@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["киста", "маммология", "лечение", "мастопатия"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Киста молочной железы"
+image: "/images/blog/kista-molochnoy-zhelezy.webp"
+imageAlt: "УЗИ-диагностика кисты молочной железы"
 readingTime: 4
 ---
 

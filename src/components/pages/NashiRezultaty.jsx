@@ -80,7 +80,7 @@ const RATING_CARDS = [
     rating: 4.8,
     url: 'https://prodoctorov.ru/spb/lpu/72209-klinika-odntsova/',
     color: 'clay-card-soft-mint',
-    starColor: '#1B6B5A',
+    starColor: 'var(--color-mint)',
     linkLabel: 'Читать на ПроДокторов',
   },
   {
@@ -90,7 +90,7 @@ const RATING_CARDS = [
     rating: 5.0,
     url: 'https://yandex.ru/maps/org/klinika_doktora_odintsova/124591604873/',
     color: 'clay-card-soft-peach',
-    starColor: '#C4785C',
+    starColor: 'var(--color-peach)',
     linkLabel: 'Читать на Яндекс Картах',
   },
 ]

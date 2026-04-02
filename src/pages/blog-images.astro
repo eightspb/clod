@@ -1,0 +1,29 @@
+---
+export const prerender = false
+
+import Layout from '../layouts/Layout.astro'
+import { BlogImageGenerator } from '../components/pages/BlogImageGenerator.jsx'
+import { getCollection } from 'astro:content'
+
+const allPosts = await getCollection('blog')
+const articles = allPosts
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .map(post => ({
+    slug: post.slug,
+    title: post.data.title,
+    description: post.data.description,
+    category: post.data.category || 'Статьи',
+    image: post.data.image || '',
+    imageAlt: post.data.imageAlt || '',
+    author: post.data.author || '',
+  }))
+---
+
+<Layout
+  title="Генератор постеров — Блог"
+  description="Внутренний инструмент для генерации AI-изображений для статей блога"
+>
+  <main class="blog-gen-page">
+    <BlogImageGenerator articles={articles} client:load />
+  </main>
+</Layout>

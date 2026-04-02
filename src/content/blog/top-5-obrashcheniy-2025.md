@@ -7,8 +7,8 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Статьи"
 tags: ["маммология", "гинекология", "эндокринология", "статистика", "второе мнение"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Топ обращений в клинику"
+image: "/images/blog/top-5-obrashcheniy-2025.webp"
+imageAlt: "Клиника — топ-5 причин обращений пациентов"
 readingTime: 5
 ---
 

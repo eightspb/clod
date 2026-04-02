@@ -6,8 +6,8 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "эндометриоз", "тазовая боль", "бесплодие"]
-image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=1200&q=80"
-imageAlt: "Гинекологическая консультация при тазовой боли и эндометриозе"
+image: "/images/blog/endometrioz-prichiny-simptomy.webp"
+imageAlt: "Женщина на приёме у гинеколога — эндометриоз и тазовая боль"
 readingTime: 5
 ---
 

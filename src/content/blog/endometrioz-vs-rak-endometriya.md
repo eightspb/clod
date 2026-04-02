@@ -6,8 +6,8 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "эндометриоз", "онкология", "диагностика", "биопсия"]
-image: "https://images.unsplash.com/photo-1576671081837-49000212a370?w=1200&q=80"
-imageAlt: "Диагностика гинекологических заболеваний — осмотр и анализы"
+image: "/images/blog/endometrioz-vs-rak-endometriya.webp"
+imageAlt: "Гинекологическая диагностика — эндометриоз и рак эндометрия"
 readingTime: 5
 ---
 

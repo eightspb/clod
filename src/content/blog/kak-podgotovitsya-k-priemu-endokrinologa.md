@@ -7,8 +7,8 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Эндокринология"
 tags: ["эндокринология", "подготовка", "прием врача", "щитовидная железа"]
-image: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Подготовка к приему эндокринолога"
+image: "/images/blog/kak-podgotovitsya-k-priemu-endokrinologa.webp"
+imageAlt: "Подготовка к приёму эндокринолога — анализы и документы"
 readingTime: 2
 ---
 

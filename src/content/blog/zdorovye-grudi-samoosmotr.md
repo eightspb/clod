@@ -6,8 +6,8 @@ publishDate: 2026-04-01
 author: "Редакция клиники"
 category: "Маммология"
 tags: [маммология, профилактика, маммография, самоосмотр]
-image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&q=80"
-imageAlt: "Женщина заботится о своём здоровье"
+image: "/images/blog/zdorovye-grudi-samoosmotr.webp"
+imageAlt: "Профилактика здоровья молочной железы — самоосмотр и скрининг"
 readingTime: 4
 ctaType: appointment
 ---

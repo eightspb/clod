@@ -14,12 +14,15 @@ export const DIRECTIONS = [
     label: 'Гинекология', to: '/gynecology',
     conditions: [
       { label: 'Эрозия шейки матки', to: '/eroziya-sheyki-matki' },
+      { label: 'Эндометриоз', to: '/endometrioz' },
+      { label: 'Аденомиоз', to: '/adenomioz' },
     ]
   },
   {
     label: 'Эндокринология', to: '/endocrinology',
     conditions: [
       { label: 'Гипотиреоз', to: '/gipotireoz' },
+      { label: 'Тиреоидит Хашимото', to: '/tireoidit-khashimoto' },
     ]
   },
   { label: 'Нутрициология', to: '/nutrition', conditions: [] },
@@ -57,7 +60,6 @@ export const NAV_ITEMS = [
       { label: 'Бесплатное второе мнение', to: '/second-opinion' },
       { label: 'Для иногородних', to: '/dlya-inogorodnikh' },
       { label: 'Цены', to: '/prices' },
-      { label: 'Акции', to: '/promotions' },
       { label: 'Форма для налоговой', to: '/tax-form' },
     ]
   },
@@ -80,7 +82,6 @@ export const FOOTER_LINKS = {
     { label: 'Бесплатное второе мнение', to: '/second-opinion' },
     { label: 'Для иногородних', to: '/dlya-inogorodnikh' },
     { label: 'Цены', to: '/prices' },
-    { label: 'Акции', to: '/promotions' },
     { label: 'Форма для налоговой', to: '/tax-form' },
     { label: 'Доктора', to: '/doctors' },
     { label: 'Блог', to: '/blog' },

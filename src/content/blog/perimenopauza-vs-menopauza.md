@@ -6,8 +6,8 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "менопауза", "перименопауза", "гормоны", "возраст"]
-image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=80"
-imageAlt: "Женщина средних лет на природе, спокойная и уверенная в себе"
+image: "/images/blog/perimenopauza-vs-menopauza.webp"
+imageAlt: "Женщина средних лет — перименопауза и менопауза"
 readingTime: 4
 ctaType: appointment
 ---

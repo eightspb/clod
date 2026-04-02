@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["рак груди", "диагностика", "ВАБ", "биопсия", "маммология"]
-image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Ранняя диагностика рака груди"
+image: "/images/blog/rannyaya-diagnostika-raka-grudi.webp"
+imageAlt: "Розовая лента — символ ранней диагностики рака молочной железы"
 readingTime: 6
 ---
 

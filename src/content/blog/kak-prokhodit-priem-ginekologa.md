@@ -7,8 +7,8 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Гинекология"
 tags: ["гинекология", "прием врача", "эндокринология", "осмотр"]
-image: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=800&auto=format&fit=crop"
-imageAlt: "Прием гинеколога"
+image: "https://images.unsplash.com/photo-1579684453423-f84349ef60b0?w=1200&q=80"
+imageAlt: "Как проходит приём гинеколога — осмотр и консультация"
 readingTime: 3
 ---
 
