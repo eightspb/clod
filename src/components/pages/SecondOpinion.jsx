@@ -68,11 +68,15 @@ export const SECOND_OPINION_FAQ = [
 
 export function SecondOpinion() {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const triggerRef = useRef(null)
+  const lastFocusedTrigger = useRef(null)
   const modalRef = useRef(null)
+  const openModal = useCallback((triggerElement) => {
+    lastFocusedTrigger.current = triggerElement
+    setIsFormOpen(true)
+  }, [])
   const closeModal = useCallback(() => {
     setIsFormOpen(false)
-    triggerRef.current?.focus()
+    lastFocusedTrigger.current?.focus()
   }, [])
   useEffect(() => {
     if (!isFormOpen) return
@@ -147,7 +151,7 @@ export function SecondOpinion() {
                   <Phone size={16} />
                   Позвонить в клинику
                 </a>
-                <button ref={triggerRef} onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary gap-2">
+                <button onClick={(e) => openModal(e.currentTarget)} className="clay btn-clay-secondary gap-2">
                   <FileText size={16} />
                   Отправить документы на проверку
                 </button>
@@ -251,7 +255,7 @@ export function SecondOpinion() {
                         <Phone size={16} />
                         Позвонить: {PHONE_DISPLAY}
                       </a>
-                      <button onClick={() => setIsFormOpen(true)} className="clay btn-clay-secondary w-full justify-center gap-2">
+                      <button onClick={(e) => openModal(e.currentTarget)} className="clay btn-clay-secondary w-full justify-center gap-2">
                         <FileText size={16} />
                         Отправить данные на проверку
                       </button>

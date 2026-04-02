@@ -116,8 +116,8 @@
 
     /* ── Text ── */
     --text-primary: #111827;
-    --text-secondary: #374151;
-    --text-muted: #6B7280;
+    --text-secondary: #2D3A34;
+    --text-muted: #465550;
     --text-inverse: #FFFFFF;
 
     /* ── Accent ── */
@@ -1350,8 +1350,11 @@
   margin-top: 0;
 }
 .prose-clay h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  font-weight: 400;
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: 1.2;
   color: var(--text-primary);
   margin-top: 3rem;
   margin-bottom: 1rem;
@@ -1370,8 +1373,11 @@
   border-radius: 2px;
 }
 .prose-clay h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: 1.25;
   color: var(--text-primary);
   margin-top: 2rem;
   margin-bottom: 0.6rem;
@@ -1538,8 +1544,8 @@
   .blog-lead { font-size: 1.2375rem !important; }
   .blog-category-badge { font-size: 0.9rem !important; }
   .prose-clay { font-size: 1.16875rem !important; }
-  .prose-clay h2 { font-size: 1.54rem !important; }
-  .prose-clay h3 { font-size: 1.2375rem !important; }
+  .prose-clay h2 { font-size: 1.85rem !important; }
+  .prose-clay h3 { font-size: 1.45rem !important; }
   .prose-clay ol li::before { font-size: 0.9rem !important; }
   .prose-clay blockquote { font-size: 1.155rem !important; }
   .prose-clay table { font-size: 0.99rem !important; }

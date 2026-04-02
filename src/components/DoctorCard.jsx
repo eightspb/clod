@@ -14,11 +14,11 @@ export function DoctorCard({ doctor }) {
   const ring = RING_COLOR_MAP[doctor.ringColor] || 'avatar-ring-mint'
   const colors = COLOR_MAP[doctor.ringColor] || COLOR_MAP.mint
   return (
-    <article className={`clay clay-card card-interactive ${colors.line} flex flex-col relative overflow-visible pt-52 h-full`}>
+    <article className={`clay clay-card card-interactive ${colors.line} flex flex-col relative overflow-visible pt-60 h-full`}>
       <div className="absolute -top-4 -left-4 z-10">
         <div
           className={`${ring} flex-shrink-0`}
-          style={{ padding: '3px', borderRadius: '9999px' }}
+          style={{ padding: '3px', borderRadius: '9999px', boxShadow: `0 8px 24px ${colors.shadow}, 0 2px 8px rgba(0,0,0,0.10)` }}
         >
           {doctor.photo
             ? (
@@ -27,23 +27,22 @@ export function DoctorCard({ doctor }) {
                 alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
                 className="object-cover block"
                 style={{
-                  width: '229px',
-                  height: '229px',
+                  width: '264px',
+                  height: '264px',
                   borderRadius: '9999px',
                 }}
                 loading="lazy"
-                width="229"
-                height="229"
+                width="264"
+                height="264"
               />
             )
             : (
               <div
-                className="flex items-center justify-center"
+                className="clay-card-soft-mint flex items-center justify-center"
                 style={{
-                  width: '229px',
-                  height: '229px',
+                  width: '264px',
+                  height: '264px',
                   borderRadius: '9999px',
-                  background: 'rgba(78,200,168,0.08)',
                 }}
               >
                 <span className="text-2xl font-bold text-clay-muted">{initials}</span>
@@ -53,7 +52,7 @@ export function DoctorCard({ doctor }) {
         </div>
       </div>
       <div className="px-5 pb-5 flex flex-col flex-1">
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end mb-1.5">
           <div className="clay clay-card-soft-mint px-3 py-1.5 rounded-xl text-center flex-shrink-0">
             <p className="text-xs text-clay-muted leading-none mb-0.5">Стаж</p>
             <p className="text-sm font-extrabold text-clay-mint leading-none">{doctor.experienceYears} лет</p>
