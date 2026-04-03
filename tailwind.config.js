@@ -54,6 +54,7 @@ export default {
       fontFamily: {
         sans: ['var(--font-body)'],
         serif: ['var(--font-serif)'],
+        nav: ['var(--font-nav)'],
       },
       fontSize: {
         xs: ['var(--fs-xs)', { lineHeight: 'var(--lh-xs)' }],

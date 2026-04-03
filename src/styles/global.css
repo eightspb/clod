@@ -169,6 +169,7 @@
     /* ── Typography ── */
     --font-body: 'Golos Text', 'Segoe UI', system-ui, sans-serif;
     --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    --font-nav: var(--font-body);
     --heading-letter-spacing: -0.02em;
     --heading-line-height: 1.1;
 
@@ -491,10 +492,6 @@
     width: 100%;
     height: auto;
     display: block;
-    transition: transform 0.5s ease;
-  }
-  .hero-doctor-photo-link:hover .hero-doctor-photo {
-    transform: scale(1.03);
   }
   .hero-doctor-info {
     padding: 1.25rem 1.5rem 1.5rem;
@@ -812,6 +809,18 @@
     color: var(--accent);
     font-family: var(--font-serif);
     font-weight: 400;
+  }
+
+  /* ─────────────────────────────
+     NAV FONT (header + footer)
+  ───────────────────────────── */
+  header [role="banner"] nav a,
+  header [role="banner"] nav button,
+  header nav a,
+  header nav button,
+  footer nav a,
+  footer h4 {
+    font-family: var(--font-nav);
   }
 
   /* ─────────────────────────────
@@ -1648,7 +1657,7 @@
   position: absolute;
   bottom: 60px;
   right: 0;
-  width: 480px;
+  width: 660px;
   max-width: calc(100vw - 2rem);
   background: var(--surface-card);
   border: 1px solid var(--border-color);
@@ -1744,7 +1753,7 @@
 }
 .theme-switcher-fonts-row {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
   gap: 0;
 }
 .theme-switcher-fonts-divider {
