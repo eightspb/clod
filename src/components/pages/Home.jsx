@@ -790,7 +790,7 @@ export function Home({ doctorsData = [] }) {
             <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">Направления клиники</h2>
             <p className="text-clay-muted max-w-xl mx-auto">Понятный маршрут от первичного обращения до следующего шага без лишнего давления</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:auto-rows-[1fr] gap-5">
             {HOME_SERVICES.map((s, i) => (
               <FadeInSection key={s.to} staggerIndex={i} className="h-full">
               <a href={s.to} className="group block">
