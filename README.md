@@ -36,9 +36,9 @@
 | Runtime | **Bun** (не npm/yarn) |
 | Фреймворк | **Astro 4** + React 18 (island architecture) |
 | База данных | **@astrojs/db** (SQLite) |
-| Стилизация | **Tailwind CSS 3** + кастомные clay-утилиты в `src/styles/global.css` |
+| Стилизация | **Tailwind CSS 3** + CSS-переменные дизайн-системы в `src/styles/global.css` |
 | Иконки | **Lucide React** |
-| CSS-библиотека | `claymorphism-css` (npm-пакет, импортируется в global.css) |
+| Тема | Skinnable CSS-архитектура (~87 CSS-переменных в `:root`), `ThemeSwitcher.jsx` (20 цветовых пресетов, 3 шрифтовых селектора) |
 | Язык | JavaScript (`.jsx` файлы), контент на русском |
 | Роутинг | File-based routing Astro (не React Router) |
 
@@ -191,6 +191,9 @@ clod/
 │   │   │   ├── KistaMolochnoyZhelezy.jsx  # Condition: Киста молочной железы
 │   │   │   ├── EroziyaSheykyMatki.jsx     # Condition: Эрозия шейки матки
 │   │   │   ├── Gipotireoz.jsx     # Condition: Гипотиреоз
+│   │   │   ├── Adenomioz.jsx      # Condition: Аденомиоз
+│   │   │   ├── Endometrioz.jsx    # Condition: Эндометриоз
+│   │   │   ├── TireoiditKhashimoto.jsx # Condition: Тиреоидит Хашимото
 │   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры (с визуальным timeline)
 │   │   │   ├── DlyaInogorodnikh.jsx  # Для иногородних пациентов
 │   │   │   ├── NashiRezultaty.jsx # Наши результаты (count-up анимации)
@@ -220,6 +223,7 @@ clod/
 │   │   ├── ClayContactBanner.jsx  # Баннер с контактами
 │   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора (с ПроДокторов рейтингом)
 │   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
+│   │   ├── ThemeSwitcher.jsx       # Переключатель темы (20 цветов, 3 шрифтовых селектора, client:idle)
 │   │   ├── ErrorBoundary.jsx      # React Error Boundary для page-level компонентов
 │   │   └── PageWrapper.jsx        # Обёртка страницы с ErrorBoundary
 │   ├── layouts/
@@ -242,7 +246,7 @@ clod/
 │   │       ├── kak-izbezhat-operatsii-na-grudi.md
 │   │       ├── mammografiya-ili-uzi.md
 │   │       ├── gipotireoz-simptomy-lechenie.md
-│   │       └── ... и еще 11 новых статей
+│   │       └── ... (всего 40 статей)
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
 │   │   ├── about.astro            # /about - О клинике (миссия, руководство, документы, преимущества, оборудование)
@@ -255,6 +259,9 @@ clod/
 │   │   ├── kista-molochnoy-zhelezy.astro  # /kista-molochnoy-zhelezy - Киста молочной железы
 │   │   ├── eroziya-sheyki-matki.astro  # /eroziya-sheyki-matki - Эрозия шейки матки
 │   │   ├── gipotireoz.astro       # /gipotireoz - Гипотиреоз
+│   │   ├── adenomioz.astro        # /adenomioz - Аденомиоз (MedicalCondition JSON-LD)
+│   │   ├── endometrioz.astro      # /endometrioz - Эндометриоз (MedicalCondition JSON-LD)
+│   │   ├── tireoidit-khashimoto.astro # /tireoidit-khashimoto - Тиреоидит Хашимото (MedicalCondition JSON-LD)
 │   │   ├── dlya-inogorodnikh.astro # /dlya-inogorodnikh - Для иногородних
 │   │   ├── nashi-rezultaty.astro  # /nashi-rezultaty - Наши результаты
 │   │   ├── media.astro            # /media - Медиа / СМИ
@@ -274,6 +281,7 @@ clod/
 │   │   ├── privacy-policy.astro   # /privacy-policy
 │   │   ├── licenses.astro         # /licenses - лицензии и сертификаты клиники
 │   │   ├── 404.astro              # Кастомная страница 404
+│   │   ├── blog-images.astro      # /blog-images - внутренний генератор постеров для блога (SSR)
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin - дашборд
 │   │   │   ├── login.astro        # /admin/login
@@ -301,7 +309,7 @@ clod/
 │   ├── test/
 │   │   └── setup.js              # Vitest setup (jest-dom, cleanup)
 │   ├── styles/
-│   │   └── global.css             # Tailwind + все clay-утилиты + clay-banner-* + prose-clay (блог)
+│   │   └── global.css             # Tailwind + ~87 CSS-переменных дизайн-системы + theme-switcher стили + prose-clay (блог)
 │   └── env.d.ts                   # Astro type references
 ├── db/                            # Astro DB
 │   ├── config.ts                  # Схема базы данных
@@ -348,6 +356,9 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/kista-molochnoy-zhelezy` | `kista-molochnoy-zhelezy.astro` | `KistaMolochnoyZhelezy.jsx` |
 | `/eroziya-sheyki-matki` | `eroziya-sheyki-matki.astro` | `EroziyaSheykyMatki.jsx` |
 | `/gipotireoz` | `gipotireoz.astro` | `Gipotireoz.jsx` |
+| `/adenomioz` | `adenomioz.astro` | `Adenomioz.jsx` |
+| `/endometrioz` | `endometrioz.astro` | `Endometrioz.jsx` |
+| `/tireoidit-khashimoto` | `tireoidit-khashimoto.astro` | `TireoiditKhashimoto.jsx` |
 | `/vab` | `vab.astro` | `Vab.jsx` |
 | `/dlya-inogorodnikh` | `dlya-inogorodnikh.astro` | `DlyaInogorodnikh.jsx` |
 | `/nashi-rezultaty` | `nashi-rezultaty.astro` | `NashiRezultaty.jsx` |
@@ -432,86 +443,58 @@ Hero реализован как **трёхслайдовый слайдер** �
 
 ---
 
-## Дизайн-система: Claymorphism
+## Дизайн-система: Skinnable CSS Architecture
 
-Весь UI построен на кастомной clay-дизайн-системе. Утилиты определены в `src/styles/global.css`.
+UI построен на CSS-переменных в `:root` (`src/styles/global.css`). Вся визуальная стилизация управляется через ~87 CSS-переменных — без inline-стилей в JSX, без hardcoded цветов. Пакет `claymorphism-css` полностью удалён (март 2026), класс `.clay` оставлен пустым для обратной совместимости.
 
-### Цветовая палитра (`tailwind.config.js` → `colors.clay`)
+### Ключевые CSS-переменные
 
-| Токен | Hex | Назначение |
+| Группа | Переменные | Описание |
 |---|---|---|
-| `clay-mint` | `#4DC8A8` | Основной акцент (тил/зелёный) |
-| `clay-peach` | `#F5A88C` | Тёплый акцент |
-| `clay-blue` | `#72B8E0` | Холодный акцент |
-| `clay-lavender` | `#B8A8D8` | Фиолетовый акцент |
-| `clay-yellow` | `#F0C870` | Жёлтый акцент |
-| `clay-bg` | `#F7F3EE` | Фон страницы |
-| `clay-card` | `#FFFCF8` | Фон карточек |
-| `clay-dark` | `#2D3A34` | Тёмный текст/заголовки |
-| `clay-text` | `#3D4A44` | Основной текст |
-| `clay-muted` | `#7A8C84` | Приглушённый текст |
+| Поверхности | `--surface-page`, `--surface-card`, `--surface-accent`, `--surface-mint/peach/blue/lavender/yellow` | Фоны страницы, карточек, акцентных блоков |
+| Текст | `--text-primary`, `--text-secondary`, `--text-muted`, `--text-inverse` | Цвета текста |
+| Акцент | `--accent`, `--accent-hover`, `--accent-light`, `--accent-text` | Основной акцентный цвет (по умолчанию emerald #1B6B5A) |
+| Специализации | `--color-mint`, `--color-peach`, `--color-blue`, `--color-lavender`, `--color-yellow` + `*-rgb`, `*-hover` | Цвета направлений клиники |
+| Шрифты | `--font-body`, `--font-serif`, `--font-nav` | Текст (Golos Text), заголовки (Cormorant Garamond), навигация (наследует body) |
+| Тени | `--shadow-xs/sm/md/lg/xl`, `--shadow-mint/peach/blue` | Тени с поддержкой акцентных цветов |
+| Скругления | `--radius-sm/md/lg/xl/full` | Радиусы углов |
+| Градиенты | `--gradient-badge-mint/peach/blue`, `--gradient-card-mint/peach/blue`, `--gradient-cta` | Градиенты для бейджей, карточек, CTA |
+| Декор | `--decoration-display` | Включение/отключение декоративных элементов (blobs, orbs) |
+
+### ThemeSwitcher (`src/components/ThemeSwitcher.jsx`)
+
+Плавающая кнопка (палитра) в правом нижнем углу. Открывает панель с тремя секциями:
+
+1. **Акцент** — 20 цветовых пресетов (emerald, slate-blue, dusty-rose, warm-clay, sage, indigo, teal, amber, plum, crimson, ocean, forest, graphite, copper, midnight, mauve, moss, terracotta, steel, burgundy) + hue-strip для произвольного цвета. При выборе цвета `buildFullPalette()` автоматически рассчитывает всю палитру (peach, blue, lavender, yellow, тени, градиенты).
+2. **Заголовки** — 10 серифных шрифтов (Cormorant Garamond по умолчанию, Playfair Display, Lora, Merriweather, PT Serif, EB Garamond, Libre Baskerville, Spectral, Crimson Pro, DM Serif Display)
+3. **Меню** — шрифт навигации в хедере и футере. «Как текст» (наследует body font) + те же 10 серифных шрифтов. Применяется через CSS-переменную `--font-nav`.
+4. **Текст** — 10 sans-serif шрифтов (Golos Text по умолчанию, Commissioner, Onest, Manrope, Rubik, Nunito, Inter, PT Sans, Open Sans, Raleway)
+
+Настройки сохраняются в `localStorage` (`clod-theme-settings`). FOUC предотвращается inline-скриптом в `Layout.astro`, который восстанавливает тему до первой отрисовки.
+
+### Tailwind fontFamily
+
+```js
+fontFamily: {
+  sans:  ['var(--font-body)'],   // основной текст
+  serif: ['var(--font-serif)'],  // заголовки
+  nav:   ['var(--font-nav)'],    // навигация (хедер + футер)
+}
+```
 
 ### CSS-утилиты (классы)
 
-**Карточки:**
-```
-clay-card              - белая карточка с clay-тенью
-clay-card-lg           - то же, крупнее
-clay-card-mint         - тил-карточка (градиент)
-clay-card-peach        - персиковая карточка
-clay-card-blue         - синяя карточка
-clay-card-lavender     - лавандовая карточка
-clay-card-soft-mint    - пастельный тил (бледный)
-clay-card-soft-peach   - пастельный персик
-clay-card-soft-blue    - пастельный синий
-clay-card-soft-lavender - пастельный лавандовый
-```
+**Карточки:** `clay-card`, `clay-card-lg`, цветные карточки (`mint/peach/blue/lavender/yellow` и `soft-*` варианты)
 
-**Кнопки:**
-```
-btn-clay-primary   - основная кнопка (тил, pill-форма)
-btn-clay-secondary - вторичная кнопка (белая)
-btn-clay-white     - белая кнопка
-pill-filter        - фильтр-таблетка
-```
+**Кнопки:** `btn-clay-primary`, `btn-clay-secondary`, `btn-clay-white`, `pill-filter`
 
-**Иконки и декор:**
-```
-icon-circle-mint/peach/blue/lavender/yellow - цветной круг под иконку
-blob-mint/peach/blue/lavender              - органические blob-фигуры (фон)
-orb                                         - декоративный шар
-```
+**Иконки:** `icon-circle-mint/peach/blue/lavender/yellow`
 
-**Бейджи и статистика:**
-```
-num-badge   - нумерованный шаг
-stat-pill   - маленький stat-лейбл
-```
+**Заголовки:** `heading-display` (serif, light), `heading-serif` (serif, regular), `heading-accent` (serif, italic, акцентный цвет)
 
-**Аватары:**
-```
-avatar-ring-peach/blue/mint/lavender - цветное кольцо вокруг аватара
-```
+**Лейаут:** `section`, `container-clay`
 
-**Лейаут:**
-```
-section          - секция с вертикальными отступами
-container-clay   - контейнер с горизонтальными отступами
-```
-
-### Тени (`tailwind.config.js` → `boxShadow`)
-
-```
-shadow-clay          - нейтральная clay-тень
-shadow-clay-sm       - маленькая
-shadow-clay-lg       - большая
-shadow-clay-mint     - тил-тень
-shadow-clay-peach    - персиковая тень
-shadow-clay-blue     - синяя тень
-shadow-clay-lavender - лавандовая тень
-```
-
-> Правило: **никогда не использовать `box-shadow` inline**, если есть готовый clay-класс.
+> Правило: **никогда не использовать inline-стили** для цветов, теней, фонов — только CSS-переменные и утилит-классы.
 
 ---
 
@@ -584,7 +567,7 @@ integrations: [
 
 Лейаут (`Layout.astro`) подключает:
 - Шрифт Inter (Google Fonts)
-- `global.css` (Tailwind + clay-утилиты)
+- `global.css` (Tailwind + CSS-переменные дизайн-системы)
 - `Header` с `client:load` (интерактивный)
 - `Footer` (статический)
 - `<slot />` для контента страниц
@@ -610,7 +593,7 @@ integrations: [
 | B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
 | B2 - FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
 | B3 - Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
-| B4 - Блог | ✅ | 5 статей, `ItemList` + `MedicalWebPage` JSON-LD |
+| B4 - Блог | ✅ | 40 статей, `ItemList` + `MedicalWebPage` JSON-LD |
 | B5 - Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
 | C1 - ogImage на страницах врачей | ✅ | Фото врача передаётся как `ogImage` в `Layout.astro` для страниц `/doctors/[slug]` |
 | C2 - ogImage на страницах блога | ✅ | Изображение статьи из frontmatter передаётся как `ogImage` для `/blog/[slug]` |
@@ -748,7 +731,7 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ### Масштабное расширение сайта (roadmap-implementation)
 
-- **5 condition-лендингов**: `/fibroadenoma`, `/mastopatiya`, `/kista-molochnoy-zhelezy`, `/eroziya-sheyki-matki`, `/gipotireoz` — каждая с Hero, симптомами, диагностикой, лечением, timeline, FAQ (JSON-LD), CTA, перелинковкой
+- **8 condition-лендингов**: `/fibroadenoma`, `/mastopatiya`, `/kista-molochnoy-zhelezy`, `/eroziya-sheyki-matki`, `/gipotireoz`, `/adenomioz`, `/endometrioz`, `/tireoidit-khashimoto` — каждая с Hero, симптомами, диагностикой, лечением, timeline, FAQ (JSON-LD), CTA, перелинковкой
 - **Mega-menu навигация**: `Header.jsx` переписан с поддержкой 3-уровневой вложенности, колонки по специализациям, condition-ссылки, ВАБ CTA; mobile: аккордеоны
 - **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту (49 страниц), лупа в header, mobile search
 - **Новые страницы**: `/dlya-inogorodnikh` (для иногородних), `/nashi-rezultaty` (count-up анимации, статистика), `/media` (агрегация TV-выступлений)
@@ -782,6 +765,16 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Производительность (Lighthouse)**: preconnect для `booking.medflex.ru`; загрузка `tracker.js` с `defer` (не блокирует отрисовку); виджет Medflex подгружается по `requestIdleCallback` (снижение длительной задачи в main thread); уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в middleware — `Cache-Control: public, max-age=31536000, immutable` для `/_astro/`, `/fonts/`, `/images/`; в nginx включено gzip для текстовых ответов.
 - **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; блокирующий CSS страницы «О клинике» сделан неблокирующим (post-build скрипт `scripts/async-about-css.mjs`: `media="print"` + `onload="this.media='all'"`).
 
+### Редизайн и тематизация (март–апрель 2026)
+
+- **Luxury redesign**: переход от claymorphism к чистой premium-эстетике — белый фон, тонкие 1px-бордеры, минимальные тени, пакет `claymorphism-css` полностью удалён
+- **Skinnable CSS-архитектура**: ~87 CSS-переменных в `:root` управляют всей визуальной системой; inline-стили в JSX запрещены
+- **ThemeSwitcher**: плавающая кнопка с панелью настроек — 20 цветовых пресетов + hue-strip, 3 шрифтовых селектора (заголовки, меню, текст); автоматический расчёт палитры через `buildFullPalette()`; localStorage-персистенция; FOUC-предотвращение через inline-скрипт в Layout.astro
+- **Шрифт навигации** (`--font-nav`): отдельная CSS-переменная для хедера и футера, настраивается через ThemeSwitcher (11 вариантов: «Как текст» + 10 серифных шрифтов)
+- **3 новых condition-лендинга**: `/adenomioz` (Аденомиоз), `/endometrioz` (Эндометриоз), `/tireoidit-khashimoto` (Тиреоидит Хашимото) — MedicalCondition JSON-LD, полный контент
+- **Blog Image Generator**: внутренний инструмент `/blog-images` (SSR) для генерации AI-постеров к статьям блога
+- **Блог расширен**: с 16 до 40 статей
+
 ---
 
 ## Обновление этого файла
@@ -790,7 +783,7 @@ Certbot-контейнер проверяет сертификат каждые 
 
 - Добавление новой страницы → обновить таблицу роутинга и структуру файлов
 - Добавление нового компонента → обновить структуру файлов
-- Новые clay-утилиты в `global.css` → обновить раздел CSS-утилит
-- Новые цвета в `tailwind.config.js` → обновить цветовую палитру
+- Новые CSS-переменные в `global.css` → обновить раздел дизайн-системы
+- Новые цвета/шрифты в ThemeSwitcher → обновить раздел дизайн-системы
 - Изменение стека (зависимости в `package.json`) → обновить таблицу стека
 - Изменение правил в `.cursor/rules/` → синхронизировать разделы паттернов

@@ -310,6 +310,11 @@ const BODY_FONTS = [
   { id: 'raleway', label: 'Raleway', family: "'Raleway', 'Segoe UI', system-ui, sans-serif", google: 'Raleway:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap' },
 ]
 
+const NAV_FONTS = [
+  { id: 'inherit', label: 'Как текст', family: 'var(--font-body)', google: null },
+  ...HEADING_FONTS,
+]
+
 const STORAGE_KEY = 'clod-theme-settings'
 
 function hexToHsl(hex) {
@@ -464,6 +469,11 @@ function applyBodyFont(font) {
   document.documentElement.style.setProperty('--font-body', font.family)
 }
 
+function applyNavFont(font) {
+  loadGoogleFont(font.google)
+  document.documentElement.style.setProperty('--font-nav', font.family)
+}
+
 function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -535,6 +545,7 @@ export function ThemeSwitcher() {
   const [customHex, setCustomHex] = useState('#1B6B5A')
   const [headingId, setHeadingId] = useState('cormorant')
   const [bodyId, setBodyId] = useState('golos')
+  const [navId, setNavId] = useState('inherit')
   const panelRef = useRef(null)
   const buttonRef = useRef(null)
   const handleClickOutside = useCallback((e) => {
@@ -574,6 +585,13 @@ export function ThemeSwitcher() {
         applyBodyFont(font)
       }
     }
+    if (saved.navId) {
+      const font = NAV_FONTS.find(f => f.id === saved.navId)
+      if (font) {
+        setNavId(saved.navId)
+        applyNavFont(font)
+      }
+    }
   }, [])
   useEffect(() => {
     if (isOpen) {
@@ -581,32 +599,42 @@ export function ThemeSwitcher() {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen, handleClickOutside])
+  function buildSavePayload(overrides) {
+    return { colorId, customHex: colorId === 'custom' ? customHex : undefined, headingId, bodyId, navId, ...overrides }
+  }
   function selectColor(id) {
     const theme = COLOR_THEMES.find(t => t.id === id)
     if (!theme) return
     setColorId(id)
     applyFullPalette(buildFullPalette(theme.accent))
-    saveSettings({ colorId: id, headingId, bodyId })
+    saveSettings(buildSavePayload({ colorId: id, customHex: undefined }))
   }
   function selectCustomColor(hex) {
     setCustomHex(hex)
     setColorId('custom')
     applyFullPalette(buildFullPalette(hex))
-    saveSettings({ colorId: 'custom', customHex: hex, headingId, bodyId })
+    saveSettings(buildSavePayload({ colorId: 'custom', customHex: hex }))
   }
   function selectHeading(id) {
     const font = HEADING_FONTS.find(f => f.id === id)
     if (!font) return
     setHeadingId(id)
     applyHeadingFont(font)
-    saveSettings({ colorId, customHex: colorId === 'custom' ? customHex : undefined, headingId: id, bodyId })
+    saveSettings(buildSavePayload({ headingId: id }))
   }
   function selectBody(id) {
     const font = BODY_FONTS.find(f => f.id === id)
     if (!font) return
     setBodyId(id)
     applyBodyFont(font)
-    saveSettings({ colorId, customHex: colorId === 'custom' ? customHex : undefined, headingId, bodyId: id })
+    saveSettings(buildSavePayload({ bodyId: id }))
+  }
+  function selectNav(id) {
+    const font = NAV_FONTS.find(f => f.id === id)
+    if (!font) return
+    setNavId(id)
+    applyNavFont(font)
+    saveSettings(buildSavePayload({ navId: id }))
   }
   return (
     <div className="theme-switcher-root">
@@ -653,6 +681,23 @@ export function ThemeSwitcher() {
                     onMouseEnter={() => loadGoogleFont(f.google)}
                     className={`theme-switcher-font-btn ${headingId === f.id ? 'active' : ''}`}
                     style={{ fontFamily: f.family }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="theme-switcher-fonts-divider" />
+            <div className="theme-switcher-section">
+              <span className="theme-switcher-label">Меню</span>
+              <div className="theme-switcher-font-list">
+                {NAV_FONTS.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => selectNav(f.id)}
+                    onMouseEnter={() => loadGoogleFont(f.google)}
+                    className={`theme-switcher-font-btn ${navId === f.id ? 'active' : ''}`}
+                    style={{ fontFamily: f.id === 'inherit' ? undefined : f.family }}
                   >
                     {f.label}
                   </button>
