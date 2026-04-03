@@ -60,5 +60,5 @@ output/
 # Misc legacy/local files
 PageSpeed Insights.pdf
 
-# Generated blog poster images (AI-generated, regenerable)
-public/images/blog/
+# Blog poster generator state (regenerable)
+public/images/blog/.jobs.json
