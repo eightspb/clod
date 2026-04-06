@@ -244,7 +244,7 @@ export function BlogImageGenerator({ articles }) {
     }
     setBulkProgress(`Запущено ${submitted} заданий`)
     setBulkRunning(false)
-  }, [images, bulkModel, handleSubmit])
+  }, [filteredArticles, images, bulkModel, handleSubmit])
   const handleApplyAll = useCallback(async () => {
     const unapplied = Object.keys(images).filter(slug => !applied[slug])
     if (unapplied.length === 0) { setApplyAllStatus('Все уже применены'); return }
