@@ -11,7 +11,7 @@ import {
   AnalyticsSession,
   PageView,
 } from 'astro:db'
-import { isAuthenticated } from '../../../lib/auth.js'
+import { guardAdminRead } from '../../../lib/admin-api.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
@@ -36,9 +36,8 @@ function errorResponse(status, code, message) {
 }
 
 export async function GET({ request }) {
-  if (!await isAuthenticated(request)) {
-    return errorResponse(401, 'UNAUTHORIZED', 'Требуется авторизация.')
-  }
+  const blocked = await guardAdminRead(request)
+  if (blocked) return blocked
 
   try {
     const now = new Date()

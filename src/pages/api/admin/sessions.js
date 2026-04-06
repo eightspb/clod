@@ -1,7 +1,7 @@
 export const prerender = false
 
 import { db, desc, gte, AnalyticsSession } from 'astro:db'
-import { isAuthenticated } from '../../../lib/auth.js'
+import { guardAdminRead } from '../../../lib/admin-api.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const DEFAULT_LIMIT = 100
@@ -34,9 +34,8 @@ function parseLimit(value) {
 }
 
 export async function GET({ request }) {
-  if (!await isAuthenticated(request)) {
-    return errorResponse(401, 'UNAUTHORIZED', 'Требуется авторизация.')
-  }
+  const blocked = await guardAdminRead(request)
+  if (blocked) return blocked
 
   try {
     const url = new URL(request.url)

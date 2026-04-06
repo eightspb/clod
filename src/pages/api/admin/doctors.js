@@ -1,15 +1,11 @@
 export const prerender = false
 
 import { db, Doctor, Media, DoctorCertificate } from 'astro:db'
-import { isAuthenticated } from '../../../lib/auth.js'
+import { guardAdminRead } from '../../../lib/admin-api.js'
 
 export async function GET({ request }) {
-  if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  const blocked = await guardAdminRead(request)
+  if (blocked) return blocked
 
   try {
     const doctors = await db.select().from(Doctor)

@@ -2,21 +2,11 @@ export const prerender = false
 
 import { db, Doctor } from 'astro:db'
 import { eq } from 'astro:db'
-import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
+import { guardAdminWrite } from '../../../../lib/admin-api.js'
 
 export async function PUT({ request, params }) {
-  if (!validateOrigin(request)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
-  if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  const blocked = await guardAdminWrite(request)
+  if (blocked) return blocked
   try {
     const { id } = params
     const body = await request.json()
