@@ -46,12 +46,13 @@ const faqSchema = generateFaqSchema(EROZIYA_FAQ)
 ---
 
 <Layout
-  title="Эрозия шейки матки — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Приём гинеколога при эрозии шейки матки в Приморском районе Санкт-Петербурга. Кольпоскопия, ПАП-тест, ВПЧ-тест, радиоволновое лечение. Богатырский проспект, м. Комендантский проспект."
+  title="Эрозия шейки матки: лечение в СПб | Клиника Одинцова"
+  description="Гинеколог при эрозии шейки матки в СПб: кольпоскопия, ПАП-тест, радиоволновое лечение. Клиника Одинцова, Приморский район."
   keywords="эрозия шейки матки лечение СПб, гинеколог Санкт-Петербург, кольпоскопия, ПАП-тест, прижигание эрозии, радиоволновое лечение, Приморский район СПб"
+  ogImage="/images/og/eroziya-sheyki-matki.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эрозия шейки матки' }]} />
-  <EroziyaSheykyMatki client:load />
+  <EroziyaSheykyMatki client:idle />
 </Layout>

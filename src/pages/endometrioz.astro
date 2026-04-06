@@ -48,12 +48,13 @@ const faqSchema = generateFaqSchema(ENDOMETRIOZ_FAQ)
 ---
 
 <Layout
-  title="Эндометриоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Приём гинеколога при эндометриозе в Приморском районе Санкт-Петербурга. УЗИ малого таза, МРТ, гормональная терапия, лапароскопическое лечение. Богатырский проспект, м. Комендантский проспект."
+  title="Эндометриоз: лечение в СПб | Клиника Одинцова"
+  description="Гинеколог при эндометриозе в СПб: УЗИ, МРТ, гормональная терапия, лапароскопия. Клиника Одинцова, Приморский район."
   keywords="эндометриоз лечение СПб, гинеколог Санкт-Петербург, эндометриоз симптомы, тазовая боль, лапароскопия эндометриоз, Приморский район СПб"
+  ogImage="/images/og/endometrioz.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эндометриоз' }]} />
-  <Endometrioz client:load />
+  <Endometrioz client:idle />
 </Layout>

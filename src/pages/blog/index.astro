@@ -111,9 +111,10 @@ const itemListSchema = {
 
 <Layout
   title="Блог и клинические разборы | Клиника Одинцова"
-  description="Статьи, клинические разборы и ответы врачей Клиники Одинцова. Материалы для пациентов из разных регионов России, с мягким локальным маршрутом в Санкт-Петербурге."
+  description="Статьи, клинические разборы и ответы врачей Клиники Одинцова. Полезные материалы по маммологии, гинекологии и эндокринологии."
   keywords="блог клиники, клинические разборы, статьи о маммологии, статьи о гинекологии, статьи об эндокринологии, диагностика"
   canonicalUrl="https://odintsovclinic.ru/blog"
+  ogImage="/images/og/blog.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />
 
@@ -234,6 +235,8 @@ const itemListSchema = {
                   <img
                     src={normalizeImageUrl(post.data.image)}
                     alt={post.data.imageAlt || post.data.title}
+                    width="800"
+                    height="420"
                     loading="lazy"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />

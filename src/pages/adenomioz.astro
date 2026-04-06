@@ -52,12 +52,13 @@ const faqSchema = generateFaqSchema(ADENOMIOZ_FAQ)
 ---
 
 <Layout
-  title="Аденомиоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Приём гинеколога при аденомиозе в Приморском районе Санкт-Петербурга. УЗИ, МРТ малого таза, гормональная терапия, подбор лечения. Богатырский проспект, м. Комендантский проспект."
+  title="Аденомиоз: лечение в СПб | Клиника Одинцова"
+  description="Гинеколог при аденомиозе в СПб: УЗИ, МРТ малого таза, гормональная терапия. Клиника Одинцова, Приморский район."
   keywords="аденомиоз лечение СПб, гинеколог Санкт-Петербург, аденомиоз симптомы, обильные менструации, болезненные месячные лечение, Приморский район СПб"
+  ogImage="/images/og/adenomioz.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Аденомиоз' }]} />
-  <Adenomioz client:load />
+  <Adenomioz client:idle />
 </Layout>

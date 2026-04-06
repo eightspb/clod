@@ -50,12 +50,13 @@ const faqSchema = generateFaqSchema(KISTA_FAQ)
 ---
 
 <Layout
-  title="Киста молочной железы — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Консультация маммолога, УЗИ и лечение кисты молочной железы в Приморском районе Санкт-Петербурга. Аспирация, склерозирование, ВАБ по показаниям. Богатырский проспект."
+  title="Киста молочной железы: лечение в СПб | Клиника Одинцова"
+  description="Маммолог при кисте молочной железы в СПб: УЗИ, аспирация, ВАБ по показаниям. Клиника Одинцова, Приморский район."
   keywords="киста молочной железы, лечение кисты СПб, маммолог Санкт-Петербург, аспирация кисты, УЗИ молочных желёз, Приморский район"
+  ogImage="/images/og/kista-molochnoy-zhelezy.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Киста молочной железы' }]} />
-  <KistaMolochnoyZhelezy client:load />
+  <KistaMolochnoyZhelezy client:idle />
 </Layout>

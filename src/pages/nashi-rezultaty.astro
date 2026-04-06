@@ -9,8 +9,9 @@ import { NashiRezultaty } from '../components/pages/NashiRezultaty.jsx'
   description="Статистика работы клиники: количество процедур ВАБ, опыт врачей, география пациентов и рейтинги на ПроДокторов."
   keywords="клиника одинцова результаты, статистика ВАБ, рейтинг клиники спб маммология, отзывы клиника одинцова санкт-петербург"
   canonicalUrl="https://odintsovclinic.ru/nashi-rezultaty"
+  ogImage="/images/og/nashi-rezultaty.webp"
   ogType="website"
 >
   <BreadcrumbNav items={[{ label: 'Наши результаты' }]} />
-  <NashiRezultaty client:load />
+  <NashiRezultaty client:idle />
 </Layout>

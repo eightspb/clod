@@ -71,6 +71,8 @@ const features = [
 
 const GYNECOLOGY_CONDITIONS = [
   { href: '/eroziya-sheyki-matki', title: 'Эрозия шейки матки', desc: 'Кольпоскопия, лазерная и радиоволновая деструкция по показаниям' },
+  { href: '/endometrioz', title: 'Эндометриоз', desc: 'Диагностика, гормональная терапия и лапароскопическое лечение' },
+  { href: '/adenomioz', title: 'Аденомиоз', desc: 'УЗИ, МРТ малого таза и подбор индивидуальной терапии' },
 ]
 
 export function Gynecology({ servicesData = [] }) {
