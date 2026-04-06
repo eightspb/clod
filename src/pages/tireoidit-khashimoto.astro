@@ -53,12 +53,13 @@ const faqSchema = generateFaqSchema(TIREOIDIT_FAQ)
 ---
 
 <Layout
-  title="Тиреоидит Хашимото — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Приём эндокринолога при тиреоидите Хашимото в Приморском районе Санкт-Петербурга. Анализы на антитела, ТТГ, УЗИ щитовидной железы, подбор терапии. Богатырский проспект, м. Комендантский проспект."
+  title="Тиреоидит Хашимото: лечение в СПб | Клиника Одинцова"
+  description="Эндокринолог при тиреоидите Хашимото в СПб: антитела, ТТГ, УЗИ щитовидной железы, подбор терапии. Клиника Одинцова."
   keywords="тиреоидит Хашимото лечение СПб, аутоиммунный тиреоидит, эндокринолог Санкт-Петербург, антитела к ТПО, щитовидная железа, гипотиреоз лечение, Приморский район СПб"
+  ogImage="/images/og/tireoidit-khashimoto.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология', href: '/endocrinology' }, { label: 'Тиреоидит Хашимото' }]} />
-  <TireoiditKhashimoto client:load />
+  <TireoiditKhashimoto client:idle />
 </Layout>

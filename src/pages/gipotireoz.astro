@@ -49,12 +49,13 @@ const faqSchema = generateFaqSchema(GIPOTIREOZ_FAQ)
 ---
 
 <Layout
-  title="Гипотиреоз — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Приём эндокринолога при гипотиреозе в Приморском районе Санкт-Петербурга. Анализы ТТГ, Т4, УЗИ щитовидной железы, подбор лечения. Богатырский проспект, м. Комендантский проспект."
+  title="Гипотиреоз: лечение в СПб | Клиника Одинцова"
+  description="Эндокринолог при гипотиреозе в СПб: анализы ТТГ, Т4, УЗИ щитовидной железы, подбор терапии. Клиника Одинцова, Приморский район."
   keywords="гипотиреоз лечение СПб, эндокринолог Санкт-Петербург, ТТГ анализ, щитовидная железа лечение, гипотиреоз симптомы, Приморский район СПб"
+  ogImage="/images/og/gipotireoz.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология', href: '/endocrinology' }, { label: 'Гипотиреоз' }]} />
-  <Gipotireoz client:load />
+  <Gipotireoz client:idle />
 </Layout>

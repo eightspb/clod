@@ -46,12 +46,13 @@ const faqSchema = generateFaqSchema(FIBROADENOMA_FAQ)
 ---
 
 <Layout
-  title="Фиброаденома молочной железы — диагностика и лечение в Санкт-Петербурге | Клиника Одинцова"
-  description="Онколог-маммолог в Приморском районе Санкт-Петербурга. Консультация, УЗИ, ВАБ и второе мнение при фиброаденоме. Богатырский проспект, рядом с м. Комендантский проспект."
+  title="Фиброаденома: лечение в СПб | Клиника Одинцова"
+  description="Маммолог при фиброаденоме в СПб: консультация, УЗИ, ВАБ и второе мнение. Клиника Одинцова, Приморский район."
   keywords="фиброаденома молочной железы, лечение фиброаденомы СПб, ВАБ фиброаденома, маммолог Санкт-Петербург, удаление фиброаденомы, Приморский район"
+  ogImage="/images/og/fibroadenoma.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(conditionSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Фиброаденома' }]} />
-  <Fibroadenoma client:load />
+  <Fibroadenoma client:idle />
 </Layout>

@@ -95,6 +95,7 @@ const conditions = [
 
 const ENDOCRINOLOGY_CONDITIONS = [
   { href: '/gipotireoz', title: 'Гипотиреоз', desc: 'Диагностика и подбор заместительной терапии' },
+  { href: '/tireoidit-khashimoto', title: 'Тиреоидит Хашимото', desc: 'Аутоиммунный тиреоидит: анализы на антитела, УЗИ и терапия' },
 ]
 
 export function Endocrinology() {
