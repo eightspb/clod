@@ -243,7 +243,7 @@ export function HeroSlider() {
                       </a>
                       <div className="hero-doctor-info">
                         <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-name-link group">
-                          <h3 className="hero-doctor-name">{heroDoctor[idx].name}</h3>
+                          <p className="hero-doctor-name">{heroDoctor[idx].name}</p>
                         </a>
                         <p className="hero-doctor-spec">{heroDoctor[idx].specialization}</p>
                         <div className="hero-doctor-meta">
@@ -317,7 +317,6 @@ export function HeroSlider() {
             className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors bg-gray-50 text-gray-700"
             style={{ minHeight: '44px' }}
             aria-pressed={isAutoplayPaused}
-            aria-label={isAutoplayPaused ? 'Возобновить автопрокрутку слайдов' : 'Пауза автопрокрутки слайдов'}
           >
             {isAutoplayPaused ? 'Возобновить автопрокрутку' : 'Пауза слайдов'}
           </button>
