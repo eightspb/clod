@@ -2,16 +2,16 @@ export const prerender = false
 
 import nodemailer from 'nodemailer'
 import { validateOrigin } from '../../lib/auth.js'
+import { checkRateLimit } from '../../lib/rate-limit.js'
+import {
+  MAX_FILES,
+  MAX_FILE_SIZE_BYTES,
+  MAX_TOTAL_FILE_SIZE_BYTES,
+  ALLOWED_EXTENSIONS,
+  ALLOWED_MIME_TYPES,
+} from '../../lib/file-constraints.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const MAX_FILES = 5
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
-const MAX_TOTAL_FILE_SIZE_BYTES = 25 * 1024 * 1024
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'jpg', 'jpeg', 'png'])
-const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
-const submissionsByIp = new Map()
 
 function jsonResponse(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -51,25 +51,7 @@ function getClientIp(request) {
   )
 }
 
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const entry = submissionsByIp.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    submissionsByIp.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return { allowed: true }
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return {
-      allowed: false,
-      retryAfterSec: Math.ceil((entry.resetAt - now) / 1000),
-    }
-  }
-
-  entry.count += 1
-  return { allowed: true }
-}
+const RATE_LIMIT_OPTS = { namespace: 'second-opinion', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 function getSmtpConfig() {
   const host = getEnvValue('SMTP_HOST').trim()
@@ -263,7 +245,7 @@ export async function POST({ request }) {
   }
 
   const ip = getClientIp(request)
-  const { allowed, retryAfterSec } = checkRateLimit(ip)
+  const { allowed, retryAfterSec } = checkRateLimit(ip, RATE_LIMIT_OPTS)
 
   if (!allowed) {
     return errorResponse(

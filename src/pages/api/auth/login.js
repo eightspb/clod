@@ -8,11 +8,9 @@ import {
   timingSafeEqualText,
   validateOrigin,
 } from '../../../lib/auth.js'
+import { checkRateLimit, resetRateLimit } from '../../../lib/rate-limit.js'
 
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-
-const loginAttempts = new Map()
+const RATE_LIMIT_OPTS = { namespace: 'login', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 function getClientIp(request) {
   return (
@@ -20,24 +18,6 @@ function getClientIp(request) {
     request.headers.get('x-real-ip') ||
     'unknown'
   )
-}
-
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const entry = loginAttempts.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return { allowed: true }
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000)
-    return { allowed: false, retryAfterSec }
-  }
-
-  entry.count++
-  return { allowed: true }
 }
 
 export async function POST({ request }) {
@@ -49,7 +29,7 @@ export async function POST({ request }) {
   }
 
   const ip = getClientIp(request)
-  const { allowed, retryAfterSec } = checkRateLimit(ip)
+  const { allowed, retryAfterSec } = checkRateLimit(ip, RATE_LIMIT_OPTS)
 
   if (!allowed) {
     return new Response(
@@ -78,7 +58,7 @@ export async function POST({ request }) {
       })
     }
 
-    loginAttempts.delete(ip)
+    resetRateLimit(ip, RATE_LIMIT_OPTS)
 
     const token = await createToken()
     return new Response(JSON.stringify({ ok: true }), {

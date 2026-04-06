@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Shield, Paperclip, X, AlertCircle, CheckCircle } from 'lucide-react'
-
-const MAX_FILES = 5
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
-const MAX_TOTAL_FILE_SIZE_BYTES = 25 * 1024 * 1024
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'jpg', 'jpeg', 'png'])
-const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+import {
+  MAX_FILES,
+  MAX_FILE_SIZE_BYTES,
+  MAX_TOTAL_FILE_SIZE_BYTES,
+  ALLOWED_EXTENSIONS,
+  ALLOWED_MIME_TYPES,
+} from '../lib/file-constraints.js'
 
 function getFileExtension(filename) {
   const parts = filename.toLowerCase().split('.')

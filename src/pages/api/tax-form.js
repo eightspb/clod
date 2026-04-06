@@ -2,12 +2,11 @@ export const prerender = false
 
 import nodemailer from 'nodemailer'
 import { validateOrigin } from '../../lib/auth.js'
+import { checkRateLimit } from '../../lib/rate-limit.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 const TAX_FORM_TO_EMAIL = 'info@odintsovclinic.ru, vbazarbaev@gmail.com'
-const submissionsByIp = new Map()
+const RATE_LIMIT_OPTS = { namespace: 'tax-form', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 function jsonResponse(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -45,26 +44,6 @@ function getClientIp(request) {
     request.headers.get('x-real-ip') ||
     'unknown'
   )
-}
-
-function checkRateLimit(ip) {
-  const now = Date.now()
-  const entry = submissionsByIp.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    submissionsByIp.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return { allowed: true }
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return {
-      allowed: false,
-      retryAfterSec: Math.ceil((entry.resetAt - now) / 1000),
-    }
-  }
-
-  entry.count += 1
-  return { allowed: true }
 }
 
 function getSmtpConfig() {
@@ -214,7 +193,7 @@ export async function POST({ request }) {
   }
 
   const ip = getClientIp(request)
-  const { allowed, retryAfterSec } = checkRateLimit(ip)
+  const { allowed, retryAfterSec } = checkRateLimit(ip, RATE_LIMIT_OPTS)
 
   if (!allowed) {
     return errorResponse(

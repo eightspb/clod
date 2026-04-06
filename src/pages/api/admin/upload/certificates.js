@@ -4,7 +4,7 @@ import { db, DoctorCertificate, Media } from 'astro:db'
 import { eq } from 'astro:db'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { isAuthenticated, validateOrigin } from '../../../../lib/auth.js'
+import { guardAdminWrite } from '../../../../lib/admin-api.js'
 import {
   buildStorageFilename,
   deleteFileIfExists,
@@ -22,13 +22,8 @@ function jsonResponse(payload, status) {
 }
 
 export async function POST({ request }) {
-  if (!validateOrigin(request)) {
-    return jsonResponse({ error: 'Forbidden' }, 403)
-  }
-
-  if (!await isAuthenticated(request)) {
-    return jsonResponse({ error: 'Unauthorized' }, 401)
-  }
+  const blocked = await guardAdminWrite(request)
+  if (blocked) return blocked
 
   try {
     const formData = await request.formData()

@@ -2,7 +2,7 @@ export const prerender = false
 
 import { db, DoctorCertificate, Media } from 'astro:db'
 import { and, eq } from 'astro:db'
-import { isAuthenticated, validateOrigin } from '../../../../../lib/auth.js'
+import { guardAdminRead, guardAdminWrite } from '../../../../../lib/admin-api.js'
 import { deleteFileIfExists, mediaUrlToFilePath } from '../../../../../lib/upload-utils.js'
 
 function jsonResponse(payload, status) {
@@ -13,9 +13,8 @@ function jsonResponse(payload, status) {
 }
 
 export async function GET({ request, params }) {
-  if (!await isAuthenticated(request)) {
-    return jsonResponse({ error: 'Unauthorized' }, 401)
-  }
+  const blocked = await guardAdminRead(request)
+  if (blocked) return blocked
 
   try {
     const { id: doctorId } = params
@@ -42,13 +41,8 @@ export async function GET({ request, params }) {
 }
 
 export async function DELETE({ request, params }) {
-  if (!validateOrigin(request)) {
-    return jsonResponse({ error: 'Forbidden' }, 403)
-  }
-
-  if (!await isAuthenticated(request)) {
-    return jsonResponse({ error: 'Unauthorized' }, 401)
-  }
+  const blocked = await guardAdminWrite(request)
+  if (blocked) return blocked
 
   try {
     const { id: doctorId } = params
