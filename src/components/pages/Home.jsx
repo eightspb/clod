@@ -495,7 +495,11 @@ export function Home({ doctorsData = [] }) {
     <ErrorBoundary>
     <div>
       {/* ── HERO SLIDER ── */}
-      <section className="relative overflow-hidden grain-overlay">
+      <section
+        className="relative overflow-hidden grain-overlay"
+        aria-roledescription="carousel"
+        aria-label="Главный слайдер"
+      >
         <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
         {/* Фоновые блобы */}
         <div className="blob-mint absolute top-12 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
@@ -504,7 +508,12 @@ export function Home({ doctorsData = [] }) {
 
         <div className="container-clay relative z-10 py-8 md:py-14">
           {/* Слайды */}
-          <div className="relative" style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}>
+          <div
+            className="relative"
+            aria-live="polite"
+            aria-atomic="false"
+            style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}
+          >
             {heroSlides.map((slide, idx) => {
               const isActive = activeSlide === idx
 
@@ -512,6 +521,10 @@ export function Home({ doctorsData = [] }) {
               <div
                 key={idx}
                 ref={(el) => { slideRefs.current[idx] = el }}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Слайд ${idx + 1} из ${heroSlides.length}`}
+                aria-hidden={!isActive}
                 className="transition-all duration-[800ms] ease-out"
                 style={{
                   opacity: isActive ? 1 : 0,
@@ -621,15 +634,14 @@ export function Home({ doctorsData = [] }) {
           </div>
 
           {/* Dot indicators */}
-          <div className="flex justify-center items-center gap-2.5 mt-8" role="tablist" aria-label="Слайды">
+          <div className="flex justify-center items-center gap-2.5 mt-8" role="group" aria-label="Навигация по слайдам">
             {heroSlides.map((_, idx) => (
               <button
                 type="button"
                 key={idx}
-                role="tab"
                 onClick={() => goToSlide(idx)}
-                aria-label={`Слайд ${idx + 1}`}
-                aria-selected={activeSlide === idx}
+                aria-label={`Перейти к слайду ${idx + 1}`}
+                aria-current={activeSlide === idx ? 'true' : undefined}
                 className="p-1.5 transition-all duration-300"
               >
                 <span
@@ -648,8 +660,8 @@ export function Home({ doctorsData = [] }) {
             <button
               type="button"
               onClick={prevSlide}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-              style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+              className="rounded-full flex items-center justify-center transition-colors"
+              style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
               aria-label="Предыдущий слайд"
             >
               <ChevronLeft size={14} className="text-clay-mint" />
@@ -658,6 +670,7 @@ export function Home({ doctorsData = [] }) {
               type="button"
               onClick={() => setIsAutoplayPaused((current) => !current)}
               className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors bg-gray-50 text-gray-700"
+              style={{ minHeight: '44px' }}
               aria-pressed={isAutoplayPaused}
               aria-label={isAutoplayPaused ? 'Возобновить автопрокрутку слайдов' : 'Пауза автопрокрутки слайдов'}
             >
@@ -666,8 +679,8 @@ export function Home({ doctorsData = [] }) {
             <button
               type="button"
               onClick={nextSlide}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-              style={{ background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+              className="rounded-full flex items-center justify-center transition-colors"
+              style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
               aria-label="Следующий слайд"
             >
               <ChevronRight size={14} className="text-clay-mint" />

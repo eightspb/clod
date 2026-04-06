@@ -180,7 +180,7 @@ function DoctorsMegaMenuPanel({ item, currentPath }) {
                       >
                         <img
                           src={doc.photo}
-                          alt=""
+                          alt={doc.name}
                           width={28}
                           height={28}
                           className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm"
@@ -218,12 +218,14 @@ function DoctorsMegaMenuPanel({ item, currentPath }) {
 function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCloseMenu }) {
   const isExpanded = expandedGroup === item.label
   const isMega = item.mega
+  const panelId = `mobile-nav-panel-${item.label.replace(/\s+/g, '-').toLowerCase()}`
   return (
     <div>
       <button
         className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-clay-muted uppercase tracking-wider"
         onClick={() => onToggleGroup(item.label)}
         aria-expanded={isExpanded}
+        aria-controls={panelId}
       >
         {item.label}
         <ChevronDown
@@ -232,7 +234,7 @@ function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCl
         />
       </button>
       {isExpanded && (
-        <div className="pb-1">
+        <div id={panelId} className="pb-1">
           {isMega === 'doctors' ? (
             <>
               {item.groups.map((group) => (
@@ -255,7 +257,7 @@ function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCl
                       }`}
                       onClick={onCloseMenu}
                     >
-                      <img src={doc.photo} alt="" width={24} height={24} className="w-6 h-6 rounded-full object-cover shadow-sm" loading="lazy" />
+                      <img src={doc.photo} alt={doc.name} width={24} height={24} className="w-6 h-6 rounded-full object-cover shadow-sm" loading="lazy" />
                       {doc.name}
                     </a>
                   ))}

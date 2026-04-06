@@ -539,6 +539,8 @@ function HueStrip({ hex, onColorChange }) {
   )
 }
 
+const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])'
+
 export function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false)
   const [colorId, setColorId] = useState('emerald')
@@ -599,6 +601,39 @@ export function ThemeSwitcher() {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen, handleClickOutside])
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setIsOpen(false)
+        buttonRef.current?.focus()
+        return
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return
+      const focusable = Array.from(panelRef.current.querySelectorAll(FOCUSABLE))
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    window.setTimeout(() => {
+      const focusable = panelRef.current?.querySelectorAll(FOCUSABLE)
+      focusable?.[0]?.focus()
+    }, 0)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isOpen])
   function buildSavePayload(overrides) {
     return { colorId, customHex: colorId === 'custom' ? customHex : undefined, headingId, bodyId, navId, ...overrides }
   }
@@ -648,7 +683,13 @@ export function ThemeSwitcher() {
         {isOpen ? <X size={22} /> : <Palette size={22} />}
       </button>
       {isOpen && (
-        <div ref={panelRef} className="theme-switcher-panel">
+        <div
+          ref={panelRef}
+          className="theme-switcher-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Настройки темы"
+        >
           <div className="theme-switcher-section">
             <span className="theme-switcher-label">Акцент</span>
             <div className="theme-switcher-accent-row">
