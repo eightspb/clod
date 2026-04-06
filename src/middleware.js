@@ -86,7 +86,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Запрет индексации для staging/preview-поддоменов (NOINDEX=true в .env на сервере)
-  if (import.meta.env.NOINDEX === 'true') {
+  // process.env для runtime-доступности (import.meta.env фиксируется при build)
+  if (process.env.NOINDEX === 'true') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
 
