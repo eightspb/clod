@@ -5,6 +5,7 @@ export function FadeInSection({ children, className = '', delay = 0, staggerInde
   const [isVisible, setIsVisible] = useState(true)
   const [shouldAnimate, setShouldAnimate] = useState(false)
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const el = ref.current
     if (!el) return
     const rect = el.getBoundingClientRect()

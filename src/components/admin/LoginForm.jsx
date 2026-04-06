@@ -71,16 +71,19 @@ export function LoginForm() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+            <label htmlFor="admin-password" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
               Пароль
             </label>
             <input
+              id="admin-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Введите пароль"
               required
               autoFocus
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -96,15 +99,19 @@ export function LoginForm() {
           </div>
 
           {error && (
-            <div style={{
-              background: '#fef2f2',
-              border: '1px solid #fca5a5',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              fontSize: '13px',
-              color: '#dc2626',
-              marginBottom: '16px',
-            }}>
+            <div
+              id="login-error"
+              role="alert"
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fca5a5',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                fontSize: '13px',
+                color: '#dc2626',
+                marginBottom: '16px',
+              }}
+            >
               {error}
             </div>
           )}

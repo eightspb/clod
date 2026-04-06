@@ -35,6 +35,7 @@ const currentPath = Astro.url.pathname
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
+    {import.meta.env.NOINDEX === 'true' && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
     <title>{title}</title>
@@ -230,7 +231,7 @@ const currentPath = Astro.url.pathname
     <StickyCTA client:idle />
     <ThemeSwitcher client:idle />
 
-    <div id="font-size-controls" class="fixed bottom-6 right-6 z-50 hidden md:flex flex-col gap-2">
+    <div id="font-size-controls" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex flex-col gap-2">
       <button
         id="font-increase"
         aria-label="Увеличить шрифт"

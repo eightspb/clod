@@ -60,7 +60,7 @@ export function CtaSection({
                 <div className="cta-doctor-photo-wrap">
                   <img
                     src={doctorPhoto}
-                    alt={doctorName || ''}
+                    alt={doctorName || 'Доктор клиники Одинцова'}
                     className="cta-doctor-photo doctor-photo-shadow"
                     loading="lazy"
                   />
