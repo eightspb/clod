@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 function OnlineBadge({ isOnline }) {
   return (
@@ -35,26 +36,14 @@ function parseUA(ua) {
 }
 
 export function SessionsViewer() {
+  const { loading, error, fetchData } = useAdminFetch()
   const [sessions, setSessions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [activeOnly, setActiveOnly] = useState(true)
   const [expanded, setExpanded] = useState(null)
 
   async function loadSessions() {
-    try {
-      const res = await fetch(`/api/admin/sessions?active=${activeOnly}&limit=200`)
-      if (!res.ok) {
-        if (res.status === 401) { window.location.href = '/admin/login'; return }
-        throw new Error('Failed')
-      }
-      const data = await res.json()
-      setSessions(data.sessions || [])
-    } catch {
-      setError('Не удалось загрузить сессии')
-    } finally {
-      setLoading(false)
-    }
+    const result = await fetchData(`/api/admin/sessions?active=${activeOnly}&limit=200`, { errorMessage: 'Не удалось загрузить сессии' })
+    if (result) setSessions(result.sessions || [])
   }
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 const EVENT_TYPES = ['', 'click', 'navigation', 'page_enter', 'page_leave', 'form_submit', 'heartbeat']
 
@@ -53,9 +54,8 @@ function Pagination({ page, totalPages, onPage }) {
 }
 
 export function LogsViewer() {
+  const { loading, error, fetchData } = useAdminFetch()
   const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
@@ -63,30 +63,20 @@ export function LogsViewer() {
   const [expanded, setExpanded] = useState(null)
 
   const loadLogs = useCallback(async (p = page, f = filters) => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: String(p),
-        perPage: '50',
-        ...(f.type && { type: f.type }),
-        ...(f.filterPage && { filterPage: f.filterPage }),
-        ...(f.date && { date: f.date }),
-      })
-      const res = await fetch(`/api/admin/logs?${params}`)
-      if (!res.ok) {
-        if (res.status === 401) { window.location.href = '/admin/login'; return }
-        throw new Error('Failed')
-      }
-      const data = await res.json()
-      setLogs(data.logs || [])
-      setTotal(data.total || 0)
-      setTotalPages(data.totalPages || 1)
-    } catch {
-      setError('Не удалось загрузить логи')
-    } finally {
-      setLoading(false)
+    const params = new URLSearchParams({
+      page: String(p),
+      perPage: '50',
+      ...(f.type && { type: f.type }),
+      ...(f.filterPage && { filterPage: f.filterPage }),
+      ...(f.date && { date: f.date }),
+    })
+    const result = await fetchData(`/api/admin/logs?${params}`, { errorMessage: 'Не удалось загрузить логи' })
+    if (result) {
+      setLogs(result.logs || [])
+      setTotal(result.total || 0)
+      setTotalPages(result.totalPages || 1)
     }
-  }, [page, filters])
+  }, [page, filters, fetchData])
 
   useEffect(() => { loadLogs(page, filters) }, [page])
 

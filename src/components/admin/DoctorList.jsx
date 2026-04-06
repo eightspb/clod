@@ -1,27 +1,16 @@
 import { useState, useEffect } from 'react'
 import { DoctorEditForm } from './DoctorEditForm.jsx'
+import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 export function DoctorList() {
+  const { data, loading, error, fetchData } = useAdminFetch()
   const [doctors, setDoctors] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [editing, setEditing] = useState(null)
   const [saved, setSaved] = useState(null)
 
   async function loadDoctors() {
-    try {
-      const res = await fetch('/api/admin/doctors')
-      if (!res.ok) {
-        if (res.status === 401) { window.location.href = '/admin/login'; return }
-        throw new Error('Failed')
-      }
-      const data = await res.json()
-      setDoctors(data.doctors || [])
-    } catch {
-      setError('Не удалось загрузить докторов')
-    } finally {
-      setLoading(false)
-    }
+    const result = await fetchData('/api/admin/doctors', { errorMessage: 'Не удалось загрузить докторов' })
+    if (result) setDoctors(result.doctors || [])
   }
 
   useEffect(() => { loadDoctors() }, [])

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 function StatCard({ title, value, sub, color }) {
   return (
@@ -76,24 +77,10 @@ function EventTypeBadge({ type }) {
 }
 
 export function Dashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { data: stats, loading, error, fetchData } = useAdminFetch()
 
   async function loadStats() {
-    try {
-      const res = await fetch('/api/admin/stats')
-      if (!res.ok) {
-        if (res.status === 401) { window.location.href = '/admin/login'; return }
-        throw new Error('Failed')
-      }
-      const data = await res.json()
-      setStats(data)
-    } catch {
-      setError('Не удалось загрузить статистику')
-    } finally {
-      setLoading(false)
-    }
+    await fetchData('/api/admin/stats', { errorMessage: 'Не удалось загрузить статистику' })
   }
 
   useEffect(() => {
