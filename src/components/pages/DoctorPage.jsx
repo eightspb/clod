@@ -7,11 +7,6 @@ import { StarRating } from '../StarRating.jsx'
 export function DoctorPage({ doctor }) {
   if (!doctor) return null
 
-  const initials = doctor.name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
   const alignRight = doctor.photoAlign === 'right'
 
   return (
