@@ -18,16 +18,11 @@ function getClientIp(request) {
 }
 
 /**
- * Guard for admin GET endpoints: auth + rate limit.
+ * Guard for admin GET endpoints: rate limit (by IP) + auth.
+ * Rate limit runs first so unauthenticated brute-force attempts are throttled.
  * Returns a Response if blocked, or undefined if request is allowed.
  */
 export async function guardAdminRead(request) {
-  if (!await isAuthenticated(request)) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: JSON_HEADERS,
-    })
-  }
   const ip = getClientIp(request)
   const { allowed, retryAfterSec } = checkRateLimit(ip, ADMIN_READ_LIMIT)
   if (!allowed) {
@@ -36,14 +31,29 @@ export async function guardAdminRead(request) {
       headers: { ...JSON_HEADERS, 'Retry-After': String(retryAfterSec) },
     })
   }
+  if (!await isAuthenticated(request)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    })
+  }
   return undefined
 }
 
 /**
- * Guard for admin state-changing endpoints: origin + auth + rate limit.
+ * Guard for admin state-changing endpoints: rate limit (by IP) + origin + auth.
+ * Rate limit runs first so unauthenticated brute-force attempts are throttled.
  * Returns a Response if blocked, or undefined if request is allowed.
  */
 export async function guardAdminWrite(request) {
+  const ip = getClientIp(request)
+  const { allowed, retryAfterSec } = checkRateLimit(ip, ADMIN_WRITE_LIMIT)
+  if (!allowed) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: { ...JSON_HEADERS, 'Retry-After': String(retryAfterSec) },
+    })
+  }
   if (!validateOrigin(request)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
@@ -54,14 +64,6 @@ export async function guardAdminWrite(request) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: JSON_HEADERS,
-    })
-  }
-  const ip = getClientIp(request)
-  const { allowed, retryAfterSec } = checkRateLimit(ip, ADMIN_WRITE_LIMIT)
-  if (!allowed) {
-    return new Response(JSON.stringify({ error: 'Too many requests' }), {
-      status: 429,
-      headers: { ...JSON_HEADERS, 'Retry-After': String(retryAfterSec) },
     })
   }
   return undefined

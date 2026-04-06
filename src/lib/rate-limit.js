@@ -12,9 +12,17 @@ function getStore(namespace) {
   return stores.get(namespace)
 }
 
+function evictExpired(store, now) {
+  if (store.size < 100) return
+  for (const [k, v] of store) {
+    if (now > v.resetAt) store.delete(k)
+  }
+}
+
 export function checkRateLimit(key, { namespace = 'default', maxRequests = 10, windowMs = 60_000 } = {}) {
   const store = getStore(namespace)
   const now = Date.now()
+  evictExpired(store, now)
   const entry = store.get(key)
   if (!entry || now > entry.resetAt) {
     store.set(key, { count: 1, resetAt: now + windowMs })
