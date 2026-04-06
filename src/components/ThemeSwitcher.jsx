@@ -285,9 +285,9 @@ const COLOR_THEMES = [
 ]
 
 const HEADING_FONTS = [
-  { id: 'cormorant', label: 'Cormorant Garamond', family: "'Cormorant Garamond', Georgia, 'Times New Roman', serif", google: null },
+  { id: 'lora', label: 'Lora', family: "'Lora', Georgia, 'Times New Roman', serif", google: null },
+  { id: 'cormorant', label: 'Cormorant Garamond', family: "'Cormorant Garamond', Georgia, 'Times New Roman', serif", google: 'Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,400&display=swap' },
   { id: 'playfair', label: 'Playfair Display', family: "'Playfair Display', Georgia, serif", google: 'Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap' },
-  { id: 'lora', label: 'Lora', family: "'Lora', Georgia, serif", google: 'Lora:ital,wght@0,400;0,700;1,400&display=swap' },
   { id: 'merriweather', label: 'Merriweather', family: "'Merriweather', Georgia, serif", google: 'Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap' },
   { id: 'pt-serif', label: 'PT Serif', family: "'PT Serif', Georgia, serif", google: 'PT+Serif:ital,wght@0,400;0,700;1,400&display=swap' },
   { id: 'eb-garamond', label: 'EB Garamond', family: "'EB Garamond', Georgia, serif", google: 'EB+Garamond:ital,wght@0,400;0,700;1,400&display=swap' },
@@ -543,7 +543,7 @@ export function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false)
   const [colorId, setColorId] = useState('emerald')
   const [customHex, setCustomHex] = useState('#1B6B5A')
-  const [headingId, setHeadingId] = useState('cormorant')
+  const [headingId, setHeadingId] = useState('lora')
   const [bodyId, setBodyId] = useState('golos')
   const [navId, setNavId] = useState('inherit')
   const panelRef = useRef(null)

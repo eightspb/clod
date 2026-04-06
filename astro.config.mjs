@@ -55,49 +55,42 @@ export default defineConfig({
     tailwind({ applyBaseStyles: false }),
     db({ seedLocal: false }),
     sitemap({
-      changefreq: 'weekly',
+      changefreq: 'monthly',
       priority: 0.7,
       lastmod: new Date(),
-      customPages: [
-        'https://odintsovclinic.ru/vab',
-        'https://odintsovclinic.ru/contacts',
-        'https://odintsovclinic.ru/blog',
-      ],
+      filter(page) {
+        return !page.includes('/admin') && !page.includes('/blog-images')
+      },
       serialize(item) {
         const priorities = {
           'https://odintsovclinic.ru/': 1.0,
-          'https://odintsovclinic.ru/mammology': 0.9,
-          'https://odintsovclinic.ru/gynecology': 0.9,
-          'https://odintsovclinic.ru/endocrinology': 0.9,
-          'https://odintsovclinic.ru/nutrition': 0.9,
-          'https://odintsovclinic.ru/vab': 0.95,
-          'https://odintsovclinic.ru/fibroadenoma': 0.85,
-          'https://odintsovclinic.ru/mastopatiya': 0.85,
-          'https://odintsovclinic.ru/kista-molochnoy-zhelezy': 0.85,
-          'https://odintsovclinic.ru/eroziya-sheyki-matki': 0.85,
-          'https://odintsovclinic.ru/gipotireoz': 0.85,
-          'https://odintsovclinic.ru/second-opinion': 0.85,
-          'https://odintsovclinic.ru/tax-form': 0.75,
-          'https://odintsovclinic.ru/prices': 0.8,
-          'https://odintsovclinic.ru/doctors': 0.8,
-          'https://odintsovclinic.ru/contacts': 0.8,
-          'https://odintsovclinic.ru/blog': 0.75,
+          'https://odintsovclinic.ru/vab/': 0.9,
+          'https://odintsovclinic.ru/mammology/': 0.9,
+          'https://odintsovclinic.ru/gynecology/': 0.9,
+          'https://odintsovclinic.ru/endocrinology/': 0.9,
+          'https://odintsovclinic.ru/nutrition/': 0.9,
+          'https://odintsovclinic.ru/fibroadenoma/': 0.8,
+          'https://odintsovclinic.ru/mastopatiya/': 0.8,
+          'https://odintsovclinic.ru/kista-molochnoy-zhelezy/': 0.8,
+          'https://odintsovclinic.ru/eroziya-sheyki-matki/': 0.8,
+          'https://odintsovclinic.ru/gipotireoz/': 0.8,
+          'https://odintsovclinic.ru/adenomioz/': 0.8,
+          'https://odintsovclinic.ru/endometrioz/': 0.8,
+          'https://odintsovclinic.ru/tireoidit-khashimoto/': 0.8,
+          'https://odintsovclinic.ru/second-opinion/': 0.8,
+          'https://odintsovclinic.ru/prices/': 0.8,
+          'https://odintsovclinic.ru/doctors/': 0.8,
+          'https://odintsovclinic.ru/contacts/': 0.8,
+          'https://odintsovclinic.ru/blog/': 0.7,
         }
         const changefreqs = {
           'https://odintsovclinic.ru/': 'weekly',
-          'https://odintsovclinic.ru/vab': 'monthly',
-          'https://odintsovclinic.ru/prices': 'weekly',
-          'https://odintsovclinic.ru/privacy-policy': 'yearly',
-        }
-        let priority = priorities[item.url]
-        if (priority === undefined) {
-          if (item.url.includes('/blog/')) priority = 0.7
-          else if (item.url.includes('/doctors/')) priority = 0.7
-          else priority = 0.7
+          'https://odintsovclinic.ru/prices/': 'weekly',
+          'https://odintsovclinic.ru/privacy-policy/': 'yearly',
         }
         return {
           ...item,
-          priority,
+          priority: priorities[item.url] ?? 0.7,
           changefreq: changefreqs[item.url] ?? 'monthly',
         }
       },

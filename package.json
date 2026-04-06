@@ -34,6 +34,7 @@
     "@testing-library/react": "^16.3.2",
     "@vitest/coverage-v8": "^2.1.9",
     "autoprefixer": "^10.4.24",
+    "cheerio": "^1.2.0",
     "eslint": "^9.39.3",
     "eslint-plugin-astro": "^1.6.0",
     "eslint-plugin-react": "^7.37.5",
