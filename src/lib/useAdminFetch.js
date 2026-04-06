@@ -4,6 +4,10 @@ import { useState, useCallback } from 'react'
  * Hook for admin panel API calls with unified loading/error state
  * and automatic 401→login redirect.
  *
+ * fetchData is a stable reference (empty deps) — pass errorMessage as a
+ * call-site option, not as a hook parameter, so consumers do not need to
+ * memoize it.
+ *
  * @returns {{ data, loading, error, fetchData, reset }}
  */
 export function useAdminFetch() {

@@ -59,3 +59,87 @@ export const NAV_FONTS = [
 ]
 
 export const STORAGE_KEY = 'clod-theme-settings'
+
+export function hexToHsl(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  if (max === min) return { h: 0, s: 0, l }
+  const d = max - min
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+  let h = 0
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+  else if (max === g) h = ((b - r) / d + 2) / 6
+  else h = ((r - g) / d + 4) / 6
+  return { h: h * 360, s, l }
+}
+
+export function hslToHex(h, s, l) {
+  const hue2rgb = (p, q, t) => {
+    const tt = t < 0 ? t + 1 : t > 1 ? t - 1 : t
+    if (tt < 1 / 6) return p + (q - p) * 6 * tt
+    if (tt < 1 / 2) return q
+    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6
+    return p
+  }
+  const hN = h / 360
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+  const p = 2 * l - q
+  const r = Math.round(hue2rgb(p, q, hN + 1 / 3) * 255)
+  const g = Math.round(hue2rgb(p, q, hN) * 255)
+  const b = Math.round(hue2rgb(p, q, hN - 1 / 3) * 255)
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
+}
+
+function deriveColor(baseH, baseS, baseL, hueShift, sFactor, lTarget) {
+  return hslToHex((baseH + hueShift) % 360, Math.min(1, baseS * sFactor), lTarget)
+}
+
+export function rgbStr(hex) {
+  return `${parseInt(hex.slice(1, 3), 16)} ${parseInt(hex.slice(3, 5), 16)} ${parseInt(hex.slice(5, 7), 16)}`
+}
+
+export function rgbaStr(hex, a) {
+  return `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`
+}
+
+/**
+ * Generate a full design token palette from a single accent hex color.
+ * Used by ThemeSwitcher at runtime and available for SSR/testing.
+ */
+export function buildFullPalette(hex) {
+  const { h, s, l } = hexToHsl(hex)
+  const accent = hex
+  const accentHover = hslToHex(h, s, Math.max(0, l - 0.08))
+  const accentLight = hslToHex(h, s * 0.4, 0.96)
+  const surfaceMint = hslToHex(h, s * 0.35, 0.95)
+  const surfaceStrong = hslToHex(h, s * 0.4, 0.88)
+  const peach = deriveColor(h, s, l, 30, 0.85, Math.min(0.55, l + 0.12))
+  const blue = deriveColor(h, s, l, 210, 0.8, Math.min(0.55, l + 0.08))
+  const lavender = deriveColor(h, s, l, 270, 0.6, Math.min(0.55, l + 0.10))
+  const yellow = deriveColor(h, s, l, 60, 0.7, Math.min(0.50, l + 0.10))
+  const surfacePeach = hslToHex((h + 30) % 360, s * 0.3, 0.96)
+  const surfaceBlue = hslToHex((h + 210) % 360, s * 0.3, 0.96)
+  const surfaceLavender = hslToHex((h + 270) % 360, s * 0.25, 0.96)
+  const surfaceYellow = hslToHex((h + 60) % 360, s * 0.25, 0.96)
+  const peachHover = hslToHex((h + 30) % 360, s * 0.85, Math.max(0, Math.min(0.55, l + 0.12) - 0.08))
+  const blueHover = hslToHex((h + 210) % 360, s * 0.8, Math.max(0, Math.min(0.55, l + 0.08) - 0.08))
+  const mintLight = hslToHex(h, s * 0.5, 0.72)
+  const peachLight = hslToHex((h + 30) % 360, s * 0.45, 0.75)
+  const blueLight = hslToHex((h + 210) % 360, s * 0.4, 0.75)
+  return {
+    accent, accentHover, accentLight, surfaceMint, surfaceStrong,
+    peach, blue, lavender, yellow,
+    surfacePeach, surfaceBlue, surfaceLavender, surfaceYellow,
+    peachHover, blueHover, mintLight, peachLight, blueLight,
+    gradientBadgeMint: `linear-gradient(135deg, ${mintLight} 0%, ${accent} 100%)`,
+    gradientBadgePeach: `linear-gradient(135deg, ${peachLight} 0%, ${peach} 100%)`,
+    gradientBadgeBlue: `linear-gradient(135deg, ${blueLight} 0%, ${blue} 100%)`,
+    gradientCardMint: `linear-gradient(135deg, ${surfaceMint} 0%, rgba(255,255,255,0) 60%)`,
+    gradientCardPeach: `linear-gradient(135deg, ${surfacePeach} 0%, rgba(255,255,255,0) 60%)`,
+    gradientCardBlue: `linear-gradient(135deg, ${surfaceBlue} 0%, rgba(255,255,255,0) 60%)`,
+  }
+}

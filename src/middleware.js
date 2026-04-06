@@ -85,8 +85,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('Cache-Control', 'no-store')
   }
 
-  // Запрет индексации для staging/preview-поддоменов (NOINDEX=true в .env на сервере)
-  // process.env для runtime-доступности (import.meta.env фиксируется при build)
+  // Запрет индексации для staging/preview-поддоменов (NOINDEX=true в .env на сервере).
+  // process.env читается в runtime — работает с @astrojs/node адаптером.
+  // Другие адаптеры (Vercel, Cloudflare) могут требовать import.meta.env или env binding
   if (process.env.NOINDEX === 'true') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
