@@ -13,7 +13,7 @@ describe('Header', () => {
 
   it('renders clinic name in logo', () => {
     render(<Header />)
-    expect(screen.getByRole('img', { name: /клиника одинцова/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toBeInTheDocument()
   })
 
   it('renders mobile menu toggle button', () => {

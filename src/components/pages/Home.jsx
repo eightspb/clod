@@ -180,41 +180,6 @@ const REVIEWS = [
   },
 ]
 
-function CountUp({ target, suffix = '' }) {
-  const ref = useRef(null)
-  const [count, setCount] = useState(0)
-  const [started, setStarted] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started) {
-          setStarted(true)
-          observer.unobserve(el)
-        }
-      },
-      { threshold: 0.5 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [started])
-  useEffect(() => {
-    if (!started) return
-    const duration = 1500
-    const startTime = performance.now()
-    function animate(now) {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setCount(Math.round(target * eased))
-      if (progress < 1) requestAnimationFrame(animate)
-    }
-    requestAnimationFrame(animate)
-  }, [started, target])
-  return <span ref={ref}>{count}{suffix}</span>
-}
-
 function ReviewStars({ count = 5 }) {
   return (
     <div className="flex items-center gap-0.5">
