@@ -39,7 +39,7 @@ const DOCTOR_GROUPS = [
   ...group,
   doctors: DOCTORS
     .filter((d) => matchesFilter(d, group.id))
-    .map((d) => ({ name: d.name.split(' ').slice(0, 2).join(' '), slug: d.slug, photo: d.photo })),
+    .map((d) => ({ name: d.name, slug: d.slug, photo: d.photo })),
 }))
 
 export const NAV_ITEMS = [
