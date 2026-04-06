@@ -121,7 +121,7 @@ describe('Home hero slider', () => {
       fireEvent.click(control)
     })
 
-    expect(screen.getByRole('button', { name: /пауза автопрокрутки/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /пауза слайдов/i })).toHaveAttribute('aria-pressed', 'false')
 
     await act(async () => {
       vi.advanceTimersByTime(12000)

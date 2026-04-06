@@ -741,7 +741,7 @@
   }
   .badge-specialty-peach {
     background: var(--surface-peach);
-    color: var(--color-peach);
+    color: #9B5A42;
   }
   .badge-specialty-blue {
     background: var(--surface-blue);

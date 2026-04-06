@@ -38,7 +38,7 @@ export function StarRating({ score, reviewCount, url, size = 14, variant = 'comp
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center hover:opacity-80 transition-opacity"
-      aria-label={`Рейтинг на ПроДокторов: ${score} из 5, ${reviewCount} отзывов`}
+      aria-label={`${score.toFixed(1)} (${reviewCount}) — рейтинг на ПроДокторов`}
     >
       {content}
     </a>
