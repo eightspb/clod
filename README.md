@@ -179,8 +179,18 @@ clod/
 ├── src/
 │   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
 │   ├── components/
+│   │   ├── home/                  # Модули главной страницы (извлечены из Home.jsx)
+│   │   │   ├── HeroSlider.jsx     # Карусель героя (3 слайда, autoplay, карточки врачей)
+│   │   │   ├── ServicesSection.jsx # Грид направлений
+│   │   │   ├── DoctorsSection.jsx # Фильтры + карточки врачей
+│   │   │   ├── WhyUsSection.jsx   # «Почему выбирают» + статистика
+│   │   │   ├── SecondOpinionSection.jsx  # Баннер второго мнения
+│   │   │   ├── VabSection.jsx     # Блок ВАБ
+│   │   │   ├── DirectContactSection.jsx  # Прямая связь
+│   │   │   ├── ReviewsSection.jsx # Отзывы пациентов
+│   │   │   └── AppointmentFormSection.jsx # Форма записи
 │   │   ├── pages/                 # React-компоненты страниц
-│   │   │   ├── Home.jsx           # Главная: герой-слайдер, услуги, доктора, отзывы, форма записи
+│   │   │   ├── Home.jsx           # Главная: композиция 9 модулей из home/
 │   │   │   ├── About.jsx          # Страница "О клинике": миссия, руководство, маршрут пациента, принципы
 │   │   │   ├── Mammology.jsx      # Маммология + секция "Заболевания" с condition-ссылками
 │   │   │   ├── Gynecology.jsx     # Гинекология + секция "Заболевания"
@@ -231,6 +241,12 @@ clod/
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
 │   ├── lib/
 │   │   ├── auth.js                # HMAC-авторизация (токены, cookie, CSRF validateOrigin)
+│   │   ├── admin-api.js           # guardAdminRead/guardAdminWrite (auth + rate limit)
+│   │   ├── rate-limit.js          # In-memory rate limiter с namespace-изоляцией
+│   │   ├── file-constraints.js    # Shared upload-константы (MAX_FILES, ALLOWED_MIME_TYPES)
+│   │   ├── theme-config.js        # Цветовые пресеты, шрифты, buildFullPalette
+│   │   ├── useAdminFetch.js       # React hook: loading/error/fetchData для admin-панели
+│   │   ├── useHeroFit.js          # React hook: auto-fit font size для hero-блоков
 │   │   ├── constants.js           # UI-константы: ICON_SIZES, RING_COLOR_MAP
 │   │   ├── contacts.js            # Контактные данные: телефоны, адрес, часы, мессенджеры
 │   │   ├── nav.js                 # Навигация: DIRECTIONS, NAV_ITEMS, FOOTER_LINKS
@@ -398,15 +414,21 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 `DoctorPage.jsx` отображает секции «Научные публикации и патенты» и «Выступления в СМИ» при наличии соответствующих данных.
 
-### Централизованные данные (`src/lib/`)
+### Централизованные данные и утилиты (`src/lib/`)
 
 | Файл | Экспорты | Используется в |
 |---|---|---|
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
-| `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `Home` |
-| `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `Home` |
+| `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
+| `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `ServicesSection`, `WhyUsSection` |
 | `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
+| `theme-config.js` | `COLOR_THEMES`, `HEADING_FONTS`, `BODY_FONTS`, `NAV_FONTS`, `STORAGE_KEY`, `buildFullPalette`, `hexToHsl`, `hslToHex` | `ThemeSwitcher`, `Layout.astro` (FOUC script) |
+| `rate-limit.js` | `checkRateLimit`, `resetRateLimit` | Все API endpoints (admin, analytics, forms, auth) |
+| `admin-api.js` | `guardAdminRead`, `guardAdminWrite` | Все `api/admin/*` endpoints |
+| `file-constraints.js` | `MAX_FILES`, `MAX_FILE_SIZE_BYTES`, `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES` | `SecondOpinionForm`, `api/second-opinion` |
+| `useAdminFetch.js` | `useAdminFetch` | `Dashboard`, `DoctorList`, `SessionsViewer`, `LogsViewer` |
+| `useHeroFit.js` | `useHeroFit` | Все 17 страниц с hero-блоком (auto-fit font size) |
 
 ### Админ-панель (SSR - серверные)
 
@@ -420,26 +442,31 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 ---
 
-## Hero-блок главной страницы (`Home.jsx`)
+## Home.jsx: модульная композиция
 
-Hero реализован как **трёхслайдовый слайдер** с двухколоночным лейаутом: слева смысловой текст и CTA, справа цифровая карточка с подтверждаемыми метриками по сценарию. Автопереключение каждые 12 секунд.
+`Home.jsx` (84 строки) — тонкий композиционный файл, импортирующий 9 секций из `src/components/home/`:
 
-### Структура каждого слайда
+| Компонент | Строк | Содержимое |
+|---|---|---|
+| `HeroSlider.jsx` | 337 | Трёхслайдовый карусель с autoplay, карточки врачей, ARIA carousel pattern |
+| `SecondOpinionSection.jsx` | 53 | Баннер «Второе мнение» |
+| `VabSection.jsx` | 57 | Блок ВАБ |
+| `ServicesSection.jsx` | 64 | Грид направлений клиники |
+| `WhyUsSection.jsx` | 74 | «Почему выбирают» + статистика |
+| `DoctorsSection.jsx` | 64 | Фильтры + карточки врачей |
+| `DirectContactSection.jsx` | 61 | «Прямая связь» + телефон/Telegram |
+| `ReviewsSection.jsx` | 78 | Отзывы пациентов |
+| `AppointmentFormSection.jsx` | 105 | Форма записи с валидацией |
 
-| Элемент | Описание |
-|---|---|
-| `trustBadge` | Плашка доверия над заголовком (напр. «Технология 2024 года») |
-| `badge` | Смысловой вектор / подзаголовок |
-| `title` | Крупный заголовок-решение (JSX с цветовым акцентом) |
-| `desc` | Описание, снимающее первичный страх/барьер |
-| `stats[]` | Цифровой блок: 3 ключевые метрики |
-| `primaryBtn` / `secondaryBtn` | CTA-кнопки |
+### Hero-слайдер
+
+Трёхслайдовый слайдер с двухколоночным лейаутом: слева смысловой текст и CTA, справа карточка врача. Автопереключение каждые 12 секунд. Auto-fit шрифта через `useHeroFit` — hero-блок адаптируется под viewport.
 
 ### Слайды
 
-1. **ВАБ (Основное направление)** - акцент на малоинвазивной процедуре, длительности и амбулаторном формате.
-2. **Второе мнение** - сценарий для пациентов с уже назначенной операцией: перепроверка документов и понятный следующий шаг.
-3. **Экосистема** - гинекология, эндокринология и нутрициология как единый маршрут пациента внутри клиники.
+1. **ВАБ** — акцент на малоинвазивной процедуре, длительности и амбулаторном формате
+2. **Второе мнение** — сценарий для пациентов с уже назначенной операцией
+3. **Экосистема** — гинекология, эндокринология и нутрициология как единый маршрут
 
 ---
 
@@ -711,9 +738,18 @@ docker compose up -d --build
 
 ### Обновление (деплой новой версии)
 
+С локальной машины разработчика (рекомендуемый способ):
+
 ```bash
-git pull
-docker compose up -d --build
+bun run deploy
+```
+
+Скрипт `scripts/deploy.sh` выполняет: git pull → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
+
+Или вручную на сервере:
+
+```bash
+cd /srv/clod && git pull && docker system prune -af && docker compose up -d --build
 ```
 
 ### Автообновление SSL-сертификата
@@ -727,7 +763,24 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ---
 
-## Последние изменения (март 2026)
+## Последние изменения (апрель 2026)
+
+### Tech debt, accessibility и оптимизация (апрель 2026)
+
+- **WCAG 2.1 AA аудит**: ThemeSwitcher focus trap, LoginForm aria-describedby, carousel ARIA pattern, prefers-reduced-motion, touch targets 44px, alt-текст, контрасты
+- **NOINDEX для staging**: `X-Robots-Tag: noindex` через nginx + middleware для `new.odintsovclinic.ru`
+- **Rate limiting**: единая утилита `rate-limit.js` с namespace-изоляцией, admin-api guards (60 read / 20 write req/min), lazy eviction
+- **Дедупликация кода**: `useAdminFetch` хук (4 admin-компонента), `file-constraints.js` (upload-константы), `theme-config.js` (пресеты + palette generation)
+- **Home.jsx split**: 1009→84 строк, 9 модульных компонентов в `src/components/home/`
+- **ThemeSwitcher**: 770→378 строк, конфиг и palette-логика вынесены в `theme-config.js`
+- **Сжатие изображений**: OG + blog картинки 207MB→1.7MB (-99%), решает "no space left" при Docker-билде
+- **Hero auto-fit**: `useHeroFit` хук на 17 страницах — авто-подгонка размера шрифта под viewport
+- **CI**: Bun cache, security audit job, 0 lint errors/warnings, 192/192 тестов
+- **Docker**: non-root user, HEALTHCHECK, deploy.sh с авто-очисткой Docker-кэша
+- **Полные ФИО врачей** в навигационном меню
+- **Lighthouse a11y**: badge contrast 3.1→4.9:1, heading order fix, label-in-name fix
+
+### Последние изменения (март 2026)
 
 ### Масштабное расширение сайта (roadmap-implementation)
 
