@@ -1,4 +1,5 @@
 import { ArrowRight, Check, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
+import { useHeroFit } from '../../lib/useHeroFit.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
@@ -98,11 +99,12 @@ export const FAQ_ITEMS = [
 ]
 
 export function Vab() {
+  const heroRef = useHeroFit()
   return (
     <div className="container-clay pb-12">
 
       {/* Hero */}
-      <section className="pt-6 pb-8">
+      <section ref={heroRef} className="pt-6 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
           <div>
             <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">

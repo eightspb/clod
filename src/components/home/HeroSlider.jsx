@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award } from 'lucide-react'
 import { StarRating } from '../StarRating.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
+import { useHeroFit } from '../../lib/useHeroFit.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
 const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
@@ -56,6 +57,7 @@ const heroSlides = [
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 export function HeroSlider() {
+  const sectionRef = useHeroFit()
   const [activeSlide, setActiveSlide] = useState(0)
   const [sliderHeight, setSliderHeight] = useState(0)
   const slideRefs = useRef([])
@@ -156,6 +158,7 @@ export function HeroSlider() {
   }
   return (
     <section
+      ref={sectionRef}
       className="relative overflow-hidden grain-overlay"
       aria-roledescription="carousel"
       aria-label="Главный слайдер"
