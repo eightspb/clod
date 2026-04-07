@@ -67,18 +67,22 @@ echo "════════════════════════�
 echo "  Deploy → ${remote_host}:${remote_dir}"
 echo "═══════════════════════════════════════════════════════════"
 
-step_begin 1 4 "git pull (обновление кода с GitHub)"
+step_begin 1 5 "git pull (обновление кода с GitHub)"
 run_remote "cd ${remote_dir} && git pull"
 step_end_ok
 
-step_begin 2 4 "docker compose up -d --build (сборка и перезапуск — может занять несколько минут)"
+step_begin 2 5 "docker system prune (очистка неиспользуемых образов и кэша)"
+run_remote "docker system prune -af --filter 'until=24h' 2>/dev/null || true"
+step_end_ok
+
+step_begin 3 5 "docker compose up -d --build (сборка и перезапуск — может занять несколько минут)"
 run_remote "cd ${remote_dir} && docker compose up -d --build"
 step_end_ok
 
-step_begin 3 4 "nginx -s reload (сброс кэша прокси; ждём готовности контейнера)"
+step_begin 4 5 "nginx -s reload (сброс кэша прокси; ждём готовности контейнера)"
 reload_nginx_with_retry
 step_end_ok
 
-step_begin 4 4 "готово"
+step_begin 5 5 "готово"
 echo "    Сайт обновлён. Если в браузере видна старая версия — жёсткое обновление (Ctrl+F5 или Cmd+Shift+R)."
 echo ""
