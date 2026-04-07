@@ -1,4 +1,5 @@
 import { MapPin, Phone, Clock, Mail, Navigation } from 'lucide-react'
+import { useHeroFit } from '../../lib/useHeroFit.js'
 import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
 
 const localBusinessSchema = {
@@ -45,6 +46,7 @@ const METRO_STATIONS = [
 ]
 
 export function Contacts() {
+  const heroRef = useHeroFit()
   return (
     <div className="container-clay pb-12">
       <script
@@ -52,7 +54,7 @@ export function Contacts() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
       />
 
-      <section className="pt-6 pb-6">
+      <section ref={heroRef} className="pt-6 pb-6">
         <h1 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-3 speakable">
           Контакты клиники в Санкт-Петербурге
         </h1>

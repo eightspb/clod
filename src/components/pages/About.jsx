@@ -1,4 +1,5 @@
 import { ArrowRight, Award, Clock, Heart, Mail, Microscope, Monitor, Phone, Radio, Shield, Star, TestTube, Users, Zap } from 'lucide-react'
+import { useHeroFit } from '../../lib/useHeroFit.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { FadeInSection } from '../FadeInSection.jsx'
@@ -133,10 +134,11 @@ const PRINCIPLES = [
 ]
 
 export function About() {
+  const heroRef = useHeroFit()
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-6 pb-10">
+      <section ref={heroRef} className="relative overflow-hidden pt-6 pb-10">
         {/* decorative blobs removed to reduce CSS payload */}
         <div className="container-clay relative z-10">
           <div className="max-w-3xl">

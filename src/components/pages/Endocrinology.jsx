@@ -1,4 +1,5 @@
 import { ArrowRight, Activity, TrendingUp, Scale, CheckCircle, Zap, MessageCircle, Users, Clock } from 'lucide-react'
+import { useHeroFit } from '../../lib/useHeroFit.js'
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
@@ -99,10 +100,11 @@ const ENDOCRINOLOGY_CONDITIONS = [
 ]
 
 export function Endocrinology() {
+  const heroRef = useHeroFit()
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden pt-6 pb-10">
+      <section ref={heroRef} className="relative overflow-hidden pt-6 pb-10">
 
         <div className="container-clay relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
