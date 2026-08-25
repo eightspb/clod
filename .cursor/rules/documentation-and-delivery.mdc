@@ -10,6 +10,7 @@ alwaysApply: true
 - Keep `README.md` aligned with the actual state of the repository
 - Be verbose and direct in README.md and code documentation
 - Keep documentation as short as possible, no code duplication in docs
+- Keep implementation plans code-free: specify goals, target files, checks, and acceptance criteria, then leave code to the implementing agent
 - Update documentation when changing:
   - commands or scripts
   - environment variables
