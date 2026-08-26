@@ -70,6 +70,7 @@ const physicianSchema = {
   ogType="profile"
   ogImage={doctor.photo}
   ogImageAlt={doctor.name}
+  pageDoctorSlug={doctor.slug}
 >
   <script type="application/ld+json" set:html={JSON.stringify(physicianSchema)} />
   <BreadcrumbNav items={[{ label: 'Доктора', href: '/doctors' }, { label: doctor.name }]} />

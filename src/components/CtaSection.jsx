@@ -12,6 +12,7 @@ export function CtaSection({
   cardClass = 'cta-gradient-card',
   doctorPhoto,
   doctorName,
+  doctorSlug = '',
   photoAlign = 'right',
 }) {
   const primaryCta = primaryHref ? (
@@ -20,7 +21,7 @@ export function CtaSection({
       {primaryLabel}
     </a>
   ) : (
-    <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+    <button type="button" data-booking-btn="true" data-booking-doctor={doctorSlug || undefined} className="clay btn-clay-primary gap-2">
       <Phone size={16} />
       {primaryLabel}
     </button>

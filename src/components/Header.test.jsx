@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { Header } from './Header.jsx'
+import { BookingFlow } from './booking/BookingFlow.jsx'
 
 describe('Header', () => {
   it('renders clinic logo link', () => {
@@ -104,6 +105,29 @@ describe('Header', () => {
     expect(screen.getByRole('menuitem', { name: /бесплатное второе мнение/i })).toBeInTheDocument()
   })
 
+  it('links the desktop Доктора label to the doctors index', () => {
+    render(<Header />)
+    const doctorsLink = screen.getByRole('link', { name: /^доктора$/i })
+    expect(doctorsLink).toHaveAttribute('href', '/doctors')
+  })
+
+  it('opens the desktop doctors menu with a separate accessible control', () => {
+    render(<Header />)
+    const doctorsMenuButton = screen.getByRole('button', { name: /показать подразделы: доктора/i })
+    fireEvent.focus(doctorsMenuButton)
+    fireEvent.click(doctorsMenuButton)
+    expect(screen.getByRole('menu', { name: /^доктора$/i })).toBeInTheDocument()
+  })
+
+  it('moves focus into the doctors menu when its separate control receives ArrowDown', async () => {
+    render(<Header />)
+    const doctorsMenuButton = screen.getByRole('button', { name: /показать подразделы: доктора/i })
+    fireEvent.keyDown(doctorsMenuButton, { key: 'ArrowDown' })
+    const doctorsMenu = screen.getByRole('menu', { name: /^доктора$/i })
+    const firstMenuLink = within(doctorsMenu).getAllByRole('menuitem')[0]
+    await waitFor(() => expect(firstMenuLink).toHaveFocus())
+  })
+
   it('renders accordion groups in mobile menu', () => {
     render(<Header />)
     fireEvent.click(screen.getByRole('button', { name: /открыть меню/i }))
@@ -119,5 +143,39 @@ describe('Header', () => {
     const mobileAccordionBtn = allDirectionsBtns.find((btn) => btn.closest('#mobile-menu'))
     fireEvent.click(mobileAccordionBtn)
     expect(screen.getAllByText(/маммология/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('links the mobile Доктора label to the doctors index', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /открыть меню/i }))
+    const mobileMenu = document.getElementById('mobile-menu')
+    const doctorsLink = within(mobileMenu).getByRole('link', { name: /^доктора$/i })
+    expect(doctorsLink).toHaveAttribute('href', '/doctors')
+  })
+
+  it('expands mobile doctors with a separate accessible control', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /открыть меню/i }))
+    const mobileMenu = document.getElementById('mobile-menu')
+    const doctorsMenuButton = within(mobileMenu).getByRole('button', { name: /показать подразделы: доктора/i })
+    fireEvent.click(doctorsMenuButton)
+    expect(doctorsMenuButton).toHaveAttribute('aria-expanded', 'true')
+  })
+})
+
+describe('Header with BookingFlow', () => {
+  it.each(['close', 'backdrop', 'escape'])('keeps the mobile booking trigger connected and restores its focus after %s dismissal', async (dismissal) => {
+    render(<><Header /><BookingFlow doctors={[]} pageDoctorSlug="" fetcher={() => Promise.reject(new Error('Unexpected booking request'))} uuid={() => '3335ac38-8090-42f1-8e05-f6c29bc73a9c'} clock={() => new Date('2026-08-25T08:00:00.000Z')} /></>)
+    fireEvent.click(screen.getByRole('button', { name: 'Открыть меню' }))
+    const trigger = within(document.getElementById('mobile-menu')).getByRole('button', { name: 'Записаться на приём' })
+    fireEvent.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Онлайн-запись' })
+    await waitFor(() => expect(dialog).toHaveFocus())
+    const connectedWhileOpen = trigger.isConnected
+    if (dismissal === 'close') fireEvent.click(screen.getByRole('button', { name: 'Закрыть запись' }))
+    if (dismissal === 'backdrop') fireEvent.click(document.querySelector('.booking-overlay'))
+    if (dismissal === 'escape') fireEvent.keyDown(dialog, { key: 'Escape' })
+    await waitFor(() => expect(trigger).toHaveFocus())
+    expect({ connectedWhileOpen, menuOpen: screen.getByRole('button', { name: 'Закрыть меню' }).getAttribute('aria-expanded') }).toEqual({ connectedWhileOpen: true, menuOpen: 'true' })
   })
 })

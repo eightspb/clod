@@ -24,20 +24,15 @@ const WHY_ICONS = { Shield, Zap, Clock, Heart }
 
 export function WhyUsSection() {
   return (
-    <section className="section" style={{ background: 'var(--surface-accent)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+    <section className="section bg-[color:var(--surface-accent)] border-y border-[color:var(--border-color)]">
       <div className="container-clay">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div>
-            <div className="badge-specialty-mint-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-4">
-              <Shield size={12} />
-              Наши гарантии
-            </div>
             <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-4">
-              Почему выбирают<br />
-              <span className="heading-accent">Клинику Одинцова</span>
+              Почему выбирают Клинику Одинцова
             </h2>
             <p className="text-clay-muted leading-relaxed mb-8">
-              Мы не просто лечим - мы помогаем вам принимать осознанные решения. Доказательная медицина, современные технологии и уважение к вашему времени.
+              Мы помогаем принимать медицинские решения спокойно: по показаниям, без давления и с понятным следующим шагом.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {HOME_WHY_ITEMS.map((item) => {

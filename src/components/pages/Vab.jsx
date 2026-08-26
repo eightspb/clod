@@ -1,5 +1,4 @@
 import { ArrowRight, Check, CheckCircle, Clock, Shield, Zap, AlertCircle, MessageCircle, Star } from 'lucide-react'
-import { useHeroFit } from '../../lib/useHeroFit.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
@@ -34,22 +33,22 @@ const STEPS = [
   {
     num: '05',
     title: 'Гистология',
-    desc: 'Удалённый материал отправляется на гистологическое исследование. Результат готов через 7–10 дней - вы точно знаете, что было удалено.',
+    desc: 'Удалённый материал отправляется на гистологическое исследование. Результат готов через 7-10 дней - вы точно знаете, что было удалено.',
   },
   {
     num: '06',
     title: 'Выход домой',
-    desc: 'Процедура занимает 30–40 минут. После 1–2 часов наблюдения вы уходите домой. Больничный лист не нужен. Возврат к работе - на следующий день.',
+    desc: 'Процедура занимает 30-40 минут. После 1-2 часов наблюдения вы уходите домой. Больничный лист не нужен. Возврат к работе - на следующий день.',
   },
 ]
 
 const COMPARE_ROWS = [
-  { param: 'Разрез', vab: 'Прокол 2 мм', op: 'Разрез 3–5 см' },
+  { param: 'Разрез', vab: 'Прокол 2 мм', op: 'Разрез 3-5 см' },
   { param: 'Наркоз', vab: 'Местная анестезия', op: 'Общий или спинальный' },
-  { param: 'Длительность', vab: '30–40 минут', op: '60–90 минут' },
-  { param: 'Госпитализация', vab: 'Не нужна', op: '1–3 дня в стационаре' },
-  { param: 'Рубец', vab: 'Нет (след 2 мм)', op: 'Шрам 3–5 см' },
-  { param: 'Восстановление', vab: '1–2 дня', op: '2–4 недели' },
+  { param: 'Длительность', vab: '30-40 минут', op: '60-90 минут' },
+  { param: 'Госпитализация', vab: 'Не нужна', op: '1-3 дня в стационаре' },
+  { param: 'Рубец', vab: 'Нет (след 2 мм)', op: 'Шрам 3-5 см' },
+  { param: 'Восстановление', vab: '1-2 дня', op: '2-4 недели' },
   { param: 'Гистология', vab: 'Включена', op: 'Включена' },
   { param: 'Форма груди', vab: 'Не меняется', op: 'Возможна деформация' },
 ]
@@ -60,7 +59,40 @@ const INDICATIONS = [
   'Внутрипротоковая папиллома',
   'Липома молочной железы',
   'Образования до 3 см по данным УЗИ',
-  'Подозрительные узлы (BI-RADS 4–5) для биопсии',
+  'Подозрительные узлы (BI-RADS 4-5) для биопсии',
+]
+
+const HERO_STATS = [
+  { value: '2 мм', label: 'размер прокола' },
+  { value: '30-40 мин', label: 'длительность процедуры' },
+  { value: '1-2 дня', label: 'обычное восстановление' },
+  { value: 'УЗИ', label: 'контроль в реальном времени' },
+]
+
+const PROCEDURE_FACTS = [
+  { value: '2 мм', label: 'микропрокол вместо хирургического разреза' },
+  { value: '30-40 мин', label: 'средняя длительность процедуры' },
+  { value: '7-10 дней', label: 'ориентир по готовности гистологии' },
+]
+
+const EQUIPMENT_FEATURES = [
+  'Удаление образований до 3 см по показаниям',
+  'Постоянный УЗИ-контроль в реальном времени',
+  'Автоматическая аспирация поэтапно',
+  'Одновременный забор материала для гистологии',
+]
+
+const BASE_PRICE_INCLUDED = [
+  'Консультация онколога-маммолога',
+  'УЗИ молочных желёз',
+  'Сама процедура ВАБ',
+]
+
+const EXTRA_PRICE_ITEMS = [
+  { name: 'Местная анестезия', price: 'отдельно' },
+  { name: 'Гистологическое исследование', price: 'отдельно' },
+  { name: 'Послеоперационное наблюдение', price: 'отдельно' },
+  { name: 'Контрольный снимок после процедуры', price: 'отдельно' },
 ]
 
 export const FAQ_ITEMS = [
@@ -70,15 +102,15 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'Больно ли делать ВАБ?',
-    answer: 'Нет. Процедура проводится под местной анестезией. Вы можете ощущать лёгкое давление или вибрацию, но боли нет. Большинство пациенток оценивают дискомфорт на 1–2 из 10.',
+    answer: 'Нет. Процедура проводится под местной анестезией. Вы можете ощущать лёгкое давление или вибрацию, но боли нет. Большинство пациенток оценивают дискомфорт на 1-2 из 10.',
   },
   {
     question: 'Сколько стоит ВАБ в Санкт-Петербурге?',
-    answer: 'Базовая стоимость процедуры ВАБ в Клинике Одинцова — от 80 000 ₽. В неё входят консультация, УЗИ и сама процедура. Анестезия, гистологическое исследование, послеоперационное наблюдение и контрольный снимок обсуждаются и оплачиваются отдельно. Точную смету врач назовёт после консультации.',
+    answer: 'Базовая стоимость процедуры ВАБ в Клинике Одинцова - от 80 000 ₽. В неё входят консультация, УЗИ и сама процедура. Анестезия, гистологическое исследование, послеоперационное наблюдение и контрольный снимок обсуждаются и оплачиваются отдельно. Точную смету врач назовёт после консультации.',
   },
   {
     question: 'Нужна ли госпитализация?',
-    answer: 'Нет. ВАБ - амбулаторная процедура. После 1–2 часов наблюдения вы уходите домой. Больничный лист не нужен, на следующий день можно вернуться к работе.',
+    answer: 'Нет. ВАБ - амбулаторная процедура. После 1-2 часов наблюдения вы уходите домой. Больничный лист не нужен, на следующий день можно вернуться к работе.',
   },
   {
     question: 'Останется ли шрам?',
@@ -86,7 +118,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'Можно ли убрать фиброаденому с помощью ВАБ?',
-    answer: 'Да. ВАБ — малоинвазивный способ удаления фиброаденом через прокол 2 мм. Вместо разреза скальпелем — амбулаторная процедура под местной анестезией, а итоговое решение о показаниях принимается после очного приёма и УЗИ.',
+    answer: 'Да. ВАБ - малоинвазивный способ удаления фиброаденом через прокол 2 мм. Вместо разреза скальпелем - амбулаторная процедура под местной анестезией, а итоговое решение о показаниях принимается после очного приёма и УЗИ.',
   },
   {
     question: 'Нужно ли направление от врача?',
@@ -99,38 +131,31 @@ export const FAQ_ITEMS = [
 ]
 
 export function Vab() {
-  const heroRef = useHeroFit()
   return (
     <div className="container-clay pb-12">
-
-      {/* Hero */}
-      <section ref={heroRef} className="pt-6 pb-8">
+      <section className="pt-6 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
           <div>
-            <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)] mb-5">
               <Zap size={15} className="text-clay-teal" />
               Основное направление клиники
             </div>
-            <h1 className="heading-serif text-3xl md:text-4xl lg:text-5xl font-normal text-clay-text mb-5 speakable">
-              ВАБ — вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
+            <h1 className="heading-display text-4xl sm:text-5xl text-clay-dark leading-tight mb-5 speakable">
+              ВАБ - вакуумная аспирационная биопсия<br className="hidden md:block" /> в Санкт-Петербурге
             </h1>
-            <p className="text-lg text-clay-muted leading-relaxed max-w-2xl mb-4 speakable">
-              Малоинвазивное удаление доброкачественных образований молочной железы через прокол 2 мм.
-              Процедура обычно занимает 30–40 минут и проводится амбулаторно по показаниям.
+            <p className="text-lg text-clay-muted leading-relaxed max-w-2xl mb-5 speakable">
+              Малоинвазивная процедура под УЗ-контролем. Показания, цену и дальнейшее наблюдение врач обсуждает заранее.
             </p>
-            <p className="text-sm text-clay-muted max-w-2xl mb-8">
-              Перед процедурой врач оценивает показания, проводит УЗИ и подробно обсуждает ожидаемый результат, цену и дальнейший план наблюдения.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <button
                 type="button"
                 data-booking-btn="true"
-                className="btn-clay-primary inline-flex items-center gap-2"
+                className="clay btn-clay-primary inline-flex items-center gap-2"
               >
                 <MessageCircle size={18} />
                 Записаться на ВАБ
               </button>
-              <a href="/second-opinion" className="btn-clay-secondary inline-flex items-center gap-2">
+              <a href="/second-opinion" className="clay btn-clay-secondary inline-flex items-center gap-2">
                 Бесплатное второе мнение
                 <ArrowRight size={18} />
               </a>
@@ -140,43 +165,29 @@ export function Vab() {
         </div>
       </section>
 
-      {/* Счётчики клиники */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        {[
-          { value: '2 мм', label: 'размер прокола' },
-          { value: '30–40 мин', label: 'длительность процедуры' },
-          { value: '1–2 дня', label: 'восстановление' },
-          { value: 'УЗИ', label: 'контроль процедуры в реальном времени' },
-        ].map((stat) => (
-          <div key={stat.label} className="clay-card text-center py-5 px-3">
-            <div className="font-serif font-light text-2xl md:text-3xl text-clay-teal mb-1">{stat.value}</div>
+        {HERO_STATS.map((stat) => (
+          <div key={stat.label} className="clay-card text-center py-5 px-3 shadow-[var(--shadow-xs)]">
+            <div className="heading-serif text-2xl md:text-3xl text-clay-teal mb-1">{stat.value}</div>
             <div className="text-xs text-clay-muted leading-tight">{stat.label}</div>
           </div>
         ))}
       </section>
 
-      {/* Блок достижений клиники */}
-      <section className="clay-card-soft-mint clay-card p-6 md:p-8 mb-10">
-        <h2 className="heading-serif text-xl font-normal text-clay-text mb-5">Что важно знать о процедуре</h2>
+      <section className="clay-card p-6 md:p-8 mb-10">
+        <h2 className="heading-serif text-xl text-clay-dark mb-5">Что важно знать о процедуре</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="font-serif font-light text-4xl text-clay-teal mb-2">2 мм</div>
-            <p className="text-sm text-clay-muted leading-tight">микропрокол вместо хирургического разреза</p>
-          </div>
-          <div className="text-center">
-            <div className="font-serif font-light text-4xl text-clay-teal mb-2">30–40 мин</div>
-            <p className="text-sm text-clay-muted leading-tight">средняя длительность процедуры</p>
-          </div>
-          <div className="text-center">
-            <div className="font-serif font-light text-4xl text-clay-teal mb-2">7–10 дней</div>
-            <p className="text-sm text-clay-muted leading-tight">срок готовности гистологии после удаления</p>
-          </div>
+          {PROCEDURE_FACTS.map((fact) => (
+            <div key={fact.label} className="rounded-[18px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-5">
+              <div className="heading-serif text-4xl text-clay-teal mb-2">{fact.value}</div>
+              <p className="text-sm text-clay-muted leading-tight">{fact.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Показания */}
       <section className="mb-10">
-        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-5">Когда показана процедура ВАБ</h2>
+        <h2 className="heading-serif text-2xl text-clay-dark mb-5">Когда показана процедура ВАБ</h2>
         <div className="clay-card p-6 md:p-8">
           <ul className="grid sm:grid-cols-2 gap-3">
             {INDICATIONS.map((item) => (
@@ -189,19 +200,18 @@ export function Vab() {
         </div>
       </section>
 
-      {/* Как проходит */}
       <section className="mb-10">
-        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Как проходит процедура ВАБ</h2>
-        <p className="text-clay-muted mb-5">Пошагово — от приёма до выхода домой</p>
+        <h2 className="heading-serif text-2xl text-clay-dark mb-2">Как проходит процедура ВАБ</h2>
+        <p className="text-clay-muted mb-5">Пошагово: от приёма до выхода домой</p>
         <div className="relative">
-          <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-clay-mint/20" />
+          <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-[color:var(--border-color)]" />
           <div className="space-y-4">
             {STEPS.map((step) => (
               <div key={step.num} className="flex items-start gap-4 relative">
-                <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint">
+                <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-[var(--shadow-xs)]">
                   <span className="text-sm font-bold text-white">{step.num}</span>
                 </div>
-                <div className="flex-1 clay-card p-4">
+                <div className="flex-1 clay-card p-5">
                   <h3 className="font-bold text-clay-dark text-base mb-1">{step.title}</h3>
                   <p className="text-clay-muted text-sm leading-relaxed">{step.desc}</p>
                 </div>
@@ -211,27 +221,21 @@ export function Vab() {
         </div>
       </section>
 
-      {/* Оборудование */}
       <section className="mb-10">
-        <div className="clay-card-mint p-6 md:p-8">
+        <div className="clay-card p-6 md:p-8">
           <div className="flex items-start gap-4">
             <div className="icon-circle-mint shrink-0">
               <Shield size={22} className="text-white" />
             </div>
             <div>
-              <h2 className="heading-serif text-xl font-normal text-clay-dark mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
+              <h2 className="heading-serif text-xl text-clay-dark mb-2">Оборудование Xishan DK-B-MS (Сишань)</h2>
               <p className="text-clay-text leading-relaxed mb-4">
                 Клиника Одинцова использует систему Xishan DK-B-MS производства Xishan (Сишань)
                 для проведения ВАБ под постоянным контролем УЗИ. Решение о применении метода принимается врачом после очной оценки.
               </p>
               <ul className="space-y-2">
-                {[
-                  'Удаление образований до 3 см по показаниям',
-                  'Постоянный УЗИ-контроль в реальном времени',
-                  'Автоматическая аспирация поэтапно',
-                  'Одновременный забор материала для гистологии',
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2 rounded-xl bg-white/55 border border-white/70 px-3 py-2 text-sm text-clay-dark">
+                {EQUIPMENT_FEATURES.map((f) => (
+                  <li key={f} className="flex items-center gap-2 rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] px-3 py-2 text-sm text-clay-dark">
                     <Star size={14} className="text-clay-mint shrink-0" />
                     <span className="font-medium">{f}</span>
                   </li>
@@ -242,13 +246,11 @@ export function Vab() {
         </div>
       </section>
 
-      {/* ВАБ vs Операция */}
       <section className="mb-10">
-        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">ВАБ или операция: в чём разница</h2>
+        <h2 className="heading-serif text-2xl text-clay-dark mb-2">ВАБ или операция: в чём разница</h2>
         <p className="text-clay-muted mb-6">
           Во многих случаях ВАБ позволяет избежать более объемной операции, если по результатам осмотра и диагностики метод подходит
         </p>
-        {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full clay-card text-sm">
             <thead>
@@ -274,7 +276,6 @@ export function Vab() {
             </tbody>
           </table>
         </div>
-        {/* Mobile stacked cards */}
         <div className="md:hidden space-y-4">
           <div className="clay-card-soft-mint p-5 relative">
             <span className="inline-block bg-clay-mint/20 text-clay-teal text-xs font-semibold rounded-full px-3 py-1 mb-3">
@@ -312,16 +313,15 @@ export function Vab() {
         </div>
       </section>
 
-      {/* Цены */}
       <section className="mb-10">
-        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
+        <h2 className="heading-serif text-2xl text-clay-dark mb-2">Стоимость ВАБ в Санкт-Петербурге</h2>
         <p className="text-clay-muted mb-6">Базовая стоимость и дополнительные этапы разделены заранее, без скрытых формулировок</p>
         <div className="grid sm:grid-cols-2 gap-4 mb-4">
           <div className="clay-card p-6">
             <div className="text-sm font-semibold text-clay-text mb-1">Базовая стоимость процедуры ВАБ</div>
-            <div className="font-serif font-light text-3xl text-clay-teal mb-4">от 80 000 ₽</div>
+            <div className="heading-serif text-3xl text-clay-teal mb-4">от 80 000 ₽</div>
             <ul className="space-y-1.5 text-sm text-clay-muted">
-              {['Консультация онколога-маммолога', 'УЗИ молочных желёз', 'Сама процедура ВАБ'].map((item) => (
+              {BASE_PRICE_INCLUDED.map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <CheckCircle size={13} className="text-clay-mint shrink-0" />
                   {item}
@@ -332,12 +332,7 @@ export function Vab() {
           <div className="clay-card p-6">
             <div className="text-sm font-semibold text-clay-text mb-3">Оплачивается отдельно</div>
             <ul className="space-y-2 text-sm">
-              {[
-                { name: 'Местная анестезия', price: 'отдельно' },
-                { name: 'Гистологическое исследование', price: 'отдельно' },
-                { name: 'Послеоперационное наблюдение', price: 'отдельно' },
-                { name: 'Контрольный снимок после процедуры', price: 'отдельно' },
-              ].map((item) => (
+              {EXTRA_PRICE_ITEMS.map((item) => (
                 <li key={item.name} className="flex items-center justify-between gap-2">
                   <span className="text-clay-muted">{item.name}</span>
                   <span className="text-clay-teal font-medium text-xs whitespace-nowrap">{item.price}</span>
@@ -347,7 +342,7 @@ export function Vab() {
             <p className="text-xs text-clay-muted mt-3">Точную смету врач назовёт после очного приёма и УЗИ</p>
           </div>
         </div>
-        <div className="clay-card-peach p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="clay-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle size={18} className="text-clay-peach" />
@@ -368,9 +363,8 @@ export function Vab() {
         </p>
       </section>
 
-      {/* Наши врачи */}
       <section className="mb-10">
-        <h2 className="heading-serif text-2xl font-normal text-clay-text mb-2">Доктора, выполняющие ВАБ</h2>
+        <h2 className="heading-serif text-2xl text-clay-dark mb-2">Доктора, выполняющие ВАБ</h2>
         <p className="text-clay-muted mb-6">Онкологи-маммологи с опытом от 12 лет</p>
         <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
           {VAB_DOCTORS.map((doctor) => (
@@ -386,12 +380,10 @@ export function Vab() {
         </div>
       </section>
 
-      {/* FAQ */}
       <FaqSection items={FAQ_ITEMS} title="Частые вопросы о ВАБ" />
 
-      {/* CTA */}
-      <section className="clay-card-mint p-8 text-center">
-        <h2 className="heading-serif text-2xl font-normal text-clay-dark mb-3">Запишитесь на приём</h2>
+      <section className="clay-card p-8 text-center">
+        <h2 className="heading-serif text-2xl text-clay-dark mb-3">Запишитесь на приём</h2>
         <p className="text-clay-text mb-6 max-w-lg mx-auto">
           Санкт-Петербург, пр. Богатырский 22 к.1, Приморский район, рядом с м. Комендантский проспект и м. Старая Деревня.
         </p>

@@ -34,6 +34,21 @@ describe('DoctorCard', () => {
     expect(link).toHaveAttribute('href', '/doctors/test-doctor')
   })
 
+  it('keeps profile navigation and adds a doctor-specific booking action', () => {
+    render(<DoctorCard doctor={baseDoctor} />)
+    const profile = screen.getByRole('link', { name: /подробнее/i })
+    const booking = screen.getByRole('button', { name: /записаться/i })
+    expect({ profile: profile.getAttribute('href'), booking: booking.getAttribute('data-booking-btn'), doctor: booking.getAttribute('data-booking-doctor') }).toEqual({ profile: '/doctors/test-doctor', booking: 'true', doctor: 'test-doctor' })
+  })
+
+  it('gives each doctor booking action a doctor-specific accessible name', () => {
+    const secondDoctor = { ...baseDoctor, slug: 'yolkina-anna', name: 'Ёлкина Анна О’Коннор' }
+    render(<><DoctorCard doctor={baseDoctor} /><DoctorCard doctor={secondDoctor} /></>)
+    const first = screen.getByRole('button', { name: 'Записаться на приём к врачу Иванов Иван Иванович' })
+    const second = screen.getByRole('button', { name: 'Записаться на приём к врачу Ёлкина Анна О’Коннор' })
+    expect([first.dataset.bookingDoctor, second.dataset.bookingDoctor]).toEqual(['test-doctor', 'yolkina-anna'])
+  })
+
   it('returns null when doctor is missing', () => {
     const { container } = render(<DoctorCard doctor={null} />)
     expect(container.firstChild).toBeNull()
@@ -49,9 +64,36 @@ describe('DoctorCard', () => {
     expect(screen.getByText('ИИ')).toBeInTheDocument()
   })
 
+  it('uses scalable avatar fallback classes when photo is missing', () => {
+    const { container } = render(<DoctorCard doctor={baseDoctor} />)
+    expect(container.querySelector('.doctor-card-photo-fallback')).toBeInTheDocument()
+    expect(screen.getByText('ИИ')).toHaveClass('doctor-card-avatar-initials')
+  })
+
   it('renders photo when provided', () => {
     render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp' }} />)
     const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
     expect(img).toHaveAttribute('src', '/images/doctor.webp')
+  })
+
+  it('prefers transparent full photo when provided', () => {
+    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp', photoFull: '/images/doctor.png' }} />)
+    const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
+    expect(img).toHaveAttribute('src', '/images/doctor.png')
+  })
+
+  it('wraps photo in embedded media panel when photo is provided', () => {
+    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp' }} />)
+    expect(screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' }).parentElement).toHaveClass('doctor-card-media')
+  })
+
+  it('clips visual content inside the doctor card', () => {
+    const { container } = render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp' }} />)
+    expect(container.firstChild).toHaveClass('overflow-hidden')
+  })
+
+  it('uses embedded photo panel classes when photo is provided', () => {
+    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp' }} />)
+    expect(screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })).toHaveClass('doctor-card-photo')
   })
 })

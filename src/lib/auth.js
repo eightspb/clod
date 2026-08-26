@@ -113,67 +113,50 @@ export function buildClearCookie() {
   return `${COOKIE_NAME}=; HttpOnly; SameSite=Strict; Path=/${secureFlag}; Max-Age=0`
 }
 
-const ALLOWED_HOSTS = [
-  'odintsovclinic.ru',
-  'www.odintsovclinic.ru',
-  'localhost:4321',
-  'localhost:3000',
-  '127.0.0.1:4321',
-]
+const FORWARDED_PORT_BY_PROTOCOL = Object.freeze({ http: '80', https: '443' })
 
-function normalizeHost(value) {
+function normalizeHeader(value) {
   return typeof value === 'string' ? value.trim().toLowerCase() : ''
 }
 
-function getForwardedHost(request) {
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  return normalizeHost(forwardedHost?.split(',')[0])
-}
-
-function getRequestUrlHost(request) {
-  const requestUrl = request.url
-
-  if (!requestUrl) {
-    return ''
-  }
-
+function exactOrigin(value) {
+  if (typeof value !== 'string' || value.length === 0) return ''
   try {
-    return normalizeHost(new URL(requestUrl).host)
+    const url = new URL(value)
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return ''
+    return url.origin
   } catch {
     return ''
   }
 }
 
-function getAllowedHosts(request) {
-  return new Set(
-    [
-      ...ALLOWED_HOSTS,
-      request.headers.get('host'),
-      getForwardedHost(request),
-      getRequestUrlHost(request),
-    ]
-      .map(normalizeHost)
-      .filter(Boolean)
-  )
+function proxyOrigin(request, current) {
+  const rawProto = normalizeHeader(request.headers.get('x-forwarded-proto'))
+  const rawForwardedHost = normalizeHeader(request.headers.get('x-forwarded-host'))
+  const rawPort = normalizeHeader(request.headers.get('x-forwarded-port'))
+  if (!rawProto && !rawForwardedHost && !rawPort) return Object.freeze({ valid: true, origin: '' })
+  if (!rawProto || !rawPort || rawProto.includes(',') || rawPort.includes(',') || (rawForwardedHost && rawForwardedHost.includes(','))) return Object.freeze({ valid: false, origin: '' })
+  const configuredPort = FORWARDED_PORT_BY_PROTOCOL[rawProto]
+  if (!configuredPort || rawPort !== configuredPort) return Object.freeze({ valid: false, origin: '' })
+  const host = normalizeHeader(request.headers.get('host'))
+  const forwardedHost = rawForwardedHost || host
+  if (!forwardedHost || /[\s/?#@\\]/.test(forwardedHost)) return Object.freeze({ valid: false, origin: '' })
+  const origin = exactOrigin(`${rawProto}://${forwardedHost}`)
+  if (!origin || (rawForwardedHost && rawForwardedHost !== host)) return Object.freeze({ valid: false, origin: '' })
+  const originUrl = new URL(origin)
+  if ((originUrl.port || configuredPort) !== rawPort || origin !== current) return Object.freeze({ valid: false, origin: '' })
+  return Object.freeze({ valid: true, origin })
 }
 
 export function validateOrigin(request) {
-  const origin = request.headers.get('origin')
-  const referer = request.headers.get('referer')
-  const source = origin || referer
-  const allowedHosts = getAllowedHosts(request)
-
-  if (!source) {
-    const fetchSite = normalizeHost(request.headers.get('sec-fetch-site'))
-    return (fetchSite === 'same-origin' || fetchSite === 'same-site') && allowedHosts.size > 0
-  }
-
-  try {
-    const url = new URL(source)
-    return allowedHosts.has(normalizeHost(url.host))
-  } catch {
-    return false
-  }
+  const current = exactOrigin(request.url)
+  const proxy = proxyOrigin(request, current)
+  if (!proxy.valid) return false
+  const allowed = new Set([current, proxy.origin].filter(Boolean))
+  const source = request.headers.get('origin') || request.headers.get('referer')
+  if (!source) return normalizeHeader(request.headers.get('sec-fetch-site')) === 'same-origin' && allowed.size > 0
+  const origin = exactOrigin(source)
+  return origin.length > 0 && allowed.has(origin)
 }
 
 export function validatePassword(password, expectedPassword) {

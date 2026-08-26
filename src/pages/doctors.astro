@@ -27,6 +27,8 @@ const doctorsSchema = {
   ogImage="/images/og/doctors.webp"
 >
   <script type="application/ld+json" set:html={JSON.stringify(doctorsSchema)} />
-  <BreadcrumbNav items={[{ label: 'Доктора' }]} />
+  <div class="hidden md:block">
+    <BreadcrumbNav items={[{ label: 'Доктора' }]} />
+  </div>
   <Doctors client:idle />
 </Layout>

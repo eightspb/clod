@@ -138,11 +138,11 @@ function StatCard({ stat }) {
   const { count, ref } = useCountUp(stat.value)
   const Icon = stat.icon
   return (
-    <div ref={ref} className={`clay ${stat.card} card-interactive p-6 flex flex-col items-center text-center gap-3`}>
-      <div className={`${stat.iconBg} clay flex items-center justify-center w-12 h-12 rounded-full`}>
+    <div ref={ref} className={`clay ${stat.card} p-6 flex flex-col items-center text-center gap-3`}>
+      <div className={`${stat.iconBg} clay flex items-center justify-center w-12 h-12`}>
         <Icon size={22} />
       </div>
-      <div className={`text-5xl font-serif font-light ${stat.color} tabular-nums`}>
+      <div className={`text-5xl heading-serif ${stat.color} tabular-nums`}>
         {count}{stat.suffix}
       </div>
       <div className="text-clay-muted text-sm leading-snug">{stat.label}</div>
@@ -167,9 +167,9 @@ function ProcedureBar({ item, index }) {
   }, [])
   const widthPercent = Math.round((item.count / MAX_PROCEDURES) * 100)
   return (
-    <div ref={ref} className="flex items-center gap-4">
-      <div className="w-12 text-sm font-bold text-clay-dark shrink-0 text-right">{item.year}</div>
-      <div className="flex-1 bg-clay-mint-pale rounded-full h-8 overflow-hidden">
+    <div ref={ref} className="grid gap-2 sm:grid-cols-[56px_minmax(0,1fr)] sm:items-center">
+      <div className="text-sm font-bold text-clay-dark sm:text-right">{item.year}</div>
+      <div className="flex-1 bg-[color:var(--surface-muted)] rounded-full h-8 overflow-hidden">
         <div
           className="bg-clay-mint h-full rounded-full flex items-center justify-end pr-3 transition-all duration-700 ease-out"
           style={{
@@ -205,7 +205,7 @@ function GeographyBar({ item, index }) {
         <span className="text-clay-text font-medium">{item.label}</span>
         <span className="font-bold text-clay-dark ml-4 shrink-0">{item.percent}%</span>
       </div>
-      <div className="bg-clay-bg rounded-full h-3 overflow-hidden">
+      <div className="bg-[color:var(--surface-muted)] rounded-full h-3 overflow-hidden">
         <div
           className={`${item.colorClass} h-full rounded-full transition-all duration-700 ease-out`}
           style={{
@@ -248,7 +248,7 @@ function RatingCard({ card }) {
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <div className="text-xs font-bold uppercase tracking-wider text-clay-muted mb-1">{card.platform}</div>
+          <div className="text-sm font-semibold text-clay-muted mb-1">{card.platform}</div>
           <div className="text-lg font-extrabold text-clay-dark">{card.subLabel}</div>
         </div>
         <div className="flex items-center gap-1 shrink-0 bg-white/60 rounded-xl px-3 py-1.5">
@@ -286,11 +286,11 @@ function TeamStats() {
       {items.map((item) => {
         const Icon = item.icon
         return (
-          <div key={item.label} className="clay clay-card card-interactive p-5 flex flex-col items-center text-center gap-2">
-            <div className={`${item.iconBg} clay flex items-center justify-center w-10 h-10 rounded-full`}>
+          <div key={item.label} className="clay clay-card p-5 flex flex-col items-center text-center gap-2">
+            <div className={`${item.iconBg} clay flex items-center justify-center w-10 h-10`}>
               <Icon size={18} />
             </div>
-            <div className="text-3xl font-serif font-light text-clay-dark tabular-nums">
+            <div className="text-3xl heading-serif text-clay-dark tabular-nums">
               {item.value}{item.suffix ?? ''}
             </div>
             <div className="text-clay-muted text-xs leading-snug">{item.label}</div>
@@ -306,29 +306,33 @@ export function NashiRezultaty() {
     <div>
       <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 badge-specialty-mint"
-            >
-              <Activity size={12} />
-              Клиника Одинцова · Санкт-Петербург
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Наши{' '}
+                <span className="heading-accent">результаты</span>
+              </h1>
+              <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
+                Статистика процедур, опыт команды, география пациентов и независимые рейтинги клиники.
+              </p>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+                  Записаться на приём
+                  <ArrowRight size={16} />
+                </button>
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
+                  <Phone size={16} />
+                  {PHONE_DISPLAY}
+                </a>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              Наши{' '}
-              <span className="heading-accent">результаты</span>
-            </h1>
-            <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">
-              Цифры, которые говорят за нас. Статистика процедур, опыт команды, география пациентов и независимые рейтинги.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
-                Записаться на приём
-                <ArrowRight size={16} />
-              </button>
-              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
-                <Phone size={16} />
-                {PHONE_DISPLAY}
-              </a>
+            <div className="clay-card p-5">
+              <p className="text-sm font-semibold text-clay-dark mb-3">Что можно проверить</p>
+              <div className="space-y-3 text-sm text-clay-muted">
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">Динамика процедур ВАБ по годам</div>
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">География пациентов и обращения из регионов</div>
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">Отзывы на независимых площадках</div>
+              </div>
             </div>
           </div>
         </div>
@@ -359,7 +363,7 @@ export function NashiRezultaty() {
           <div className="container-clay">
             <div className="clay clay-card p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="icon-circle-mint clay flex items-center justify-center w-10 h-10 rounded-full">
+                <div className="icon-circle-mint clay flex items-center justify-center w-10 h-10">
                   <TrendingUp size={18} />
                 </div>
                 <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
@@ -372,7 +376,7 @@ export function NashiRezultaty() {
                 ))}
               </div>
               <p className="text-clay-muted text-xs mt-5">
-                * 2025 год — данные за отчётный период, учёт продолжается.
+                * 2025 год - данные за отчётный период, учёт продолжается.
               </p>
             </div>
           </div>
@@ -383,7 +387,7 @@ export function NashiRezultaty() {
         <section className="section">
           <div className="container-clay">
             <div className="flex items-center gap-3 mb-6">
-              <div className="icon-circle-blue clay flex items-center justify-center w-10 h-10 rounded-full">
+              <div className="icon-circle-blue clay flex items-center justify-center w-10 h-10">
                 <MapPin size={18} />
               </div>
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
@@ -408,7 +412,7 @@ export function NashiRezultaty() {
         <section className="section">
           <div className="container-clay">
             <div className="flex items-center gap-3 mb-6">
-              <div className="icon-circle-peach clay flex items-center justify-center w-10 h-10 rounded-full">
+              <div className="icon-circle-peach clay flex items-center justify-center w-10 h-10">
                 <Star size={18} />
               </div>
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
@@ -430,7 +434,7 @@ export function NashiRezultaty() {
         <section className="section">
           <div className="container-clay">
             <div className="flex items-center gap-3 mb-6">
-              <div className="icon-circle-lavender clay flex items-center justify-center w-10 h-10 rounded-full">
+              <div className="icon-circle-lavender clay flex items-center justify-center w-10 h-10">
                 <Users size={18} />
               </div>
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
@@ -451,15 +455,15 @@ export function NashiRezultaty() {
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
-            <div className="clay clay-card-mint p-8 md:p-12 text-center max-w-2xl mx-auto">
-              <div className="icon-circle-mint clay flex items-center justify-center w-14 h-14 rounded-full mx-auto mb-5">
+            <div className="clay clay-card p-8 md:p-12 text-center max-w-2xl mx-auto">
+              <div className="icon-circle-mint clay flex items-center justify-center w-14 h-14 mx-auto mb-5">
                 <Heart size={24} />
               </div>
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
                 Готовы помочь
               </h2>
               <p className="text-clay-muted leading-relaxed mb-7 max-w-md mx-auto">
-                Запишитесь на приём или задайте вопрос — ответим в день обращения.
+                Запишитесь на приём или задайте вопрос - ответим в день обращения.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">

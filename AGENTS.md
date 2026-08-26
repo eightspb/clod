@@ -21,6 +21,9 @@
 - Prefer improving the current structure over rewriting it
 - Do not invent dependencies, commands, routes, or environment variables without checking the repository first
 - Use extensive debug-logging when a problem is hard to fix
+- For mobile above-the-fold changes, verify the full route at `scrollY = 0`; an isolated component screenshot does not prove header-to-content spacing.
+- Preserve transparent doctor portrait edges: use flat scale/translation for carousel depth and never add perspective rotation or a light alpha-contour shadow.
+- Keep receding doctor portraits high-key rather than gray: never use strong saturation reduction, keep near layers opaque, add depth with brightness/contrast and slight blur, and preserve fixed two-line plinth geometry.
 
 ### TDD Workflow (Non-Negotiable)
 

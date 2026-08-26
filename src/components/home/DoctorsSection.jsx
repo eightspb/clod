@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { DoctorCard } from '../DoctorCard.jsx'
+import { MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
 import { FILTER_TABS_SHORT, FILTER_BG_FLAT, matchesFilter } from '../../lib/filters.js'
 
@@ -23,8 +24,10 @@ export function DoctorsSection({ doctorsData = [] }) {
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveFilter(tab.id)}
-                className="inline-flex items-center justify-center rounded-full text-sm font-semibold px-6 py-2.5 cursor-pointer transition-all duration-200 select-none"
+                aria-pressed={isActive}
+                className="inline-flex min-h-11 items-center justify-center rounded-full text-sm font-semibold px-6 py-2.5 cursor-pointer transition-all duration-200 select-none"
                 style={isActive ? {
                   background: 'linear-gradient(145deg, #68D8B8, #44C4A0)',
                   color: '#fff',
@@ -40,7 +43,8 @@ export function DoctorsSection({ doctorsData = [] }) {
             )
           })}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
+        <MobileDoctorCarousel doctors={filteredDoctors} label="Карусель врачей клиники" />
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
           {filteredDoctors.map((doc, i) => (
             <FadeInSection key={doc.slug || doc.name} staggerIndex={i} className="h-full">
               <DoctorCard doctor={doc} />

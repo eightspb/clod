@@ -9,7 +9,16 @@ test.describe('Навигация', () => {
 
   test('переход на страницу Доктора', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('link', { name: /доктора/i }).first().click()
+    await page.getByRole('link', { name: /^доктора$/i }).first().click()
+    await expect(page).toHaveURL(/.*doctors/)
+  })
+
+  test('переход на страницу Доктора из мобильного меню', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('/')
+    await page.locator('astro-island:has(header[role="banner"]):not([ssr])').waitFor()
+    await page.getByRole('button', { name: 'Открыть меню' }).click()
+    await page.locator('#mobile-menu').getByRole('link', { name: /^доктора$/i }).click()
     await expect(page).toHaveURL(/.*doctors/)
   })
 

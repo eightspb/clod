@@ -1,4 +1,4 @@
-import { Shield, FileText, Award, CheckCircle } from 'lucide-react'
+import { Shield, FileText, Award, CheckCircle, ArrowRight } from 'lucide-react'
 
 const LICENSE_ITEMS = [
   {
@@ -24,104 +24,109 @@ const SPECIALTIES = [
 
 export function Licenses() {
   return (
-    <div className="container-clay pb-12">
-
-      {/* Hero */}
-      <section className="pt-6 pb-8">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 bg-clay-mint/20 text-clay-text rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-            <Shield size={15} className="text-clay-teal" />
-            Официальные документы
-          </div>
-          <h1 className="text-3xl md:text-4xl heading-serif text-clay-dark mb-5 speakable">
-            Лицензии и сертификаты клиники
-          </h1>
-          <p className="text-lg text-clay-muted leading-relaxed">
-            Клиника Одинцова работает на основании лицензии на осуществление медицинской деятельности,
-            выданной Комитетом по здравоохранению Санкт-Петербурга. Все врачи клиники имеют действующие
-            сертификаты и свидетельства об аккредитации по своим специальностям.
-          </p>
-        </div>
-      </section>
-
-      {/* Лицензии */}
-      <section className="mb-10">
-        <h2 className="text-2xl heading-serif text-clay-dark mb-5">Лицензия на медицинскую деятельность</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {LICENSE_ITEMS.map((item) => (
-            <div key={item.number} className={`clay-card ${item.color} p-6 flex gap-4`}>
-              <div className={`${item.iconColor} shrink-0`}>
-                <FileText size={22} className="text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-clay-text mb-2">{item.title}</h3>
-                <dl className="space-y-1 text-sm text-clay-muted">
-                  <div className="flex gap-2">
-                    <dt className="font-medium text-clay-text">Номер:</dt>
-                    <dd>{item.number}</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="font-medium text-clay-text">Выдана:</dt>
-                    <dd>{item.issuer}</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="font-medium text-clay-text">Год:</dt>
-                    <dd>{item.date}</dd>
-                  </div>
-                </dl>
-              </div>
+    <main className="grain-overlay">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
+        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
+          <div className="max-w-3xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
+              <Shield size={14} aria-hidden="true" />
+              Официальные документы
             </div>
-          ))}
-
-          {/* Placeholder для скана */}
-          <div className="clay-card p-6 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed border-clay-border min-h-48">
-            <Award size={32} className="text-clay-muted/50" />
-            <p className="text-clay-muted text-sm">
-              Скан лицензии будет добавлен в ближайшее время
+            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5 speakable">
+              Лицензии и сертификаты клиники
+            </h1>
+            <p className="text-lg text-clay-muted leading-relaxed max-w-3xl">
+              Клиника Одинцова работает на основании лицензии на осуществление медицинской деятельности,
+              выданной Комитетом по здравоохранению Санкт-Петербурга. Все врачи клиники имеют действующие
+              сертификаты и свидетельства об аккредитации по своим специальностям.
             </p>
           </div>
         </div>
       </section>
-
-      {/* Специальности */}
-      <section className="mb-10">
-        <h2 className="text-2xl heading-serif text-clay-dark mb-5">Лицензированные виды деятельности</h2>
-        <div className="clay-card p-6 md:p-8">
-          <ul className="grid sm:grid-cols-2 gap-3">
-            {SPECIALTIES.map((spec) => (
-              <li key={spec} className="flex items-center gap-3">
-                <CheckCircle size={18} className="text-clay-teal shrink-0" />
-                <span className="text-clay-text">{spec}</span>
-              </li>
+      <section className="section">
+        <div className="container-clay">
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-5">Лицензия на медицинскую деятельность</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            {LICENSE_ITEMS.map((item) => (
+              <div key={item.number} className={`clay ${item.color} p-6 flex gap-4`}>
+                <div className={`${item.iconColor} shrink-0`}>
+                  <FileText size={22} className="text-white" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-clay-dark mb-3">{item.title}</h3>
+                  <dl className="grid gap-2 text-sm text-clay-muted">
+                    <div className="grid gap-1 sm:grid-cols-[88px_1fr]">
+                      <dt className="font-semibold text-clay-dark">Номер:</dt>
+                      <dd>{item.number}</dd>
+                    </div>
+                    <div className="grid gap-1 sm:grid-cols-[88px_1fr]">
+                      <dt className="font-semibold text-clay-dark">Выдана:</dt>
+                      <dd>{item.issuer}</dd>
+                    </div>
+                    <div className="grid gap-1 sm:grid-cols-[88px_1fr]">
+                      <dt className="font-semibold text-clay-dark">Год:</dt>
+                      <dd>{item.date}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
             ))}
-          </ul>
+            <div className="clay clay-card flex min-h-48 flex-col items-center justify-center gap-3 border-2 border-dashed border-[color:var(--border-color-strong)] p-6 text-center">
+              <Award size={32} className="text-clay-muted/60" aria-hidden="true" />
+              <p className="text-clay-muted text-sm">
+                Скан лицензии будет добавлен в ближайшее время
+              </p>
+            </div>
+          </div>
         </div>
       </section>
-
-      {/* Сертификаты врачей */}
-      <section className="mb-10">
-        <h2 className="text-2xl heading-serif text-clay-dark mb-4">Сертификаты и аккредитации врачей</h2>
-        <p className="text-clay-muted leading-relaxed mb-6">
-          Каждый врач клиники регулярно проходит повышение квалификации и подтверждает свою аккредитацию
-          в соответствии с требованиями Министерства здравоохранения РФ. Документы об образовании и
-          сертификаты специалистов доступны для ознакомления на странице каждого врача.
-        </p>
-        <a href="/doctors" className="btn-clay-primary inline-flex items-center gap-2">
-          Посмотреть врачей клиники
-        </a>
+      <section className="section bg-[color:var(--surface-accent)] border-y border-[color:var(--border-color)]">
+        <div className="container-clay">
+          <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-5">Лицензированные виды деятельности</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {SPECIALTIES.map((spec) => (
+              <div key={spec} className="clay clay-card p-4 flex items-center gap-3">
+                <CheckCircle size={18} className="text-clay-mint shrink-0" aria-hidden="true" />
+                <span className="text-sm font-semibold text-clay-dark">{spec}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-
-      {/* CTA */}
-      <section className="clay-card-soft-mint clay-card p-8 text-center">
-        <h2 className="text-xl heading-serif text-clay-dark mb-3">Есть вопросы о документах?</h2>
-        <p className="text-clay-muted mb-6 max-w-lg mx-auto">
-          Свяжитесь с нами - предоставим полный пакет документов по запросу.
-        </p>
-        <a href="/contacts" className="btn-clay-primary inline-flex items-center gap-2">
-          Связаться с клиникой
-        </a>
+      <section className="section">
+        <div className="container-clay">
+          <div className="clay clay-card p-6 md:p-8">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+              <div>
+                <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-4">Сертификаты и аккредитации врачей</h2>
+                <p className="text-clay-muted leading-relaxed max-w-3xl">
+                  Каждый врач клиники регулярно проходит повышение квалификации и подтверждает свою аккредитацию
+                  в соответствии с требованиями Министерства здравоохранения РФ. Документы об образовании и
+                  сертификаты специалистов доступны для ознакомления на странице каждого врача.
+                </p>
+              </div>
+              <a href="/doctors" className="btn-clay-primary inline-flex items-center gap-2">
+                Посмотреть врачей клиники
+                <ArrowRight size={16} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        </div>
       </section>
-
-    </div>
+      <section className="section pt-0">
+        <div className="container-clay">
+          <div className="clay cta-gradient-card p-6 md:p-8 text-center">
+            <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Есть вопросы о документах?</h2>
+            <p className="text-clay-muted mb-6 max-w-lg mx-auto">
+              Свяжитесь с нами - предоставим полный пакет документов по запросу.
+            </p>
+            <a href="/contacts" className="btn-clay-primary inline-flex items-center gap-2">
+              Связаться с клиникой
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
   )
 }

@@ -17,6 +17,19 @@ test.describe('Главная страница', () => {
     await expect(page.getByRole('link', { name: /записаться/i }).first()).toBeVisible()
   })
 
+  test('на мобильном направления видны сразу в верхней зоне страницы', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 })
+    await page.goto('/')
+
+    const quickNav = page.getByRole('navigation', { name: /быстрый выбор направления/i })
+
+    await expect(quickNav).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^маммология$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^гинекология$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^эндокринология$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^нутрициология$/i })).toBeVisible()
+  })
+
   test('hero сохраняет одинаковую высоту при смене слайдов', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await page.goto('/')

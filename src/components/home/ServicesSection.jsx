@@ -1,61 +1,49 @@
 import { ChevronRight } from 'lucide-react'
 import { FadeInSection } from '../FadeInSection.jsx'
-import { SERVICES } from '../../lib/clinic-info.js'
+import { HOME_DIRECTIONS, HOME_FEATURED_ROUTES } from './home-directions.js'
 
-const HOME_SERVICES = SERVICES.map((service) => {
-  if (service.to === '/vab') {
-    return { ...service, tag: 'Малоинвазивная процедура', desc: 'Вакуумная аспирационная биопсия под УЗ-контролем. Обсуждаем показания, объём вмешательства и наблюдение заранее.' }
-  }
-  if (service.to === '/gynecology') {
-    return { ...service, tag: 'Приём по показаниям', desc: 'Бережный гинекологический приём с понятными объяснениями, без давления и лишних назначений.' }
-  }
-  if (service.to === '/endocrinology') {
-    return { ...service, tag: 'Поэтапная диагностика', desc: 'Разбираем жалобы, анализы и динамику поэтапно. Без обещаний мгновенного результата.' }
-  }
-  if (service.to === '/nutrition') {
-    return { ...service, desc: 'Помогаем выстроить питание с учётом анализов, жалоб и привычного ритма жизни.' }
-  }
-  if (service.to === '/mammology') {
-    return { ...service, desc: 'Диагностика и лечение заболеваний молочной железы с понятным маршрутом пациента и опорой на показания.' }
-  }
-  return service
-})
+const FEATURED_ROUTE_CLASSNAME = 'group rounded-[18px] border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-5 py-4 shadow-[var(--shadow-xs)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--border-color-strong)] hover:shadow-[var(--shadow-sm)]'
 
 export function ServicesSection() {
   return (
-    <section className="section">
+    <section id="home-directions" className="section">
       <div className="container-clay">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">Направления клиники</h2>
-          <p className="text-clay-muted max-w-xl mx-auto">Понятный маршрут от первичного обращения до следующего шага без лишнего давления</p>
+        <div className="max-w-3xl mb-8">
+          <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">Выберите направление</h2>
+          <p className="text-clay-muted text-lg leading-relaxed">Выберите нужное направление, чтобы сразу перейти к профильной странице, врачу и следующему шагу без лишнего поиска по сайту.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 sm:auto-rows-[1fr] gap-5">
-          {HOME_SERVICES.map((s, i) => (
-            <FadeInSection key={s.to} staggerIndex={i} className="h-full">
-            <a href={s.to} className="group block">
-              <div className={`clay ${s.color} card-interactive p-6 h-full flex flex-col transition-transform duration-200 group-hover:-translate-y-1`}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`${s.iconBg} text-2xl`}>
-                      <span>{s.icon}</span>
-                    </div>
-                    <div>
-                      {s.tag && <span className="stat-pill text-xs mb-1 block w-fit">{s.tag}</span>}
-                      <h3 className="font-bold text-clay-dark text-lg leading-tight">{s.title}</h3>
-                    </div>
-                  </div>
-                  <div className="clay clay-card px-3 py-1.5 text-center">
-                    <p className="font-extrabold text-clay-mint-dark text-base leading-none">{s.stat}</p>
-                    <p className="text-clay-muted text-xs">{s.statLabel}</p>
-                  </div>
+        <nav aria-label="Быстрый выбор направления" className="overflow-hidden rounded-[22px] border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-sm)]">
+          {HOME_DIRECTIONS.map((direction, index) => (
+            <FadeInSection key={direction.href} staggerIndex={index}>
+            <a href={direction.href} aria-label={direction.title} className={`group block ${index === HOME_DIRECTIONS.length - 1 ? '' : 'border-b border-[color:var(--border-color)]'}`}>
+              <div className="grid gap-3 px-5 py-5 transition-colors duration-200 group-hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)_auto] md:items-center md:gap-6 md:px-6">
+                <div className="flex items-center gap-3">
+                  <span className="h-10 w-1.5 rounded-full bg-[color:var(--accent-light)] transition-colors duration-200 group-hover:bg-[color:var(--accent)]" aria-hidden="true" />
+                  <h3 className="text-xl font-semibold text-clay-dark sm:text-2xl">{direction.title}</h3>
                 </div>
-                <p className="text-clay-muted text-sm leading-relaxed flex-1 mb-4">{s.desc}</p>
-                <div className="flex items-center gap-1 text-clay-mint-dark text-sm font-semibold">
-                  Подробнее <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[color:var(--accent)]">{direction.summary}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-clay-muted">{direction.description}</p>
+                </div>
+                <div className="inline-flex items-center gap-1 text-sm font-semibold text-clay-dark md:justify-self-end">
+                  Перейти
+                  <ChevronRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                 </div>
               </div>
             </a>
             </FadeInSection>
+          ))}
+        </nav>
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          {HOME_FEATURED_ROUTES.map((route) => (
+            <a key={route.href} href={route.href} className={FEATURED_ROUTE_CLASSNAME}>
+              <span className="block text-xl font-semibold text-clay-dark">{route.title}</span>
+              <span className="mt-2 block text-sm leading-relaxed text-clay-muted">{route.description}</span>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-clay-dark">
+                Подробнее
+                <ChevronRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+              </span>
+            </a>
           ))}
         </div>
       </div>

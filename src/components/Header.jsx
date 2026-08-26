@@ -11,6 +11,7 @@ function DesktopDropdown({ item, currentPath, activeDropdown, onEnter, onLeave, 
   return (
     <div
       className="relative"
+      data-nav-dropdown-root
       onMouseEnter={() => onEnter(item.label)}
       onMouseLeave={onLeave}
       onBlur={onBlur}
@@ -221,18 +222,46 @@ function MobileAccordion({ item, currentPath, expandedGroup, onToggleGroup, onCl
   const panelId = `mobile-nav-panel-${item.label.replace(/\s+/g, '-').toLowerCase()}`
   return (
     <div>
-      <button
-        className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-clay-muted uppercase tracking-wider"
-        onClick={() => onToggleGroup(item.label)}
-        aria-expanded={isExpanded}
-        aria-controls={panelId}
-      >
-        {item.label}
-        <ChevronDown
-          size={14}
-          className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-        />
-      </button>
+      {item.to ? (
+        <div className="flex items-center">
+          <a
+            href={item.to}
+            className={`flex min-h-11 flex-1 items-center px-3 text-sm font-semibold uppercase tracking-wider transition-colors duration-200 ${
+              currentPath === item.to ? 'text-clay-mint' : 'text-clay-muted hover:text-clay-mint'
+            }`}
+            onClick={onCloseMenu}
+            aria-current={currentPath === item.to ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+          <button
+            type="button"
+            className="flex min-h-11 min-w-11 items-center justify-center text-clay-muted transition-colors duration-200 hover:text-clay-mint"
+            onClick={() => onToggleGroup(item.label)}
+            aria-expanded={isExpanded}
+            aria-controls={panelId}
+            aria-label={`${isExpanded ? 'Скрыть' : 'Показать'} подразделы: ${item.label}`}
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
+      ) : (
+        <button
+          className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-clay-muted uppercase tracking-wider"
+          onClick={() => onToggleGroup(item.label)}
+          aria-expanded={isExpanded}
+          aria-controls={panelId}
+        >
+          {item.label}
+          <ChevronDown
+            size={14}
+            className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+      )}
       {isExpanded && (
         <div id={panelId} className="pb-1">
           {isMega === 'doctors' ? (
@@ -427,9 +456,10 @@ export function Header({ currentPath = '/' }) {
     }
     if (event.key === 'ArrowDown') {
       event.preventDefault()
+      const dropdownRoot = event.currentTarget.closest('[data-nav-dropdown-root]')
       handleDropdownEnter(label)
       window.setTimeout(() => {
-        const firstLink = event.currentTarget.parentElement?.querySelector('[data-dropdown-panel] a')
+        const firstLink = dropdownRoot?.querySelector('[data-dropdown-panel] a')
         firstLink?.focus()
       }, 0)
     }
@@ -461,7 +491,7 @@ export function Header({ currentPath = '/' }) {
       return undefined
     }
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !event.defaultPrevented) {
         event.preventDefault()
         closeMobileMenu()
       }
@@ -537,25 +567,57 @@ export function Header({ currentPath = '/' }) {
                 <div
                   key={item.label}
                   className="relative"
+                  data-nav-dropdown-root
                   onMouseEnter={() => handleDropdownEnter(item.label)}
                   onMouseLeave={handleDropdownLeave}
                   onBlur={handleDropdownBlur}
                 >
-                  <button
-                    className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
-                    onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
-                    onFocus={() => handleDropdownEnter(item.label)}
-                    onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
-                    aria-expanded={activeDropdown === item.label}
-                    aria-haspopup="menu"
-                    aria-controls={`nav-dropdown-${item.label}`}
-                  >
-                    {item.label}
-                    <ChevronDown
-                      size={14}
-                      className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
-                    />
-                  </button>
+                  {item.to ? (
+                    <div className="flex items-center">
+                      <a
+                        href={item.to}
+                        className={`py-2 pl-3 pr-1 rounded-l-full text-lg font-medium transition-colors duration-200 ${
+                          currentPath === item.to || currentPath.startsWith(`${item.to}/`)
+                            ? 'text-clay-mint'
+                            : 'text-clay-text hover:text-clay-mint'
+                        }`}
+                        aria-current={currentPath === item.to ? 'page' : undefined}
+                      >
+                        {item.label}
+                      </a>
+                      <button
+                        type="button"
+                        className="flex min-h-11 min-w-11 items-center justify-center rounded-r-full text-clay-text transition-colors duration-200 hover:text-clay-mint"
+                        onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                        onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
+                        aria-expanded={activeDropdown === item.label}
+                        aria-haspopup="menu"
+                        aria-controls={`nav-dropdown-${item.label}`}
+                        aria-label={`${activeDropdown === item.label ? 'Скрыть' : 'Показать'} подразделы: ${item.label}`}
+                      >
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="flex items-center gap-1 px-3 py-2 rounded-full text-lg font-medium text-clay-text hover:text-clay-mint transition-colors duration-200"
+                      onClick={() => setActiveDropdown(activeDropdown === item.label ? null : item.label)}
+                      onFocus={() => handleDropdownEnter(item.label)}
+                      onKeyDown={(event) => handleDropdownKeyDown(event, item.label)}
+                      aria-expanded={activeDropdown === item.label}
+                      aria-haspopup="menu"
+                      aria-controls={`nav-dropdown-${item.label}`}
+                    >
+                      {item.label}
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  )}
                   {activeDropdown === item.label && (
                     item.mega === 'doctors'
                       ? <DoctorsMegaMenuPanel item={item} currentPath={currentPath} />
@@ -604,7 +666,9 @@ export function Header({ currentPath = '/' }) {
             id="mobile-menu"
             ref={mobileMenuRef}
             className="lg:hidden mx-4 mt-3 clay clay-card p-4 relative z-[70] max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => {
+              if (!(event.target instanceof Element && event.target.closest('[data-booking-btn]'))) event.stopPropagation()
+            }}
           >
             <nav className="flex flex-col gap-0.5">
               <button
@@ -662,7 +726,6 @@ export function Header({ currentPath = '/' }) {
                   type="button"
                   data-booking-btn="true"
                   className="clay btn-clay-primary text-sm py-3 text-center flex justify-center w-full"
-                  onClick={closeMobileMenu}
                 >
                   Записаться на приём
                 </button>

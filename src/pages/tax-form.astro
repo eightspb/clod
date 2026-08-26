@@ -4,6 +4,7 @@ import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { FaqSection } from '../components/FaqSection.jsx'
 import { TaxFormRequestForm } from '../components/TaxFormRequestForm.jsx'
 import { PHONE_DISPLAY, PHONE_NUMBER } from '../lib/contacts.js'
+import { CheckCircle2, FileText, Phone, ShieldCheck } from 'lucide-react'
 
 const FAQ_ITEMS = [
   {
@@ -44,52 +45,80 @@ const taxFormSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(taxFormSchema)} />
   <BreadcrumbNav items={[{ label: 'Форма для налоговой' }]} />
 
-  <section class="pt-6 pb-10">
+  <section class="pt-4 pb-16">
     <div class="container-clay">
-      <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] gap-6 items-end mb-8">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)] mb-5">
+            <FileText size={14} aria-hidden="true" />
+            Для пациентов клиники
+          </div>
+          <h1 class="text-4xl sm:text-5xl heading-display text-clay-dark leading-tight mb-4">
+            Запрос справки для налогового вычета
+          </h1>
+          <p class="text-clay-muted text-lg leading-relaxed max-w-3xl">
+            Заполните данные пациента, налогоплательщика и контакты. Сотрудник клиники проверит заявку и свяжется с вами, если потребуется уточнение.
+          </p>
+        </div>
+        <div class="clay-card-soft-mint clay-card p-5 md:p-6">
+          <div class="flex items-start gap-3">
+            <div class="icon-circle-mint h-11 w-11 rounded-[16px]">
+              <ShieldCheck size={19} className="text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-clay-dark mb-2">Что важно перед отправкой</h2>
+              <p class="text-sm text-clay-muted leading-relaxed">
+                В форме нужны только сведения для подготовки справки: ФИО, даты рождения, ИНН налогоплательщика, год справки и контакты.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)] gap-8 items-start">
         <div class="space-y-6">
-          <div class="clay clay-card inline-flex items-center gap-2 px-5 py-2">
-            <span class="text-sm font-semibold text-clay-dark">Для пациентов</span>
-          </div>
-
-          <div>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-clay-dark leading-tight mb-4">
-              Запрос справки для <span class="text-clay-mint">налогового вычета</span>
-            </h1>
-            <p class="text-clay-muted text-lg leading-relaxed max-w-2xl">
-              Заполните форму на сайте, и мы получим все данные, которые нужны для подготовки справки. Если по заявке потребуется уточнение, свяжемся с вами по email или телефону.
-            </p>
-          </div>
-
-          <div class="clay clay-card-soft-mint p-5 max-w-2xl">
-            <p class="text-clay-dark font-medium text-sm leading-relaxed">
-              Форма подходит, если справка оформляется как на самого пациента, так и на другого налогоплательщика. Данные отправляются сотрудникам клиники на почты <strong>info@odintsovclinic.ru</strong> и <strong>vbazarbaev@gmail.com</strong>.
-            </p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="clay clay-card p-5">
-              <div class="text-2xl font-extrabold text-clay-mint mb-1">1</div>
-              <p class="text-sm text-clay-muted leading-relaxed">Укажите данные пациента и налогоплательщика.</p>
-            </div>
-            <div class="clay clay-card p-5">
-              <div class="text-2xl font-extrabold text-clay-mint mb-1">2</div>
-              <p class="text-sm text-clay-muted leading-relaxed">Оставьте контакты, чтобы мы могли уточнить детали при необходимости.</p>
-            </div>
-            <div class="clay clay-card p-5">
-              <div class="text-2xl font-extrabold text-clay-mint mb-1">3</div>
-              <p class="text-sm text-clay-muted leading-relaxed">Сотрудники клиники получат заявку и подготовят справку.</p>
+          <div class="clay-card p-6 md:p-7">
+            <h2 class="text-2xl heading-serif text-clay-dark mb-5">Как проходит заявка</h2>
+            <div class="space-y-5">
+              {[
+                {
+                  title: 'Данные в одной форме',
+                  text: 'Можно указать пациента и налогоплательщика отдельно, если справка оформляется не на самого пациента.',
+                },
+                {
+                  title: 'Проверка сотрудником клиники',
+                  text: 'Мы сверим заявку и свяжемся по email или телефону, если для справки не хватает данных.',
+                },
+                {
+                  title: 'Подготовка справки',
+                  text: 'После проверки сотрудники клиники подготовят справку для налоговой инспекции.',
+                },
+              ].map((item) => (
+                <div class="flex items-start gap-3">
+                  <CheckCircle2 size={18} className="text-clay-mint mt-0.5 shrink-0" aria-hidden="true" />
+                  <div>
+                    <h3 class="font-bold text-clay-dark text-sm mb-1">{item.title}</h3>
+                    <p class="text-sm text-clay-muted leading-relaxed">{item.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div class="clay clay-card p-6 md:p-7">
-            <h2 class="text-xl md:text-2xl font-extrabold text-clay-dark mb-4">Что подготовить перед заполнением</h2>
-            <ul class="space-y-3 text-sm text-clay-muted leading-relaxed">
-              <li>ФИО и дату рождения пациента.</li>
-              <li>ФИО, дату рождения и ИНН налогоплательщика.</li>
-              <li>Email и телефон для обратной связи.</li>
-              <li>Год, за который нужна справка.</li>
-            </ul>
+          <div class="clay-card p-6 md:p-7">
+            <h2 class="text-2xl heading-serif text-clay-dark mb-5">Что подготовить</h2>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {[
+                'ФИО и дату рождения пациента',
+                'ФИО налогоплательщика',
+                'Дату рождения и ИНН налогоплательщика',
+                'Email, телефон и год справки',
+              ].map((item) => (
+                <div class="rounded-[16px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3 text-sm font-medium text-clay-dark">
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
 
           <FaqSection items={FAQ_ITEMS} title="Частые вопросы" />
@@ -103,7 +132,8 @@ const taxFormSchema = {
             <p class="text-sm text-clay-muted leading-relaxed mb-4">
               Если не уверены, какие данные указать в заявке, позвоните в клинику. Подскажем, как оформить запрос без лишних шагов.
             </p>
-            <a href={`tel:${PHONE_NUMBER}`} class="clay btn-clay-secondary w-full justify-center">
+            <a href={`tel:${PHONE_NUMBER}`} class="clay btn-clay-secondary w-full justify-center gap-2">
+              <Phone size={16} aria-hidden="true" />
               Позвонить: {PHONE_DISPLAY}
             </a>
           </div>

@@ -1,5 +1,4 @@
 import { ArrowRight, Award, Clock, Heart, Mail, Microscope, Monitor, Phone, Radio, Shield, Star, TestTube, Users, Zap } from 'lucide-react'
-import { useHeroFit } from '../../lib/useHeroFit.js'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { FadeInSection } from '../FadeInSection.jsx'
@@ -49,32 +48,32 @@ const EQUIPMENT = [
     title: 'Система XISHAN (Сишань)',
     desc: 'Оборудование для вакуумной аспирационной биопсии под контролем УЗИ. Используется для малоинвазивного лечения по показаниям.',
     tag: 'Основное направление',
-    tagColor: '#3AB89A',
-    tagBg: 'rgba(78,200,168,0.12)',
+    tagClass: 'badge-specialty-mint',
+    iconClass: 'bg-[color:var(--surface-mint)] text-[color:var(--accent)]',
   },
   {
     icon: Radio,
     title: 'УЗИ экспертного класса',
     desc: 'Ультразвуковая диагностика помогает уточнять локализацию образования, объём вмешательства и дальнейшую тактику.',
     tag: 'Диагностика',
-    tagColor: '#4880B0',
-    tagBg: 'rgba(78,158,200,0.12)',
+    tagClass: 'badge-specialty-blue',
+    iconClass: 'bg-[color:var(--surface-blue)] text-[color:var(--color-blue)]',
   },
   {
     icon: TestTube,
     title: 'Партнёрские лаборатории',
     desc: 'Гистологические и цитологические исследования выполняются в профильных партнёрских лабораториях. Сроки готовности зависят от вида исследования и обсуждаются на приёме.',
     tag: 'Лаборатория',
-    tagColor: '#7060A8',
-    tagBg: 'rgba(155,142,200,0.12)',
+    tagClass: 'badge-specialty-mint',
+    iconClass: 'bg-[color:var(--surface-lavender)] text-[color:var(--color-lavender)]',
   },
   {
     icon: Monitor,
     title: 'Удобная выдача документов',
     desc: 'Заключения, снимки и протоколы можно получить в клинике, а администратор подскажет, какие материалы подготовить для повторного приёма или второго мнения.',
     tag: 'Сервис',
-    tagColor: '#D07858',
-    tagBg: 'rgba(240,168,136,0.12)',
+    tagClass: 'badge-specialty-peach',
+    iconClass: 'bg-[color:var(--surface-peach)] text-[color:var(--color-peach)]',
   },
 ]
 
@@ -123,7 +122,7 @@ const PRINCIPLES = [
     icon: Phone,
     iconBg: 'icon-circle-blue',
     title: 'Личная связь с врачом',
-    desc: 'После приёма можно уточнить вопросы по телефону или в Telegram — без ожидания следующего визита.',
+    desc: 'После приёма можно уточнить вопросы по телефону или в Telegram - без ожидания следующего визита.',
   },
   {
     icon: Users,
@@ -134,43 +133,45 @@ const PRINCIPLES = [
 ]
 
 export function About() {
-  const heroRef = useHeroFit()
   return (
     <div>
-      {/* HERO */}
-      <section ref={heroRef} className="relative overflow-hidden pt-6 pb-10">
-        {/* decorative blobs removed to reduce CSS payload */}
+      <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5 badge-specialty-mint">
-              <Heart size={12} />
-              Санкт-Петербург · Приморский район
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                О клинике{' '}
+                <span className="heading-accent">Одинцова</span>
+              </h1>
+              <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
+                Клиника в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.
+              </p>
+              <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
+                Работаем в маммологии, гинекологии, эндокринологии и нутрициологии. Помогаем пройти путь от диагностики до понятного плана лечения.
+              </p>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
+                  Записаться на приём
+                  <ArrowRight size={16} />
+                </button>
+                <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
+                  <Phone size={16} />
+                  Позвонить
+                </a>
+              </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
-              О клинике{' '}
-              <span className="heading-accent">Одинцова</span>
-            </h1>
-            <p className="text-lg text-clay-muted leading-relaxed mb-4 font-medium max-w-2xl">
-              Клиника в Санкт-Петербурге, на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня. Работаем в маммологии, гинекологии, эндокринологии и нутрициологии.
-            </p>
-            <p className="text-clay-muted leading-relaxed mb-5 max-w-2xl">
-              Наша задача - дать понятный маршрут: от первичного приёма и диагностики до обсуждения лечения и, при необходимости, малоинвазивной процедуры.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" data-booking-btn="true" className="clay btn-clay-secondary gap-2">
-                Записаться на приём
-                <ArrowRight size={16} />
-              </button>
-              <a href={`tel:${PHONE_NUMBER}`} className="clay btn-clay-secondary gap-2">
-                <Phone size={16} />
-                Позвонить
-              </a>
+            <div className="clay-card p-5">
+              <p className="text-sm font-semibold text-clay-dark mb-3">Маршрут в клинике</p>
+              <div className="space-y-3 text-sm text-clay-muted">
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">Приём профильного врача и диагностика по показаниям</div>
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">Обсуждение вариантов лечения без давления</div>
+                <div className="rounded-[14px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-3">Связь с клиникой после приёма или процедуры</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ПРИВЕТСТВЕННОЕ СЛОВО ГЛАВНОГО ВРАЧА */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -229,7 +230,6 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* HISTORY / MISSION */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -244,14 +244,13 @@ export function About() {
                 Наша миссия - помочь каждому пациенту принять осознанное решение о своём здоровье. Мы не назначаем лишних анализов, не предлагаем операцию без оснований и всегда объясняем, почему выбран именно этот метод лечения.
               </p>
               <p>
-                Основное направление клиники — вакуумная аспирационная биопсия (ВАБ), малоинвазивная процедура в маммологии. Мы помогаем уточнить диагноз, получить второе мнение и обсудить варианты лечения без спешки и лишних вмешательств.
+                Основное направление клиники - вакуумная аспирационная биопсия (ВАБ), малоинвазивная процедура в маммологии. Мы помогаем уточнить диагноз, получить второе мнение и обсудить варианты лечения без спешки и лишних вмешательств.
               </p>
             </div>
           </div>
         </section>
       </FadeInSection>
 
-      {/* LEADERSHIP */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -302,18 +301,17 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* ADVANTAGES */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
             <div className="text-center mb-8">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
-                  Наши преимущества
-                </h2>
-                <p className="text-clay-muted max-w-xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl heading-serif text-clay-dark mb-3">
+                Наши преимущества
+              </h2>
+              <p className="text-clay-muted max-w-xl mx-auto">
                 Спокойный, понятный и медицински выверенный маршрут лечения
-                </p>
-              </div>
+              </p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {ADVANTAGES.map((item, i) => {
                 const Icon = item.icon
@@ -336,7 +334,6 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* EQUIPMENT */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -353,19 +350,17 @@ export function About() {
                 const Icon = item.icon
                 return (
                   <FadeInSection key={item.title} staggerIndex={i} className="h-full">
-                    <div className="clay clay-card card-interactive p-6 flex items-start gap-4 h-full">
+                    <div className="clay clay-card p-6 flex items-start gap-4 h-full">
                       <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: item.tagBg }}
+                        className={`w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0 ${item.iconClass}`}
                       >
-                        <Icon size={24} style={{ color: item.tagColor }} />
+                        <Icon size={24} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <h3 className="font-bold text-clay-dark">{item.title}</h3>
                           <span
-                            className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
-                            style={{ background: item.tagBg, color: item.tagColor }}
+                            className={`px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0 ${item.tagClass}`}
                           >
                             {item.tag}
                           </span>
@@ -381,7 +376,6 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* МАРШРУТ ПАЦИЕНТА */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -393,44 +387,23 @@ export function About() {
                 Понятный путь от обращения до наблюдения после лечения
               </p>
             </div>
-            <div className="relative">
-              <div className="absolute left-5 top-10 bottom-10 w-0.5 bg-clay-mint/20 md:hidden" />
-              <div className="hidden md:flex items-start gap-0 mb-8">
-                {PATIENT_JOURNEY.map((step, i) => (
-                  <div key={step.num} className="flex-1 flex flex-col items-center text-center relative">
-                    {i < PATIENT_JOURNEY.length - 1 && (
-                      <div className="absolute top-5 left-1/2 right-0 h-0.5 bg-clay-mint/25" />
-                    )}
-                    <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint mb-3">
+            <div className="space-y-4">
+              {PATIENT_JOURNEY.map((step) => (
+                <div key={step.num} className="clay clay-card p-5">
+                  <div className="grid gap-3 md:grid-cols-[auto_minmax(0,0.65fr)_minmax(0,1.35fr)] md:items-center">
+                    <div className="w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-[var(--shadow-xs)]">
                       <span className="text-sm font-bold text-white">{step.num}</span>
                     </div>
-                    <h3 className="font-bold text-clay-dark text-sm mb-1">{step.title}</h3>
-                    <p className="text-xs text-clay-muted leading-relaxed px-2">{step.desc}</p>
+                    <h3 className="font-bold text-clay-dark text-base">{step.title}</h3>
+                    <p className="text-sm text-clay-muted leading-relaxed">{step.desc}</p>
                   </div>
-                ))}
-              </div>
-              <div className="space-y-4 md:hidden">
-                {PATIENT_JOURNEY.map((step) => (
-                  <div key={step.num} className="flex items-start gap-4 relative">
-                    <div className="relative z-10 w-10 h-10 rounded-full bg-clay-mint flex items-center justify-center flex-shrink-0 shadow-clay-mint">
-                      <span className="text-sm font-bold text-white">{step.num}</span>
-                    </div>
-                    <div className="flex-1 clay clay-card p-4 relative overflow-hidden">
-                      <span className="deco-numeral absolute -top-4 -right-2 opacity-30">{step.num}</span>
-                      <div className="relative z-10">
-                        <h3 className="font-bold text-clay-dark text-base mb-1">{step.title}</h3>
-                        <p className="text-clay-muted text-sm leading-relaxed">{step.desc}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
       </FadeInSection>
 
-      {/* НАШИ ПРИНЦИПЫ */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -464,7 +437,6 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* DOCUMENTS */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
@@ -522,14 +494,11 @@ export function About() {
         </section>
       </FadeInSection>
 
-      {/* CTA */}
       <FadeInSection>
         <section className="section">
           <div className="container-clay">
-            <div className="clay clay-card-mint p-6 md:p-8 text-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/4" />
-              <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 translate-y-1/2" />
-              <div className="relative z-10">
+            <div className="clay clay-card p-6 md:p-8 text-center">
+              <div>
                 <Star size={40} className="text-clay-mint mx-auto mb-4" />
                 <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">
                   Готовы записаться?

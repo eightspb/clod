@@ -3,6 +3,8 @@ import { Header } from '../components/Header.jsx'
 import { Footer } from '../components/Footer.jsx'
 import { StickyCTA } from '../components/StickyCTA.jsx'
 import { ThemeSwitcher } from '../components/ThemeSwitcher.jsx'
+import { BookingFlow } from '../components/booking/BookingFlow.jsx'
+import { DOCTORS } from '../lib/doctors-data.js'
 import '../styles/global.css'
 
 interface Props {
@@ -13,6 +15,7 @@ interface Props {
   ogImageAlt?: string
   ogType?: string
   canonicalUrl?: string
+  pageDoctorSlug?: string
 }
 
 const {
@@ -23,9 +26,11 @@ const {
   ogImageAlt = '',
   ogType = 'website',
   canonicalUrl = `https://odintsovclinic.ru${Astro.url.pathname}`,
+  pageDoctorSlug = '',
 } = Astro.props
 
 const currentPath = Astro.url.pathname
+const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => ({ slug, name, specialization, photo }))
 ---
 
 <!doctype html>
@@ -66,9 +71,6 @@ const currentPath = Astro.url.pathname
     <!-- hreflang -->
     <link rel="alternate" hreflang="ru" href={canonicalUrl} />
     <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
-
-    <!-- Preconnect к сторонним источникам (Lighthouse: ускоряет первый запрос) -->
-    <link rel="preconnect" href="https://booking.medflex.ru" crossorigin />
 
     <!-- Шрифт Golos Text - самохостинг (без внешнего CDN) -->
     <link rel="preload" href="/fonts/golos-text-var-cyrillic.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
@@ -213,13 +215,6 @@ const currentPath = Astro.url.pathname
     <a href="#main-content" class="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-[9999] focus-visible:px-4 focus-visible:py-2 focus-visible:bg-clay-mint-dark focus-visible:text-white focus-visible:rounded-xl focus-visible:font-semibold focus-visible:shadow-lg">
       Перейти к содержимому
     </a>
-    <!-- Крупные блобы: FIXED за контентом (z-index:-1) -->
-    <div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden" style="z-index:-1">
-      <div class="blob-mint absolute w-72 h-72" style="top:-56px;right:-56px;opacity:0.15" />
-      <div class="blob-peach absolute w-60 h-60" style="bottom:-36px;left:-56px;opacity:0.12" />
-      <div class="blob-blue absolute w-48 h-48" style="bottom:15%;right:-28px;opacity:0.10" />
-      <div class="blob-lavender absolute w-44 h-44" style="top:20%;left:38%;opacity:0.10" />
-    </div>
     <Header currentPath={currentPath} client:load />
     <main id="main-content" class="relative" style="z-index:1" data-pagefind-body>
       <slot />
@@ -229,8 +224,9 @@ const currentPath = Astro.url.pathname
     </div>
     <StickyCTA client:idle />
     <ThemeSwitcher client:idle />
+    <BookingFlow doctors={BOOKING_DOCTORS} pageDoctorSlug={pageDoctorSlug} client:load />
 
-    <div id="font-size-controls" class="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex flex-col gap-2">
+    <div id="font-size-controls" class="hidden md:fixed md:bottom-6 md:right-6 md:z-50 md:flex md:flex-col md:gap-2">
       <button
         id="font-increase"
         aria-label="Увеличить шрифт"
@@ -249,76 +245,40 @@ const currentPath = Astro.url.pathname
     </div>
 
     <script>
-      const STORAGE_KEY = 'clod-font-size'
-      const MIN = 95
-      const MAX = 135
-      const STEP = 5
-      const DEFAULT = 105
+      import {
+        FONT_SIZE_DEFAULT,
+        FONT_SIZE_STORAGE_KEY,
+        decreaseFontSize,
+        increaseFontSize,
+        readFontSize,
+      } from '../lib/font-size.js'
 
       function applySize(size) {
-        document.documentElement.style.fontSize = size + '%'
-        localStorage.setItem(STORAGE_KEY, size)
+        document.documentElement.style.fontSize = `${size}%`
+        localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(size))
       }
 
       function getSize() {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        return saved ? parseInt(saved, 10) : DEFAULT
+        return readFontSize(localStorage.getItem(FONT_SIZE_STORAGE_KEY))
       }
 
       applySize(getSize())
 
       document.getElementById('font-increase').addEventListener('click', () => {
-        const next = Math.min(getSize() + STEP, MAX)
-        applySize(next)
+        applySize(increaseFontSize(getSize()))
       })
 
       document.getElementById('font-decrease').addEventListener('click', () => {
-        const next = Math.max(getSize() - STEP, MIN)
-        applySize(next)
+        applySize(decreaseFontSize(getSize()))
       })
 
       document.getElementById('font-reset').addEventListener('click', () => {
-        applySize(DEFAULT)
+        applySize(FONT_SIZE_DEFAULT)
       })
     </script>
 
     <!-- Трекер аналитики: defer чтобы не блокировать отрисовку (Lighthouse) -->
     <script src="/tracker.js" defer></script>
-
-    <!-- Medflex Widget: загрузка после idle, чтобы не блокировать main thread (Lighthouse — длительная задача) -->
-    <div id="medflexRoundWidgetData" data-src="https://booking.medflex.ru/?user=1c7cca1b1f55aed63a6775079eac0f99&isRoundWidget=true"></div>
-    <script is:inline>
-      (function() {
-        function loadMedflex() {
-          if (window.__medflexLoaded) return
-          window.__medflexLoaded = true
-          var s = document.createElement('script')
-          s.src = 'https://booking.medflex.ru/components/round/round_widget_button.js'
-          s.charset = 'utf-8'
-          s.defer = true
-          document.body.appendChild(s)
-        }
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(loadMedflex, { timeout: 4000 })
-        } else {
-          setTimeout(loadMedflex, 2000)
-        }
-      })()
-    </script>
-    <script is:inline>
-      document.addEventListener('click', function(e) {
-        var btn = e.target.closest('[data-booking-btn]');
-        if (btn) {
-          e.preventDefault();
-          var widgetBtn = document.querySelector('.medflex-round-widget__button');
-          if (widgetBtn) {
-            widgetBtn.click();
-          } else {
-            window.open('https://booking.medflex.ru/?user=1c7cca1b1f55aed63a6775079eac0f99', '_blank');
-          }
-        }
-      });
-    </script>
 
   </body>
 </html>

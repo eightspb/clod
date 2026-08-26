@@ -85,7 +85,7 @@ async function reconcile(configuration, booking, outcome) {
     const slot = await configuration.repository.reconciliationScope({ capability: outcome.capability })
     const date = slot.dtStart.slice(0, 10)
     const client = configuration.medflex()
-    const history = await findAppointmentHistory({ loadPage: (page) => client.getAppointmentHistory({ dateStart: date, dateEnd: date, lpuId: slot.lpuId, mobilePhone: booking.patient.phone, page, size: 50 }), booking, slot })
+    const history = await findAppointmentHistory({ loadPage: (page) => client.getAppointmentHistory({ dateStart: date, dateEnd: date, lpuId: slot.lpuId, page, size: 50 }), booking, slot })
     const transition = await configuration.repository.reconcile({ capability: outcome.capability, history })
     return transition.action === 'confirmed' ? confirmed(transition.public, 200) : uncertain()
   } catch {
@@ -135,6 +135,10 @@ async function recordUncertain(configuration, capability) {
   }
 }
 
+function uncertainResult(transition) {
+  return transition && transition.action === 'confirmed' ? confirmed(transition.public, 200) : uncertain()
+}
+
 async function dispatch(configuration, client, booking, slot, acquired) {
   let operation
   try {
@@ -160,12 +164,12 @@ async function dispatch(configuration, client, booking, slot, acquired) {
     }
     safeLog(configuration, 'CREATE_OUTCOME_UNCERTAIN')
     const transition = await recordUncertain(configuration, acquired.capability)
-    return transition && transition.action === 'confirmed' ? confirmed(transition.public, 200) : uncertain()
+    return uncertainResult(transition)
   }
   if (!claim || typeof claim.claim_id !== 'string' || !UUID_PATTERN.test(claim.claim_id)) {
     safeLog(configuration, 'CREATE_RESPONSE_UNCERTAIN')
-    await recordUncertain(configuration, acquired.capability)
-    return uncertain()
+    const transition = await recordUncertain(configuration, acquired.capability)
+    return uncertainResult(transition)
   }
   try {
     const transition = await configuration.repository.confirm({ capability: acquired.capability, claimId: claim.claim_id })
@@ -177,8 +181,8 @@ async function dispatch(configuration, client, booking, slot, acquired) {
     return outcomeResult(transition)
   } catch {
     safeLog(configuration, 'INTENT_CONFIRM_FAILED')
-    await recordUncertain(configuration, acquired.capability)
-    return uncertain()
+    const transition = await recordUncertain(configuration, acquired.capability)
+    return uncertainResult(transition)
   }
 }
 

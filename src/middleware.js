@@ -17,12 +17,12 @@ function getCspDirectives() {
     : "'self'"
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://booking.medflex.ru",
+    "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https:",
-    "frame-src https://yandex.ru https://booking.medflex.ru",
-    `connect-src ${connectSrc} https://booking.medflex.ru`,
+    "frame-src https://yandex.ru",
+    `connect-src ${connectSrc}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

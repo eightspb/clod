@@ -39,6 +39,7 @@ function makeJsonRequest({
   body = {},
 } = {}) {
   return {
+    url: 'https://odintsovclinic.ru/api/analytics/test',
     headers: new Headers({
       'content-type': 'application/json',
       origin,

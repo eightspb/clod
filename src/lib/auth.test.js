@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { NodeApp } from 'astro/app/node'
 import {
   buildClearCookie,
   buildSetCookie,
@@ -40,6 +41,10 @@ function makeJsonRequest({ origin = 'http://localhost:4321', referer = null, bod
   })
 }
 
+function makeAstroProxyRequest(origin, headers) {
+  return NodeApp.createRequest({ method: 'POST', url: '/api/test', headers: { origin, ...headers }, socket: {} }, { skipBody: true })
+}
+
 beforeEach(() => {
   process.env.ADMIN_PASSWORD = 'top-secret-password'
   process.env.TOKEN_SECRET = 'unit-test-token-secret'
@@ -71,15 +76,15 @@ describe('auth.js', () => {
     })
 
     it('accepts www.odintsovclinic.ru', () => {
-      expect(validateOrigin(makeRequest('https://www.odintsovclinic.ru/', null))).toBe(true)
+      expect(validateOrigin(makeRequest('https://www.odintsovclinic.ru/', null, { url: 'https://www.odintsovclinic.ru/api/test' }))).toBe(true)
     })
 
     it('accepts localhost:4321', () => {
-      expect(validateOrigin(makeRequest('http://localhost:4321/', null))).toBe(true)
+      expect(validateOrigin(makeRequest('http://localhost:4321/', null, { url: 'http://localhost:4321/api/test' }))).toBe(true)
     })
 
     it('accepts referer when origin is missing', () => {
-      expect(validateOrigin(makeRequest(null, 'https://localhost:4321/page'))).toBe(true)
+      expect(validateOrigin(makeRequest(null, 'https://localhost:4321/page', { url: 'https://localhost:4321/api/test' }))).toBe(true)
     })
 
     it('accepts the current request host even when it is not in the static allowlist', () => {
@@ -102,6 +107,60 @@ describe('auth.js', () => {
           })
         )
       ).toBe(true)
+    })
+
+    it('accepts the external exact origin behind the configured HTTPS reverse proxy', () => {
+      const request = makeAstroProxyRequest('https://odintsovclinic.ru', { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443' })
+      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'https://odintsovclinic.ru/api/test', valid: true })
+    })
+
+    it('accepts the exact HTTP origin behind the configured port 80 proxy', () => {
+      const request = makeAstroProxyRequest('http://127.0.0.1', { host: '127.0.0.1', 'x-forwarded-proto': 'http', 'x-forwarded-port': '80' })
+      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'http://127.0.0.1/api/test', valid: true })
+    })
+
+    it('rejects an HTTP source for the HTTPS production request', () => {
+      const request = makeRequest('http://odintsovclinic.ru', null, { url: 'https://odintsovclinic.ru/api/test', host: 'odintsovclinic.ru' })
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it('rejects a source using another port even when Host is forged to match it', () => {
+      const request = makeRequest('https://odintsovclinic.ru:444', null, { url: 'https://odintsovclinic.ru/api/test', host: 'odintsovclinic.ru:444' })
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it.each(['https://odintsovclinic.ru', 'https://odintsovclinic.ru:444'])('rejects %s when Astro receives a forged forwarded port 444', (origin) => {
+      const request = makeAstroProxyRequest(origin, { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '444' })
+      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'https://odintsovclinic.ru:444/api/test', valid: false })
+    })
+
+    it.each(['https://odintsovclinic.ru', 'https://odintsovclinic.ru:444'])('rejects %s when the forwarded port is ambiguous', (origin) => {
+      const request = makeAstroProxyRequest(origin, { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443, 444' })
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it.each([
+      ['a missing forwarded port', { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https' }],
+      ['a port inconsistent with HTTPS', { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '80' }],
+      ['a nonconfigured HTTPS port', { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '8443' }],
+    ])('rejects %s', (_label, headers) => {
+      const request = makeAstroProxyRequest('https://odintsovclinic.ru', headers)
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it('rejects a forged forwarded host that differs from the proxy Host', () => {
+      const request = makeAstroProxyRequest('https://evil.example', { host: 'odintsovclinic.ru', 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443' })
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it('rejects a forged forwarded host even when it names an allowed production origin', () => {
+      const request = makeAstroProxyRequest('https://odintsovclinic.ru', { host: 'evil.example', 'x-forwarded-host': 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443' })
+      expect(validateOrigin(request)).toBe(false)
+    })
+
+    it('rejects same-site metadata without origin or referer evidence', () => {
+      const request = makeRequest(null, null, { host: 'odintsovclinic.ru', 'sec-fetch-site': 'same-site' })
+      expect(validateOrigin(request)).toBe(false)
     })
 
     it('rejects unknown origin', () => {

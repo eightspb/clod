@@ -16,7 +16,12 @@ describe('CtaSection', () => {
   it('renders primary CTA button (opens booking modal)', () => {
     render(<CtaSection />)
     const btn = screen.getByRole('button', { name: /записаться онлайн/i })
-    expect(btn).toHaveAttribute('data-booking-btn', 'true')
+    expect({ booking: btn.getAttribute('data-booking-btn'), doctor: btn.hasAttribute('data-booking-doctor') }).toEqual({ booking: 'true', doctor: false })
+  })
+
+  it('adds public doctor context to a doctor-specific booking button', () => {
+    render(<CtaSection doctorSlug="egorova-unicode" />)
+    expect(screen.getByRole('button', { name: /записаться онлайн/i })).toHaveAttribute('data-booking-doctor', 'egorova-unicode')
   })
 
   it('renders custom primary label', () => {

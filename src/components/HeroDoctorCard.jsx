@@ -11,7 +11,7 @@ function pickRandom(arr, exclude) {
 }
 
 export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion' }) {
-  const [doctor, setDoctor] = useState(() => doctors[Math.floor(Math.random() * doctors.length)])
+  const [doctor, setDoctor] = useState(() => doctors[0])
   const [fading, setFading] = useState(false)
   const shouldRotate = doctors.length > 1
   const rotate = useCallback(() => {
@@ -65,6 +65,7 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion' }) {
           <a
             href={ctaHref}
             data-booking-btn="true"
+            data-booking-doctor={doctor.slug}
             className="btn-clay-primary hero-doctor-cta"
           >
             Записаться к {doctor.dativeShortName || 'врачу'}

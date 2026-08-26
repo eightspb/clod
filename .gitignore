@@ -56,6 +56,12 @@ output/
 
 # Local tool state
 .cursor/*.log
+graphify-out/
+.superpowers/
+seomachine-workspace/
+.claude/design-systems/
+.claude/marketplaces/
+.claude/skills/humanizer/
 
 # Misc legacy/local files
 PageSpeed Insights.pdf

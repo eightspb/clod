@@ -76,6 +76,7 @@ async function makeRequest({
   }
 
   return {
+    url: 'https://odintsovclinic.ru/api/second-opinion',
     method: 'POST',
     headers: new Headers({
       origin,

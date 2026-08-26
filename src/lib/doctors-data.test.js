@@ -13,10 +13,12 @@ describe('doctors-data.js', () => {
         expect(doc).toHaveProperty('slug')
         expect(doc).toHaveProperty('name')
         expect(doc).toHaveProperty('specialization')
+        expect(doc).toHaveProperty('photoMobile')
         expect(doc).toHaveProperty('experienceYears')
         expect(doc).toHaveProperty('ringColor')
         expect(typeof doc.slug).toBe('string')
         expect(typeof doc.name).toBe('string')
+        expect(doc.photoMobile).toMatch(/-mobile\.webp$/)
         expect(typeof doc.experienceYears).toBe('number')
       }
     })
@@ -30,6 +32,14 @@ describe('doctors-data.js', () => {
     it('contains Одинцов as first doctor', () => {
       expect(DOCTORS[0].slug).toBe('odintsov')
       expect(DOCTORS[0].degree).toBe('д.м.н.')
+    })
+
+    it('marks square mobile portraits for uncropped art direction', () => {
+      expect(DOCTORS.filter((doctor) => doctor.photoMobileFit === 'square').map((doctor) => doctor.slug)).toEqual(['odintsov', 'zaharova'])
+    })
+
+    it('marks the compact mobile portrait that needs extra stage scale', () => {
+      expect(DOCTORS.filter((doctor) => doctor.photoMobileFit === 'compact').map((doctor) => doctor.slug)).toEqual(['nevzorova'])
     })
 
     it('doctors have helpsWith array', () => {

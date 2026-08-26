@@ -65,7 +65,9 @@ async function getErrorMessage(response) {
     if (payload?.error?.message) {
       return payload.error.message
     }
-  } catch { /* malformed payload — fall through to generic message */ }
+  } catch {
+    return 'Ошибка соединения. Проверьте интернет и попробуйте через минуту'
+  }
 
   return 'Ошибка соединения. Проверьте интернет и попробуйте через минуту'
 }
@@ -164,7 +166,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
         </div>
         <h3 className="font-extrabold text-white text-xl mb-2">Заявка успешно отправлена!</h3>
         <p className="text-white/90 text-xs leading-relaxed mb-6">
-          Мы получили ваши данные и снимки. Наш специалист свяжется с вами в течение рабочего дня (пн-пт 9:00–20:00).
+          Мы получили ваши данные и снимки. Наш специалист свяжется с вами в течение рабочего дня (пн-пт 9:00-20:00).
         </p>
         <button
           onClick={onClose}

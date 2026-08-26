@@ -58,6 +58,7 @@ async function makeRequest({
   }
 
   return {
+    url: 'https://odintsovclinic.ru/api/tax-form',
     method: 'POST',
     headers: new Headers({
       origin,

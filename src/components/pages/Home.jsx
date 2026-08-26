@@ -19,14 +19,6 @@ export function Home({ doctorsData = [] }) {
       <HeroSlider />
 
       <FadeInSection>
-        <SecondOpinionSection />
-      </FadeInSection>
-
-      <FadeInSection>
-        <VabSection />
-      </FadeInSection>
-
-      <FadeInSection>
         <ServicesSection />
       </FadeInSection>
 
@@ -36,6 +28,14 @@ export function Home({ doctorsData = [] }) {
 
       <FadeInSection>
         <DoctorsSection doctorsData={doctorsData} />
+      </FadeInSection>
+
+      <FadeInSection>
+        <VabSection />
+      </FadeInSection>
+
+      <FadeInSection>
+        <SecondOpinionSection />
       </FadeInSection>
 
       <FadeInSection>
@@ -53,12 +53,10 @@ export function Home({ doctorsData = [] }) {
       <FadeInSection>
       <section className="section">
         <div className="container-clay">
-          <div className="clay clay-card p-6 md:p-8 text-center relative overflow-hidden">
-            <div className="blob-peach absolute -top-10 -right-10 w-40 h-40 opacity-50 pointer-events-none" />
-            <div className="blob-mint absolute -bottom-10 -left-10 w-40 h-40 opacity-40 pointer-events-none" />
-            <div className="relative z-10">
+          <div className="clay clay-card p-6 md:p-8">
+            <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
-                Не знаете, к кому обратиться?
+                Нужна помощь с маршрутом?
               </h2>
               <p className="text-clay-muted text-lg mb-5 max-w-xl mx-auto">
                 Позвоните нам или напишите в мессенджер - поможем с маршрутом и подскажем, с чего лучше начать.

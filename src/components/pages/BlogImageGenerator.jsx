@@ -113,7 +113,7 @@ function ArticleCard({ article, job, imageUrl, version, applied, onSubmit, onApp
               <label className="blog-gen-label">Модель</label>
               <select className="blog-gen-select" value={model} onChange={e => setModel(e.target.value)}>
                 {AVAILABLE_MODELS.map(m => (
-                  <option key={m.id} value={m.id}>{m.name} — {m.description}</option>
+                  <option key={m.id} value={m.id}>{m.name} - {m.description}</option>
                 ))}
               </select>
             </div>
@@ -186,7 +186,9 @@ export function BlogImageGenerator({ articles }) {
       prevJobsRef.current = newJobs
       setJobs(newJobs)
       setImages(data.images || {})
-    } catch { /* ignore */ }
+    } catch {
+      return
+    }
   }, [])
   useEffect(() => { fetchState() }, [fetchState])
   useEffect(() => {

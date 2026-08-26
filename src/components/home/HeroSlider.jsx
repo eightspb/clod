@@ -2,11 +2,9 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award } from 'lucide-react'
 import { StarRating } from '../StarRating.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { useHeroFit } from '../../lib/useHeroFit.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
 const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
-const OTHER_DOCTORS = DOCTORS.filter(d => !MAMMOLOGISTS.includes(d))
 
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -14,57 +12,38 @@ function pickRandom(arr) {
 
 const heroSlides = [
   {
+    trustBadge: 'Клиника экспертной медицины',
+    title: <>Медицинский маршрут <br /><span className="heading-accent">без лишней тревоги</span></>,
+    desc: 'Маммология, гинекология, эндокринология и нутрициология в одном спокойном маршруте пациента.',
+    primaryBtn: { label: 'Записаться', href: '#appointment-form' },
+    secondaryBtn: { label: 'Выбрать врача', href: '/doctors' },
+  },
+  {
     trustBadge: 'Маммология и ВАБ',
-    badge: 'Приморский район · Санкт-Петербург',
-    title: <>Вакуумная аспирационная биопсия<br /><span className="heading-accent">по показаниям и под УЗ-контролем</span></>,
-    desc: 'Обсуждаем объём вмешательства, показания и дальнейшее наблюдение заранее. Процедура обычно проходит амбулаторно и занимает около 30 минут.',
-    stats: [
-      { val: '30', unit: 'мин', label: 'обычная длительность' },
-      { val: '2', unit: 'мм', label: 'прокол ВАБ' },
-      { val: '1', unit: 'день', label: 'без госпитализации' },
-    ],
-    primaryBtn: { label: 'Записаться на ВАБ', href: '/second-opinion' },
+    title: <>ВАБ под УЗ-контролем <br /><span className="heading-accent">по показаниям</span></>,
+    desc: 'Заранее обсуждаем показания, объём вмешательства и дальнейшее наблюдение после процедуры.',
+    primaryBtn: { label: 'Записаться', href: '#appointment-form' },
     secondaryBtn: { label: 'Подробнее о ВАБ', href: '/vab' },
   },
   {
     trustBadge: 'Второе мнение',
-    badge: 'Для пациентов из любого региона России',
-    title: <>Второе мнение по маммологии<br /><span className="heading-accent">с разбором снимков и заключений</span></>,
-    desc: 'Перепроверяем документы, обсуждаем тактику и объясняем следующий шаг спокойным, понятным языком. При необходимости помогаем с очной маршрутизацией в Санкт-Петербурге.',
-    stats: [
-      { val: '0', unit: '₽', label: 'второе мнение бесплатно' },
-      { val: '1', unit: '', label: 'понятный план действий' },
-      { val: 'СПб', unit: '', label: 'очная маршрутизация при необходимости' },
-    ],
-    primaryBtn: { label: 'Проверить, нужна ли операция', href: '/second-opinion' },
-    secondaryBtn: { label: 'Записаться на приём', href: '/second-opinion' },
-  },
-  {
-    trustBadge: 'Гинекология, эндокринология, нутрициология',
-    badge: 'Понятный маршрут пациента',
-    title: <>Приём по показаниям<br /><span className="heading-accent">с уважительным и спокойным подходом</span></>,
-    desc: 'Разбираем жалобы, результаты анализов и план наблюдения без спешки. Объясняем следующий шаг понятным и спокойным языком.',
-    stats: [
-      { val: '4', unit: '', label: 'ключевых направления' },
-      { val: '9', unit: '', label: 'врачей в команде' },
-      { val: '1', unit: '', label: 'единый маршрут пациента' },
-    ],
-    primaryBtn: { label: 'Выбрать специалиста', href: '/gynecology' },
-    secondaryBtn: { label: 'Все направления', href: '/mammology' },
+    title: <>Второе мнение по маммологии <br /><span className="heading-accent">с разбором документов</span></>,
+    desc: 'Перепроверяем снимки и заключения, объясняем тактику и следующий шаг понятным языком.',
+    primaryBtn: { label: 'Проверить операцию', href: '/second-opinion' },
+    secondaryBtn: { label: 'Как это работает', href: '/second-opinion' },
   },
 ]
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 export function HeroSlider() {
-  const sectionRef = useHeroFit()
   const [activeSlide, setActiveSlide] = useState(0)
   const [sliderHeight, setSliderHeight] = useState(0)
   const slideRefs = useRef([])
   const [heroDoctor, setHeroDoctor] = useState({
-    0: MAMMOLOGISTS[0],
-    1: DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
-    2: OTHER_DOCTORS[0],
+    0: DOCTORS.find(d => d.slug === 'odintsov') || DOCTORS[0],
+    1: MAMMOLOGISTS[0],
+    2: DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
   })
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -75,19 +54,15 @@ export function HeroSlider() {
   useIsomorphicLayoutEffect(() => {
     function updateHeight() {
       const heights = slideRefs.current
-        .map((el) => el?.offsetHeight ?? 0)
+        .map((slide) => slide?.offsetHeight ?? 0)
         .filter((height) => height > 0)
       if (heights.length === 0) return
-      const max = Math.max(...heights)
-      setSliderHeight((prevHeight) => (prevHeight === max ? prevHeight : max))
+      const maxHeight = Math.max(...heights)
+      setSliderHeight((prevHeight) => (prevHeight === maxHeight ? prevHeight : maxHeight))
     }
     const frameId = window.requestAnimationFrame(updateHeight)
     const resizeObserver = new ResizeObserver(updateHeight)
-    slideRefs.current.forEach((slide) => {
-      if (slide) {
-        resizeObserver.observe(slide)
-      }
-    })
+    slideRefs.current.forEach((slide) => slide && resizeObserver.observe(slide))
     updateHeight()
     window.addEventListener('resize', updateHeight)
     return () => {
@@ -124,8 +99,8 @@ export function HeroSlider() {
         const next = (prev + 1) % heroSlides.length
         setHeroDoctor(old => ({
           ...old,
-          0: pickRandom(MAMMOLOGISTS),
-          2: pickRandom(OTHER_DOCTORS),
+          0: pickRandom(DOCTORS),
+          1: pickRandom(MAMMOLOGISTS),
         }))
         return next
       })
@@ -136,38 +111,34 @@ export function HeroSlider() {
     setActiveSlide(idx)
     setHeroDoctor(old => ({
       ...old,
-      0: pickRandom(MAMMOLOGISTS),
-      2: pickRandom(OTHER_DOCTORS),
+      0: pickRandom(DOCTORS),
+      1: pickRandom(MAMMOLOGISTS),
     }))
   }
   function prevSlide() {
     setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
     setHeroDoctor(old => ({
       ...old,
-      0: pickRandom(MAMMOLOGISTS),
-      2: pickRandom(OTHER_DOCTORS),
+      0: pickRandom(DOCTORS),
+      1: pickRandom(MAMMOLOGISTS),
     }))
   }
   function nextSlide() {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length)
     setHeroDoctor(old => ({
       ...old,
-      0: pickRandom(MAMMOLOGISTS),
-      2: pickRandom(OTHER_DOCTORS),
+      0: pickRandom(DOCTORS),
+      1: pickRandom(MAMMOLOGISTS),
     }))
   }
   return (
     <section
-      ref={sectionRef}
       className="relative overflow-hidden grain-overlay"
       aria-roledescription="carousel"
       aria-label="Главный слайдер"
     >
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="blob-mint absolute top-12 -left-32 w-96 h-96 opacity-20 pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="blob-peach absolute -bottom-24 -right-24 w-80 h-80 opacity-15 pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="blob-blue absolute top-1/3 -right-40 w-72 h-72 opacity-10 pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="container-clay relative z-10 py-8 md:py-14">
+      <div className="container-clay relative z-10 py-8 md:py-12 lg:py-16">
         <div
           className="relative"
           aria-live="polite"
@@ -197,32 +168,28 @@ export function HeroSlider() {
                 visibility: isActive ? 'visible' : 'hidden',
               }}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
-                <div>
-                  <div className="flex flex-col gap-2 w-fit mb-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider badge-specialty-mint">
+              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-14 items-center">
+                <div className="max-w-3xl">
+                  <div className="mb-5">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
                       <CheckCircle size={12} />
                       {slide.trustBadge}
                     </div>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-clay-muted bg-gray-50">
-                      <span className="w-1.5 h-1.5 rounded-full bg-clay-mint animate-pulse" />
-                      {slide.badge}
-                    </div>
                   </div>
                   {activeSlide === idx ? (
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                    <h1 className="text-4xl sm:text-5xl heading-display text-clay-dark leading-tight mb-5">
                       {slide.title}
                     </h1>
                   ) : (
-                    <div role="heading" aria-level="1" aria-hidden="true" className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                    <div role="heading" aria-level="1" aria-hidden="true" className="text-4xl sm:text-5xl heading-display text-clay-dark leading-tight mb-5">
                       {slide.title}
                     </div>
                   )}
-                  <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-5 max-w-lg">
+                  <p className="text-base sm:text-lg text-clay-muted leading-relaxed mb-6 max-w-2xl">
                     {slide.desc}
                   </p>
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    <a href={slide.primaryBtn.href} data-booking-btn={slide.primaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-secondary gap-2">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                    <a href={slide.primaryBtn.href} data-booking-btn={slide.primaryBtn.label.includes('Записаться') ? "true" : undefined} className="clay btn-clay-primary gap-2">
                       {slide.primaryBtn.label}
                       <ArrowRight size={16} />
                     </a>
@@ -231,7 +198,7 @@ export function HeroSlider() {
                     </a>
                   </div>
                 </div>
-                <div className="hero-doctor-card">
+                <div className="hero-doctor-card hidden lg:block">
                   {heroDoctor[idx] && (
                     <div className="clay clay-card hero-doctor-card-inner">
                       <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-photo-link group">
@@ -267,11 +234,10 @@ export function HeroSlider() {
                           )}
                         </div>
                         <a
-                          href={slide.primaryBtn.href}
-                          data-booking-btn="true"
-                          className="btn-clay-primary hero-doctor-cta"
+                          href={`/doctors/${heroDoctor[idx].slug}`}
+                          className="btn-clay-secondary hero-doctor-cta"
                         >
-                          Записаться к {heroDoctor[idx].dativeShortName || 'врачу'}
+                          Профиль врача
                           <ArrowRight size={16} />
                         </a>
                       </div>
@@ -298,7 +264,7 @@ export function HeroSlider() {
                 style={{
                   width: activeSlide === idx ? '28px' : '8px',
                   height: '8px',
-                  background: activeSlide === idx ? '#4EC8A8' : 'rgba(78,200,168,0.3)',
+                  background: activeSlide === idx ? 'var(--accent)' : 'rgba(27,107,90,0.22)',
                 }}
               />
             </button>
@@ -309,7 +275,7 @@ export function HeroSlider() {
             type="button"
             onClick={prevSlide}
             className="rounded-full flex items-center justify-center transition-colors"
-            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
             aria-label="Предыдущий слайд"
           >
             <ChevronLeft size={14} className="text-clay-mint" />
@@ -327,7 +293,7 @@ export function HeroSlider() {
             type="button"
             onClick={nextSlide}
             className="rounded-full flex items-center justify-center transition-colors"
-            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(78,200,168,0.12)', border: '1px solid rgba(78,200,168,0.2)' }}
+            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
             aria-label="Следующий слайд"
           >
             <ChevronRight size={14} className="text-clay-mint" />

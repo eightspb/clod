@@ -38,4 +38,8 @@ if [ -n "${occupying_pids}" ]; then
   fi
 fi
 
+if [ -f .env ]; then
+  exec bun --env-file=.env run astro dev --port "${port}"
+fi
+
 exec bunx astro dev --port "${port}"

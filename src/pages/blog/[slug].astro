@@ -5,6 +5,7 @@ import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { RelatedArticles, PillarPageLink } from '../../components/RelatedArticles.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
+import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Stethoscope, Tags } from 'lucide-react'
 
 function normalizeImageUrl(image) {
   if (!image) return '/images/og-default.jpg'
@@ -195,66 +196,73 @@ const breadcrumbItems = [
   <div class="container-clay pb-20">
     <div class="blog-article-layout">
 
-      <!-- Основной контент -->
       <article class="blog-article-main">
         <header class="mb-10">
-          <div class="flex flex-wrap items-center gap-3 mb-5">
-            <span class="blog-category-badge">
-              {post.data.category}
-            </span>
-            {post.data.tags.map((tag) => (
-              <span class="text-xs text-clay-muted bg-gray-100 px-2.5 py-1 rounded-full">
-                #{tag}
+          <div class="clay-card p-5 md:p-8">
+            <div class="flex flex-wrap items-center gap-2.5 mb-5">
+              <span class="blog-category-badge">
+                {post.data.category}
               </span>
-            ))}
-          </div>
-
-          <h1 class="heading-serif text-3xl md:text-4xl lg:text-5xl text-clay-dark leading-tight mb-5">
-            {post.data.title}
-          </h1>
-
-          <p class="blog-lead">
-            {post.data.description}
-          </p>
-
-          <div class="blog-meta">
-            {author ? (
-              <a href={`/doctors/${author.slug}`} class="flex items-center gap-2.5 hover:text-clay-teal transition-colors no-underline">
-                <img
-                  src={author.photo}
-                  alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
-                  width="36"
-                  height="36"
-                  loading="lazy"
-                  class="rounded-full object-cover w-9 h-9 ring-2 ring-white shadow-sm"
-                />
-                <div>
-                  <span class="block font-semibold text-clay-text text-sm leading-tight">{author.name}</span>
-                  <span class="block text-xs text-clay-muted leading-tight">{author.specialization}</span>
-                </div>
-              </a>
-            ) : (
-              <span class="font-medium text-clay-text text-sm">{post.data.author}</span>
-            )}
-            <span class="blog-meta-dot">·</span>
-            <time datetime={post.data.publishDate.toISOString()} class="text-sm text-clay-muted">{formattedDate}</time>
-            {updatedDate && (
-              <>
-                <span class="blog-meta-dot">·</span>
+              {post.data.tags.map((tag) => (
+                <span class="text-xs text-clay-muted bg-[color:var(--surface-muted)] px-2.5 py-1 rounded-full">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+            <h1 class="heading-serif text-3xl md:text-4xl lg:text-5xl text-clay-dark leading-tight mb-5">
+              {post.data.title}
+            </h1>
+            <p class="blog-lead">
+              {post.data.description}
+            </p>
+            <div class="blog-meta border-t border-[color:var(--border-color)] mt-6">
+              {author ? (
+                <a href={`/doctors/${author.slug}`} class="flex items-center gap-2.5 hover:text-clay-teal transition-colors no-underline">
+                  <img
+                    src={author.photo}
+                    alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
+                    width="36"
+                    height="36"
+                    loading="lazy"
+                    class="rounded-full object-cover w-9 h-9 ring-2 ring-white shadow-sm"
+                  />
+                  <div>
+                    <span class="block font-semibold text-clay-text text-sm leading-tight">{author.name}</span>
+                    <span class="block text-xs text-clay-muted leading-tight">{author.specialization}</span>
+                  </div>
+                </a>
+              ) : (
+                <span class="font-medium text-clay-text text-sm">{post.data.author}</span>
+              )}
+              <span class="inline-flex items-center gap-1.5 text-sm text-clay-muted">
+                <CalendarDays size={14} aria-hidden="true" />
+                <time datetime={post.data.publishDate.toISOString()}>{formattedDate}</time>
+              </span>
+              {updatedDate && (
                 <span class="text-sm text-clay-muted">Обновлено: {updatedDate}</span>
-              </>
-            )}
-            {post.data.readingTime && (
-              <>
-                <span class="blog-meta-dot">·</span>
-                <span class="text-sm text-clay-muted flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              )}
+              {post.data.readingTime && (
+                <span class="text-sm text-clay-muted flex items-center gap-1.5">
+                  <Clock3 size={14} aria-hidden="true" />
                   {post.data.readingTime} мин
                 </span>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </header>
+
+        {post.data.image && (
+          <figure class="mb-10 overflow-hidden rounded-[22px] border border-[color:var(--border-color)] bg-[color:var(--surface-card)] shadow-[var(--shadow-sm)]">
+            <img
+              src={ogImageUrl}
+              alt={post.data.imageAlt || post.data.title}
+              width="1200"
+              height="630"
+              loading="eager"
+              class="h-auto w-full object-cover"
+            />
+          </figure>
+        )}
 
         <div class="prose-clay">
           <Content />
@@ -265,10 +273,11 @@ const breadcrumbItems = [
             <div class="clay-card clay-card-accent-blue p-8 md:p-10 text-center mt-8">
               <h2 class="text-xl font-bold text-white mb-3">Хотите сверить рекомендацию?</h2>
               <p class="text-white/90 mb-6 max-w-md mx-auto leading-relaxed">
-                Если вам уже поставили диагноз или предложили операцию — можно получить бесплатное второе мнение. Разберём снимки и документы очно в Санкт-Петербурге.
+                Если вам уже поставили диагноз или предложили операцию, можно получить бесплатное второе мнение. Разберём снимки и документы очно в Санкт-Петербурге.
               </p>
-              <a href="/second-opinion" class="btn-clay-white inline-block">
+              <a href="/second-opinion" class="btn-clay-white inline-flex items-center gap-2">
                 Получить второе мнение
+                <ArrowRight size={15} aria-hidden="true" />
               </a>
             </div>
           ) : (
@@ -277,32 +286,26 @@ const breadcrumbItems = [
               <p class="text-white/90 mb-6 max-w-md mx-auto leading-relaxed">
                 Статья помогает сориентироваться, но тактику лечения и объём обследования лучше обсуждать на очной консультации. Если вы в Санкт-Петербурге, подскажем удобный маршрут визита.
               </p>
-              <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-block">
+              <a href="/#appointment" data-booking-btn="true" class="btn-clay-white inline-flex items-center gap-2">
                 Записаться на приём
+                <ArrowRight size={15} aria-hidden="true" />
               </a>
             </div>
           )}
 
           <div class="mt-8 text-center">
-            <a href="/blog" class="text-clay-teal hover:underline text-sm font-medium">
-              ← Все статьи блога
+            <a href="/blog" class="inline-flex items-center gap-2 text-clay-teal hover:underline text-sm font-medium">
+              <ArrowLeft size={15} aria-hidden="true" />
+              Все статьи блога
             </a>
           </div>
         </footer>
       </article>
 
-      <!-- Боковая панель -->
       <aside class="blog-article-sidebar">
         {author && (
-          <article class="clay clay-card p-6 flex flex-col relative overflow-visible group mb-5">
-            <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Автор</p>
-            
-            {/* Decorative dots */}
-            <div class="pointer-events-none absolute top-4 right-10 w-3 h-3 rounded-full opacity-50 dot-peach-light"></div>
-            <div class="pointer-events-none absolute top-10 right-5 w-2 h-2 rounded-full opacity-35 dot-blue-light"></div>
-            <div class="pointer-events-none absolute bottom-20 right-5 w-2.5 h-2.5 rounded-full opacity-45 dot-mint-light"></div>
-
-            {/* Photo + name */}
+          <article class="clay clay-card p-5 flex flex-col group mb-5">
+            <p class="text-sm font-semibold text-clay-dark mb-4">Автор статьи</p>
             <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
               <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0 w-fit`}>
                 <img
@@ -322,13 +325,14 @@ const breadcrumbItems = [
               href={`/doctors/${author.slug}`}
               class="clay btn-clay-primary text-xs py-2 px-4 gap-1 inline-flex no-underline w-fit"
             >
-              Подробнее
+              Профиль врача
+              <Stethoscope size={13} aria-hidden="true" />
             </a>
           </article>
         )}
 
         <div class="clay-card clay-card-soft-mint p-5 mb-5">
-          <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-3">Запись на приём</p>
+          <p class="text-sm font-semibold text-clay-dark mb-3">Запись на приём</p>
           <p class="text-sm text-clay-muted mb-4 leading-relaxed">Если нужен очный маршрут в Санкт-Петербурге, поможем подобрать специалиста и формат визита.</p>
           <a href="/#appointment" data-booking-btn="true" class="btn-clay-primary block text-center text-sm py-2.5">
             Уточнить очный приём
@@ -336,8 +340,11 @@ const breadcrumbItems = [
         </div>
 
         <div class="clay-card p-5 mb-5">
-          <p class="text-xs font-medium text-clay-muted uppercase tracking-wide mb-3">Категория</p>
-          <span class="blog-category-badge">{post.data.category}</span>
+          <p class="text-sm font-semibold text-clay-dark mb-3">Тема материала</p>
+          <span class="blog-category-badge inline-flex gap-1.5">
+            <Tags size={13} aria-hidden="true" />
+            {post.data.category}
+          </span>
           <div class="mt-3">
             <PillarPageLink category={post.data.category} />
           </div>
@@ -352,7 +359,7 @@ const breadcrumbItems = [
 
         {relatedPosts.length > 0 && (
           <div class="clay-card p-5">
-            <p class="text-xs font-medium text-clay-teal uppercase tracking-wide mb-4">Читайте также</p>
+            <p class="text-sm font-semibold text-clay-dark mb-4">Читайте также</p>
             <div class="flex flex-col gap-4">
               {relatedPosts.map((related) => (
                 <a href={`/blog/${related.slug}`} class="group no-underline block">

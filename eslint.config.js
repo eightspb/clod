@@ -55,6 +55,12 @@ export default [
       'test-results/**',
       'playwright-report/**',
       '.astro/**',
+      'graphify-out/**',
+      '.superpowers/**',
+      'seomachine-workspace/**',
+      '.claude/design-systems/**',
+      '.claude/marketplaces/**',
+      '.claude/skills/humanizer/**',
     ],
   },
 ]

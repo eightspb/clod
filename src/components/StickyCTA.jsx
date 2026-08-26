@@ -5,6 +5,7 @@ export function StickyCTA() {
   return (
     <div
       className="fixed inset-x-3 md:hidden z-40 pointer-events-none"
+      data-sticky-cta
       style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
     >
       <div

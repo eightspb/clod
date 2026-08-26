@@ -63,7 +63,7 @@ The shared plinth keeps invariant geometry for all doctors while gaining deliber
 - The rating/action row starts about `0.8rem` below the specialty.
 - The row keeps the fixed `minmax(0, 1fr) max-content max-content` grid so rating length cannot move the booking or profile actions.
 - The numeric rating must remain visible at both `320px` and `375px`; review count may stay visually omitted in the compact plinth while remaining in the rating link’s accessible name.
-- Short screens retain protected name/specialty space for the theme switcher without shrinking the action row.
+- On mobile `/doctors`, the theme switcher is intentionally hidden because it overlapped the plinth and its actions; desktop `/doctors` and all other routes retain it.
 
 ## Golden Rating Stars
 

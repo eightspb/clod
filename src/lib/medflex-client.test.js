@@ -230,8 +230,8 @@ describe('Medflex request construction', () => {
   it('encodes appointment history filters without reflecting them elsewhere', async () => {
     const capture = fetchCapture(jsonResponse(page([]), 200, {}))
     const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'история-113', timeoutMs: 103 })
-    await client.getAppointmentHistory({ size: 13, uuid: UUID_TWO, mobilePhone: '79215550129', lpuId: 57, dateEnd: '2026-09-30', dateStart: '2026-09-01', page: 2 })
-    expect(capture.calls[0].url).toBe(`${FIXED_ORIGIN}/direct_appointment/history/?date_start=2026-09-01&date_end=2026-09-30&lpu_id=57&mobile_phone=79215550129&uuid=${UUID_TWO}&page=2&size=13`)
+    await client.getAppointmentHistory({ size: 13, uuid: UUID_TWO, lpuId: 57, dateEnd: '2026-09-30', dateStart: '2026-09-01', page: 2 })
+    expect(capture.calls[0].url).toBe(`${FIXED_ORIGIN}/direct_appointment/history/?date_start=2026-09-01&date_end=2026-09-30&lpu_id=57&uuid=${UUID_TWO}&page=2&size=13`)
   })
 
   it('posts a safely copied JSON appointment without following redirects', async () => {
@@ -274,6 +274,7 @@ describe('Medflex input validation', () => {
     ['doctor detail switch', (client) => client.listDoctors({ detailed: true })],
     ['schedule origin', (client) => client.getSchedule({ townId: 1261, origin: 'https://evil.invalid' })],
     ['history callback', (client) => client.getAppointmentHistory({ onResult: () => undefined })],
+    ['history phone filter', (client) => client.getAppointmentHistory({ mobilePhone: '79215550129' })],
   ])('rejects the unknown %s before fetch', async (_label, invoke) => {
     let calls = 0
     const fetchImpl = async () => { calls += 1 }
@@ -297,7 +298,6 @@ describe('Medflex input validation', () => {
     ['oversized day window', (client) => client.getSchedule({ townId: 1261, days: 31 })],
     ['zero schedule page', (client) => client.getSchedule({ townId: 1261, page: 0 })],
     ['reversed history dates', (client) => client.getAppointmentHistory({ dateStart: '2026-10-02', dateEnd: '2026-10-01' })],
-    ['unformatted phone', (client) => client.getAppointmentHistory({ mobilePhone: '+7 (921) 555-01-29' })],
     ['malformed history UUID', (client) => client.getAppointmentHistory({ uuid: 'not-a-claim' })],
     ['oversized history page', (client) => client.getAppointmentHistory({ size: 51 })],
   ])('rejects %s before fetch', async (_label, invoke) => {
@@ -398,7 +398,7 @@ describe('Medflex success response isolation', () => {
     const source = { data: [{ id: 179 }], count: 371, num_pages: 19, links: { next: `${FIXED_ORIGIN}/direct_appointment/history/?mobile_phone=79215550129&page=2`, previous: null } }
     const capture = fetchCapture(jsonResponse(source, 200, {}))
     const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'метаданные-179', timeoutMs: 163 })
-    const result = await client.getAppointmentHistory({ mobilePhone: '79215550129', page: 1, size: 19 })
+    const result = await client.getAppointmentHistory({ page: 1, size: 19 })
     expect(result).toEqual({ data: [{ id: 179 }], count: 371, num_pages: 19 })
   })
 
@@ -527,7 +527,7 @@ describe('Medflex safe errors', () => {
     const detail = `Пациент ${phone}; credential ${token}`
     const response = jsonResponse({ detail, stack: `raw ${detail}` }, 400, {})
     const client = createMedflexClient({ fetchImpl: async () => response, token, timeoutMs: 1049 })
-    const error = await failure(() => client.getAppointmentHistory({ mobilePhone: phone }))
+    const error = await failure(() => client.getAppointmentHistory({ page: 1, size: 19 }))
     const serialized = `${error.message} ${JSON.stringify(error)}`
     expect([token, phone, detail].some((value) => serialized.includes(value))).toBe(false)
   })
@@ -617,7 +617,7 @@ describe('Medflex network boundaries', () => {
     const raw = 'stream failed at ?mobile_phone=79215550129 with token-secret-277'
     const response = { status: 200, headers: new Headers(JSON_TYPE), text: async () => { throw new RangeError(raw) } }
     const client = createMedflexClient({ fetchImpl: async () => response, token: 'body-read-277', timeoutMs: 109 })
-    const error = await failure(() => client.getAppointmentHistory({ mobilePhone: '79215550129' }))
+    const error = await failure(() => client.getAppointmentHistory({ page: 1, size: 19 }))
     expect({ code: error.code, leaked: `${error.message} ${JSON.stringify(error)}`.includes(raw) }).toEqual({ code: 'MEDFLEX_NETWORK', leaked: false })
   })
 })

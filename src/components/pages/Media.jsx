@@ -29,60 +29,66 @@ const EXPERTISE_STATS = [
   {
     icon: Tv,
     iconBg: 'icon-circle-mint',
+    cardClass: 'clay-card-soft-mint',
     value: ALL_TV_APPEARANCES.length,
     label: 'телевизионных выступлений',
   },
   {
     icon: BookOpen,
     iconBg: 'icon-circle-blue',
+    cardClass: 'clay-card-soft-blue',
     value: TOTAL_PUBLICATIONS,
     label: 'научных публикаций',
   },
   {
     icon: Award,
     iconBg: 'icon-circle-peach',
+    cardClass: 'clay-card-soft-peach',
     value: MEDIA_YEARS,
     label: `${MEDIA_YEARS === 1 ? 'год' : MEDIA_YEARS < 5 ? 'года' : 'лет'} в медиапространстве`,
   },
 ]
 
+function safeText(value) {
+  return String(value).replace(/[\u2014\u2013]/g, '-')
+}
+
 function TvCard({ appearance }) {
   const cardContent = (
-    <div className="clay-card h-full flex flex-col gap-3 p-5 hover:shadow-clay-lg transition-shadow duration-200 group">
-      <div className="flex items-start justify-between gap-2">
-        <div className="icon-circle-mint shrink-0 flex items-center justify-center w-10 h-10 rounded-full">
+    <div className="clay clay-card card-interactive h-full p-5 group">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="icon-circle-mint h-10 w-10 rounded-2xl">
           <Tv size={18} className="text-white" aria-hidden="true" />
         </div>
         {appearance.url && (
           <ExternalLink
             size={16}
-            className="text-clay-muted group-hover:text-clay-mint transition-colors duration-150 shrink-0 mt-1"
+            className="mt-1 shrink-0 text-clay-muted transition-colors duration-150 group-hover:text-clay-mint"
             aria-hidden="true"
           />
         )}
       </div>
       <h3 className="text-clay-dark font-semibold leading-snug text-sm sm:text-base">
-        {appearance.title}
+        {safeText(appearance.title)}
       </h3>
-      <div className="flex flex-wrap items-center gap-2 mt-auto">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-clay-mint/10 text-clay-mint border border-clay-mint/20">
-          {appearance.channel}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center rounded-full bg-[color:var(--accent-light)] px-3 py-1 text-xs font-semibold text-clay-mint">
+          {safeText(appearance.channel)}
         </span>
-        <span className="text-xs text-clay-muted">{appearance.year}</span>
+        <span className="text-xs text-clay-muted">{safeText(appearance.year)}</span>
       </div>
-      <div className="flex items-center gap-2 pt-2 border-t border-clay-bg">
+      <div className="mt-4 flex items-center gap-2 border-t border-[color:var(--border-color)] pt-3">
         <Mic size={13} className="text-clay-muted shrink-0" aria-hidden="true" />
         <a
           href={`/doctors/${appearance.doctorSlug}`}
-          className="text-xs text-clay-muted hover:text-clay-text transition-colors duration-150"
+          className="text-xs font-medium text-clay-muted transition-colors duration-150 hover:text-clay-dark"
           onClick={(e) => e.stopPropagation()}
         >
-          {appearance.doctorName}
+          {safeText(appearance.doctorName)}
         </a>
       </div>
     </div>
   )
-
   if (appearance.url) {
     return (
       <a
@@ -90,25 +96,26 @@ function TvCard({ appearance }) {
         target="_blank"
         rel="noopener noreferrer"
         className="block h-full"
-        aria-label={`${appearance.title} — ${appearance.channel}, ${appearance.year}`}
+        aria-label={`${safeText(appearance.title)} - ${safeText(appearance.channel)}, ${safeText(appearance.year)}`}
       >
         {cardContent}
       </a>
     )
   }
-
   return <div className="h-full">{cardContent}</div>
 }
 
-function ExpertiseStatCard({ icon: Icon, iconBg, value, label }) {
+function ExpertiseStatCard({ icon: Icon, iconBg, cardClass, value, label }) {
   return (
-    <div className="clay-card flex flex-col items-center text-center gap-3 p-6">
-      <div className={`${iconBg} flex items-center justify-center w-12 h-12 rounded-full`}>
-        <Icon size={22} className="text-white" aria-hidden="true" />
-      </div>
-      <div>
-        <div className="text-3xl font-bold text-clay-dark">{value}+</div>
-        <div className="text-sm text-clay-muted mt-1">{label}</div>
+    <div className={`clay ${cardClass} p-5`}>
+      <div className="flex items-center gap-4 sm:block sm:text-center">
+        <div className={`${iconBg} h-11 w-11 rounded-2xl sm:mx-auto sm:mb-3`}>
+          <Icon size={20} className="text-white" aria-hidden="true" />
+        </div>
+        <div>
+          <div className="font-serif text-3xl font-light leading-none text-clay-dark">{value}+</div>
+          <div className="mt-1 text-sm font-semibold text-clay-muted">{label}</div>
+        </div>
       </div>
     </div>
   )
@@ -116,29 +123,43 @@ function ExpertiseStatCard({ icon: Icon, iconBg, value, label }) {
 
 export function Media() {
   return (
-    <main>
-      <section className="section bg-clay-bg">
-        <div className="container-clay">
+    <main className="grain-overlay">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
+        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
           <BreadcrumbNav items={[{ label: 'СМИ и телевидение' }]} />
-          <div className="max-w-2xl mt-6">
-            <h1 className="text-3xl sm:text-4xl heading-serif text-clay-dark leading-tight">
-              Врачи клиники в СМИ
-            </h1>
-            <p className="mt-4 text-clay-muted text-lg leading-relaxed">
-              Наши специалисты регулярно выступают экспертами на телевидении и в медицинских
-              изданиях — делятся знаниями о маммологии, женском здоровье и современных методах
-              лечения
-            </p>
+          <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
+                <Tv size={14} aria-hidden="true" />
+                Экспертные комментарии
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+                Врачи клиники в СМИ
+              </h1>
+              <p className="text-clay-muted text-lg leading-relaxed max-w-2xl">
+                Наши специалисты регулярно выступают экспертами на телевидении и в медицинских изданиях. Делятся знаниями о маммологии, женском здоровье и современных методах лечения.
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {EXPERTISE_STATS.map((stat) => (
+                <ExpertiseStatCard key={stat.label} {...stat} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
-
       {ALL_TV_APPEARANCES.length > 0 && (
         <section className="section">
           <div className="container-clay">
-            <h2 className="text-2xl heading-serif text-clay-dark mb-8">
-              Телевизионные выступления
-            </h2>
+            <div className="mb-8 max-w-2xl">
+              <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                Телевизионные выступления
+              </h2>
+              <p className="mt-3 text-clay-muted">
+                Подборка эфиров и экспертных комментариев врачей клиники.
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {ALL_TV_APPEARANCES.map((appearance, index) => (
                 <TvCard key={`${appearance.doctorSlug}-${index}`} appearance={appearance} />
@@ -147,55 +168,36 @@ export function Media() {
           </div>
         </section>
       )}
-
-      <section className="section bg-clay-bg">
-        <div className="container-clay">
-          <div className="max-w-xl mb-8">
-            <h2 className="text-2xl heading-serif text-clay-dark">
-              Экспертиза наших врачей
-            </h2>
-            <p className="mt-3 text-clay-muted">
-              Клиника Одинцова — признанный медиаэксперт в маммологии и женском здоровье
-              Санкт-Петербурга
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {EXPERTISE_STATS.map((stat) => (
-              <ExpertiseStatCard key={stat.label} {...stat} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="section">
         <div className="container-clay">
-          <div className="clay-card-mint p-8 sm:p-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <h2 className="text-xl sm:text-2xl heading-serif text-white">
-                Хотите пригласить нашего эксперта для комментария?
-              </h2>
-              <p className="mt-2 text-white text-sm sm:text-base max-w-lg">
-                Главный врач клиники Одинцов В.А. и специалисты клиники открыты для экспертных
-                комментариев, интервью и участия в медицинских программах
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 shrink-0">
-              <a
-                href={`tel:${PHONE_NUMBER}`}
-                className="btn-clay-white inline-flex items-center gap-2 justify-center"
-              >
-                <Phone size={16} aria-hidden="true" />
-                {PHONE_DISPLAY}
-              </a>
-              <a
-                href={TELEGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-clay-white inline-flex items-center gap-2 justify-center"
-              >
-                <Mail size={16} aria-hidden="true" />
-                Написать в Telegram
-              </a>
+          <div className="clay cta-gradient-card p-6 md:p-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+              <div>
+                <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark">
+                  Хотите пригласить нашего эксперта для комментария?
+                </h2>
+                <p className="mt-3 text-clay-muted text-sm sm:text-base max-w-2xl">
+                  Главный врач клиники Одинцов В.А. и специалисты клиники открыты для экспертных комментариев, интервью и участия в медицинских программах.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+                <a
+                  href={`tel:${PHONE_NUMBER}`}
+                  className="btn-clay-primary inline-flex items-center gap-2 justify-center"
+                >
+                  <Phone size={16} aria-hidden="true" />
+                  {PHONE_DISPLAY}
+                </a>
+                <a
+                  href={TELEGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-clay-secondary inline-flex items-center gap-2 justify-center"
+                >
+                  <Mail size={16} aria-hidden="true" />
+                  Написать в Telegram
+                </a>
+              </div>
             </div>
           </div>
         </div>
