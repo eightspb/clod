@@ -73,27 +73,27 @@ Run: `git add db/config.ts scripts/init-db.mjs src/test/appointment-database-mig
 - Create: `src/lib/mango-signature.js`
 - Create: `src/lib/mango-signature.test.js`
 
-- [ ] **Step 1: Write failing signature-boundary tests**
+- [x] **Step 1: Write failing signature-boundary tests**
 
 Cover exact form keys, duplicate keys, 64 KiB declared and streamed limits, media type with charset, missing environment configuration, wrong PBX key, malformed/uppercase/wrong-length hex signatures, signature over the byte-preserved raw JSON string, constant-time comparison path, invalid UTF-8/form escapes, invalid JSON, arrays/non-objects, reserved object keys, bounded nesting/text, mandatory normalized `MANGO_INBOUND_LINES`, and safe error codes with no reflected secrets.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `bun run test:run -- src/lib/mango-signature.test.js`
 
 Expected: FAIL because the signature boundary does not exist.
 
-- [ ] **Step 3: Implement strict parsing and verification**
+- [x] **Step 3: Implement strict parsing and verification**
 
 Read a bounded request body once, parse form data without normalizing the `json` value before hashing, validate configuration and identifiers, compute SHA-256 using Node crypto, compare equal-length buffers with `timingSafeEqual`, then parse JSON into a plain-data envelope. Return typed safe failures for route mapping.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun run test:run -- src/lib/mango-signature.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit signature verification**
+- [x] **Step 5: Commit signature verification**
 
 Run: `git add src/lib/mango-signature.js src/lib/mango-signature.test.js && git commit -m "feat: verify MANGO webhook signatures"`
 
