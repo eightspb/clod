@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CalendarClock, ChevronLeft, ChevronRight, CircleAlert, Search, XCircle } from 'lucide-react'
+import { moscowDayBounds } from '../../lib/clinic-time.js'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 const EMPTY_PAGE = Object.freeze({ number: 1, size: 50, total: 0, pages: 0 })
@@ -10,6 +11,7 @@ const STATUS_CLASSES = Object.freeze({ pending: 'bg-amber-50 text-amber-800', co
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', dateStyle: 'short', timeStyle: 'short' })
 const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
+const NOW = () => new Date()
 
 function date(value) {
   const parsed = new Date(value)
@@ -26,15 +28,33 @@ async function mutate(url, options) {
   return response.json()
 }
 
+function initialFilters(now) {
+  const value = { ...EMPTY_FILTERS }
+  if (typeof window === 'undefined') return Object.freeze(value)
+  const parameters = new URLSearchParams(window.location.search)
+  const status = parameters.get('status')
+  const source = parameters.get('source')
+  if (Object.hasOwn(STATUS_LABELS, status)) value.status = status
+  if (Object.hasOwn(SOURCE_LABELS, source)) value.source = source
+  if (parameters.get('date') === 'today') {
+    const bounds = moscowDayBounds(now)
+    value.from = bounds.start
+    value.to = bounds.end
+  }
+  else if (parameters.get('range') === 'upcoming') value.from = now.toISOString()
+  return Object.freeze(value)
+}
+
 /**
  * Renders the appointment operations journal and its guarded status actions.
  */
-export function Appointments() {
+export function Appointments({ clock = NOW }) {
   const { loading, error, fetchData } = useAdminFetch()
+  const [initial] = useState(() => initialFilters(clock()))
   const [appointments, setAppointments] = useState([])
   const [page, setPage] = useState(EMPTY_PAGE)
-  const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
-  const [applied, setApplied] = useState({ ...EMPTY_FILTERS })
+  const [filters, setFilters] = useState({ status: initial.status, source: initial.source })
+  const [applied, setApplied] = useState(initial)
   const [cancelTarget, setCancelTarget] = useState(undefined)
   const [resolveTarget, setResolveTarget] = useState(undefined)
   const [claimId, setClaimId] = useState('')
@@ -44,12 +64,14 @@ export function Appointments() {
     const parameters = new URLSearchParams({ page: String(number), pageSize: '50' })
     if (active.status) parameters.set('status', active.status)
     if (active.source) parameters.set('source', active.source)
+    if (active.from) parameters.set('from', active.from)
+    if (active.to) parameters.set('to', active.to)
     const result = await fetchData(`/api/admin/appointments?${parameters}`, { errorMessage: 'Не удалось загрузить записи' })
     if (!result) return
     setAppointments(Array.isArray(result.data) ? result.data : [])
     setPage(result.page ?? EMPTY_PAGE)
   }, [fetchData])
-  useEffect(() => { load(1, EMPTY_FILTERS) }, [load])
+  useEffect(() => { load(1, initial) }, [initial, load])
   function apply(event) {
     event.preventDefault()
     const next = { ...filters }

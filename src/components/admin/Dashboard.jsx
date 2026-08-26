@@ -21,6 +21,16 @@ function StatCard({ title, value, sub, color }) {
   )
 }
 
+function ClinicCard({ title, value, href, color }) {
+  return (
+    <a aria-label={`${title}: ${value}`} href={href} className="clay-card group block border-l-4 p-5 no-underline transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderLeftColor: color }}>
+      <span className="block text-xs font-bold uppercase tracking-wider text-clay-admin-muted">{title}</span>
+      <span className="mt-2 block text-3xl font-bold text-clay-admin-dark">{value}</span>
+      <span className="mt-2 block text-xs font-semibold text-clay-mint">Открыть журнал →</span>
+    </a>
+  )
+}
+
 function BarChart({ data }) {
   if (!data || data.length === 0) return null
   const max = Math.max(...data.map(d => d.count), 1)
@@ -92,6 +102,7 @@ export function Dashboard() {
   if (loading) return <div style={{ color: '#64748b', padding: '40px', textAlign: 'center' }}>Загрузка...</div>
   if (error) return <div style={{ color: '#dc2626', padding: '20px' }}>{error}</div>
   if (!stats) return null
+  const clinic = stats.clinic || { todayAppointments: 0, upcomingAppointments: 0, needsReviewAppointments: 0, activePatients: 0 }
 
   function fmtDuration(sec) {
     if (sec < 60) return `${sec}с`
@@ -102,6 +113,15 @@ export function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <section aria-labelledby="clinic-statistics-title">
+        <div className="mb-3 flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-mint">Клиника</p><h2 id="clinic-statistics-title" className="mt-1 font-serif text-2xl text-clay-dark">Оперативная сводка</h2></div><span className="text-xs text-clay-admin-muted">Время по Москве</span></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <ClinicCard title="Записей сегодня" value={clinic.todayAppointments} href="/admin/appointments?date=today" color="#4DC8A8" />
+          <ClinicCard title="Предстоящих записей" value={clinic.upcomingAppointments} href="/admin/appointments?range=upcoming" color="#60A5FA" />
+          <ClinicCard title="Требуют проверки" value={clinic.needsReviewAppointments} href="/admin/appointments?status=needs_review" color="#F59E0B" />
+          <ClinicCard title="Активных пациентов" value={clinic.activePatients} href="/admin/patients" color="#A78BFA" />
+        </div>
+      </section>
       {/* Stats cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
         <StatCard

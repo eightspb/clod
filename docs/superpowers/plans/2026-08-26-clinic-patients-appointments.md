@@ -317,32 +317,35 @@ Run: `git add src/components/admin/Patients.jsx src/components/admin/Patients.te
 ### Task 9: Add clinic counters to the dashboard
 
 **Files:**
+- Create: `src/lib/clinic-time.js`
 - Modify: `src/pages/api/admin/stats.js`
 - Modify: `src/test/analytics-api.test.js`
+- Modify: `src/components/admin/Appointments.jsx`
+- Modify: `src/components/admin/Appointments.test.jsx`
 - Modify: `src/components/admin/Dashboard.jsx`
 - Create: `src/components/admin/Dashboard.test.jsx`
 
-- [ ] **Step 1: Write failing statistics and presentation tests**
+- [x] **Step 1: Write failing statistics and presentation tests**
 
 Cover today/upcoming/needs-review appointment counts, total active patients, UTC database boundaries converted from the clinic day in `Europe/Moscow`, zero defaults, authenticated failure behavior, and dashboard cards/links without regressing existing analytics cards.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `bun run test:run -- src/test/analytics-api.test.js src/components/admin/Dashboard.test.jsx`
 
 Expected: FAIL because clinic counters are missing.
 
-- [ ] **Step 3: Extend stats response and cards**
+- [x] **Step 3: Extend stats response and cards**
 
 Query only aggregate non-PII fields, retain the existing response keys, add a `clinic` object, and render the new counters as links to filtered patient/appointment views.
 
-- [ ] **Step 4: Run the focused tests and verify GREEN**
+- [x] **Step 4: Run the focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/test/analytics-api.test.js src/components/admin/Dashboard.test.jsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit dashboard clinic statistics**
+- [x] **Step 5: Commit dashboard clinic statistics**
 
 Run: `git add src/pages/api/admin/stats.js src/test/analytics-api.test.js src/components/admin/Dashboard.jsx src/components/admin/Dashboard.test.jsx && git commit -m "feat: show clinic activity on admin dashboard"`
 

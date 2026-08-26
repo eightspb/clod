@@ -1,10 +1,37 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const insertCalls = []
 const updateCalls = []
+const selectRows = []
+const selectCalls = []
 
-const { dbMock, eqMock } = vi.hoisted(() => {
+const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock, gteMock, guardAdminReadMock, inArrayMock, isNullMock, ltMock } = vi.hoisted(() => {
+  function expression(type) {
+    return vi.fn((...values) => ({ type, values }))
+  }
+  function select() {
+    const rows = selectRows.shift()
+    const call = { table: undefined, where: undefined }
+    const result = () => rows instanceof Error ? Promise.reject(rows) : Promise.resolve(rows ?? [])
+    const query = {
+      where: vi.fn((where) => {
+        call.where = where
+        return result()
+      }),
+      groupBy: vi.fn(() => query),
+      orderBy: vi.fn(() => query),
+      limit: vi.fn(() => result()),
+    }
+    return {
+      from: vi.fn((table) => {
+        call.table = table
+        selectCalls.push(call)
+        return query
+      }),
+    }
+  }
   const db = {
+    select: vi.fn(select),
     insert: vi.fn(() => ({
       values: vi.fn(async (payload) => {
         insertCalls.push(payload)
@@ -20,18 +47,41 @@ const { dbMock, eqMock } = vi.hoisted(() => {
   }
 
   return {
+    andMock: expression('and'),
+    avgMock: vi.fn(() => ({ type: 'avg' })),
+    countDistinctMock: vi.fn(() => ({ type: 'countDistinct' })),
+    countMock: vi.fn(() => ({ type: 'count' })),
     dbMock: db,
-    eqMock: vi.fn((column, value) => ({ column, value })),
+    descMock: expression('desc'),
+    eqMock: expression('eq'),
+    gteMock: expression('gte'),
+    guardAdminReadMock: vi.fn(),
+    inArrayMock: expression('inArray'),
+    isNullMock: expression('isNull'),
+    ltMock: expression('lt'),
   }
 })
 
 vi.mock('astro:db', () => ({
   db: dbMock,
-  AnalyticsSession: { id: 'analytics_session.id' },
-  PageView: { id: 'page_view.id' },
-  EventLog: { id: 'event_log.id' },
+  AnalyticsSession: { id: 'analytics_session.id', visitorId: 'analytics_session.visitorId', startedAt: 'analytics_session.startedAt', lastActiveAt: 'analytics_session.lastActiveAt' },
+  Appointment: { startsAt: 'appointment.startsAt', status: 'appointment.status' },
+  PageView: { id: 'page_view.id', duration: 'page_view.duration', page: 'page_view.page' },
+  EventLog: { id: 'event_log.id', createdAt: 'event_log.createdAt' },
+  Patient: { piiDestroyedAt: 'patient.piiDestroyedAt' },
+  and: andMock,
+  avg: avgMock,
+  count: countMock,
+  countDistinct: countDistinctMock,
+  desc: descMock,
   eq: eqMock,
+  gte: gteMock,
+  inArray: inArrayMock,
+  isNull: isNullMock,
+  lt: ltMock,
 }))
+
+vi.mock('../lib/admin-api.js', () => ({ guardAdminRead: guardAdminReadMock }))
 
 function makeJsonRequest({
   origin = 'https://odintsovclinic.ru',
@@ -59,13 +109,23 @@ async function loadHeartbeatHandler() {
   return import('../pages/api/analytics/heartbeat.js')
 }
 
+async function loadStatsHandler() {
+  vi.resetModules()
+  return import('../pages/api/admin/stats.js')
+}
+
 describe('analytics API hardening', () => {
   beforeEach(() => {
     insertCalls.length = 0
     updateCalls.length = 0
+    selectRows.length = 0
+    selectCalls.length = 0
+    dbMock.select.mockClear()
     dbMock.insert.mockClear()
     dbMock.update.mockClear()
     eqMock.mockClear()
+    guardAdminReadMock.mockReset()
+    guardAdminReadMock.mockResolvedValue(null)
   })
 
   it('rejects analytics events from unknown origins with a machine-readable error', async () => {
@@ -214,5 +274,77 @@ describe('analytics API hardening', () => {
       ])
     )
     expect(updateCalls).toHaveLength(0)
+  })
+})
+
+describe('admin clinic statistics', () => {
+  beforeEach(() => {
+    selectRows.length = 0
+    selectCalls.length = 0
+    dbMock.select.mockClear()
+    guardAdminReadMock.mockReset()
+    guardAdminReadMock.mockResolvedValue(null)
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-26T22:30:00.000Z'))
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('adds clinic counters using the current Europe/Moscow calendar day', async () => {
+    selectRows.push(
+      [{ count: 2 }],
+      [{ sessions: 3, uniqueVisitors: 2 }],
+      [{ sessions: 10, uniqueVisitors: 7 }],
+      [{ sessions: 30, uniqueVisitors: 19 }],
+      [{ avgDuration: 72 }],
+      [{ page: '/', count: 9 }],
+      [],
+      [],
+      [{ count: 4 }],
+      [{ count: 8 }],
+      [{ count: 2 }],
+      [{ count: 15 }]
+    )
+    const { GET } = await loadStatsHandler()
+    const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
+    const body = await response.json()
+    expect(response.status).toBe(200)
+    expect(body.clinic).toEqual({ todayAppointments: 4, upcomingAppointments: 8, needsReviewAppointments: 2, activePatients: 15 })
+    expect(body.today).toEqual({ sessions: 3, uniqueVisitors: 2 })
+    const todayQuery = selectCalls.find((call) => call.table?.startsAt === 'appointment.startsAt' && call.where?.values?.some((condition) => condition.type === 'lt'))
+    expect(todayQuery.where).toEqual({
+      type: 'and',
+      values: [
+        { type: 'gte', values: ['appointment.startsAt', '2026-08-26T21:00:00.000Z'] },
+        { type: 'lt', values: ['appointment.startsAt', '2026-08-27T21:00:00.000Z'] },
+        { type: 'inArray', values: ['appointment.status', ['pending', 'confirmed', 'needs_review']] },
+      ],
+    })
+  })
+
+  it('returns zero clinic defaults for empty aggregate rows', async () => {
+    selectRows.push(...Array.from({ length: 12 }, () => []))
+    const { GET } = await loadStatsHandler()
+    const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
+    const body = await response.json()
+    expect(response.status).toBe(200)
+    expect(body.clinic).toEqual({ todayAppointments: 0, upcomingAppointments: 0, needsReviewAppointments: 0, activePatients: 0 })
+  })
+
+  it('checks authentication before querying clinic statistics', async () => {
+    guardAdminReadMock.mockResolvedValue(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }))
+    const { GET } = await loadStatsHandler()
+    const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
+    expect(response.status).toBe(401)
+    expect(dbMock.select).not.toHaveBeenCalled()
+  })
+
+  it('sanitizes authenticated database failures', async () => {
+    selectRows.push(new Error('database contained private data'))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { GET } = await loadStatsHandler()
+    const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Не удалось загрузить статистику.' } })
+    errorSpy.mockRestore()
   })
 })

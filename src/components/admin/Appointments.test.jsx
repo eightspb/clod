@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Appointments } from './Appointments.jsx'
 
 const APPOINTMENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
@@ -34,6 +34,8 @@ afterEach(() => {
 })
 
 describe('Appointments admin view', () => {
+  beforeEach(() => window.history.replaceState({}, '', '/admin/appointments'))
+
   it('renders Russian source and status labels with Moscow appointment time', async () => {
     transport([json(page())])
     render(<Appointments />)
@@ -53,6 +55,14 @@ describe('Appointments admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Следующая страница' }))
     await waitFor(() => expect(calls.length).toBe(3))
     expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/appointments?page=1&pageSize=50', '/api/admin/appointments?page=1&pageSize=50&status=confirmed&source=admin_existing', '/api/admin/appointments?page=2&pageSize=50&status=confirmed&source=admin_existing'])
+  })
+
+  it('translates the dashboard today link into exact Moscow UTC boundaries', async () => {
+    window.history.replaceState({}, '', '/admin/appointments?date=today')
+    const calls = transport([json(page())])
+    render(<Appointments clock={() => new Date('2026-08-26T22:30:00.000Z')} />)
+    await screen.findByText(PATIENT.name)
+    expect(String(calls[0][0])).toBe('/api/admin/appointments?page=1&pageSize=50&from=2026-08-26T21%3A00%3A00.000Z&to=2026-08-27T21%3A00%3A00.000Z')
   })
 
   it('warns before a local-only cancellation and applies the returned status', async () => {

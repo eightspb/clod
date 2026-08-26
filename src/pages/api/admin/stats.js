@@ -1,19 +1,28 @@
 export const prerender = false
 
 import {
+  and,
+  Appointment,
   avg,
   count,
   countDistinct,
   db,
   desc,
+  eq,
   EventLog,
   gte,
+  inArray,
+  isNull,
+  lt,
   AnalyticsSession,
   PageView,
+  Patient,
 } from 'astro:db'
 import { guardAdminRead } from '../../../lib/admin-api.js'
+import { moscowDayBounds } from '../../../lib/clinic-time.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
+const ACTIVE_APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'needs_review'])
 
 function jsonResponse(payload, status) {
   return new Response(JSON.stringify(payload), {
@@ -35,6 +44,11 @@ function errorResponse(status, code, message) {
   )
 }
 
+function aggregateCount(rows) {
+  const value = Number(rows[0]?.count ?? 0)
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0
+}
+
 export async function GET({ request }) {
   const blocked = await guardAdminRead(request)
   if (blocked) return blocked
@@ -44,6 +58,7 @@ export async function GET({ request }) {
     const onlineThreshold = new Date(now.getTime() - 5 * 60 * 1000)
     const todayStart = new Date(now)
     todayStart.setHours(0, 0, 0, 0)
+    const clinicDay = moscowDayBounds(now)
     const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
@@ -56,6 +71,10 @@ export async function GET({ request }) {
       topPagesRows,
       recentSessions,
       recentEvents,
+      todayAppointmentRows,
+      upcomingAppointmentRows,
+      needsReviewAppointmentRows,
+      activePatientRows,
     ] = await Promise.all([
       db.select({ count: count() }).from(AnalyticsSession).where(gte(AnalyticsSession.lastActiveAt, onlineThreshold)),
       db.select({
@@ -79,6 +98,10 @@ export async function GET({ request }) {
         startedAt: AnalyticsSession.startedAt,
       }).from(AnalyticsSession).where(gte(AnalyticsSession.startedAt, monthStart)),
       db.select().from(EventLog).orderBy(desc(EventLog.createdAt)).limit(10),
+      db.select({ count: count() }).from(Appointment).where(and(gte(Appointment.startsAt, clinicDay.start), lt(Appointment.startsAt, clinicDay.end), inArray(Appointment.status, ACTIVE_APPOINTMENT_STATUSES))),
+      db.select({ count: count() }).from(Appointment).where(and(gte(Appointment.startsAt, now.toISOString()), inArray(Appointment.status, ACTIVE_APPOINTMENT_STATUSES))),
+      db.select({ count: count() }).from(Appointment).where(eq(Appointment.status, 'needs_review')),
+      db.select({ count: count() }).from(Patient).where(isNull(Patient.piiDestroyedAt)),
     ])
 
     const dailyVisitsMap = new Map()
@@ -125,6 +148,12 @@ export async function GET({ request }) {
       })),
       dailyVisits,
       recentEvents,
+      clinic: {
+        todayAppointments: aggregateCount(todayAppointmentRows),
+        upcomingAppointments: aggregateCount(upcomingAppointmentRows),
+        needsReviewAppointments: aggregateCount(needsReviewAppointmentRows),
+        activePatients: aggregateCount(activePatientRows),
+      },
     }, 200)
   } catch (error) {
     console.error('[admin/stats]', error)
