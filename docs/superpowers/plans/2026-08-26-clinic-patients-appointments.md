@@ -109,27 +109,27 @@ Run: `git add src/lib/contact-identity.js src/lib/contact-identity.test.js && gi
 - Create: `src/lib/patient-records.js`
 - Create: `src/lib/patient-records.test.js`
 
-- [ ] **Step 1: Write failing patient repository tests**
+- [x] **Step 1: Write failing patient repository tests**
 
 Use an in-memory libSQL database initialized with the real migration statements. Cover first insert, repeated-phone upsert without a duplicate, monotonic `lastSeenAt`, encrypted profile replacement, authorized list results containing the name but no full phone/birthday/ciphertext, exact-phone lookup by fingerprint, page size clamped to 50, audited reveal, wrong-key reveal failure, destruction clearing all three PII fields, destruction audit, idempotent second destruction, and creation of a new patient after a previously matching profile was destroyed.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `bun run test:run -- src/lib/patient-records.test.js`
 
 Expected: FAIL because the patient repository does not exist.
 
-- [ ] **Step 3: Implement patient transactions**
+- [x] **Step 3: Implement patient transactions**
 
 Create a repository factory requiring a libSQL client, fingerprint key, patient encryption key, UUID source, and clock. Implement transaction-scoped upsert and audit writes, strict row parsing, masked list/detail shapes, exact fingerprint lookup, and destruction that retains only the patient UUID and timestamps needed by anonymized history.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun run test:run -- src/lib/patient-records.test.js`
 
 Expected: PASS and leave no open database handles.
 
-- [ ] **Step 5: Commit patient records**
+- [x] **Step 5: Commit patient records**
 
 Run: `git add src/lib/patient-records.js src/lib/patient-records.test.js && git commit -m "feat: add encrypted patient records"`
 
