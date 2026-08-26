@@ -75,25 +75,25 @@
 
 **Red:**
 
-- Add failing tests that require every current website doctor slug to resolve to one explicit doctor/LPU/specialty combination or an explicit unavailable state.
-- Add failing cases for unknown slugs, duplicate doctor IDs, unapproved LPUs, ambiguous matches, unsupported direct appointment, and missing configuration.
+- Add failing tests that require every current website doctor slug to resolve to one explicit doctor/LPU/town identity plus one or more local appointment-type keys mapped to allowed specialties.
+- Add failing cases for unknown slugs, unknown appointment types, duplicate doctor or type identifiers, unapproved LPUs/specialties, ambiguous matches, unsupported direct appointment, and missing configuration.
 
 **Green:**
 
-- Implement a fail-closed mapping surface that returns only trusted identifiers to server code.
+- Implement a fail-closed mapping surface that resolves trusted identifiers only from a website slug and local appointment-type key.
 - Add a read-only discovery command that loads a locally configured token, requests sanitized LPU and doctor metadata, and never prints authorization data.
 - Keep ProDoctorov identifiers completely separate from Medflex identifiers.
 
 **Operator checkpoint:**
 
-- The operator places a rotated development token directly in untracked `.env`.
-- Run the discovery command and manually verify all nine full names, branches, specialties, and direct-booking support.
-- Record only the verified non-secret identifiers in the mapping; unresolved doctors retain phone fallback.
+- Before production, the operator places a rotated token directly in untracked `.env`.
+- Preserve the verified 2026-08-25 result: one allowed branch, all nine full names, current specialties/prices, adult age ranges, and direct-booking support.
+- Record only verified non-secret identifiers and local type labels in the mapping; unresolved doctors or types retain phone fallback.
 
 **Acceptance:**
 
 - Runtime booking cannot access unpublished doctors or unapproved branches.
-- All nine website slugs have a deterministic tested outcome.
+- All nine website slugs and every published local appointment type have deterministic tested outcomes.
 - Discovery output contains no credential or patient data.
 
 **Verification:** `bun run test:run -- src/lib/medflex-doctors.test.js`
@@ -104,15 +104,18 @@
 
 - Create `src/lib/appointment-schedule.js`
 - Create `src/lib/appointment-schedule.test.js`
+- Modify `src/lib/appointment-validation.js`
+- Modify `src/lib/appointment-validation.test.js`
 
 **Red:**
 
-- Add failing tests for bounded date windows, timezone-safe grouping, removal of past slots, duplicate slots, morning/day/evening groups, current price and duration, and filtering by the resolved doctor/LPU/specialty mapping.
+- Add failing tests for bounded date windows, timezone-safe grouping, removal of past slots, duplicate slots, morning/day/evening groups, live appointment types, current price/age/duration, and filtering by the resolved doctor/LPU/specialty mapping.
 - Add failing tests that reject a forged, stale, differently priced, or differently scoped selected slot.
+- Extend booking payload validation with a required safe local appointment-type key and unknown-key protection.
 
 **Green:**
 
-- Implement a minimal browser-safe schedule model and exact server-side slot verification.
+- Implement a minimal browser-safe schedule model that exposes local type keys/labels and exact server-side slot/type verification.
 - Ensure trusted duration, price, clinic, and specialty values come only from the current schedule response.
 
 **Acceptance:**
@@ -183,6 +186,7 @@
 
 - Create `src/components/booking/BookingFlow.jsx`
 - Create `src/components/booking/DoctorPicker.jsx`
+- Create `src/components/booking/AppointmentTypePicker.jsx`
 - Create `src/components/booking/DoctorSummary.jsx`
 - Create `src/components/booking/SchedulePicker.jsx`
 - Create `src/components/booking/PatientDetailsForm.jsx`
@@ -192,7 +196,7 @@
 
 **Red:**
 
-- Add failing component tests for general and doctor-specific opening, doctor search, first available date, grouped slots, later dates, patient validation, review, double-submit prevention, success, slot conflict, empty schedule, uncertain result, and retry.
+- Add failing component tests for general and doctor-specific opening, doctor search, single/multiple appointment types, current prices, first available date, grouped slots, later dates, patient validation, review, double-submit prevention, success, slot/type conflict, empty schedule, uncertain result, and retry.
 - Add accessibility tests for dialog labelling, focus trap, Escape, focus restoration, live announcements, keyboard selection, and disabled submitting controls.
 
 **Green:**

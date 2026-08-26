@@ -46,16 +46,26 @@ The route passes its doctor slug to `Layout`, which exposes it as page booking c
 1. Open the dialog on doctor selection.
 2. Search the nine website doctors by name or specialty.
 3. Select a doctor.
-4. Load and select a date and time.
-5. Enter patient details and consent.
-6. Review doctor, location, date, time, and price when available.
-7. Submit once and show the booking result.
+4. Select an appointment type when the doctor has more than one Medflex specialty; skip this step when only one option exists.
+5. Load and select a date and time.
+6. Enter patient details and consent.
+7. Review doctor, appointment type, location, date, time, and current price.
+8. Submit once and show the booking result.
 
 ### Doctor-specific booking action
 
 1. Open the same dialog with the website doctor already selected.
-2. Load the nearest availability immediately.
-3. Continue with time, patient details, review, and submission.
+2. Show appointment-type selection when Medflex exposes multiple priced specialties for that doctor.
+3. Load the nearest availability immediately after the only or selected appointment type is known.
+4. Continue with time, patient details, review, and submission.
+
+### Appointment types
+
+- Use a stable local appointment-type key in the browser, never a Medflex specialty identifier.
+- Show the official user-facing specialty label and current schedule price.
+- Keep the selected type visible in the summary and final review.
+- Re-read the current specialty, age range, and price from Medflex before creating the appointment.
+- If a previously available type disappears from the schedule, return the patient to type selection without losing form data.
 
 ### Dates and times
 
@@ -98,6 +108,7 @@ The single global island owns open/closed state, selected website doctor, schedu
 ### Focused child components
 
 - `DoctorPicker`: filters and selects from the nine public doctors.
+- `AppointmentTypePicker`: selects a local appointment-type key when a doctor has multiple Medflex specialties.
 - `DoctorSummary`: displays the selected public doctor and trusted appointment summary.
 - `SchedulePicker`: renders date navigation and grouped time slots.
 - `PatientDetailsForm`: collects and validates patient details and consent.
@@ -113,7 +124,7 @@ The browser calls a same-origin backend-for-frontend:
 - `GET /api/appointments/slots?doctor=<slug>&from=<YYYY-MM-DD>&days=<1..14>`
 - `POST /api/appointments/book`
 
-The API handlers use `prerender = false`, return `Cache-Control: no-store`, and produce the project's stable JSON error shape. The browser supplies only a local doctor slug, selected start/end timestamps, patient data, consent, and an opaque booking intent identifier.
+The API handlers use `prerender = false`, return `Cache-Control: no-store`, and produce the project's stable JSON error shape. The slots response includes safe local appointment-type keys, labels, current prices, age ranges, and availability. The browser supplies only a local doctor slug, local appointment-type key, selected start/end timestamps, patient data, consent, and an opaque booking intent identifier.
 
 ### Medflex client
 
@@ -130,18 +141,18 @@ The API handlers use `prerender = false`, return `Cache-Control: no-store`, and 
 
 ### Doctor allowlist
 
-`src/lib/medflex-doctors.js` maps each of the nine website slugs to explicitly verified numeric Medflex doctor, LPU, specialty, and town identifiers. ProDoctorov identifiers must never be reused for this purpose.
+`src/lib/medflex-doctors.js` maps each of the nine website slugs to one explicitly verified numeric Medflex doctor/LPU/town identity and an allowlisted collection of local appointment-type keys mapped to Medflex specialty identifiers. ProDoctorov identifiers must never be reused for this purpose.
 
 An onboarding discovery script may read the local runtime token and list sanitized LPU/doctor metadata for an operator. The final runtime mapping is explicit and fails closed. A missing, ambiguous, unpublished, or direct-booking-disabled mapping returns an unavailable result and the UI falls back to phone contact.
 
-The open clinic token may cover more than one branch. Only explicitly configured LPU identifiers are accepted.
+The discovery performed on 2026-08-25 found one allowed branch, all nine website doctors, direct appointment support, and adult age ranges. Runtime checks still fail closed if Medflex later returns another branch, doctor, or specialty. Only explicitly configured LPU and specialty identifiers are accepted.
 
 ## Schedule Data Flow
 
-1. Validate the local doctor slug, date, and day count.
+1. Validate the local doctor slug, optional local appointment-type key, date, and day count.
 2. Resolve the slug through the server allowlist.
 3. Query the official Medflex schedule endpoint for only the allowed doctor/LPU and requested bounded window.
-4. Normalize timestamps, duration, location, and price into a minimal browser response.
+4. Intersect live specialties with the doctor's allowlisted appointment types and normalize their labels, current prices, age ranges, timestamps, duration, and location into a minimal browser response.
 5. Drop slots outside the requested doctor/LPU mapping or in the past.
 6. Return no upstream identifiers that the client could later present as trusted input.
 
@@ -150,8 +161,8 @@ Schedule requests are read-only and may use a short server-side cache keyed by d
 ## Booking Data Flow
 
 1. Require JSON, enforce a small request-size limit, validate same-origin submission, and apply a namespaced rate limit.
-2. Validate the doctor slug, intent identifier, selected timestamps, patient names, phone, birthday, comment, and explicit consent.
-3. Resolve trusted Medflex doctor/LPU/specialty data from the server allowlist.
+2. Validate the doctor slug, local appointment-type key, intent identifier, selected timestamps, patient names, phone, birthday, comment, and explicit consent.
+3. Resolve trusted Medflex doctor/LPU/specialty data from the server allowlist using the slug and appointment-type key.
 4. Re-fetch current availability and require an exact slot match.
 5. Take appointment duration and price from that current server response, never from the browser.
 6. Atomically create or claim a durable booking intent fingerprint so concurrent duplicate requests cannot both call the paid Medflex operation.
@@ -166,6 +177,7 @@ Schedule requests are read-only and may use a short server-side cache keyed by d
 - Require a valid past birthday in `YYYY-MM-DD` form.
 - Bound optional comments to 300 characters.
 - Require an affirmative consent value; the server does not trust a hidden default.
+- Require an allowlisted local appointment-type key for the selected doctor.
 - Reject unknown object keys where they could alter booking semantics.
 - Never accept trusted doctor IDs, LPU IDs, specialty IDs, prices, or status fields from the browser.
 - Never put patient data in URLs, analytics events, server logs, or client error reporting.
@@ -223,6 +235,7 @@ Raw Medflex messages, stack traces, credentials, and patient data are never retu
 
 - General CTA starts at doctor selection.
 - Doctor-profile CTA opens with the correct preselected slug.
+- A single appointment type is selected automatically; multiple types produce a labelled selection step with current prices.
 - Date/time selection, grouped slots, later dates, loading, empty, conflict, and retry states.
 - Patient validation, review, double-submit protection, success, uncertain result, focus trap, Escape, focus restoration, and live announcements.
 - Doctor cards and mobile carousel keep profile navigation and add the correct booking context.

@@ -8,6 +8,7 @@
     "postbuild": "pagefind --site dist",
     "preview": "astro preview",
     "deploy": "sh scripts/deploy.sh",
+    "medflex:discover": "bun scripts/medflex-discover.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
