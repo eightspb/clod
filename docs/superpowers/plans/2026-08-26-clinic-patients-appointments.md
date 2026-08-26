@@ -357,17 +357,17 @@ Run: `git add src/pages/api/admin/stats.js src/test/analytics-api.test.js src/co
 - Modify: `nginx.https.conf`
 - Modify: `docs/superpowers/plans/2026-08-26-clinic-patients-appointments.md`
 
-- [ ] **Step 1: Document configuration and operations**
+- [x] **Step 1: Document configuration and operations**
 
 Document `CONTACT_FINGERPRINT_KEY`, `PATIENT_ENCRYPTION_KEY`, generation requirements, rotation warning, new tables/routes, local-vs-Medflex cancellation semantics, `needs_review` recovery, backup requirements, and the fact that this is not a medical record system. Add a specific HTTPS location for `/api/appointments/book` with `proxy_read_timeout 75s` while keeping existing proxy headers. Do not include real secrets or example production credentials.
 
-- [ ] **Step 2: Run targeted clinic tests**
+- [x] **Step 2: Run targeted clinic tests**
 
 Run: `bun run test:run -- src/lib/contact-identity.test.js src/lib/patient-records.test.js src/lib/appointment-records.test.js src/lib/appointment-intents.test.js src/lib/appointment-booking.test.js src/test/appointments-api.test.js src/test/admin-patients-api.test.js src/test/admin-appointments-api.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 3: Run repository quality gates**
+- [x] **Step 3: Run repository quality gates**
 
 Run: `bun run lint`
 
@@ -385,10 +385,10 @@ Run: `bun run test:e2e`
 
 Expected: PASS.
 
-- [ ] **Step 4: Review security invariants**
+- [x] **Step 4: Review security invariants**
 
 Verify every admin mutation uses `guardAdminWrite` or the stricter PII guard, every SQL value is parameterized, no response/log contains plaintext phone or birthday unless it is the audited reveal response, names appear only behind admin auth, encryption keys are server-only, all public booking constraints still pass, and no test performs a real paid Medflex mutation.
 
-- [ ] **Step 5: Mark completed checkboxes and commit documentation**
+- [x] **Step 5: Mark completed checkboxes and commit documentation**
 
 Run: `git add .env.example README.md nginx.https.conf docs/superpowers/plans/2026-08-26-clinic-patients-appointments.md && git commit -m "docs: describe patient and appointment operations"`
