@@ -202,6 +202,7 @@ Run: `git add src/lib/appointment-intents.js src/lib/appointment-intents.test.js
 **Files:**
 - Create: `src/lib/admin-clinic-query.js`
 - Create: `src/lib/admin-clinic-query.test.js`
+- Create: `src/lib/admin-patient-api.js`
 - Create: `src/pages/api/admin/patients/index.js`
 - Create: `src/pages/api/admin/patients/[id].js`
 - Create: `src/pages/api/admin/patients/[id]/reveal.js`
@@ -210,21 +211,21 @@ Run: `git add src/lib/appointment-intents.js src/lib/appointment-intents.test.js
 - Modify: `src/lib/admin-api.js`
 - Create: `src/lib/admin-api.test.js`
 
-- [ ] **Step 1: Write failing query, guard, and endpoint tests**
+- [x] **Step 1: Write failing query, guard, and endpoint tests**
 
 Cover page coercion, 50-row clamp, unknown filter rejection, literal treatment of SQL wildcard characters, auth-first reads, rate-limit-first public abuse, origin-before-mutation, JSON body limits, name-plus-mask list/detail output without full phone/birthday, exact normalized-phone search, audited reveal, a stable non-secret session actor fingerprint, reveal-specific 10-per-minute administrative-session limit, destruction confirmation, not-found behavior, and sanitized database/configuration failures.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `bun run test:run -- src/lib/admin-clinic-query.test.js src/lib/admin-api.test.js src/test/admin-patients-api.test.js`
 
 Expected: FAIL because the parser, patient endpoints, and PII-specific guard do not exist.
 
-- [ ] **Step 3: Implement the thin patient transport layer**
+- [x] **Step 3: Implement the thin patient transport layer**
 
 Add a named PII mutation guard with its own 10-per-minute session-keyed request budget and a helper that derives an audit actor fingerprint from the authenticated session token without storing or returning the token. Preserve existing admin guards. Parse and validate all route/query/body values before repository access, load encryption keys only on server request handling, return stable `{ data, page }` or `{ error, message }` JSON, and log only route stage codes.
 
-- [ ] **Step 4: Run the focused tests and verify GREEN**
+- [x] **Step 4: Run the focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/lib/admin-clinic-query.test.js src/lib/admin-api.test.js src/test/admin-patients-api.test.js`
 
