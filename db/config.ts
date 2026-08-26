@@ -104,7 +104,7 @@ const BookingIntent = defineTable({
     endsAt: column.text(),
     price: column.number(),
     medflexClaimId: column.text({ optional: true }),
-    failureCode: column.text({ optional: true, enum: ['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH', 'UPSTREAM_NOT_ACCEPTED'] }),
+    failureCode: column.text({ optional: true, enum: ['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH', 'UPSTREAM_NOT_ACCEPTED', 'LOCAL_PERSISTENCE_FAILED'] }),
     createdAt: column.text(),
     updatedAt: column.text(),
     pendingUntil: column.text(),
@@ -118,6 +118,85 @@ const BookingIntent = defineTable({
   ],
 });
 
+const Patient = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    profileCiphertext: column.text({ optional: true }),
+    phoneMask: column.text({ optional: true }),
+    phoneFingerprint: column.text({ optional: true }),
+    firstSeenAt: column.text(),
+    lastSeenAt: column.text(),
+    createdAt: column.text(),
+    updatedAt: column.text(),
+    piiDestroyedAt: column.text({ optional: true }),
+  },
+  indexes: [
+    { name: 'Patient_phoneFingerprint_unique', on: 'phoneFingerprint', unique: true },
+    { name: 'Patient_lastSeenAt_idx', on: 'lastSeenAt' },
+  ],
+});
+
+const PatientAccess = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    patientId: column.text(),
+    action: column.text({ enum: ['reveal', 'destroy'] }),
+    actor: column.text(),
+    createdAt: column.text(),
+  },
+  indexes: [
+    { name: 'PatientAccess_patientId_createdAt_idx', on: ['patientId', 'createdAt'] },
+  ],
+});
+
+const Appointment = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    patientId: column.text(),
+    source: column.text({ enum: ['website', 'admin_medflex', 'admin_existing'] }),
+    status: column.text({ enum: ['pending', 'confirmed', 'cancelled', 'failed', 'needs_review'] }),
+    medflexClaimId: column.text({ optional: true }),
+    medflexLpuId: column.number({ optional: true }),
+    medflexDoctorId: column.number({ optional: true }),
+    medflexSpecialityId: column.number({ optional: true }),
+    medflexServiceId: column.number({ optional: true }),
+    doctorName: column.text(),
+    specialityName: column.text(),
+    serviceName: column.text({ optional: true }),
+    startsAt: column.text(),
+    endsAt: column.text(),
+    priceKopecks: column.number({ optional: true }),
+    bookingFingerprint: column.text(),
+    failureCode: column.text({ optional: true }),
+    createdAt: column.text(),
+    updatedAt: column.text(),
+    cancelledAt: column.text({ optional: true }),
+  },
+  indexes: [
+    { name: 'Appointment_medflexClaimId_unique', on: 'medflexClaimId', unique: true },
+    { name: 'Appointment_bookingFingerprint_unique', on: 'bookingFingerprint', unique: true },
+    { name: 'Appointment_startsAt_idx', on: 'startsAt' },
+    { name: 'Appointment_patientId_startsAt_idx', on: ['patientId', 'startsAt'] },
+    { name: 'Appointment_status_startsAt_idx', on: ['status', 'startsAt'] },
+    { name: 'Appointment_medflexDoctorId_startsAt_idx', on: ['medflexDoctorId', 'startsAt'] },
+    { name: 'Appointment_source_startsAt_idx', on: ['source', 'startsAt'] },
+  ],
+});
+
+const MedflexDoctorLink = defineTable({
+  columns: {
+    medflexDoctorId: column.number({ primaryKey: true }),
+    externalName: column.text(),
+    localDoctorId: column.text({ optional: true }),
+    active: column.boolean(),
+    syncedAt: column.text(),
+  },
+  indexes: [
+    { name: 'MedflexDoctorLink_localDoctorId_idx', on: 'localDoctorId' },
+    { name: 'MedflexDoctorLink_active_idx', on: 'active' },
+  ],
+});
+
 export default defineDb({
-  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog, BookingIntent }
+  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog, BookingIntent, Patient, PatientAccess, Appointment, MedflexDoctorLink }
 });

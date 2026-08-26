@@ -23,6 +23,53 @@ const bookingIntentTableStatement = `CREATE TABLE IF NOT EXISTS BookingIntent (
     updatedAt TEXT NOT NULL,
     pendingUntil TEXT NOT NULL
   )`
+const patientTableStatement = `CREATE TABLE IF NOT EXISTS Patient (
+    id TEXT PRIMARY KEY,
+    profileCiphertext TEXT,
+    phoneMask TEXT,
+    phoneFingerprint TEXT,
+    firstSeenAt TEXT NOT NULL,
+    lastSeenAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const patientAccessTableStatement = `CREATE TABLE IF NOT EXISTS PatientAccess (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    action TEXT NOT NULL,
+    actor TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  )`
+const appointmentTableStatement = `CREATE TABLE IF NOT EXISTS Appointment (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    source TEXT NOT NULL,
+    status TEXT NOT NULL,
+    medflexClaimId TEXT,
+    medflexLpuId INTEGER,
+    medflexDoctorId INTEGER,
+    medflexSpecialityId INTEGER,
+    medflexServiceId INTEGER,
+    doctorName TEXT NOT NULL,
+    specialityName TEXT NOT NULL,
+    serviceName TEXT,
+    startsAt TEXT NOT NULL,
+    endsAt TEXT NOT NULL,
+    priceKopecks INTEGER,
+    bookingFingerprint TEXT NOT NULL,
+    failureCode TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    cancelledAt TEXT
+  )`
+const medflexDoctorLinkTableStatement = `CREATE TABLE IF NOT EXISTS MedflexDoctorLink (
+    medflexDoctorId INTEGER PRIMARY KEY,
+    externalName TEXT NOT NULL,
+    localDoctorId TEXT,
+    active INTEGER NOT NULL,
+    syncedAt TEXT NOT NULL
+  )`
 
 const statements = [
   `CREATE TABLE IF NOT EXISTS Doctor (
@@ -92,6 +139,22 @@ const statements = [
   'CREATE UNIQUE INDEX IF NOT EXISTS BookingIntent_fencingToken_unique ON BookingIntent(fencingToken)',
   'CREATE INDEX IF NOT EXISTS BookingIntent_resumeScope_idx ON BookingIntent(doctorSlug, appointmentType, startsAt, endsAt)',
   'CREATE INDEX IF NOT EXISTS BookingIntent_status_pendingUntil_idx ON BookingIntent(status, pendingUntil)',
+  patientTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS Patient_phoneFingerprint_unique ON Patient(phoneFingerprint)',
+  'CREATE INDEX IF NOT EXISTS Patient_lastSeenAt_idx ON Patient(lastSeenAt)',
+  patientAccessTableStatement,
+  'CREATE INDEX IF NOT EXISTS PatientAccess_patientId_createdAt_idx ON PatientAccess(patientId, createdAt)',
+  appointmentTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS Appointment_medflexClaimId_unique ON Appointment(medflexClaimId)',
+  'CREATE UNIQUE INDEX IF NOT EXISTS Appointment_bookingFingerprint_unique ON Appointment(bookingFingerprint)',
+  'CREATE INDEX IF NOT EXISTS Appointment_startsAt_idx ON Appointment(startsAt)',
+  'CREATE INDEX IF NOT EXISTS Appointment_patientId_startsAt_idx ON Appointment(patientId, startsAt)',
+  'CREATE INDEX IF NOT EXISTS Appointment_status_startsAt_idx ON Appointment(status, startsAt)',
+  'CREATE INDEX IF NOT EXISTS Appointment_medflexDoctorId_startsAt_idx ON Appointment(medflexDoctorId, startsAt)',
+  'CREATE INDEX IF NOT EXISTS Appointment_source_startsAt_idx ON Appointment(source, startsAt)',
+  medflexDoctorLinkTableStatement,
+  'CREATE INDEX IF NOT EXISTS MedflexDoctorLink_localDoctorId_idx ON MedflexDoctorLink(localDoctorId)',
+  'CREATE INDEX IF NOT EXISTS MedflexDoctorLink_active_idx ON MedflexDoctorLink(active)',
 ]
 
 const bookingIntentColumns = [
@@ -121,6 +184,76 @@ const bookingIntentIndexes = [
   { name: 'BookingIntent_status_pendingUntil_idx', unique: 0, origin: 'c', partial: 0, columns: ['status', 'pendingUntil'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
   { name: 'sqlite_autoindex_BookingIntent_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
 ]
+const patientColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['profileCiphertext', 'TEXT', 0, null, 0],
+  ['phoneMask', 'TEXT', 0, null, 0],
+  ['phoneFingerprint', 'TEXT', 0, null, 0],
+  ['firstSeenAt', 'TEXT', 1, null, 0],
+  ['lastSeenAt', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const patientIndexes = [
+  { name: 'Patient_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'Patient_phoneFingerprint_unique', unique: 1, origin: 'c', partial: 0, columns: ['phoneFingerprint'], collations: ['BINARY'], descending: [0] },
+  { name: 'sqlite_autoindex_Patient_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const patientAccessColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['action', 'TEXT', 1, null, 0],
+  ['actor', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+]
+const patientAccessIndexes = [
+  { name: 'PatientAccess_patientId_createdAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId', 'createdAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'sqlite_autoindex_PatientAccess_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const appointmentColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['source', 'TEXT', 1, null, 0],
+  ['status', 'TEXT', 1, null, 0],
+  ['medflexClaimId', 'TEXT', 0, null, 0],
+  ['medflexLpuId', 'INTEGER', 0, null, 0],
+  ['medflexDoctorId', 'INTEGER', 0, null, 0],
+  ['medflexSpecialityId', 'INTEGER', 0, null, 0],
+  ['medflexServiceId', 'INTEGER', 0, null, 0],
+  ['doctorName', 'TEXT', 1, null, 0],
+  ['specialityName', 'TEXT', 1, null, 0],
+  ['serviceName', 'TEXT', 0, null, 0],
+  ['startsAt', 'TEXT', 1, null, 0],
+  ['endsAt', 'TEXT', 1, null, 0],
+  ['priceKopecks', 'INTEGER', 0, null, 0],
+  ['bookingFingerprint', 'TEXT', 1, null, 0],
+  ['failureCode', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+  ['cancelledAt', 'TEXT', 0, null, 0],
+]
+const appointmentIndexes = [
+  { name: 'Appointment_bookingFingerprint_unique', unique: 1, origin: 'c', partial: 0, columns: ['bookingFingerprint'], collations: ['BINARY'], descending: [0] },
+  { name: 'Appointment_medflexClaimId_unique', unique: 1, origin: 'c', partial: 0, columns: ['medflexClaimId'], collations: ['BINARY'], descending: [0] },
+  { name: 'Appointment_medflexDoctorId_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['medflexDoctorId', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'Appointment_patientId_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'Appointment_source_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['source', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'Appointment_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['startsAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'Appointment_status_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['status', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'sqlite_autoindex_Appointment_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const medflexDoctorLinkColumns = [
+  ['medflexDoctorId', 'INTEGER', 0, null, 1],
+  ['externalName', 'TEXT', 1, null, 0],
+  ['localDoctorId', 'TEXT', 0, null, 0],
+  ['active', 'INTEGER', 1, null, 0],
+  ['syncedAt', 'TEXT', 1, null, 0],
+]
+const medflexDoctorLinkIndexes = [
+  { name: 'MedflexDoctorLink_active_idx', unique: 0, origin: 'c', partial: 0, columns: ['active'], collations: ['BINARY'], descending: [0] },
+  { name: 'MedflexDoctorLink_localDoctorId_idx', unique: 0, origin: 'c', partial: 0, columns: ['localDoctorId'], collations: ['BINARY'], descending: [0] },
+]
 
 function canonicalSchemaSql(value) {
   if (typeof value !== 'string') return ''
@@ -128,6 +261,31 @@ function canonicalSchemaSql(value) {
 }
 
 const bookingIntentCanonicalSql = canonicalSchemaSql(bookingIntentTableStatement)
+const clinicSchemas = [
+  { name: 'Patient', statement: patientTableStatement, columns: patientColumns, indexes: patientIndexes },
+  { name: 'PatientAccess', statement: patientAccessTableStatement, columns: patientAccessColumns, indexes: patientAccessIndexes },
+  { name: 'Appointment', statement: appointmentTableStatement, columns: appointmentColumns, indexes: appointmentIndexes },
+  { name: 'MedflexDoctorLink', statement: medflexDoctorLinkTableStatement, columns: medflexDoctorLinkColumns, indexes: medflexDoctorLinkIndexes },
+]
+
+async function verifySchema(database, schema) {
+  const table = await database.execute({ sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", args: [schema.name] })
+  if (table.rows.length !== 1 || canonicalSchemaSql(table.rows[0].sql) !== canonicalSchemaSql(schema.statement)) throw new Error(`[init-db] ${schema.name} table definition invariant failed`)
+  const columns = await database.execute({ sql: 'SELECT name, type, "notnull" AS required, dflt_value, pk FROM pragma_table_info(?)', args: [schema.name] })
+  const actualColumns = columns.rows.map(({ name, type, required, dflt_value: defaultValue, pk }) => [name, type, required, defaultValue, pk])
+  if (JSON.stringify(actualColumns) !== JSON.stringify(schema.columns)) throw new Error(`[init-db] ${schema.name} column invariant failed`)
+  const unexpectedObjects = await database.execute({ sql: "SELECT type, name FROM sqlite_master WHERE tbl_name = ? AND type NOT IN ('table', 'index')", args: [schema.name] })
+  if (unexpectedObjects.rows.length !== 0) throw new Error(`[init-db] ${schema.name} schema object invariant failed`)
+  const indexes = await database.execute({ sql: 'SELECT name, "unique", origin, partial FROM pragma_index_list(?)', args: [schema.name] })
+  const actualIndexes = []
+  for (const index of indexes.rows) {
+    const details = await database.execute({ sql: 'SELECT name, coll, desc, key FROM pragma_index_xinfo(?) ORDER BY seqno', args: [index.name] })
+    const keys = details.rows.filter(({ key }) => key === 1)
+    actualIndexes.push({ name: index.name, unique: index.unique, origin: index.origin, partial: index.partial, columns: keys.map(({ name }) => name), collations: keys.map(({ coll }) => coll), descending: keys.map(({ desc }) => desc) })
+  }
+  actualIndexes.sort((first, second) => first.name < second.name ? -1 : first.name > second.name ? 1 : 0)
+  if (JSON.stringify(actualIndexes) !== JSON.stringify(schema.indexes)) throw new Error(`[init-db] ${schema.name} index invariant failed`)
+}
 
 async function verifyBookingIntentSchema(database) {
   const table = await database.execute({ sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", args: ['BookingIntent'] })
@@ -154,6 +312,7 @@ try {
   try {
     for (const statement of statements) await transaction.execute(statement)
     await verifyBookingIntentSchema(transaction)
+    for (const schema of clinicSchemas) await verifySchema(transaction, schema)
     await transaction.commit()
   } catch (error) {
     await transaction.rollback()

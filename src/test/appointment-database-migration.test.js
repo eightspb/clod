@@ -18,6 +18,15 @@ const { dbConfig } = await resolveDbConfig({ root: pathToFileURL(process.cwd() +
 const table = dbConfig.tables.BookingIntent
 process.stdout.write(JSON.stringify([getCreateTableQuery('BookingIntent', table), ...getCreateIndexQueries('BookingIntent', table)]))
 `
+const ASTRO_CLINIC_SCHEMA_SCRIPT = `
+import { pathToFileURL } from 'node:url'
+import { resolveDbConfig } from './node_modules/@astrojs/db/dist/core/load-file.js'
+import { getCreateIndexQueries, getCreateTableQuery } from './node_modules/@astrojs/db/dist/core/queries.js'
+const { dbConfig } = await resolveDbConfig({ root: pathToFileURL(process.cwd() + '/'), integrations: [] })
+const names = ['Patient', 'PatientAccess', 'Appointment', 'MedflexDoctorLink']
+const queries = names.flatMap((name) => dbConfig.tables[name] ? [getCreateTableQuery(name, dbConfig.tables[name]), ...getCreateIndexQueries(name, dbConfig.tables[name])] : [])
+process.stdout.write(JSON.stringify(queries))
+`
 const SENTINEL_ID = 'legacy-doctor-Ω'
 const FIRST_INTENT_ID = '148b0a0d-a98d-4762-8313-24075bd9da1a'
 const SECOND_INTENT_ID = 'cc0be2bb-4cb4-45df-8e3d-09820302a580'
@@ -81,6 +90,86 @@ const EXPECTED_INDEXES = Object.freeze({
   BookingIntent_status_pendingUntil_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['status', 'pendingUntil']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
   BookingIntent_resumeScope_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['doctorSlug', 'appointmentType', 'startsAt', 'endsAt']), collations: Object.freeze(['BINARY', 'BINARY', 'BINARY', 'BINARY']), descending: Object.freeze([0, 0, 0, 0]) }),
 })
+const EXPECTED_CLINIC_SCHEMA = Object.freeze({
+  Patient: Object.freeze({
+    columns: Object.freeze([
+      ['id', 'TEXT', 0, 1],
+      ['profileCiphertext', 'TEXT', 0, 0],
+      ['phoneMask', 'TEXT', 0, 0],
+      ['phoneFingerprint', 'TEXT', 0, 0],
+      ['firstSeenAt', 'TEXT', 1, 0],
+      ['lastSeenAt', 'TEXT', 1, 0],
+      ['createdAt', 'TEXT', 1, 0],
+      ['updatedAt', 'TEXT', 1, 0],
+      ['piiDestroyedAt', 'TEXT', 0, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_Patient_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Patient_phoneFingerprint_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['phoneFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Patient_lastSeenAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['lastSeenAt']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+    }),
+  }),
+  PatientAccess: Object.freeze({
+    columns: Object.freeze([
+      ['id', 'TEXT', 0, 1],
+      ['patientId', 'TEXT', 1, 0],
+      ['action', 'TEXT', 1, 0],
+      ['actor', 'TEXT', 1, 0],
+      ['createdAt', 'TEXT', 1, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_PatientAccess_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      PatientAccess_patientId_createdAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['patientId', 'createdAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+    }),
+  }),
+  Appointment: Object.freeze({
+    columns: Object.freeze([
+      ['id', 'TEXT', 0, 1],
+      ['patientId', 'TEXT', 1, 0],
+      ['source', 'TEXT', 1, 0],
+      ['status', 'TEXT', 1, 0],
+      ['medflexClaimId', 'TEXT', 0, 0],
+      ['medflexLpuId', 'INTEGER', 0, 0],
+      ['medflexDoctorId', 'INTEGER', 0, 0],
+      ['medflexSpecialityId', 'INTEGER', 0, 0],
+      ['medflexServiceId', 'INTEGER', 0, 0],
+      ['doctorName', 'TEXT', 1, 0],
+      ['specialityName', 'TEXT', 1, 0],
+      ['serviceName', 'TEXT', 0, 0],
+      ['startsAt', 'TEXT', 1, 0],
+      ['endsAt', 'TEXT', 1, 0],
+      ['priceKopecks', 'INTEGER', 0, 0],
+      ['bookingFingerprint', 'TEXT', 1, 0],
+      ['failureCode', 'TEXT', 0, 0],
+      ['createdAt', 'TEXT', 1, 0],
+      ['updatedAt', 'TEXT', 1, 0],
+      ['cancelledAt', 'TEXT', 0, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_Appointment_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Appointment_medflexClaimId_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['medflexClaimId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Appointment_bookingFingerprint_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['bookingFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Appointment_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['startsAt']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Appointment_patientId_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['patientId', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      Appointment_status_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['status', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      Appointment_medflexDoctorId_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['medflexDoctorId', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      Appointment_source_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['source', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+    }),
+  }),
+  MedflexDoctorLink: Object.freeze({
+    columns: Object.freeze([
+      ['medflexDoctorId', 'INTEGER', 0, 1],
+      ['externalName', 'TEXT', 1, 0],
+      ['localDoctorId', 'TEXT', 0, 0],
+      ['active', 'INTEGER', 1, 0],
+      ['syncedAt', 'TEXT', 1, 0],
+    ]),
+    indexes: Object.freeze({
+      MedflexDoctorLink_localDoctorId_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['localDoctorId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MedflexDoctorLink_active_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['active']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+    }),
+  }),
+})
 
 async function databasePath(prefix) {
   const directory = await mkdtemp(join(tmpdir(), prefix))
@@ -131,6 +220,23 @@ async function schemaSnapshot(client) {
   return { columns: columns.rows.map(({ name, type, notnull, pk }) => [name, type, notnull, pk]), indexes }
 }
 
+async function tableSchemaSnapshot(client, tableName) {
+  const columns = await client.execute(`PRAGMA table_info('${tableName}')`)
+  const indexList = await client.execute(`PRAGMA index_list('${tableName}')`)
+  const indexes = {}
+  for (const row of indexList.rows) {
+    const info = await client.execute({ sql: 'SELECT name, coll, desc, key FROM pragma_index_xinfo(?) ORDER BY seqno', args: [row.name] })
+    const keys = info.rows.filter(({ key }) => key === 1)
+    indexes[row.name] = { unique: row.unique, origin: row.origin, partial: row.partial, columns: keys.map(({ name }) => name), collations: keys.map(({ coll }) => coll), descending: keys.map(({ desc }) => desc) }
+  }
+  return { columns: columns.rows.map(({ name, type, notnull, pk }) => [name, type, notnull, pk]), indexes }
+}
+
+async function clinicSchemaSnapshot(client) {
+  const entries = await Promise.all(Object.keys(EXPECTED_CLINIC_SCHEMA).map(async (name) => [name, await tableSchemaSnapshot(client, name)]))
+  return Object.fromEntries(entries)
+}
+
 async function sqliteMasterSnapshot(client) {
   const result = await client.execute("SELECT type, name, tbl_name AS tableName, sql FROM sqlite_master ORDER BY type, name")
   return result.rows.map(({ type, name, tableName, sql }) => ({ type, name, tableName, sql }))
@@ -144,6 +250,11 @@ async function createBookingIndexes(client, excludedName) {
 
 async function createAstroBookingSchema(client) {
   const { stdout } = await executeFile(process.execPath, ['--input-type=module', '--eval', ASTRO_SCHEMA_SCRIPT], { cwd: PROJECT_ROOT, timeout: 10_000, maxBuffer: 1_000_000 })
+  for (const sql of JSON.parse(stdout)) await client.execute(sql)
+}
+
+async function createAstroClinicSchema(client) {
+  const { stdout } = await executeFile(process.execPath, ['--input-type=module', '--eval', ASTRO_CLINIC_SCHEMA_SCRIPT], { cwd: PROJECT_ROOT, timeout: 10_000, maxBuffer: 1_000_000 })
   for (const sql of JSON.parse(stdout)) await client.execute(sql)
 }
 
@@ -184,6 +295,45 @@ async function rejects(operation) {
 }
 
 describe('booking intent production migration', () => {
+  it('creates the exact additive patient and appointment schema without changing a populated legacy database', async () => {
+    const path = await databasePath('clod-migration-clinic-')
+    await createLegacyDatabase(path)
+    await migrate(path)
+    await migrate(path)
+    const client = await open(path)
+    const clinic = await clinicSchemaSnapshot(client)
+    const sentinel = await client.execute({ sql: 'SELECT name FROM Doctor WHERE id = ?', args: [SENTINEL_ID] })
+    client.close()
+    expect({ clinic, sentinel: sentinel.rows[0]?.name }).toEqual({ clinic: EXPECTED_CLINIC_SCHEMA, sentinel: 'Доктор Наследие' })
+  })
+
+  it('accepts the equivalent clinic schema generated from db/config.ts', async () => {
+    const path = await databasePath('clod-migration-clinic-astro-')
+    const client = await open(path)
+    await createAstroClinicSchema(client)
+    const before = await clinicSchemaSnapshot(client)
+    client.close()
+    await migrate(path)
+    const afterClient = await open(path)
+    const after = await clinicSchemaSnapshot(afterClient)
+    afterClient.close()
+    expect({ before, after }).toEqual({ before: EXPECTED_CLINIC_SCHEMA, after: EXPECTED_CLINIC_SCHEMA })
+  })
+
+  it('rolls back all additive schema changes when a legacy Patient table is incompatible', async () => {
+    const path = await databasePath('clod-migration-clinic-incompatible-')
+    await createLegacyDatabase(path)
+    const first = await open(path)
+    await first.execute('CREATE TABLE Patient (id TEXT PRIMARY KEY)')
+    first.close()
+    const failure = await migrationFailure(path)
+    const client = await open(path)
+    const appointment = await client.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'Appointment'")
+    const sentinel = await client.execute({ sql: 'SELECT name FROM Doctor WHERE id = ?', args: [SENTINEL_ID] })
+    client.close()
+    expect({ failed: failure.failed, appointmentTables: appointment.rows.length, sentinel: sentinel.rows[0]?.name }).toEqual({ failed: true, appointmentTables: 0, sentinel: 'Доктор Наследие' })
+  })
+
   it('migrates a populated database twice without changing legacy data or schema invariants', async () => {
     const path = await databasePath('clod-migration-populated-')
     await createLegacyDatabase(path)

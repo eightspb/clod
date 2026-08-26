@@ -69,7 +69,7 @@ Run: `bun run test:run -- src/test/appointment-database-migration.test.js`
 
 Expected: PASS with both empty-database initialization and generated Astro schema equivalence.
 
-- [ ] **Step 5: Commit the schema boundary**
+- [x] **Step 5: Commit the schema boundary**
 
 Run: `git add db/config.ts scripts/init-db.mjs src/test/appointment-database-migration.test.js && git commit -m "feat: add clinic patient and appointment schema"`
 
