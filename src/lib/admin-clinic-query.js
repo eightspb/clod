@@ -6,6 +6,9 @@ const APPOINTMENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'sou
 const APPOINTMENT_CREATE_KEYS = Object.freeze(['source', 'profile', 'appointment', 'booking'])
 const APPOINTMENT_CANCEL_KEYS = Object.freeze(['confirmation'])
 const APPOINTMENT_RESOLVE_KEYS = Object.freeze(['claimId'])
+const CALL_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'from', 'to'])
+const PATIENT_CALL_QUERY_KEYS = Object.freeze(['callsPage', 'callsPageSize'])
+const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
 const APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'cancelled', 'failed', 'needs_review'])
 const APPOINTMENT_SOURCES = Object.freeze(['website', 'admin_medflex', 'admin_existing'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -159,4 +162,62 @@ export function parseAppointmentResolveBody(value) {
   } catch {
     throw new AdminClinicQueryError('INVALID_BODY')
   }
+}
+
+/**
+ * Parses exact call-journal filters without accepting wildcard search values.
+ */
+export function parseCallQuery(parameters) {
+  if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
+  for (const key of parameters.keys()) if (!CALL_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
+  const value = { page: positiveInteger(singleValue(parameters, 'page'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'pageSize'), 50), 50) }
+  const status = optionalFilter(parameters, 'status', CALL_STATUSES)
+  const line = singleValue(parameters, 'lineNumber')
+  const operator = singleValue(parameters, 'operatorExtension')
+  const from = optionalTimestamp(parameters, 'from')
+  const to = optionalTimestamp(parameters, 'to')
+  if ((from === undefined) !== (to === undefined) || (from !== undefined && to <= from)) throw new AdminClinicQueryError('INVALID_QUERY')
+  if (status !== undefined) value.status = status
+  if (line !== undefined) {
+    try {
+      value.lineNumber = normalizeContactPhone(line)
+    } catch {
+      throw new AdminClinicQueryError('INVALID_QUERY')
+    }
+  }
+  if (operator !== undefined) {
+    if (!/^[0-9]{1,32}$/.test(operator)) throw new AdminClinicQueryError('INVALID_QUERY')
+    value.operatorExtension = operator
+  }
+  if (from !== undefined) {
+    value.from = from
+    value.to = to
+  }
+  return Object.freeze(value)
+}
+
+/**
+ * Parses a bounded provider call aggregate identifier from an admin route.
+ */
+export function parseCallEntryId(value) {
+  if (typeof value !== 'string' || value.trim() !== value || value.length === 0 || Buffer.byteLength(value, 'utf8') > 128 || [...value].some((character) => character.codePointAt(0) <= 31 || character.codePointAt(0) === 127)) throw new AdminClinicQueryError('INVALID_QUERY')
+  return value
+}
+
+/**
+ * Parses the call-history page embedded in patient detail.
+ */
+export function parsePatientCallQuery(parameters) {
+  if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
+  for (const key of parameters.keys()) if (!PATIENT_CALL_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
+  return Object.freeze({ page: positiveInteger(singleValue(parameters, 'callsPage'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'callsPageSize'), 10), 50) })
+}
+
+/**
+ * Requires explicit confirmation before irreversible caller PII destruction.
+ */
+export function parseDestroyCallBody(value) {
+  const body = plainBody(value, DESTROY_KEYS)
+  if (Reflect.ownKeys(body).length !== 1 || body.confirmation !== 'УНИЧТОЖИТЬ') throw new AdminClinicQueryError('INVALID_BODY')
+  return Object.freeze({ confirmation: body.confirmation })
 }

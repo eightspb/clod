@@ -38,7 +38,7 @@ async function endpoints(fixture, overrides = {}) {
   const log = overrides.log ?? (() => undefined)
   return Object.freeze({
     GET_INDEX: index.createPatientIndexEndpoint({ records: () => fixture.value, guard, log }),
-    GET_DETAIL: detail.createPatientDetailEndpoint({ records: () => fixture.value, guard, log }),
+    GET_DETAIL: detail.createPatientDetailEndpoint({ records: () => fixture.value, calls: overrides.calls, guard, log }),
     POST_REVEAL: reveal.createPatientRevealEndpoint({ records: () => fixture.value, guard, actor, log }),
     DELETE_PERSONAL: personal.createPatientPersonalDataEndpoint({ records: () => fixture.value, guard, actor, log }),
   })
@@ -87,6 +87,14 @@ describe('admin patient API', () => {
     const { GET_DETAIL } = await endpoints(fixture)
     const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/patients/${PATIENT_ID}`), params: { id: PATIENT_ID } }))
     expect(result).toEqual({ status: 404, body: { error: 'PATIENT_NOT_FOUND', message: 'Пациент не найден' } })
+  })
+
+  it('returns a separate paginated masked call history in patient detail', async () => {
+    const fixture = records()
+    const list = vi.fn(async (query) => ({ items: [{ entryId: 'entry-1', patientId: PATIENT_ID, status: 'missed', callerMask: '+7 •••••••• 29', repeatCaller: false, lineNumber: '78127482210', operatorExtension: null, startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: null, answeredAt: null, endedAt: '2026-08-26T10:01:00.000Z', waitSeconds: 60, talkSeconds: 0, disconnectReason: null, finalizedAt: '2026-08-26T10:01:00.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null }], page: query.page, pageSize: query.pageSize, total: 1, pages: 1 }))
+    const { GET_DETAIL } = await endpoints(fixture, { calls: () => ({ list }) })
+    const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/patients/${PATIENT_ID}?callsPage=2&callsPageSize=7`), params: { id: PATIENT_ID } }))
+    expect({ status: result.status, calls: result.body.calls, query: list.mock.calls[0]?.[0], leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 200, calls: { data: [expect.objectContaining({ entryId: 'entry-1', callerMask: '+7 •••••••• 29' })], page: { number: 2, size: 7, total: 1, pages: 1 } }, query: { page: 2, pageSize: 7, patientId: PATIENT_ID }, leaked: false })
   })
 
   it('reveals a patient phone with a non-secret audit actor', async () => {

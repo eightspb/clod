@@ -201,32 +201,35 @@ Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/pa
 - Create: `src/pages/api/admin/calls/[entryId]/reveal.js`
 - Create: `src/pages/api/admin/calls/[entryId]/caller.js`
 - Create: `src/test/admin-calls-api.test.js`
+- Create: `src/lib/admin-call-api.js`
+- Modify: `src/lib/admin-clinic-query.js`
+- Modify: `src/lib/admin-clinic-query.test.js`
 - Modify: `src/pages/api/admin/patients/[id].js`
 - Modify: `src/test/admin-patients-api.test.js`
 
-- [ ] **Step 1: Write failing admin call API tests**
+- [x] **Step 1: Write failing admin call API tests**
 
 Cover auth and admin limits, strict time/status/line/operator/page filters, SQL wildcard safety, masked list/detail data, live summary metrics, exact audited reveal through the stricter PII guard, irreversible destruction, destroyed-call behavior, unknown call behavior, patient detail returning its paginated masked calls, not-found responses, body bounds, origin checks, and sanitized configuration/database failures.
 
-- [ ] **Step 2: Run the route test and verify RED**
+- [x] **Step 2: Run the route test and verify RED**
 
 Run: `bun run test:run -- src/test/admin-calls-api.test.js`
 
 Expected: FAIL because the routes do not exist.
 
-- [ ] **Step 3: Implement thin call admin routes**
+- [x] **Step 3: Implement thin call admin routes**
 
 Reuse admin query and PII guards from the patient plan. Validate `entryId` and all query/body values before repository access, expose no leg internals beyond safe status/timing/operator fields, keep plaintext phone restricted to the audited reveal response, and compose masked call history into patient detail without introducing a repository cycle.
 
-- [ ] **Step 4: Run the route test and verify GREEN**
+- [x] **Step 4: Run the route test and verify GREEN**
 
 Run: `bun run test:run -- src/test/admin-calls-api.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit call admin APIs**
+- [x] **Step 5: Commit call admin APIs**
 
-Run: `git add src/pages/api/admin/calls src/pages/api/admin/patients/[id].js src/test/admin-calls-api.test.js src/test/admin-patients-api.test.js && git commit -m "feat: expose protected call admin APIs"`
+Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/lib/admin-call-api.js src/lib/admin-clinic-query.js src/lib/admin-clinic-query.test.js src/lib/admin-patient-api.js src/pages/api/admin/calls src/pages/api/admin/patients/[id].js src/test/admin-calls-api.test.js src/test/admin-patients-api.test.js && git commit -m "feat: expose protected call admin APIs"`
 
 ### Task 7: Build the live call journal UI
 

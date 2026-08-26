@@ -1,9 +1,8 @@
 export const prerender = false
 
 import { db } from 'astro:db'
-import { createPatientDetailEndpoint } from '../../../../lib/admin-patient-api.js'
+import { createCallDetailEndpoint } from '../../../../lib/admin-call-api.js'
 import { createMangoCallRecords } from '../../../../lib/mango-call-records.js'
-import { createPatientRecords } from '../../../../lib/patient-records.js'
 
 function environment(name) {
   const value = import.meta.env[name] || process.env[name]
@@ -12,16 +11,12 @@ function environment(name) {
 }
 
 function records() {
-  return createPatientRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('PATIENT_ENCRYPTION_KEY') })
-}
-
-function calls() {
   return createMangoCallRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('MANGO_CALL_ENCRYPTION_KEY') })
 }
 
 function log(stage) {
-  console.error('[admin/patients/[id]]', stage)
+  console.error('[admin/calls/[entryId]]', stage)
 }
 
-export { createPatientDetailEndpoint }
-export const GET = createPatientDetailEndpoint({ records, calls, log })
+export { createCallDetailEndpoint }
+export const GET = createCallDetailEndpoint({ records, log })

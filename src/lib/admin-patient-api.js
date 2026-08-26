@@ -1,5 +1,6 @@
-import { AdminClinicQueryError, parseDestroyPatientBody, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
+import { AdminClinicQueryError, parseDestroyPatientBody, parsePatientCallQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
 import { adminActor, guardAdminPii, guardAdminRead, readAdminJson } from './admin-api.js'
+import { safeCallPage } from './admin-call-api.js'
 import { PatientRecordError } from './patient-records.js'
 
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
@@ -45,8 +46,10 @@ function options(input, defaults) {
   const actor = input.actor ?? defaults.actor
   const body = input.body ?? defaults.body
   const log = input.log ?? defaults.log
+  const calls = input.calls
   if (![records, guard, actor, body, log].every((value) => typeof value === 'function')) throw new TypeError('Patient endpoint adapters are invalid')
-  return Object.freeze({ records, guard, actor, body, log })
+  if (calls !== undefined && typeof calls !== 'function') throw new TypeError('Patient call adapter is invalid')
+  return Object.freeze({ records, guard, actor, body, log, calls })
 }
 
 function knownFailure(error) {
@@ -110,8 +113,13 @@ export function createPatientDetailEndpoint(input) {
     if (blocked) return blocked
     try {
       const id = parsePatientId(params?.id)
+      const query = configuration.calls === undefined ? undefined : parsePatientCallQuery(new URL(request.url).searchParams)
       const repository = configuration.records()
-      return json({ data: safePatient(await repository.get({ id })) }, 200)
+      const patient = safePatient(await repository.get({ id }))
+      if (configuration.calls === undefined) return json({ data: patient }, 200)
+      const calls = configuration.calls()
+      if (!calls || typeof calls.list !== 'function') throw new TypeError('Patient call repository is invalid')
+      return json({ data: patient, calls: safeCallPage(await calls.list({ ...query, patientId: id })) }, 200)
     } catch (error) {
       return endpointFailure(configuration, 'DETAIL_FAILED', error)
     }

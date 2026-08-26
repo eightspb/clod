@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseDestroyPatientBody, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
+import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseCallEntryId, parseCallQuery, parseDestroyCallBody, parseDestroyPatientBody, parsePatientCallQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
 
 const PATIENT_ID = 'A68F05C5-8528-4E08-86E5-3BD00CC3A79F'
 
@@ -73,5 +73,25 @@ describe('admin clinic query', () => {
 
   it('normalizes a manual resolution claim identity', () => {
     expect(parseAppointmentResolveBody({ claimId: PATIENT_ID })).toEqual({ claimId: PATIENT_ID.toLowerCase() })
+  })
+
+  it('parses the exact bounded MANGO call filters and clamps page size', () => {
+    const query = parseCallQuery(new URLSearchParams('page=2&pageSize=999&status=on_hold&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'))
+    expect(query).toEqual({ page: 2, pageSize: 50, status: 'on_hold', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' })
+  })
+
+  it('rejects unknown, repeated, wildcard, and half-open call filters', () => {
+    const values = ['search=%25_', 'status=deleted', 'operatorExtension=%25', 'lineNumber=_', 'page=1&page=2', 'from=2026-08-26T00%3A00%3A00.000Z']
+    expect(values.map((value) => captured(() => parseCallQuery(new URLSearchParams(value))).code)).toEqual(Array(values.length).fill('INVALID_QUERY'))
+  })
+
+  it('accepts a bounded provider entry ID and rejects ambiguous route text', () => {
+    expect(parseCallEntryId('entry:clinic:1')).toBe('entry:clinic:1')
+    expect(captured(() => parseCallEntryId(' entry:clinic:1 '))).toMatchObject({ threw: true, code: 'INVALID_QUERY' })
+  })
+
+  it('parses patient call pagination and exact call destruction confirmation', () => {
+    expect(parsePatientCallQuery(new URLSearchParams('callsPage=3&callsPageSize=70'))).toEqual({ page: 3, pageSize: 50 })
+    expect(parseDestroyCallBody({ confirmation: 'УНИЧТОЖИТЬ' })).toEqual({ confirmation: 'УНИЧТОЖИТЬ' })
   })
 })
