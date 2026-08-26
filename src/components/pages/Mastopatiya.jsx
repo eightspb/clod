@@ -2,10 +2,10 @@ import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, BookOpen 
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
-import { DoctorCard } from '../DoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
-import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
+import { ResponsiveDoctorCollection } from '../ResponsiveDoctorCollection.jsx'
+import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
 
 export const MASTOPATIYA_FAQ = [
   {
@@ -129,9 +129,13 @@ export function Mastopatiya() {
                 </button>
               </div>
             </div>
-            <div className="hidden lg:block [&_.hero-doctor-card-inner]:overflow-hidden [&_.hero-doctor-photo-link]:max-h-[260px] [&_.hero-doctor-photo-link]:overflow-hidden [&_.hero-doctor-photo]:max-h-[260px] [&_.hero-doctor-photo]:object-contain [&_.hero-doctor-info]:p-4">
-              <HeroDoctorCard doctors={SPECIALTY_DOCTORS} />
-            </div>
+            <ResponsiveDoctorHero
+              doctors={SPECIALTY_DOCTORS}
+              label="Карусель маммологов на странице о мастопатии"
+              ctaHref="/second-opinion"
+              desktopClassName="hidden lg:block [&_.hero-doctor-card-inner]:overflow-hidden [&_.hero-doctor-photo-link]:max-h-[260px] [&_.hero-doctor-photo-link]:overflow-hidden [&_.hero-doctor-photo]:max-h-[260px] [&_.hero-doctor-photo]:object-contain [&_.hero-doctor-info]:p-4"
+              desktopMedia="(min-width: 1024px)"
+            />
           </div>
         </div>
       </section>
@@ -278,18 +282,12 @@ export function Mastopatiya() {
                   <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Наши маммологи</h2>
                   <p className="text-clay-muted leading-relaxed max-w-2xl">Специалисты, которые ведут приём по маммологии в СПб.</p>
                 </div>
-                <div className="hidden sm:grid sm:grid-cols-2 gap-6 pt-8">
-                  {SPECIALTY_DOCTORS.map((doc) => (
-                    <DoctorCard key={doc.slug} doctor={doc} />
-                  ))}
-                </div>
-                <div className="sm:hidden flex gap-4 pt-8 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4 pb-4">
-                  {SPECIALTY_DOCTORS.map((doc) => (
-                    <div key={doc.slug} className="snap-start flex-shrink-0 w-[80vw]">
-                      <DoctorCard doctor={doc} />
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveDoctorCollection
+                  doctors={SPECIALTY_DOCTORS}
+                  label="Карусель маммологов клиники на странице о мастопатии"
+                  mobileClassName="md:hidden pt-8"
+                  desktopClassName="hidden md:grid md:grid-cols-2 gap-6 pt-8"
+                />
               </div>
               <aside className="clay clay-card-lg p-5 md:p-6">
                 <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Цены на маммологию в СПб</h2>
