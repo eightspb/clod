@@ -3,6 +3,7 @@ import { ArrowRight, Award } from 'lucide-react'
 import { StarRating } from './StarRating.jsx'
 
 const ROTATE_INTERVAL = 5000
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
 
 function pickRandom(arr, exclude) {
   if (arr.length <= 1) return arr[0]
@@ -10,7 +11,7 @@ function pickRandom(arr, exclude) {
   return filtered[Math.floor(Math.random() * filtered.length)]
 }
 
-export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion' }) {
+export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitMedia }) {
   const [doctor, setDoctor] = useState(() => doctors[0])
   const [fading, setFading] = useState(false)
   const shouldRotate = doctors.length > 1
@@ -27,18 +28,33 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion' }) {
     return () => clearInterval(id)
   }, [shouldRotate, rotate])
   if (!doctor) return null
+  const portraitSource = doctor.photoFull || doctor.photo
   return (
     <div className="hero-doctor-card">
       <div className={`clay clay-card hero-doctor-card-inner hero-doctor-fade ${fading ? 'hero-doctor-fade-out' : ''}`}>
         <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
-          <img
-            src={doctor.photoFull || doctor.photo}
-            alt={doctor.name}
-            width={280}
-            height={380}
-            className="hero-doctor-photo"
-            loading="lazy"
-          />
+          {portraitMedia ? (
+            <picture>
+              <source media={portraitMedia} srcSet={portraitSource} />
+              <img
+                src={TRANSPARENT_PIXEL}
+                alt={doctor.name}
+                width={280}
+                height={380}
+                className="hero-doctor-photo"
+                loading="lazy"
+              />
+            </picture>
+          ) : (
+            <img
+              src={portraitSource}
+              alt={doctor.name}
+              width={280}
+              height={380}
+              className="hero-doctor-photo"
+              loading="lazy"
+            />
+          )}
         </a>
         <div className="hero-doctor-info">
           <a href={`/doctors/${doctor.slug}`} className="hero-doctor-name-link group">
