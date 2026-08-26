@@ -66,7 +66,7 @@ async function mobileRouteState(page, expectsCarousel) {
     legacyDoctorStrips: await page.locator(`${LEGACY_DOCTOR_STRIP_SELECTOR}:visible`).count(),
   }
   if (!expectsCarousel) return state
-  return { ...state, legacyDoctorCards: await page.locator('main .doctor-card:visible').count() }
+  return { ...state, legacyDoctorCards: await page.locator('main .doctor-card:visible').count(), legacyHeroDoctorCards: await page.locator('main .hero-doctor-card:visible').count() }
 }
 
 async function carouselDoctorState(carousel) {
@@ -155,7 +155,7 @@ for (const { route, carousels } of MOBILE_ROUTES) {
     if (carousels > 0) await visitCarouselRoute(page, route, MOBILE_VIEWPORT)
     else await visitRoute(page, route, MOBILE_VIEWPORT)
     const state = await mobileRouteState(page, carousels > 0)
-    const expected = carousels > 0 ? { carousels, legacyDoctorStrips: 0, legacyDoctorCards: 0 } : { carousels, legacyDoctorStrips: 0 }
+    const expected = carousels > 0 ? { carousels, legacyDoctorStrips: 0, legacyDoctorCards: 0, legacyHeroDoctorCards: 0 } : { carousels, legacyDoctorStrips: 0 }
     expect(state).toEqual(expected)
   })
 }
