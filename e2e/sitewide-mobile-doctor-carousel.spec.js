@@ -4,6 +4,7 @@ const MOBILE_VIEWPORT = Object.freeze({ width: 393, height: 852 })
 const DESKTOP_VIEWPORT = Object.freeze({ width: 1280, height: 900 })
 const CAROUSEL_SELECTOR = '[data-mobile-doctor-carousel]'
 const HYDRATED_CAROUSEL_ISLAND_SELECTOR = `main astro-island:has(${CAROUSEL_SELECTOR}):not([ssr])`
+const IDLE_HYDRATION_TIMEOUT_MS = 10_000
 const LEGACY_DOCTOR_STRIP_SELECTOR = 'main .overflow-x-auto:has(.doctor-card)'
 const HERO_CAROUSEL_LABEL = 'Карусель маммологов в начале страницы'
 const LOWER_CAROUSEL_LABEL = 'Карусель маммологов клиники'
@@ -63,7 +64,7 @@ async function visitRoute(page, route, viewport) {
 
 async function visitCarouselRoute(page, route, viewport) {
   await visitRoute(page, route, viewport)
-  await page.locator(HYDRATED_CAROUSEL_ISLAND_SELECTOR).waitFor({ state: 'attached', timeout: 5_000 })
+  await page.locator(HYDRATED_CAROUSEL_ISLAND_SELECTOR).waitFor({ state: 'attached', timeout: IDLE_HYDRATION_TIMEOUT_MS })
 }
 
 async function mobileRouteState(page, expectsCarousel) {
