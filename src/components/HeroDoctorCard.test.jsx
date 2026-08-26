@@ -39,8 +39,9 @@ describe('HeroDoctorCard', () => {
 
   it('media-gates the portrait when a desktop query is supplied', () => {
     const portraitMedia = '(min-width: 1024px)'
-    const { container } = render(<HeroDoctorCard doctors={doctors} portraitMedia={portraitMedia} />)
+    render(<HeroDoctorCard doctors={doctors} portraitMedia={portraitMedia} />)
     const portrait = screen.getByRole('img', { name: 'Первый врач' })
-    expect({ source: container.querySelector('source')?.getAttribute('srcset'), media: container.querySelector('source')?.getAttribute('media'), fallback: portrait.getAttribute('src') }).toEqual({ source: '/first.png', media: portraitMedia, fallback: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' })
+    const picture = portrait.closest('picture')
+    expect({ source: picture?.querySelector('source')?.getAttribute('srcset'), media: picture?.querySelector('source')?.getAttribute('media'), fallback: portrait.getAttribute('src') }).toEqual({ source: '/first.png', media: portraitMedia, fallback: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' })
   })
 })
