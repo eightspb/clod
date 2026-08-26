@@ -169,29 +169,29 @@ Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/li
 - Create: `src/pages/api/integrations/mango/events/summary.js`
 - Create: `src/test/mango-api.test.js`
 
-- [ ] **Step 1: Write failing route-boundary tests**
+- [x] **Step 1: Write failing route-boundary tests**
 
 Cover `prerender = false`, method rejection, health returning a minimal availability result without inspecting or exposing configuration, content type, size limits, 300 requests per minute per proxy-controlled source IP, invalid signature before JSON/domain/storage access, status mapping for malformed events, `200` for applied/duplicate/stale/ignored outcomes, `5xx` for transaction failure, no-cache headers, no reflected raw payload, and stage-only production logging.
 
-- [ ] **Step 2: Run the route test and verify RED**
+- [x] **Step 2: Run the route test and verify RED**
 
 Run: `bun run test:run -- src/test/mango-api.test.js`
 
 Expected: FAIL because the integration routes do not exist.
 
-- [ ] **Step 3: Implement thin route factories**
+- [x] **Step 3: Implement thin route factories**
 
 Compose signature, event, repository, and rate-limit adapters through injectable endpoint factories for offline tests. Load real server secrets only in exported production handlers, apply the 300-per-minute limit using the trusted proxy IP helper, return compact stable JSON acknowledgements, and avoid admin auth/origin checks because authenticity is exclusively the verified MANGO signature plus Nginx allowlist.
 
-- [ ] **Step 4: Run the route test and verify GREEN**
+- [x] **Step 4: Run the route test and verify GREEN**
 
 Run: `bun run test:run -- src/test/mango-api.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit webhook endpoints**
+- [x] **Step 5: Commit webhook endpoints**
 
-Run: `git add src/pages/api/integrations/mango src/test/mango-api.test.js && git commit -m "feat: receive authenticated MANGO events"`
+Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/pages/api/integrations/mango src/test/mango-api.test.js && git commit -m "feat: receive authenticated MANGO events"`
 
 ### Task 6: Expose protected call admin APIs
 
