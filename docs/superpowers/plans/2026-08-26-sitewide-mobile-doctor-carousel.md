@@ -4,7 +4,7 @@
 
 **Goal:** Replace every multi-doctor mobile hero rotation and horizontal doctor-card strip with the existing home-page doctor carousel while preserving single-doctor and desktop presentations.
 
-**Architecture:** Add one responsive hero adapter and one responsive collection adapter around the existing `MobileDoctorCarousel`, `HeroDoctorCard`, and `DoctorCard`. Keep carousel state and interaction in `MobileDoctorCarousel`; the adapters only select mobile versus desktop presentation, preserve page-specific wrapper classes, and avoid carousel controls for zero- or one-doctor collections. Hydrate the five currently server-only specialty page components so their new mobile carousels are interactive.
+**Architecture:** Add one responsive hero adapter and one responsive collection adapter around the existing `MobileDoctorCarousel`, `HeroDoctorCard`, and `DoctorCard`. Keep carousel state and interaction in `MobileDoctorCarousel`; the adapters only select mobile versus desktop presentation, preserve page-specific wrapper classes, and avoid carousel controls for zero- or one-doctor collections. Hydrate the four previously server-only multi-doctor specialty page components so their new mobile carousels are interactive; keep the single-doctor endocrinology page server-rendered.
 
 **Tech Stack:** Astro 4, React 18, JavaScript, Tailwind/CSS variables, Vitest, Testing Library, Playwright, Bun.
 
@@ -20,7 +20,7 @@
 - Modify `src/components/HeroDoctorCard.test.jsx`: verify the optional portrait media contract and unchanged default contract.
 - Create `e2e/sitewide-mobile-doctor-carousel.spec.js`: route inventory, hydration, mobile interaction, desktop preservation, and `scrollY = 0` layout checks.
 - Modify the 14 page components listed in Tasks 4 and 5: replace hero and mobile doctor-strip duplication with the responsive adapters.
-- Modify `src/pages/mammology.astro`, `src/pages/gynecology.astro`, `src/pages/endocrinology.astro`, `src/pages/nutrition.astro`, and `src/pages/vab.astro`: hydrate the page React component with `client:idle`.
+- Modify `src/pages/mammology.astro`, `src/pages/gynecology.astro`, `src/pages/nutrition.astro`, and `src/pages/vab.astro`: hydrate the page React component with `client:idle`. Keep the already interactive `src/pages/second-opinion.astro` and the single-doctor static `src/pages/endocrinology.astro` unchanged.
 - Modify `README.md`: document the responsive doctor adapters and specialty-page hydration.
 
 ### Task 1: Specify the responsive component contracts
@@ -152,6 +152,8 @@ Use `ResponsiveDoctorCollection` in Mammology, Gynecology, Endocrinology, and Va
 
 Add `client:idle` to Mammology, Gynecology, Endocrinology, Nutrition, and Vab in their Astro routes. Do not change prerender flags, metadata, canonical data, JSON-LD, breadcrumbs, or service-data props. Keep the existing `SecondOpinion client:idle` directive unchanged.
 
+> **Accepted Astro-first refinement:** implementation adds `client:idle` only to the four previously static multi-doctor routes `/mammology`, `/gynecology`, `/nutrition`, and `/vab`. `/second-opinion` was already hydrated. `/endocrinology` has one doctor and remains static because it needs no carousel state. All disease routes were already hydrated, so their Astro files remain unchanged.
+
 - [ ] **Step 4: Run focused component tests**
 
 Run: `bun run test:run -- src/components/HeroDoctorCard.test.jsx src/components/ResponsiveDoctorHero.test.jsx src/components/ResponsiveDoctorCollection.test.jsx src/components/MobileDoctorCarousel.test.jsx`
@@ -243,7 +245,7 @@ Confirm no page metadata, JSON-LD, API, booking flow, doctor data, global carous
 
 - [ ] **Step 1: Update the component map and responsive behaviour documentation**
 
-Add `ResponsiveDoctorHero.jsx` and `ResponsiveDoctorCollection.jsx` to the component tree. Document that all multi-doctor public mobile heroes and doctor sections reuse `MobileDoctorCarousel`, single-doctor collections remain cards, desktop remains unchanged, and five main specialty page components now hydrate with `client:idle`.
+Add `ResponsiveDoctorHero.jsx` and `ResponsiveDoctorCollection.jsx` to the component tree. Document that all multi-doctor public mobile heroes and doctor sections reuse `MobileDoctorCarousel`, single-doctor collections remain cards, desktop remains unchanged, and four previously static multi-doctor specialty page components now hydrate with `client:idle`. Record that `/second-opinion` was already hydrated, `/endocrinology` remains static, and disease route files were already hydrated.
 
 - [ ] **Step 2: Run all unit tests**
 
@@ -271,4 +273,4 @@ Expected: no whitespace errors. Re-read the approved design and confirm every ac
 
 - [ ] **Step 6: Commit documentation and final verification state**
 
-Commit `README.md` and any final test-only adjustments with message: `docs: document sitewide mobile doctor carousels`.
+Commit the documentation changes with message: `docs: document responsive doctor presentations`.
