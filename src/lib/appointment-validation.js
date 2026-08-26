@@ -1,8 +1,10 @@
 const QUERY_KEYS = Object.freeze(['doctor', 'from', 'days'])
-const BOOKING_KEYS = Object.freeze(['doctorSlug', 'intentId', 'dtStart', 'dtEnd', 'patient', 'comment', 'consent'])
+const BOOKING_KEYS = Object.freeze(['doctorSlug', 'appointmentType', 'intentId', 'dtStart', 'dtEnd', 'patient', 'comment', 'consent'])
 const PATIENT_KEYS = Object.freeze(['firstName', 'lastName', 'secondName', 'phone', 'birthday'])
 const BOOKING_OPTIONS_KEYS = Object.freeze(['now'])
 const SAFE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const SAFE_KEY_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/
+const RESERVED_KEYS = Object.freeze(['__proto__', 'constructor', 'prototype'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 const TIMESTAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/
@@ -11,9 +13,12 @@ const NAME_CONTROL = /[\p{Cc}\p{Cf}]/u
 const UNICODE_HYPHEN_PATTERN = /[\u2010-\u2015\u2212]/gu
 const PHONE_PATTERN = /^(?:\+7|8)(?:[ \u00a0-]*(?:\([ \u00a0]*\d{3}[ \u00a0]*\)|\d{3}))[ \u00a0-]*\d{3}[ \u00a0-]*\d{2}[ \u00a0-]*\d{2}$/
 const RUSSIAN_NUMBER_PREFIX = /^[3489]/
+const MOSCOW_OFFSET_MS = 3 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
 const MIN_APPOINTMENT_MS = 5 * 60 * 1000
 const MAX_APPOINTMENT_MS = 4 * 60 * 60 * 1000
 const MAX_SLUG_LENGTH = 100
+const MAX_KEY_LENGTH = 64
 const MAX_NAME_LENGTH = 100
 const MAX_COMMENT_LENGTH = 300
 
@@ -81,7 +86,7 @@ function parseDate(value) {
   const year = Number(match[1])
   const month = Number(match[2])
   const day = Number(match[3])
-  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return { valid: false, code: 'INVALID_DATE' }
+  if (year < 1 || year > 9_999 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return { valid: false, code: 'INVALID_DATE' }
   return Object.freeze({ valid: true, code: '', value, year, month, day })
 }
 
@@ -91,9 +96,28 @@ function normalizeDays(value) {
   return { valid: false, code: 'OUT_OF_RANGE' }
 }
 
+function calendarMilliseconds(date) {
+  const value = new Date(0)
+  value.setUTCFullYear(date.year, date.month - 1, date.day)
+  value.setUTCHours(0, 0, 0, 0)
+  return value.getTime()
+}
+
+function hasBoundedWindow(date, days) {
+  const end = new Date(calendarMilliseconds(date) + days * DAY_MS)
+  const year = end.getUTCFullYear()
+  return year >= 1 && year <= 9_999
+}
+
 function validateSlug(value) {
   if (typeof value !== 'string' || !value) return { valid: false, code: 'REQUIRED' }
   if (value.length > MAX_SLUG_LENGTH || !SAFE_SLUG_PATTERN.test(value)) return { valid: false, code: 'INVALID_FORMAT' }
+  return { valid: true, code: '', value }
+}
+
+function validateAppointmentType(value) {
+  if (typeof value !== 'string' || !value) return { valid: false, code: 'REQUIRED' }
+  if (value.length > MAX_KEY_LENGTH || !SAFE_KEY_PATTERN.test(value) || RESERVED_KEYS.includes(value)) return { valid: false, code: 'INVALID_FORMAT' }
   return { valid: true, code: '', value }
 }
 
@@ -114,9 +138,10 @@ function validateSchedule(input) {
   const doctor = validateSlug(query.value.doctor)
   const from = parseDate(query.value.from)
   const days = normalizeDays(query.value.days)
+  const fromCode = from.code || (days.valid && !hasBoundedWindow(from, days.value) ? 'OUT_OF_RANGE' : '')
   const fields = mergeFields([
     fieldError('doctor', doctor.code),
-    fieldError('from', from.code),
+    fieldError('from', fromCode),
     fieldError('days', days.code),
   ])
   if (Object.keys(fields).length) return validationFailure(fields)
@@ -142,7 +167,10 @@ function parseTimestamp(value) {
   if (!date.valid || hours > 23 || minutes > 59 || seconds > 59 || !validateTimezone(timezone)) return { valid: false, code: 'INVALID_TIMESTAMP' }
   const milliseconds = Date.parse(value)
   if (!Number.isFinite(milliseconds)) return { valid: false, code: 'INVALID_TIMESTAMP' }
-  return Object.freeze({ valid: true, code: '', milliseconds, value: new Date(milliseconds).toISOString() })
+  const instant = new Date(milliseconds)
+  const year = instant.getUTCFullYear()
+  if (year < 1 || year > 9_999) return { valid: false, code: 'INVALID_TIMESTAMP' }
+  return Object.freeze({ valid: true, code: '', milliseconds, value: instant.toISOString() })
 }
 
 function validateTimestamps(dtStart, dtEnd, now) {
@@ -178,10 +206,14 @@ function normalizePhone(value) {
   return { valid: true, code: '', value: `7${national}` }
 }
 
+function clinicLocalDate(now) {
+  return new Date(Date.prototype.getTime.call(now) + MOSCOW_OFFSET_MS).toISOString().slice(0, 10)
+}
+
 function normalizeBirthday(value, now) {
   const birthday = parseDate(value)
   if (!birthday.valid) return birthday
-  const today = now.toISOString().slice(0, 10)
+  const today = clinicLocalDate(now)
   if (birthday.value >= today) return { valid: false, code: 'NOT_PAST' }
   return { valid: true, code: '', value: birthday.value }
 }
@@ -243,10 +275,12 @@ function validateBooking(input, now) {
   if (patient.fields.patient) return validationFailure(patient.fields)
   const timestamps = validateTimestamps(record.value.dtStart, record.value.dtEnd, now)
   const doctor = validateSlug(record.value.doctorSlug)
+  const appointmentType = validateAppointmentType(record.value.appointmentType)
   const intentId = normalizeIntentId(record.value.intentId)
   const comment = normalizeComment(record.value.comment)
   const fields = mergeFields([
     fieldError('doctorSlug', doctor.code),
+    fieldError('appointmentType', appointmentType.code),
     fieldError('intentId', intentId.code),
     timestamps.fields,
     patient.fields,
@@ -256,6 +290,7 @@ function validateBooking(input, now) {
   if (Object.keys(fields).length) return validationFailure(fields)
   return validationSuccess({
     doctorSlug: doctor.value,
+    appointmentType: appointmentType.value,
     intentId: intentId.value,
     dtStart: timestamps.start.value,
     dtEnd: timestamps.end.value,

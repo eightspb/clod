@@ -11,6 +11,7 @@ const VALID_PATIENT = Object.freeze({
 })
 const VALID_BOOKING = Object.freeze({
   doctorSlug: 'egorova',
+  appointmentType: 'gynecologist',
   intentId: '8f14e45f-ea8b-4aa7-9f6d-8f62f9d6a417',
   dtStart: '2026-09-01T10:30:00+03:00',
   dtEnd: '2026-09-01T11:15:00+03:00',
@@ -19,6 +20,7 @@ const VALID_BOOKING = Object.freeze({
 })
 const NORMALIZED_BOOKING = Object.freeze({
   doctorSlug: 'egorova',
+  appointmentType: 'gynecologist',
   intentId: '8f14e45f-ea8b-4aa7-9f6d-8f62f9d6a417',
   dtStart: '2026-09-01T07:30:00.000Z',
   dtEnd: '2026-09-01T08:15:00.000Z',
@@ -60,6 +62,26 @@ describe('appointment schedule query validation', () => {
   it('rejects a nonexistent calendar date', () => {
     const result = validateScheduleQuery({ doctor: 'prikhodko', from: '2026-02-29', days: '6' }, { now: new Date(NOW_ISO) })
     expect(result.error.fields).toEqual({ from: 'INVALID_DATE' })
+  })
+
+  it('rejects Gregorian year zero in a schedule date', () => {
+    const result = validateScheduleQuery({ doctor: 'kalinina', from: '0000-12-31', days: '2' })
+    expect(result.error.fields).toEqual({ from: 'INVALID_DATE' })
+  })
+
+  it('accepts Gregorian year one in a schedule date', () => {
+    const result = validateScheduleQuery({ doctor: 'kalinina', from: '0001-01-01', days: '2' })
+    expect(result).toEqual({ valid: true, value: { doctor: 'kalinina', from: '0001-01-01', days: 2 } })
+  })
+
+  it('rejects a schedule window whose exclusive end crosses year 9999', () => {
+    const result = validateScheduleQuery({ doctor: 'odintsov', from: '9999-12-31', days: '1' })
+    expect(result.error.fields).toEqual({ from: 'OUT_OF_RANGE' })
+  })
+
+  it('accepts a fourteen-day window ending within year 9999', () => {
+    const result = validateScheduleQuery({ doctor: 'odintsov', from: '9999-12-17', days: '14' })
+    expect(result).toEqual({ valid: true, value: { doctor: 'odintsov', from: '9999-12-17', days: 14 } })
   })
 
   it.each([
@@ -213,6 +235,24 @@ describe('appointment booking validation', () => {
     expect(result.error.fields).toEqual({ doctorSlug: 'INVALID_FORMAT' })
   })
 
+  it('requires an own appointment type key', () => {
+    const payload = makeBooking({})
+    delete payload.appointmentType
+    const result = validateBooking(payload)
+    expect(result.error.fields).toEqual({ appointmentType: 'REQUIRED' })
+  })
+
+  it.each([
+    ['surrounding whitespace', ' gynecologist'],
+    ['unsafe path', 'gynecologist/../../admin'],
+    ['reserved name', 'constructor'],
+    ['leading digit', '2d-ultrasound'],
+    ['oversized key', `m${'a'.repeat(64)}`],
+  ])('rejects an appointment type with %s', (_label, appointmentType) => {
+    const result = validateBooking(makeBooking({ appointmentType }))
+    expect(result.error.fields).toEqual({ appointmentType: 'INVALID_FORMAT' })
+  })
+
   it('rejects a malformed intent UUID', () => {
     const result = validateBooking(makeBooking({ intentId: '8f14e45f-ea8b-0000-not-a-uuid' }))
     expect(result.error.fields).toEqual({ intentId: 'INVALID_FORMAT' })
@@ -225,6 +265,20 @@ describe('appointment booking validation', () => {
   ])('rejects a timestamp with %s', (_label, dtStart) => {
     const result = validateBooking(makeBooking({ dtStart }))
     expect(result.error.fields).toEqual({ dtStart: 'INVALID_TIMESTAMP' })
+  })
+
+  it.each([
+    ['above year 9999', '9999-12-31T23:00:00-14:00'],
+    ['below year 0001', '0001-01-01T00:00:00+14:00'],
+  ])('rejects a timestamp whose instant crosses %s', (_label, dtStart) => {
+    const result = validateBooking(makeBooking({ dtStart }))
+    expect(result.error.fields.dtStart).toBe('INVALID_TIMESTAMP')
+  })
+
+  it('accepts timestamp instants at the upper canonical year boundary', () => {
+    const payload = makeBooking({ dtStart: '9999-12-31T08:00:00-14:00', dtEnd: '9999-12-31T09:00:00-14:00' })
+    const result = validateBooking(payload)
+    expect(result).toMatchObject({ valid: true, value: { dtStart: '9999-12-31T22:00:00.000Z', dtEnd: '9999-12-31T23:00:00.000Z' } })
   })
 
   it('rejects timestamp fractions beyond millisecond precision', () => {
@@ -334,10 +388,34 @@ describe('appointment booking validation', () => {
     expect(result.error.fields).toEqual({ 'patient.birthday': 'INVALID_DATE' })
   })
 
+  it('rejects Gregorian year zero in a birthday', () => {
+    const patient = { ...VALID_PATIENT, birthday: '0000-12-31' }
+    const result = validateBooking(makeBooking({ patient }))
+    expect(result.error.fields).toEqual({ 'patient.birthday': 'INVALID_DATE' })
+  })
+
+  it('accepts Gregorian year one in a past birthday', () => {
+    const patient = { ...VALID_PATIENT, birthday: '0001-01-01' }
+    const result = validateBooking(makeBooking({ patient }))
+    expect(result).toMatchObject({ valid: true, value: { patient: { birthday: '0001-01-01' } } })
+  })
+
   it('rejects a birthday that is not in the past', () => {
     const patient = { ...VALID_PATIENT, birthday: '2026-08-26' }
     const result = validateBooking(makeBooking({ patient }))
     expect(result.error.fields).toEqual({ 'patient.birthday': 'NOT_PAST' })
+  })
+
+  it('keeps the Moscow current date nonpast before clinic midnight', () => {
+    const patient = { ...VALID_PATIENT, birthday: '2026-08-25' }
+    const result = validateBookingPayload(makeBooking({ patient }), { now: new Date('2026-08-25T20:59:59.000Z') })
+    expect(result.error.fields).toEqual({ 'patient.birthday': 'NOT_PAST' })
+  })
+
+  it('accepts the prior Moscow date at clinic midnight', () => {
+    const patient = { ...VALID_PATIENT, birthday: '2026-08-25' }
+    const result = validateBookingPayload(makeBooking({ patient }), { now: new Date('2026-08-25T21:00:00.000Z') })
+    expect(result).toMatchObject({ valid: true, value: { patient: { birthday: '2026-08-25' } } })
   })
 
   it('rejects an oversized optional comment after trimming', () => {
