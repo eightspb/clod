@@ -5,7 +5,7 @@ const DESKTOP_VIEWPORT = Object.freeze({ width: 1280, height: 900 })
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 const PAGE_ISLAND_SELECTOR = 'main astro-island:not([ssr])'
 const CAROUSEL_SELECTOR = '[data-mobile-doctor-carousel]'
-const LEGACY_DOCTOR_STRIP_SELECTOR = 'main .snap-x.snap-mandatory:has(.doctor-card)'
+const LEGACY_DOCTOR_STRIP_SELECTOR = 'main .overflow-x-auto:has(.doctor-card)'
 const HERO_CAROUSEL_LABEL = 'Карусель маммологов в начале страницы'
 const LOWER_CAROUSEL_LABEL = 'Карусель маммологов клиники'
 const NEXT_DOCTOR_LABEL = 'Следующий врач'
@@ -13,6 +13,7 @@ const KALININA = Object.freeze({ slug: 'kalinina', name: 'Калинина Ир�
 const MAMMOLOGY_DOCTORS = Object.freeze([
   Object.freeze({ slug: 'odintsov', name: 'Одинцов Владислав Александрович', profile: '/doctors/odintsov' }),
   Object.freeze({ slug: 'prikhodko', name: 'Приходько Кирилл Андреевич', profile: '/doctors/prikhodko' }),
+  Object.freeze({ slug: 'macuchov', name: 'Мацухов Алим Суфьянович', profile: '/doctors/macuchov' }),
 ])
 const MOBILE_ROUTES = Object.freeze([
   Object.freeze({ route: '/mammology', carousels: 2 }),
@@ -67,42 +68,54 @@ async function carouselDoctorState(carousel) {
   }))
 }
 
+function mammologySections(page) {
+  const hero = page.locator('main section').filter({ has: page.getByRole('heading', { level: 1 }) }).first()
+  const lower = page.locator('main section').filter({ has: page.getByRole('heading', { level: 2, name: 'Доктора-маммологи клиники', exact: true }) })
+  return { hero, lower }
+}
+
+function mammologyCarousels(page) {
+  const { hero, lower } = mammologySections(page)
+  return { hero: hero.getByRole('region', { name: HERO_CAROUSEL_LABEL, exact: true }), lower: lower.getByRole('region', { name: LOWER_CAROUSEL_LABEL, exact: true }) }
+}
+
 async function mammologyInteractionState(page) {
-  const hero = page.getByRole('region', { name: HERO_CAROUSEL_LABEL })
-  const lower = page.getByRole('region', { name: LOWER_CAROUSEL_LABEL })
+  const { hero, lower } = mammologyCarousels(page)
   const initial = { hero: await carouselDoctorState(hero), lower: await carouselDoctorState(lower) }
-  await hero.getByRole('button', { name: NEXT_DOCTOR_LABEL }).click()
-  await hero.locator(`.mobile-doctor-name[aria-label="${MAMMOLOGY_DOCTORS[1].name}"]`).waitFor()
-  const afterHero = { hero: await carouselDoctorState(hero), lower: await carouselDoctorState(lower) }
   await lower.getByRole('button', { name: NEXT_DOCTOR_LABEL }).click()
   await lower.locator(`.mobile-doctor-name[aria-label="${MAMMOLOGY_DOCTORS[1].name}"]`).waitFor()
-  return { initial, afterHero, afterLower: { hero: await carouselDoctorState(hero), lower: await carouselDoctorState(lower) } }
+  const afterLower = { hero: await carouselDoctorState(hero), lower: await carouselDoctorState(lower) }
+  await hero.getByRole('button', { name: NEXT_DOCTOR_LABEL }).click()
+  await hero.getByRole('button', { name: NEXT_DOCTOR_LABEL }).click()
+  await hero.locator(`.mobile-doctor-name[aria-label="${MAMMOLOGY_DOCTORS[2].name}"]`).waitFor()
+  return { initial, afterLower, afterHero: { hero: await carouselDoctorState(hero), lower: await carouselDoctorState(lower) } }
 }
 
 async function mobileHeroLayout(page) {
-  return page.evaluate((label) => {
+  const { hero, lower } = mammologySections(page)
+  const { hero: carousel, lower: lowerCarousel } = mammologyCarousels(page)
+  const layout = await carousel.evaluate((element) => {
     const header = document.querySelector('header[role="banner"]')?.getBoundingClientRect()
-    const hero = Array.from(document.querySelectorAll('main section')).find((section) => section.querySelector('h1'))
+    const hero = element.closest('section')
     const copy = hero?.querySelector('h1')?.parentElement
-    const carousel = Array.from(document.querySelectorAll('[data-mobile-doctor-carousel]')).find((element) => element.getAttribute('aria-label') === label)
     const heroBox = hero?.getBoundingClientRect()
     const copyBox = copy?.getBoundingClientRect()
-    const carouselBox = carousel?.getBoundingClientRect()
-    return { scrollY: window.scrollY, headerDoesNotOverlap: Boolean(header && heroBox && heroBox.top >= header.bottom), pageFitsViewport: document.documentElement.scrollWidth === window.innerWidth, copyBeforeCarousel: Boolean(copy && carousel && copyBox && carouselBox && (copy.compareDocumentPosition(carousel) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 && carouselBox.top >= copyBox.bottom) }
-  }, HERO_CAROUSEL_LABEL)
+    const carouselBox = element.getBoundingClientRect()
+    return { scrollY: window.scrollY, headerDoesNotOverlap: Boolean(header && heroBox && heroBox.top >= header.bottom), pageFitsViewport: document.documentElement.scrollWidth === window.innerWidth, copyBeforeCarousel: Boolean(copy && copyBox && (copy.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 && carouselBox.top >= copyBox.bottom) }
+  })
+  return { ...layout, heroLegacyCards: await hero.locator('.hero-doctor-card:visible').count(), lowerCarousels: await lowerCarousel.count(), lowerLegacyCards: await lower.locator('.doctor-card:visible').count() }
 }
 
 async function mammologyDesktopState(page) {
-  const hero = page.locator('main section').filter({ has: page.getByRole('heading', { level: 1 }) }).first()
-  const doctors = page.locator('main section').filter({ has: page.getByRole('heading', { level: 2, name: 'Доктора-маммологи клиники' }) })
-  return { mobileCarousels: await page.locator(`${CAROUSEL_SELECTOR}:visible`).count(), heroCards: await hero.locator('.hero-doctor-card:visible').count(), doctorCards: await doctors.locator('.doctor-card:visible').count() }
+  const { hero, lower } = mammologySections(page)
+  return { mobileCarousels: await page.locator(`${CAROUSEL_SELECTOR}:visible`).count(), heroCards: await hero.locator('.hero-doctor-card:visible').count(), doctorCards: await lower.locator('.doctor-card:visible').count() }
 }
 
 async function singleDoctorState(page, sectionHeading) {
   const hero = page.locator('main section').filter({ has: page.getByRole('heading', { level: 1 }) }).first()
   const section = page.locator('main section').filter({ has: page.getByRole('heading', { level: 2, name: sectionHeading }) })
   const card = section.locator('.doctor-card:visible')
-  return { carousels: await page.locator(`main ${CAROUSEL_SELECTOR}:visible`).count(), controls: await page.getByRole('button', { name: /Предыдущий врач|Следующий врач/ }).count(), heroDoctor: await hero.locator('.hero-doctor-card:visible .hero-doctor-name').evaluateAll((elements) => elements[0]?.textContent ?? null), sectionDoctors: await card.count(), sectionDoctor: await card.locator('h3').textContent(), bookingSlug: await card.locator('[data-booking-doctor]').getAttribute('data-booking-doctor'), profileHref: await card.locator(`a[href="${KALININA.profile}"]`).getAttribute('href') }
+  return { carousels: await page.locator(`main ${CAROUSEL_SELECTOR}:visible`).count(), semanticCarousels: await page.locator('main [role="region"][aria-roledescription="carousel"]:visible').count(), controls: await page.getByRole('button', { name: /Предыдущий врач|Следующий врач/ }).count(), heroDoctor: await hero.locator('.hero-doctor-card:visible .hero-doctor-name').evaluateAll((elements) => elements[0]?.textContent ?? null), sectionDoctors: await card.count(), sectionDoctor: await card.locator('h3').textContent(), bookingSlug: await card.locator('[data-booking-doctor]').getAttribute('data-booking-doctor'), profileHref: await card.locator(`a[href="${KALININA.profile}"]`).getAttribute('href') }
 }
 
 for (const { route, carousels } of MOBILE_ROUTES) {
@@ -118,13 +131,14 @@ test('changes the /mammology hero doctor atomically while keeping the lower caro
   const state = await mammologyInteractionState(page)
   const first = MAMMOLOGY_DOCTORS[0]
   const second = MAMMOLOGY_DOCTORS[1]
-  expect(state).toEqual({ initial: { hero: { name: first.name, bookingSlug: first.slug, profileHref: first.profile }, lower: { name: first.name, bookingSlug: first.slug, profileHref: first.profile } }, afterHero: { hero: { name: second.name, bookingSlug: second.slug, profileHref: second.profile }, lower: { name: first.name, bookingSlug: first.slug, profileHref: first.profile } }, afterLower: { hero: { name: second.name, bookingSlug: second.slug, profileHref: second.profile }, lower: { name: second.name, bookingSlug: second.slug, profileHref: second.profile } } })
+  const third = MAMMOLOGY_DOCTORS[2]
+  expect(state).toEqual({ initial: { hero: { name: first.name, bookingSlug: first.slug, profileHref: first.profile }, lower: { name: first.name, bookingSlug: first.slug, profileHref: first.profile } }, afterLower: { hero: { name: first.name, bookingSlug: first.slug, profileHref: first.profile }, lower: { name: second.name, bookingSlug: second.slug, profileHref: second.profile } }, afterHero: { hero: { name: third.name, bookingSlug: third.slug, profileHref: third.profile }, lower: { name: second.name, bookingSlug: second.slug, profileHref: second.profile } } })
 })
 
 test('keeps the /mammology mobile hero below the header and copy without page overflow', async ({ page }) => {
   await visitHydratedRoute(page, '/mammology', MOBILE_VIEWPORT)
   const layout = await mobileHeroLayout(page)
-  expect(layout).toEqual({ scrollY: 0, headerDoesNotOverlap: true, pageFitsViewport: true, copyBeforeCarousel: true })
+  expect(layout).toEqual({ scrollY: 0, headerDoesNotOverlap: true, pageFitsViewport: true, copyBeforeCarousel: true, heroLegacyCards: 0, lowerCarousels: 1, lowerLegacyCards: 0 })
 })
 
 test('keeps the /mammology desktop hero and doctor grid while hiding mobile carousels', async ({ page }) => {
@@ -137,6 +151,6 @@ for (const { route, sectionHeading, heroDoctor } of SINGLE_DOCTOR_ROUTES) {
   test(`keeps ${route} as a control-free single-doctor presentation in its original positions`, async ({ page }) => {
     await visitHydratedRoute(page, route, MOBILE_VIEWPORT)
     const state = await singleDoctorState(page, sectionHeading)
-    expect(state).toEqual({ carousels: 0, controls: 0, heroDoctor, sectionDoctors: 1, sectionDoctor: KALININA.name, bookingSlug: KALININA.slug, profileHref: KALININA.profile })
+    expect(state).toEqual({ carousels: 0, semanticCarousels: 0, controls: 0, heroDoctor, sectionDoctors: 1, sectionDoctor: KALININA.name, bookingSlug: KALININA.slug, profileHref: KALININA.profile })
   })
 }
