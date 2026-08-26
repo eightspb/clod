@@ -103,27 +103,27 @@ Run: `git add src/lib/mango-signature.js src/lib/mango-signature.test.js && git 
 - Create: `src/lib/mango-call-event.js`
 - Create: `src/lib/mango-call-event.test.js`
 
-- [ ] **Step 1: Write failing event-domain tests**
+- [x] **Step 1: Write failing event-domain tests**
 
 Build fixtures from the checked official `events/call` and `events/summary` contracts. Cover `entry_id`, `call_id`, integer `seq`, inbound direction recognition, provisional live states, location/line/operator extraction, Unix timestamp normalization, impossible time ordering, missing caller number, Russian aliases and international E.164 phone normalization, ignored outgoing/internal events, ignored signed events for lines outside `MANGO_INBOUND_LINES`, summary answered/missed decision from `talk_time`, bounded wait/talk durations, finalization, and non-inbound summary cleanup instruction.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `bun run test:run -- src/lib/mango-call-event.test.js`
 
 Expected: FAIL because the event domain does not exist.
 
-- [ ] **Step 3: Implement strict live and summary normalization**
+- [x] **Step 3: Implement strict live and summary normalization**
 
 Expose separate live and summary parsers that return immutable accepted/ignored commands. Reject ambiguous identifiers, negative or overflowing durations, unknown mandatory state, invalid timestamps, and unbounded technical strings. Do not preserve unused provider fields.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun run test:run -- src/lib/mango-call-event.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the MANGO event domain**
+- [x] **Step 5: Commit the MANGO event domain**
 
 Run: `git add src/lib/mango-call-event.js src/lib/mango-call-event.test.js && git commit -m "feat: normalize inbound MANGO events"`
 
