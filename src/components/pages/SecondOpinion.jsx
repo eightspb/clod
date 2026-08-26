@@ -128,7 +128,7 @@ export function SecondOpinion() {
 
         <div className="container-clay relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-[0.618fr_0.382fr] gap-10 lg:gap-16 items-start">
-            <div>
+            <div className="self-start text-left">
               <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                 Сомневаетесь в необходимости операции?{' '}
                 <span className="heading-accent">Перепроверьте заключение</span> у онколога-маммолога

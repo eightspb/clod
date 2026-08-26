@@ -486,12 +486,16 @@
     box-shadow: none;
   }
   .hero-doctor-photo-link {
-    display: block;
+    display: flex;
+    align-items: flex-end;
+    height: 22.5rem;
     background: transparent;
   }
   .hero-doctor-photo {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
     display: block;
   }
   .hero-doctor-info {

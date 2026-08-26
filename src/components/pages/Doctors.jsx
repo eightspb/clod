@@ -79,7 +79,7 @@ export function Doctors() {
           <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
           <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-12 items-center">
-              <div className="max-w-3xl">
+              <div className="max-w-3xl self-start text-left">
                 <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
                   <HeartPulse size={14} aria-hidden="true" />
                   Команда специалистов

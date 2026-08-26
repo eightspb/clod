@@ -141,35 +141,20 @@ describe('Home hero slider', () => {
     window.localStorage.clear()
   })
 
-  it('starts paused for reduced motion and resumes only after an explicit click', async () => {
+  it('automatically advances hero slides when motion is allowed', async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: mockMatchMedia(false),
+    })
     await act(async () => {
       render(<Home doctorsData={[]} />)
     })
-
-    const control = screen.getByRole('button', { name: /возобновить автопрокрутку/i })
-    const heading = screen.getByRole('heading', { level: 1 })
-
-    expect(control).toBeInTheDocument()
-    expect(control).toHaveAttribute('aria-pressed', 'true')
-    expect(heading).toHaveTextContent(/медицинский маршрут/i)
-
+    const initial = screen.getByRole('heading', { level: 1 }).textContent
     await act(async () => {
       vi.advanceTimersByTime(12000)
     })
-
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/медицинский маршрут/i)
-
-    await act(async () => {
-      fireEvent.click(control)
-    })
-
-    expect(screen.getByRole('button', { name: /пауза слайдов/i })).toHaveAttribute('aria-pressed', 'false')
-
-    await act(async () => {
-      vi.advanceTimersByTime(12000)
-    })
-
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/ваб под уз-контролем/i)
+    const afterTimer = screen.getByRole('heading', { level: 1 }).textContent
+    expect({ initial, afterTimer }).toEqual({ initial: expect.stringMatching(/медицинский маршрут/i), afterTimer: expect.stringMatching(/ваб под уз-контролем/i) })
   })
 
   it('keeps the root font size unchanged when the hero overflows', async () => {
@@ -202,6 +187,18 @@ describe('Home hero slider', () => {
     const carousel = screen.getByRole('region', { name: /главный слайдер/i })
 
     expect(within(carousel).queryByRole('navigation', { name: /быстрый выбор направления/i })).not.toBeInTheDocument()
+  })
+
+  it('keeps slide content unchanged while switching', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    await act(async () => {
+      render(<Home doctorsData={[]} />)
+    })
+    const carousel = screen.getByRole('region', { name: /главный слайдер/i })
+    const initialDoctor = carousel.querySelector('.hero-doctor-photo-link').getAttribute('href')
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: /следующий слайд/i })))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: /предыдущий слайд/i })))
+    expect(carousel.querySelector('.hero-doctor-photo-link').getAttribute('href')).toBe(initialDoctor)
   })
 
   it('does not duplicate booking actions inside doctor preview cards', async () => {

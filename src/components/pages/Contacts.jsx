@@ -54,7 +54,7 @@ export function Contacts() {
 
       <section className="pt-6 pb-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl self-start text-left">
             <h1 className="text-4xl sm:text-5xl heading-display text-clay-dark leading-tight mb-4 speakable">
               Контакты клиники в Санкт-Петербурге
             </h1>

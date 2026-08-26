@@ -138,7 +138,7 @@ export function About() {
       <section className="relative overflow-hidden pt-6 pb-10">
         <div className="container-clay relative z-10">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-            <div className="max-w-3xl">
+            <div className="max-w-3xl self-start text-left">
               <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
                 О клинике{' '}
                 <span className="heading-accent">Одинцова</span>

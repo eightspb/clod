@@ -1,14 +1,15 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award } from 'lucide-react'
 import { StarRating } from '../StarRating.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 
 const HERO_AUTOPLAY_INTERVAL = 12000
 const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
-
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
+const HERO_DOCTORS = [
+  DOCTORS.find(d => d.slug === 'odintsov') || DOCTORS[0],
+  MAMMOLOGISTS[0],
+  DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
+]
 
 const heroSlides = [
   {
@@ -34,102 +35,39 @@ const heroSlides = [
   },
 ]
 
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
-
 export function HeroSlider() {
   const [activeSlide, setActiveSlide] = useState(0)
-  const [sliderHeight, setSliderHeight] = useState(0)
-  const slideRefs = useRef([])
-  const [heroDoctor, setHeroDoctor] = useState({
-    0: DOCTORS.find(d => d.slug === 'odintsov') || DOCTORS[0],
-    1: MAMMOLOGISTS[0],
-    2: DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
-  })
-  const [isAutoplayPaused, setIsAutoplayPaused] = useState(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return false
-    }
+  const [isAutoplayDisabled, setIsAutoplayDisabled] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches
   })
-  useIsomorphicLayoutEffect(() => {
-    function updateHeight() {
-      const heights = slideRefs.current
-        .map((slide) => slide?.offsetHeight ?? 0)
-        .filter((height) => height > 0)
-      if (heights.length === 0) return
-      const maxHeight = Math.max(...heights)
-      setSliderHeight((prevHeight) => (prevHeight === maxHeight ? prevHeight : maxHeight))
-    }
-    const frameId = window.requestAnimationFrame(updateHeight)
-    const resizeObserver = new ResizeObserver(updateHeight)
-    slideRefs.current.forEach((slide) => slide && resizeObserver.observe(slide))
-    updateHeight()
-    window.addEventListener('resize', updateHeight)
-    return () => {
-      window.cancelAnimationFrame(frameId)
-      resizeObserver.disconnect()
-      window.removeEventListener('resize', updateHeight)
-    }
-  }, [])
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const handleChange = (event) => {
-      if (event.matches) {
-        setIsAutoplayPaused(true)
-      }
-    }
+    const updateAutoplay = (event) => setIsAutoplayDisabled(event.matches)
     if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', handleChange)
+      mediaQuery.addEventListener('change', updateAutoplay)
     } else if (typeof mediaQuery.addListener === 'function') {
-      mediaQuery.addListener(handleChange)
+      mediaQuery.addListener(updateAutoplay)
     }
     return () => {
       if (typeof mediaQuery.removeEventListener === 'function') {
-        mediaQuery.removeEventListener('change', handleChange)
+        mediaQuery.removeEventListener('change', updateAutoplay)
       } else if (typeof mediaQuery.removeListener === 'function') {
-        mediaQuery.removeListener(handleChange)
+        mediaQuery.removeListener(updateAutoplay)
       }
     }
   }, [])
   useEffect(() => {
-    if (isAutoplayPaused) return undefined
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => {
-        const next = (prev + 1) % heroSlides.length
-        setHeroDoctor(old => ({
-          ...old,
-          0: pickRandom(DOCTORS),
-          1: pickRandom(MAMMOLOGISTS),
-        }))
-        return next
-      })
-    }, HERO_AUTOPLAY_INTERVAL)
+    if (isAutoplayDisabled) return undefined
+    const timer = setInterval(() => setActiveSlide((prev) => (prev + 1) % heroSlides.length), HERO_AUTOPLAY_INTERVAL)
     return () => clearInterval(timer)
-  }, [isAutoplayPaused])
-  function goToSlide(idx) {
-    setActiveSlide(idx)
-    setHeroDoctor(old => ({
-      ...old,
-      0: pickRandom(DOCTORS),
-      1: pickRandom(MAMMOLOGISTS),
-    }))
-  }
+  }, [isAutoplayDisabled])
   function prevSlide() {
     setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
-    setHeroDoctor(old => ({
-      ...old,
-      0: pickRandom(DOCTORS),
-      1: pickRandom(MAMMOLOGISTS),
-    }))
   }
   function nextSlide() {
     setActiveSlide((prev) => (prev + 1) % heroSlides.length)
-    setHeroDoctor(old => ({
-      ...old,
-      0: pickRandom(DOCTORS),
-      1: pickRandom(MAMMOLOGISTS),
-    }))
   }
   return (
     <section
@@ -140,36 +78,31 @@ export function HeroSlider() {
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
       <div className="container-clay relative z-10 py-8 md:py-12 lg:py-16">
         <div
-          className="relative"
+          className="grid"
           aria-live="polite"
           aria-atomic="false"
-          style={{ minHeight: sliderHeight > 0 ? `${sliderHeight}px` : undefined }}
         >
           {heroSlides.map((slide, idx) => {
             const isActive = activeSlide === idx
+            const doctor = HERO_DOCTORS[idx]
             return (
             <div
               key={idx}
-              ref={(el) => { slideRefs.current[idx] = el }}
               role="group"
               aria-roledescription="slide"
               aria-label={`Слайд ${idx + 1} из ${heroSlides.length}`}
               aria-hidden={!isActive}
-              className="transition-all duration-[800ms] ease-out"
+              className="col-start-1 row-start-1 transition-all duration-[800ms] ease-out"
               style={{
                 opacity: isActive ? 1 : 0,
                 transform: isActive ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.98)',
                 filter: isActive ? 'blur(0px)' : 'blur(4px)',
-                position: !isActive || sliderHeight > 0 ? 'absolute' : 'relative',
-                top: 0,
-                left: 0,
-                width: '100%',
                 pointerEvents: isActive ? 'auto' : 'none',
                 visibility: isActive ? 'visible' : 'hidden',
               }}
             >
               <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-14 items-center">
-                <div className="max-w-3xl">
+                <div className="max-w-3xl self-start text-left">
                   <div className="mb-5">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
                       <CheckCircle size={12} />
@@ -199,12 +132,12 @@ export function HeroSlider() {
                   </div>
                 </div>
                 <div className="hero-doctor-card hidden lg:block">
-                  {heroDoctor[idx] && (
+                  {doctor && (
                     <div className="clay clay-card hero-doctor-card-inner">
-                      <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-photo-link group">
+                      <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
                         <img
-                          src={heroDoctor[idx].photoFull || `/images/doctors/${heroDoctor[idx].slug}.webp`}
-                          alt={heroDoctor[idx].name}
+                          src={doctor.photoFull || `/images/doctors/${doctor.slug}.webp`}
+                          alt={doctor.name}
                           width={280}
                           height={380}
                           className="hero-doctor-photo"
@@ -212,29 +145,29 @@ export function HeroSlider() {
                         />
                       </a>
                       <div className="hero-doctor-info">
-                        <a href={`/doctors/${heroDoctor[idx].slug}`} className="hero-doctor-name-link group">
-                          <p className="hero-doctor-name">{heroDoctor[idx].name}</p>
+                        <a href={`/doctors/${doctor.slug}`} className="hero-doctor-name-link group">
+                          <p className="hero-doctor-name">{doctor.name}</p>
                         </a>
-                        <p className="hero-doctor-spec">{heroDoctor[idx].specialization}</p>
+                        <p className="hero-doctor-spec">{doctor.specialization}</p>
                         <div className="hero-doctor-meta">
-                          {heroDoctor[idx].experienceYears && (
+                          {doctor.experienceYears && (
                             <span className="hero-doctor-experience">
                               <Award size={14} />
-                              Стаж {heroDoctor[idx].experienceYears} лет
+                              Стаж {doctor.experienceYears} лет
                             </span>
                           )}
-                          {heroDoctor[idx].proDoctorovRating && (
+                          {doctor.proDoctorovRating && (
                             <StarRating
-                              score={heroDoctor[idx].proDoctorovRating.score}
-                              reviewCount={heroDoctor[idx].proDoctorovRating.reviewCount}
-                              url={heroDoctor[idx].proDoctorovUrl}
+                              score={doctor.proDoctorovRating.score}
+                              reviewCount={doctor.proDoctorovRating.reviewCount}
+                              url={doctor.proDoctorovUrl}
                               size={14}
                               variant="compact"
                             />
                           )}
                         </div>
                         <a
-                          href={`/doctors/${heroDoctor[idx].slug}`}
+                          href={`/doctors/${doctor.slug}`}
                           className="btn-clay-secondary hero-doctor-cta"
                         >
                           Профиль врача
@@ -249,51 +182,21 @@ export function HeroSlider() {
             )
           })}
         </div>
-        <div className="flex justify-center items-center gap-2.5 mt-8" role="group" aria-label="Навигация по слайдам">
-          {heroSlides.map((_, idx) => (
-            <button
-              type="button"
-              key={idx}
-              onClick={() => goToSlide(idx)}
-              aria-label={`Перейти к слайду ${idx + 1}`}
-              aria-current={activeSlide === idx ? 'true' : undefined}
-              className="p-1.5 transition-all duration-300"
-            >
-              <span
-                className="rounded-full block transition-all duration-300"
-                style={{
-                  width: activeSlide === idx ? '28px' : '8px',
-                  height: '8px',
-                  background: activeSlide === idx ? 'var(--accent)' : 'rgba(27,107,90,0.22)',
-                }}
-              />
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-center items-center gap-3 mt-3">
+        <div className="flex justify-center items-center gap-3 mt-8 lg:mt-0">
           <button
             type="button"
             onClick={prevSlide}
-            className="rounded-full flex items-center justify-center transition-colors"
-            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
+            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:left-0 lg:-translate-y-1/2 xl:-left-3"
+            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
             aria-label="Предыдущий слайд"
           >
             <ChevronLeft size={14} className="text-clay-mint" />
           </button>
           <button
             type="button"
-            onClick={() => setIsAutoplayPaused((current) => !current)}
-            className="rounded-full px-3 py-1.5 text-xs font-semibold transition-colors bg-gray-50 text-gray-700"
-            style={{ minHeight: '44px' }}
-            aria-pressed={isAutoplayPaused}
-          >
-            {isAutoplayPaused ? 'Возобновить автопрокрутку' : 'Пауза слайдов'}
-          </button>
-          <button
-            type="button"
             onClick={nextSlide}
-            className="rounded-full flex items-center justify-center transition-colors"
-            style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
+            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:-translate-y-1/2 xl:-right-3"
+            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
             aria-label="Следующий слайд"
           >
             <ChevronRight size={14} className="text-clay-mint" />
