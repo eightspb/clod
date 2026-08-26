@@ -55,6 +55,7 @@ output/
 .playwright-cli/
 
 # Local tool state
+.worktrees/
 .cursor/*.log
 graphify-out/
 .superpowers/
