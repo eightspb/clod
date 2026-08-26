@@ -70,6 +70,46 @@ const medflexDoctorLinkTableStatement = `CREATE TABLE IF NOT EXISTS MedflexDocto
     active INTEGER NOT NULL,
     syncedAt TEXT NOT NULL
   )`
+const mangoCallTableStatement = `CREATE TABLE IF NOT EXISTS MangoCall (
+    entryId TEXT PRIMARY KEY,
+    patientId TEXT,
+    status TEXT NOT NULL,
+    callerCiphertext TEXT,
+    callerMask TEXT,
+    callerFingerprint TEXT,
+    repeatCaller INTEGER,
+    lineNumber TEXT NOT NULL,
+    operatorExtension TEXT,
+    startedAt TEXT NOT NULL,
+    forwardedAt TEXT,
+    answeredAt TEXT,
+    endedAt TEXT,
+    waitSeconds INTEGER,
+    talkSeconds INTEGER,
+    disconnectReason TEXT,
+    finalizedAt TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const mangoCallLegTableStatement = `CREATE TABLE IF NOT EXISTS MangoCallLeg (
+    callId TEXT PRIMARY KEY,
+    entryId TEXT NOT NULL,
+    maxSeq INTEGER NOT NULL,
+    state TEXT NOT NULL,
+    location TEXT,
+    extension TEXT,
+    eventAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )`
+const mangoCallAccessTableStatement = `CREATE TABLE IF NOT EXISTS MangoCallAccess (
+    id TEXT PRIMARY KEY,
+    entryId TEXT NOT NULL,
+    action TEXT NOT NULL,
+    actor TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  )`
 
 const statements = [
   `CREATE TABLE IF NOT EXISTS Doctor (
@@ -155,6 +195,19 @@ const statements = [
   medflexDoctorLinkTableStatement,
   'CREATE INDEX IF NOT EXISTS MedflexDoctorLink_localDoctorId_idx ON MedflexDoctorLink(localDoctorId)',
   'CREATE INDEX IF NOT EXISTS MedflexDoctorLink_active_idx ON MedflexDoctorLink(active)',
+  mangoCallTableStatement,
+  'CREATE INDEX IF NOT EXISTS MangoCall_startedAt_idx ON MangoCall(startedAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCall_status_startedAt_idx ON MangoCall(status, startedAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCall_patientId_startedAt_idx ON MangoCall(patientId, startedAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCall_callerFingerprint_startedAt_idx ON MangoCall(callerFingerprint, startedAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCall_lineNumber_startedAt_idx ON MangoCall(lineNumber, startedAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCall_operatorExtension_startedAt_idx ON MangoCall(operatorExtension, startedAt)',
+  mangoCallLegTableStatement,
+  'CREATE INDEX IF NOT EXISTS MangoCallLeg_entryId_idx ON MangoCallLeg(entryId)',
+  'CREATE INDEX IF NOT EXISTS MangoCallLeg_state_eventAt_idx ON MangoCallLeg(state, eventAt)',
+  'CREATE INDEX IF NOT EXISTS MangoCallLeg_extension_eventAt_idx ON MangoCallLeg(extension, eventAt)',
+  mangoCallAccessTableStatement,
+  'CREATE INDEX IF NOT EXISTS MangoCallAccess_entryId_createdAt_idx ON MangoCallAccess(entryId, createdAt)',
 ]
 
 const bookingIntentColumns = [
@@ -254,6 +307,65 @@ const medflexDoctorLinkIndexes = [
   { name: 'MedflexDoctorLink_active_idx', unique: 0, origin: 'c', partial: 0, columns: ['active'], collations: ['BINARY'], descending: [0] },
   { name: 'MedflexDoctorLink_localDoctorId_idx', unique: 0, origin: 'c', partial: 0, columns: ['localDoctorId'], collations: ['BINARY'], descending: [0] },
 ]
+const mangoCallColumns = [
+  ['entryId', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 0, null, 0],
+  ['status', 'TEXT', 1, null, 0],
+  ['callerCiphertext', 'TEXT', 0, null, 0],
+  ['callerMask', 'TEXT', 0, null, 0],
+  ['callerFingerprint', 'TEXT', 0, null, 0],
+  ['repeatCaller', 'INTEGER', 0, null, 0],
+  ['lineNumber', 'TEXT', 1, null, 0],
+  ['operatorExtension', 'TEXT', 0, null, 0],
+  ['startedAt', 'TEXT', 1, null, 0],
+  ['forwardedAt', 'TEXT', 0, null, 0],
+  ['answeredAt', 'TEXT', 0, null, 0],
+  ['endedAt', 'TEXT', 0, null, 0],
+  ['waitSeconds', 'INTEGER', 0, null, 0],
+  ['talkSeconds', 'INTEGER', 0, null, 0],
+  ['disconnectReason', 'TEXT', 0, null, 0],
+  ['finalizedAt', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const mangoCallIndexes = [
+  { name: 'MangoCall_callerFingerprint_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['callerFingerprint', 'startedAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'MangoCall_lineNumber_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lineNumber', 'startedAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'MangoCall_operatorExtension_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['operatorExtension', 'startedAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'MangoCall_patientId_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId', 'startedAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'MangoCall_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['startedAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'MangoCall_status_startedAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['status', 'startedAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'sqlite_autoindex_MangoCall_1', unique: 1, origin: 'pk', partial: 0, columns: ['entryId'], collations: ['BINARY'], descending: [0] },
+]
+const mangoCallLegColumns = [
+  ['callId', 'TEXT', 0, null, 1],
+  ['entryId', 'TEXT', 1, null, 0],
+  ['maxSeq', 'INTEGER', 1, null, 0],
+  ['state', 'TEXT', 1, null, 0],
+  ['location', 'TEXT', 0, null, 0],
+  ['extension', 'TEXT', 0, null, 0],
+  ['eventAt', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+]
+const mangoCallLegIndexes = [
+  { name: 'MangoCallLeg_entryId_idx', unique: 0, origin: 'c', partial: 0, columns: ['entryId'], collations: ['BINARY'], descending: [0] },
+  { name: 'MangoCallLeg_extension_eventAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['extension', 'eventAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'MangoCallLeg_state_eventAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['state', 'eventAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'sqlite_autoindex_MangoCallLeg_1', unique: 1, origin: 'pk', partial: 0, columns: ['callId'], collations: ['BINARY'], descending: [0] },
+]
+const mangoCallAccessColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['entryId', 'TEXT', 1, null, 0],
+  ['action', 'TEXT', 1, null, 0],
+  ['actor', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+]
+const mangoCallAccessIndexes = [
+  { name: 'MangoCallAccess_entryId_createdAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['entryId', 'createdAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'sqlite_autoindex_MangoCallAccess_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
 
 function canonicalSchemaSql(value) {
   if (typeof value !== 'string') return ''
@@ -266,6 +378,9 @@ const clinicSchemas = [
   { name: 'PatientAccess', statement: patientAccessTableStatement, columns: patientAccessColumns, indexes: patientAccessIndexes },
   { name: 'Appointment', statement: appointmentTableStatement, columns: appointmentColumns, indexes: appointmentIndexes },
   { name: 'MedflexDoctorLink', statement: medflexDoctorLinkTableStatement, columns: medflexDoctorLinkColumns, indexes: medflexDoctorLinkIndexes },
+  { name: 'MangoCall', statement: mangoCallTableStatement, columns: mangoCallColumns, indexes: mangoCallIndexes },
+  { name: 'MangoCallLeg', statement: mangoCallLegTableStatement, columns: mangoCallLegColumns, indexes: mangoCallLegIndexes },
+  { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes },
 ]
 
 async function verifySchema(database, schema) {

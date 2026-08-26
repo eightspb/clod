@@ -197,6 +197,71 @@ const MedflexDoctorLink = defineTable({
   ],
 });
 
+const MangoCall = defineTable({
+  columns: {
+    entryId: column.text({ primaryKey: true }),
+    patientId: column.text({ optional: true }),
+    status: column.text({ enum: ['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'] }),
+    callerCiphertext: column.text({ optional: true }),
+    callerMask: column.text({ optional: true }),
+    callerFingerprint: column.text({ optional: true }),
+    repeatCaller: column.boolean({ optional: true }),
+    lineNumber: column.text(),
+    operatorExtension: column.text({ optional: true }),
+    startedAt: column.text(),
+    forwardedAt: column.text({ optional: true }),
+    answeredAt: column.text({ optional: true }),
+    endedAt: column.text({ optional: true }),
+    waitSeconds: column.number({ optional: true }),
+    talkSeconds: column.number({ optional: true }),
+    disconnectReason: column.text({ optional: true }),
+    finalizedAt: column.text({ optional: true }),
+    createdAt: column.text(),
+    updatedAt: column.text(),
+    piiDestroyedAt: column.text({ optional: true }),
+  },
+  indexes: [
+    { name: 'MangoCall_startedAt_idx', on: 'startedAt' },
+    { name: 'MangoCall_status_startedAt_idx', on: ['status', 'startedAt'] },
+    { name: 'MangoCall_patientId_startedAt_idx', on: ['patientId', 'startedAt'] },
+    { name: 'MangoCall_callerFingerprint_startedAt_idx', on: ['callerFingerprint', 'startedAt'] },
+    { name: 'MangoCall_lineNumber_startedAt_idx', on: ['lineNumber', 'startedAt'] },
+    { name: 'MangoCall_operatorExtension_startedAt_idx', on: ['operatorExtension', 'startedAt'] },
+  ],
+});
+
+const MangoCallLeg = defineTable({
+  columns: {
+    callId: column.text({ primaryKey: true }),
+    entryId: column.text(),
+    maxSeq: column.number(),
+    state: column.text({ enum: ['ringing', 'queued', 'connected', 'on_hold', 'finalizing'] }),
+    location: column.text({ optional: true }),
+    extension: column.text({ optional: true }),
+    eventAt: column.text(),
+    createdAt: column.text(),
+    updatedAt: column.text(),
+  },
+  indexes: [
+    { name: 'MangoCallLeg_entryId_idx', on: 'entryId' },
+    { name: 'MangoCallLeg_state_eventAt_idx', on: ['state', 'eventAt'] },
+    { name: 'MangoCallLeg_extension_eventAt_idx', on: ['extension', 'eventAt'] },
+  ],
+});
+
+const MangoCallAccess = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    entryId: column.text(),
+    action: column.text({ enum: ['reveal', 'destroy'] }),
+    actor: column.text(),
+    createdAt: column.text(),
+  },
+  indexes: [
+    { name: 'MangoCallAccess_entryId_createdAt_idx', on: ['entryId', 'createdAt'] },
+  ],
+});
+
 export default defineDb({
-  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog, BookingIntent, Patient, PatientAccess, Appointment, MedflexDoctorLink }
+  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog, BookingIntent, Patient, PatientAccess, Appointment, MedflexDoctorLink, MangoCall, MangoCallLeg, MangoCallAccess }
 });

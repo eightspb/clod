@@ -23,7 +23,7 @@ import { pathToFileURL } from 'node:url'
 import { resolveDbConfig } from './node_modules/@astrojs/db/dist/core/load-file.js'
 import { getCreateIndexQueries, getCreateTableQuery } from './node_modules/@astrojs/db/dist/core/queries.js'
 const { dbConfig } = await resolveDbConfig({ root: pathToFileURL(process.cwd() + '/'), integrations: [] })
-const names = ['Patient', 'PatientAccess', 'Appointment', 'MedflexDoctorLink']
+const names = ['Patient', 'PatientAccess', 'Appointment', 'MedflexDoctorLink', 'MangoCall', 'MangoCallLeg', 'MangoCallAccess']
 const queries = names.flatMap((name) => dbConfig.tables[name] ? [getCreateTableQuery(name, dbConfig.tables[name]), ...getCreateIndexQueries(name, dbConfig.tables[name])] : [])
 process.stdout.write(JSON.stringify(queries))
 `
@@ -167,6 +167,71 @@ const EXPECTED_CLINIC_SCHEMA = Object.freeze({
     indexes: Object.freeze({
       MedflexDoctorLink_localDoctorId_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['localDoctorId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
       MedflexDoctorLink_active_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['active']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+    }),
+  }),
+  MangoCall: Object.freeze({
+    columns: Object.freeze([
+      ['entryId', 'TEXT', 0, 1],
+      ['patientId', 'TEXT', 0, 0],
+      ['status', 'TEXT', 1, 0],
+      ['callerCiphertext', 'TEXT', 0, 0],
+      ['callerMask', 'TEXT', 0, 0],
+      ['callerFingerprint', 'TEXT', 0, 0],
+      ['repeatCaller', 'INTEGER', 0, 0],
+      ['lineNumber', 'TEXT', 1, 0],
+      ['operatorExtension', 'TEXT', 0, 0],
+      ['startedAt', 'TEXT', 1, 0],
+      ['forwardedAt', 'TEXT', 0, 0],
+      ['answeredAt', 'TEXT', 0, 0],
+      ['endedAt', 'TEXT', 0, 0],
+      ['waitSeconds', 'INTEGER', 0, 0],
+      ['talkSeconds', 'INTEGER', 0, 0],
+      ['disconnectReason', 'TEXT', 0, 0],
+      ['finalizedAt', 'TEXT', 0, 0],
+      ['createdAt', 'TEXT', 1, 0],
+      ['updatedAt', 'TEXT', 1, 0],
+      ['piiDestroyedAt', 'TEXT', 0, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_MangoCall_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['entryId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MangoCall_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['startedAt']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MangoCall_status_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['status', 'startedAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      MangoCall_patientId_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['patientId', 'startedAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      MangoCall_callerFingerprint_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['callerFingerprint', 'startedAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      MangoCall_lineNumber_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['lineNumber', 'startedAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      MangoCall_operatorExtension_startedAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['operatorExtension', 'startedAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+    }),
+  }),
+  MangoCallLeg: Object.freeze({
+    columns: Object.freeze([
+      ['callId', 'TEXT', 0, 1],
+      ['entryId', 'TEXT', 1, 0],
+      ['maxSeq', 'INTEGER', 1, 0],
+      ['state', 'TEXT', 1, 0],
+      ['location', 'TEXT', 0, 0],
+      ['extension', 'TEXT', 0, 0],
+      ['eventAt', 'TEXT', 1, 0],
+      ['createdAt', 'TEXT', 1, 0],
+      ['updatedAt', 'TEXT', 1, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_MangoCallLeg_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['callId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MangoCallLeg_entryId_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['entryId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MangoCallLeg_state_eventAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['state', 'eventAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+      MangoCallLeg_extension_eventAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['extension', 'eventAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
+    }),
+  }),
+  MangoCallAccess: Object.freeze({
+    columns: Object.freeze([
+      ['id', 'TEXT', 0, 1],
+      ['entryId', 'TEXT', 1, 0],
+      ['action', 'TEXT', 1, 0],
+      ['actor', 'TEXT', 1, 0],
+      ['createdAt', 'TEXT', 1, 0],
+    ]),
+    indexes: Object.freeze({
+      sqlite_autoindex_MangoCallAccess_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      MangoCallAccess_entryId_createdAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['entryId', 'createdAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
     }),
   }),
 })
@@ -332,6 +397,20 @@ describe('booking intent production migration', () => {
     const sentinel = await client.execute({ sql: 'SELECT name FROM Doctor WHERE id = ?', args: [SENTINEL_ID] })
     client.close()
     expect({ failed: failure.failed, appointmentTables: appointment.rows.length, sentinel: sentinel.rows[0]?.name }).toEqual({ failed: true, appointmentTables: 0, sentinel: 'Доктор Наследие' })
+  })
+
+  it('fails closed without creating companion tables when a partial MangoCall schema exists', async () => {
+    const path = await databasePath('clod-migration-mango-incompatible-')
+    await createLegacyDatabase(path)
+    const first = await open(path)
+    await first.execute('CREATE TABLE MangoCall (entryId TEXT PRIMARY KEY)')
+    first.close()
+    const failure = await migrationFailure(path)
+    const client = await open(path)
+    const legs = await client.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('MangoCallLeg', 'MangoCallAccess')")
+    const sentinel = await client.execute({ sql: 'SELECT name FROM Doctor WHERE id = ?', args: [SENTINEL_ID] })
+    client.close()
+    expect({ failed: failure.failed, companionTables: legs.rows.length, sentinel: sentinel.rows[0]?.name }).toEqual({ failed: true, companionTables: 0, sentinel: 'Доктор Наследие' })
   })
 
   it('migrates a populated database twice without changing legacy data or schema invariants', async () => {

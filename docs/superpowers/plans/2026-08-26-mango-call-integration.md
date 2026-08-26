@@ -43,27 +43,27 @@
 - Modify: `scripts/init-db.mjs`
 - Modify: `src/test/appointment-database-migration.test.js`
 
-- [ ] **Step 1: Write failing schema-contract tests**
+- [x] **Step 1: Write failing schema-contract tests**
 
 Add strict expectations for `MangoCall`, `MangoCallLeg`, and `MangoCallAccess`, including nullable caller PII after destruction, primary/unique identifiers, optional patient links, sequence/finalization fields, integer durations, and indexes for time/status/patient/fingerprint/line/operator.
 
-- [ ] **Step 2: Run the migration test and verify RED**
+- [x] **Step 2: Run the migration test and verify RED**
 
 Run: `bun run test:run -- src/test/appointment-database-migration.test.js`
 
 Expected: FAIL because MANGO tables are absent.
 
-- [ ] **Step 3: Implement additive tables and verification**
+- [x] **Step 3: Implement additive tables and verification**
 
 Add the three Astro DB tables and repeatable libSQL migration statements without modifying existing patient, appointment, booking, or analytics rows. Extend strict schema verification to reject partially compatible MANGO tables.
 
-- [ ] **Step 4: Run the migration test and verify GREEN**
+- [x] **Step 4: Run the migration test and verify GREEN**
 
 Run: `bun run test:run -- src/test/appointment-database-migration.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit MANGO schema**
+- [x] **Step 5: Commit MANGO schema**
 
 Run: `git add db/config.ts scripts/init-db.mjs src/test/appointment-database-migration.test.js && git commit -m "feat: add MANGO call schema"`
 
