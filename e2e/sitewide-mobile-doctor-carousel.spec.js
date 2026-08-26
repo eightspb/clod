@@ -94,15 +94,16 @@ async function mammologyInteractionState(page) {
 async function mobileHeroLayout(page) {
   const { hero, lower } = mammologySections(page)
   const { hero: carousel, lower: lowerCarousel } = mammologyCarousels(page)
-  const layout = await carousel.evaluate((element) => {
+  await carousel.waitFor()
+  const layout = await hero.evaluate((element, label) => {
     const header = document.querySelector('header[role="banner"]')?.getBoundingClientRect()
-    const hero = element.closest('section')
-    const copy = hero?.querySelector('h1')?.parentElement
-    const heroBox = hero?.getBoundingClientRect()
+    const copy = element.querySelector('h1')?.parentElement
+    const carousel = Array.from(element.querySelectorAll('[data-mobile-doctor-carousel]')).find((candidate) => candidate.getAttribute('aria-label') === label)
+    const heroBox = element.getBoundingClientRect()
     const copyBox = copy?.getBoundingClientRect()
-    const carouselBox = element.getBoundingClientRect()
-    return { scrollY: window.scrollY, headerDoesNotOverlap: Boolean(header && heroBox && heroBox.top >= header.bottom), pageFitsViewport: document.documentElement.scrollWidth === window.innerWidth, copyBeforeCarousel: Boolean(copy && copyBox && (copy.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 && carouselBox.top >= copyBox.bottom) }
-  })
+    const carouselBox = carousel?.getBoundingClientRect()
+    return { scrollY: window.scrollY, headerDoesNotOverlap: Boolean(header && heroBox.top >= header.bottom), pageFitsViewport: document.documentElement.scrollWidth === window.innerWidth, copyBeforeCarousel: Boolean(copy && carousel && copyBox && carouselBox && (copy.compareDocumentPosition(carousel) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 && carouselBox.top >= copyBox.bottom) }
+  }, HERO_CAROUSEL_LABEL)
   return { ...layout, heroLegacyCards: await hero.locator('.hero-doctor-card:visible').count(), lowerCarousels: await lowerCarousel.count(), lowerLegacyCards: await lower.locator('.doctor-card:visible').count() }
 }
 
