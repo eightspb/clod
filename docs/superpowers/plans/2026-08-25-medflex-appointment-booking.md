@@ -130,27 +130,42 @@
 **Files:**
 
 - Modify `db/config.ts`
+- Modify `scripts/init-db.mjs`
+- Modify `docker-entrypoint.sh`
+- Modify `.env.example`
+- Modify `README.md`
 - Create `src/lib/appointment-intents.js`
 - Create `src/lib/appointment-intents.test.js`
+- Create `src/test/appointment-database-migration.test.js`
+- Create `src/test/fixtures/appointment-intent-race-worker.mjs`
 
 **Red:**
 
-- Add failing tests for atomic intent claiming, concurrent duplicate attempts, confirmed-result replay, failed-slot retry, uncertain timeout state, expiration, and history reconciliation.
+- Add failing tests for atomic intent claiming, concurrent duplicate attempts, confirmed-result replay, failed-slot retry, uncertain timeout state, pending-lease expiration to uncertain without reclaim or record retirement, and history reconciliation.
 - Verify that stored intent data excludes names, phone numbers, birthdays, comments, and raw Medflex responses.
+- Verify that full replay and reconciliation require the exact stored intent identifier, fingerprint, and trusted scope, while a fingerprint match under another identifier returns the same generic detail-free duplicate state for every stored status.
+- Verify that an exact identifier is resolved before bounded fingerprint recovery so crowding one slot cannot block its confirmed replay or uncertain reconciliation.
+- Add a real temporary-SQLite migration test proving that an existing database keeps its data, receives the new table and indexes, and tolerates repeated startup migration.
+- Exercise acquire and reconciliation races from independent worker threads released through a shared start barrier.
 
 **Green:**
 
 - Add the minimum Astro DB table and focused repository needed for pending, confirmed, uncertain, and failed intent states.
 - Use an irreversible request fingerprint for duplicate detection without retaining the patient form.
-- Make state transitions explicit and reject invalid transitions.
+- Protect paid-attempt ownership with a fencing token and make every state transition an atomic compare-and-swap that rejects stale or invalid transitions.
+- Use a dedicated runtime HMAC secret for versioned request fingerprints and document it without adding a real credential.
+- Run the additive idempotent database migration at every container startup so existing production volumes receive the booking-intent schema.
 
 **Acceptance:**
 
 - Parallel requests for one intent can start at most one paid Medflex call.
 - A confirmed repeat returns the original safe confirmation.
+- A different intent identifier can suppress a duplicate paid call but cannot read the stored claim, booking details, status-specific state, or reconciliation capability.
 - A timed-out request cannot be blindly submitted again.
+- A stale worker cannot finalize an intent owned by another attempt.
+- Production startup migration is safe on both fresh and populated SQLite volumes.
 
-**Verification:** `bun run test:run -- src/lib/appointment-intents.test.js`
+**Verification:** `bun run test:run -- src/lib/appointment-intents.test.js src/test/appointment-database-migration.test.js`
 
 ## Task 6: Implement the same-origin appointment API
 
@@ -163,7 +178,7 @@
 **Red:**
 
 - Add failing API tests for an unknown doctor, invalid date window, empty schedule, upstream schedule failure, and normalized success.
-- Add failing booking tests for content type, body size, origin, patient validation, consent, rate limit, stale or forged slot, upstream conflict, concurrent duplicate, confirmed replay, pre-submit failure, post-submit timeout, and sanitized errors.
+- Add failing booking tests for content type, body size, origin, patient validation, consent, rate limit, stale or forged slot, upstream conflict, concurrent duplicate, confirmed replay after the slot disappears, uncertain reconciliation after the slot disappears, pre-submit failure, post-submit timeout, and sanitized errors.
 - Assert that invalid requests never call Medflex and duplicate requests call the paid operation at most once.
 
 **Green:**
@@ -171,6 +186,7 @@
 - Implement non-prerendered handlers that compose the existing origin/rate-limit patterns with the new trusted-IP, validation, mapping, schedule, client, and intent modules.
 - Return the project's stable JSON success/error shape and no-store responses.
 - Reconcile uncertain outcomes through Medflex history before permitting another booking attempt.
+- Resume a matching durable intent before checking current slot availability; require a fresh live slot check only for a genuinely new or safely retryable attempt.
 
 **Acceptance:**
 
@@ -203,7 +219,7 @@
 
 - Implement one global state owner and focused presentational children using the approved responsive flow.
 - Call only the same-origin appointment endpoints.
-- Preserve patient input across schedule conflicts and uncertain-state checks.
+- Preserve patient input across schedule conflicts and uncertain-state checks, while rotating the browser intent identifier whenever the patient selects a different slot after a safe failure.
 
 **Acceptance:**
 

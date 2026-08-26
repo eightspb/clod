@@ -89,6 +89,35 @@ const EventLog = defineTable({
   }
 });
 
+const BookingIntent = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    requestFingerprint: column.text(),
+    status: column.text({ enum: ['pending', 'confirmed', 'uncertain', 'failed'] }),
+    fencingToken: column.text({ optional: true }),
+    doctorSlug: column.text(),
+    appointmentType: column.text(),
+    doctorId: column.number(),
+    lpuId: column.number(),
+    specialityId: column.number(),
+    startsAt: column.text(),
+    endsAt: column.text(),
+    price: column.number(),
+    medflexClaimId: column.text({ optional: true }),
+    failureCode: column.text({ optional: true, enum: ['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH'] }),
+    createdAt: column.text(),
+    updatedAt: column.text(),
+    pendingUntil: column.text(),
+  },
+  indexes: [
+    { name: 'BookingIntent_requestFingerprint_unique', on: 'requestFingerprint', unique: true },
+    { name: 'BookingIntent_medflexClaimId_unique', on: 'medflexClaimId', unique: true },
+    { name: 'BookingIntent_fencingToken_unique', on: 'fencingToken', unique: true },
+    { name: 'BookingIntent_resumeScope_idx', on: ['doctorSlug', 'appointmentType', 'startsAt', 'endsAt'] },
+    { name: 'BookingIntent_status_pendingUntil_idx', on: ['status', 'pendingUntil'] },
+  ],
+});
+
 export default defineDb({
-  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog }
+  tables: { Doctor, Media, DoctorCertificate, Service, AnalyticsSession, PageView, EventLog, BookingIntent }
 });

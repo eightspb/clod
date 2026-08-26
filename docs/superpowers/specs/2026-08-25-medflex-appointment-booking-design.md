@@ -162,13 +162,14 @@ Schedule requests are read-only and may use a short server-side cache keyed by d
 
 1. Require JSON, enforce a small request-size limit, validate same-origin submission, and apply a namespaced rate limit.
 2. Validate the doctor slug, local appointment-type key, intent identifier, selected timestamps, patient names, phone, birthday, comment, and explicit consent.
-3. Resolve trusted Medflex doctor/LPU/specialty data from the server allowlist using the slug and appointment-type key.
-4. Re-fetch current availability and require an exact slot match.
-5. Take appointment duration and price from that current server response, never from the browser.
-6. Atomically create or claim a durable booking intent fingerprint so concurrent duplicate requests cannot both call the paid Medflex operation.
-7. Call the official direct doctor appointment endpoint once.
-8. Persist only the minimum intent status needed for deduplication and uncertainty recovery; do not retain the patient form as an application record.
-9. Return a normalized confirmation containing the claim identifier and the user-visible appointment summary.
+3. Resume any matching durable intent before consulting current availability. Return an existing confirmed or pending result, reconcile an uncertain result, and reject an identity mismatch without attempting a new booking.
+4. Only for a new intent or a safely retryable failure, resolve trusted Medflex doctor/LPU/specialty data from the server allowlist using the slug and appointment-type key.
+5. Re-fetch current availability and require an exact slot match.
+6. Take appointment duration and price from that current server response, never from the browser.
+7. Atomically create or claim the durable booking intent so concurrent duplicate requests cannot both call the paid Medflex operation.
+8. Call the official direct doctor appointment endpoint once.
+9. Persist only the minimum intent status needed for deduplication and uncertainty recovery; do not retain the patient form as an application record.
+10. Return a normalized confirmation containing the claim identifier and the user-visible appointment summary.
 
 ## Validation and Privacy
 
@@ -188,11 +189,17 @@ Before the paid POST is enabled, client-IP handling must not trust a spoofable f
 
 Medflex does not expose an idempotency key for direct appointment creation, and a create call can take close to a minute. The website therefore uses a durable intent with `pending`, `confirmed`, `uncertain`, and `failed` states.
 
+- A versioned HMAC fingerprint deduplicates the normalized semantic request without storing raw patient data; it uses a dedicated runtime secret and excludes the browser intent identifier.
+- A per-attempt fencing token makes every final state transition conditional, so a stale or parallel worker cannot claim another attempt's result.
+- Full status, confirmation details, and reconciliation authority are available only when the browser intent identifier, fingerprint, and trusted booking scope all match the same stored intent.
+- A matching fingerprint under a different intent identifier prevents another paid call but returns only one generic duplicate result with no claim, booking details, status-specific information, or reconciliation authority.
+- An existing intent identifier takes precedence: any fingerprint or scope mismatch fails closed without searching for or revealing another intent. Bounded fingerprint recovery runs only when that identifier is absent.
 - A second request for the same active intent returns its current state and never starts a second upstream call.
-- A known validation or slot conflict marks the attempt failed and permits a new slot selection.
+- A known validation or slot conflict marks the attempt failed and permits a new slot selection. Selecting a different slot preserves the patient fields but creates a fresh browser intent identifier; an existing identifier is never rebound to different booking semantics.
 - A network timeout after submission marks the intent uncertain and does not retry automatically.
 - An uncertain intent is reconciled against Medflex appointment history before the UI offers any new submission.
 - A confirmed intent returns the original confirmation on a safe repeat request.
+- The additive booking-intent schema migration runs idempotently on every container startup so existing SQLite volumes receive the table and indexes without losing current data.
 
 The UI preserves patient fields during conflicts and uncertain-state checks.
 
@@ -200,7 +207,7 @@ The UI preserves patient fields during conflicts and uncertain-state checks.
 
 - Unknown or unmapped doctor: online booking unavailable with phone fallback.
 - Empty schedule: later dates and same-specialty alternatives.
-- Slot conflict: `409`, refresh the schedule, retain entered patient data, and focus the new time choices.
+- Slot conflict: `409`, refresh the schedule, retain entered patient data, rotate the intent identifier before a different slot is submitted, and focus the new time choices.
 - Invalid patient input: `400` with safe field-level details.
 - Invalid origin or content type: `403`/`415` without upstream access.
 - Rate limited: `429` with a calm retry message.
