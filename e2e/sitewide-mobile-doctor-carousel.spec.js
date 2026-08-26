@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test'
 
 const MOBILE_VIEWPORT = Object.freeze({ width: 393, height: 852 })
 const DESKTOP_VIEWPORT = Object.freeze({ width: 1280, height: 900 })
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
-const PAGE_ISLAND_SELECTOR = 'main astro-island:not([ssr])'
+const TEST_ORIGIN = 'http://localhost:4321'
 const CAROUSEL_SELECTOR = '[data-mobile-doctor-carousel]'
+const HYDRATED_CAROUSEL_ISLAND_SELECTOR = `main astro-island:has(${CAROUSEL_SELECTOR}):not([ssr])`
 const LEGACY_DOCTOR_STRIP_SELECTOR = 'main .overflow-x-auto:has(.doctor-card)'
 const HERO_CAROUSEL_LABEL = 'Карусель маммологов в начале страницы'
 const LOWER_CAROUSEL_LABEL = 'Карусель маммологов клиники'
@@ -40,24 +40,33 @@ const SINGLE_DOCTOR_ROUTES = Object.freeze([
 async function isolateNetwork(page) {
   await page.route('**/*', async (requestRoute) => {
     const url = new URL(requestRoute.request().url())
-    if (!LOCAL_HOSTS.has(url.hostname)) return requestRoute.abort('blockedbyclient')
+    if (url.origin !== TEST_ORIGIN) return requestRoute.abort('blockedbyclient')
     if (url.pathname.startsWith('/api/analytics/')) return requestRoute.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { accepted: true } }) })
     return requestRoute.continue()
   })
 }
 
-async function visitHydratedRoute(page, route, viewport) {
+async function visitRoute(page, route, viewport) {
   await isolateNetwork(page)
   await page.setViewportSize(viewport)
-  await page.goto(route)
-  await page.locator(PAGE_ISLAND_SELECTOR).waitFor({ state: 'attached', timeout: 10_000 })
+  const response = await page.goto(route)
+  if (!response?.ok()) throw new Error(`Route ${route} returned status ${response?.status() ?? 'unknown'}`)
+  const pathname = new URL(page.url()).pathname
+  if (pathname !== route) throw new Error(`Route ${route} resolved to ${pathname}`)
 }
 
-async function mobileRouteState(page) {
-  return {
+async function visitCarouselRoute(page, route, viewport) {
+  await visitRoute(page, route, viewport)
+  await page.locator(HYDRATED_CAROUSEL_ISLAND_SELECTOR).waitFor({ state: 'attached', timeout: 5_000 })
+}
+
+async function mobileRouteState(page, expectsCarousel) {
+  const state = {
     carousels: await page.locator(`${CAROUSEL_SELECTOR}:visible`).count(),
     legacyDoctorStrips: await page.locator(`${LEGACY_DOCTOR_STRIP_SELECTOR}:visible`).count(),
   }
+  if (!expectsCarousel) return state
+  return { ...state, legacyDoctorCards: await page.locator('main .doctor-card:visible').count() }
 }
 
 async function carouselDoctorState(carousel) {
@@ -113,22 +122,46 @@ async function mammologyDesktopState(page) {
 }
 
 async function singleDoctorState(page, sectionHeading) {
-  const hero = page.locator('main section').filter({ has: page.getByRole('heading', { level: 1 }) }).first()
-  const section = page.locator('main section').filter({ has: page.getByRole('heading', { level: 2, name: sectionHeading }) })
-  const card = section.locator('.doctor-card:visible')
-  return { carousels: await page.locator(`main ${CAROUSEL_SELECTOR}:visible`).count(), semanticCarousels: await page.locator('main [role="region"][aria-roledescription="carousel"]:visible').count(), controls: await page.getByRole('button', { name: /Предыдущий врач|Следующий врач/ }).count(), heroDoctor: await hero.locator('.hero-doctor-card:visible .hero-doctor-name').evaluateAll((elements) => elements[0]?.textContent ?? null), sectionDoctors: await card.count(), sectionDoctor: await card.locator('h3').textContent(), bookingSlug: await card.locator('[data-booking-doctor]').getAttribute('data-booking-doctor'), profileHref: await card.locator(`a[href="${KALININA.profile}"]`).getAttribute('href') }
+  return page.locator('main').evaluate((main, heading) => {
+    function visible(element) {
+      if (!element) return false
+      const style = getComputedStyle(element)
+      const box = element.getBoundingClientRect()
+      return style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0
+    }
+    function horizontalOverflow(card) {
+      let ancestor = card.parentElement
+      while (ancestor && ancestor !== main) {
+        const overflow = getComputedStyle(ancestor).overflowX
+        if (overflow === 'auto' || overflow === 'scroll') return overflow
+        ancestor = ancestor.parentElement
+      }
+      return null
+    }
+    const sections = Array.from(main.querySelectorAll('section'))
+    const hero = sections.find((section) => section.querySelector('h1'))
+    const section = sections.find((candidate) => Array.from(candidate.querySelectorAll('h2')).some((title) => title.textContent.trim() === heading))
+    const cards = Array.from(section?.querySelectorAll('.doctor-card') ?? []).filter(visible)
+    const semanticCarousels = Array.from(main.querySelectorAll('[aria-roledescription="carousel"]')).filter(visible)
+    const carouselHooks = Array.from(main.querySelectorAll('[data-mobile-doctor-carousel]')).filter(visible)
+    const controls = Array.from(main.querySelectorAll('button')).filter((button) => visible(button) && (button.getAttribute('aria-label') === 'Предыдущий врач' || button.getAttribute('aria-label') === 'Следующий врач'))
+    const heroName = hero?.querySelector('.hero-doctor-card .hero-doctor-name')
+    return { carouselHooks: carouselHooks.length, semanticCarousels: semanticCarousels.length, controls: controls.length, heroDoctor: visible(heroName) ? heroName.textContent.trim() : null, sectionDoctors: cards.length, sectionHeadings: cards.map((card) => card.querySelector('h3')?.textContent.trim() ?? null), bookingSlugs: cards.map((card) => card.querySelector('[data-booking-doctor]')?.getAttribute('data-booking-doctor') ?? null), profileHrefs: cards.map((card) => card.querySelector('a[href^="/doctors/"]')?.getAttribute('href') ?? null), horizontalOverflow: cards.map(horizontalOverflow) }
+  }, sectionHeading)
 }
 
 for (const { route, carousels } of MOBILE_ROUTES) {
-  test(`shows ${route} with ${carousels} hydrated mobile doctor carousels and no legacy doctor strip`, async ({ page }) => {
-    await visitHydratedRoute(page, route, MOBILE_VIEWPORT)
-    const state = await mobileRouteState(page)
-    expect(state).toEqual({ carousels, legacyDoctorStrips: 0 })
+  test(`shows ${route} with ${carousels} mobile doctor carousels and no legacy doctor strip`, async ({ page }) => {
+    if (carousels > 0) await visitCarouselRoute(page, route, MOBILE_VIEWPORT)
+    else await visitRoute(page, route, MOBILE_VIEWPORT)
+    const state = await mobileRouteState(page, carousels > 0)
+    const expected = carousels > 0 ? { carousels, legacyDoctorStrips: 0, legacyDoctorCards: 0 } : { carousels, legacyDoctorStrips: 0 }
+    expect(state).toEqual(expected)
   })
 }
 
 test('changes the /mammology hero doctor atomically while keeping the lower carousel independent', async ({ page }) => {
-  await visitHydratedRoute(page, '/mammology', MOBILE_VIEWPORT)
+  await visitCarouselRoute(page, '/mammology', MOBILE_VIEWPORT)
   const state = await mammologyInteractionState(page)
   const first = MAMMOLOGY_DOCTORS[0]
   const second = MAMMOLOGY_DOCTORS[1]
@@ -137,21 +170,21 @@ test('changes the /mammology hero doctor atomically while keeping the lower caro
 })
 
 test('keeps the /mammology mobile hero below the header and copy without page overflow', async ({ page }) => {
-  await visitHydratedRoute(page, '/mammology', MOBILE_VIEWPORT)
+  await visitCarouselRoute(page, '/mammology', MOBILE_VIEWPORT)
   const layout = await mobileHeroLayout(page)
   expect(layout).toEqual({ scrollY: 0, headerDoesNotOverlap: true, pageFitsViewport: true, copyBeforeCarousel: true, heroLegacyCards: 0, lowerCarousels: 1, lowerLegacyCards: 0 })
 })
 
 test('keeps the /mammology desktop hero and doctor grid while hiding mobile carousels', async ({ page }) => {
-  await visitHydratedRoute(page, '/mammology', DESKTOP_VIEWPORT)
+  await visitCarouselRoute(page, '/mammology', DESKTOP_VIEWPORT)
   const state = await mammologyDesktopState(page)
   expect(state).toEqual({ mobileCarousels: 0, heroCards: 1, doctorCards: 5 })
 })
 
 for (const { route, sectionHeading, heroDoctor } of SINGLE_DOCTOR_ROUTES) {
   test(`keeps ${route} as a control-free single-doctor presentation in its original positions`, async ({ page }) => {
-    await visitHydratedRoute(page, route, MOBILE_VIEWPORT)
+    await visitRoute(page, route, MOBILE_VIEWPORT)
     const state = await singleDoctorState(page, sectionHeading)
-    expect(state).toEqual({ carousels: 0, semanticCarousels: 0, controls: 0, heroDoctor, sectionDoctors: 1, sectionDoctor: KALININA.name, bookingSlug: KALININA.slug, profileHref: KALININA.profile })
+    expect(state).toEqual({ carouselHooks: 0, semanticCarousels: 0, controls: 0, heroDoctor, sectionDoctors: 1, sectionHeadings: [KALININA.name], bookingSlugs: [KALININA.slug], profileHrefs: [KALININA.profile], horizontalOverflow: [null] })
   })
 }
