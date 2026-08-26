@@ -2,7 +2,14 @@ import { normalizeContactPhone } from './contact-identity.js'
 
 const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone'])
 const DESTROY_KEYS = Object.freeze(['confirmation'])
+const APPOINTMENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'source', 'doctorId', 'from', 'to'])
+const APPOINTMENT_CREATE_KEYS = Object.freeze(['source', 'profile', 'appointment', 'booking'])
+const APPOINTMENT_CANCEL_KEYS = Object.freeze(['confirmation'])
+const APPOINTMENT_RESOLVE_KEYS = Object.freeze(['claimId'])
+const APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'cancelled', 'failed', 'needs_review'])
+const APPOINTMENT_SOURCES = Object.freeze(['website', 'admin_medflex', 'admin_existing'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
 /**
  * Represents a safe validation failure at the administrative clinic boundary.
@@ -31,13 +38,13 @@ function positiveInteger(value, fallback) {
   return number
 }
 
-function plainBody(value) {
+function plainBody(value, allowed) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new AdminClinicQueryError('INVALID_BODY')
   const prototype = Object.getPrototypeOf(value)
   if (prototype !== Object.prototype && prototype !== null) throw new AdminClinicQueryError('INVALID_BODY')
   const body = Object.create(null)
   for (const key of Reflect.ownKeys(value)) {
-    if (typeof key !== 'string' || !DESTROY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_BODY')
+    if (typeof key !== 'string' || !allowed.includes(key)) throw new AdminClinicQueryError('INVALID_BODY')
     const descriptor = Object.getOwnPropertyDescriptor(value, key)
     if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new AdminClinicQueryError('INVALID_BODY')
     body[key] = descriptor.value
@@ -74,7 +81,82 @@ export function parsePatientId(value) {
  * Requires an explicit Russian confirmation before irreversible PII destruction.
  */
 export function parseDestroyPatientBody(value) {
-  const body = plainBody(value)
+  const body = plainBody(value, DESTROY_KEYS)
   if (Reflect.ownKeys(body).length !== 1 || body.confirmation !== 'УНИЧТОЖИТЬ') throw new AdminClinicQueryError('INVALID_BODY')
   return Object.freeze({ confirmation: body.confirmation })
+}
+
+function optionalFilter(parameters, key, allowed) {
+  const value = singleValue(parameters, key)
+  if (value === undefined) return undefined
+  if (!allowed.includes(value)) throw new AdminClinicQueryError('INVALID_QUERY')
+  return value
+}
+
+function optionalTimestamp(parameters, key) {
+  const value = singleValue(parameters, key)
+  if (value === undefined) return undefined
+  const milliseconds = Date.parse(value)
+  if (!TIMESTAMP_PATTERN.test(value) || !Number.isFinite(milliseconds) || new Date(milliseconds).toISOString() !== value) throw new AdminClinicQueryError('INVALID_QUERY')
+  return value
+}
+
+/**
+ * Parses the bounded filters supported by the appointment journal.
+ */
+export function parseAppointmentQuery(parameters) {
+  if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
+  for (const key of parameters.keys()) if (!APPOINTMENT_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
+  const value = { page: positiveInteger(singleValue(parameters, 'page'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'pageSize'), 50), 50) }
+  const status = optionalFilter(parameters, 'status', APPOINTMENT_STATUSES)
+  const source = optionalFilter(parameters, 'source', APPOINTMENT_SOURCES)
+  const doctorValue = singleValue(parameters, 'doctorId')
+  const from = optionalTimestamp(parameters, 'from')
+  const to = optionalTimestamp(parameters, 'to')
+  if (status !== undefined) value.status = status
+  if (source !== undefined) value.source = source
+  if (doctorValue !== undefined) value.doctorId = positiveInteger(doctorValue, undefined)
+  if (from !== undefined) value.from = from
+  if (to !== undefined) value.to = to
+  if (from !== undefined && to !== undefined && to <= from) throw new AdminClinicQueryError('INVALID_QUERY')
+  return Object.freeze(value)
+}
+
+/**
+ * Parses an appointment UUID from an administrative route.
+ */
+export function parseAppointmentId(value) {
+  return parsePatientId(value)
+}
+
+/**
+ * Separates local-existing and Medflex-backed appointment creation bodies.
+ */
+export function parseAppointmentCreateBody(value) {
+  const body = plainBody(value, APPOINTMENT_CREATE_KEYS)
+  if (body.source === 'admin_existing' && Reflect.ownKeys(body).length === 3 && Object.hasOwn(body, 'profile') && Object.hasOwn(body, 'appointment')) return Object.freeze({ source: body.source, profile: body.profile, appointment: body.appointment })
+  if (body.source === 'admin_medflex' && Reflect.ownKeys(body).length === 2 && Object.hasOwn(body, 'booking')) return Object.freeze({ source: body.source, booking: body.booking })
+  throw new AdminClinicQueryError('INVALID_BODY')
+}
+
+/**
+ * Requires explicit confirmation before appointment cancellation.
+ */
+export function parseAppointmentCancelBody(value) {
+  const body = plainBody(value, APPOINTMENT_CANCEL_KEYS)
+  if (Reflect.ownKeys(body).length !== 1 || body.confirmation !== 'ОТМЕНИТЬ') throw new AdminClinicQueryError('INVALID_BODY')
+  return Object.freeze({ confirmation: body.confirmation })
+}
+
+/**
+ * Parses the claim used for a manual needs-review resolution.
+ */
+export function parseAppointmentResolveBody(value) {
+  const body = plainBody(value, APPOINTMENT_RESOLVE_KEYS)
+  if (Reflect.ownKeys(body).length !== 1) throw new AdminClinicQueryError('INVALID_BODY')
+  try {
+    return Object.freeze({ claimId: parseAppointmentId(body.claimId) })
+  } catch {
+    throw new AdminClinicQueryError('INVALID_BODY')
+  }
 }

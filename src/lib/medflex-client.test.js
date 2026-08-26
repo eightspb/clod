@@ -184,7 +184,7 @@ describe('Medflex client configuration', () => {
     const client = createMedflexClient({ fetchImpl: globalThis.fetch, token: '  не-показывать-93  ', timeoutMs: 79 })
     expect({ frozen: Object.isFrozen(client), keys: Object.keys(client).sort(), serialized: JSON.stringify(client) }).toEqual({
       frozen: true,
-      keys: ['createDoctorAppointment', 'getAppointmentHistory', 'getSchedule', 'listDoctors', 'listLpus'],
+      keys: ['cancelDoctorAppointment', 'createDoctorAppointment', 'getAppointmentHistory', 'getSchedule', 'listDoctors', 'listLpus'],
       serialized: '{}',
     })
   })
@@ -247,6 +247,27 @@ describe('Medflex request construction', () => {
     const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'без-повтора-131', timeoutMs: 109 })
     await failure(() => client.createDoctorAppointment(appointment({})))
     expect(capture.calls).toHaveLength(1)
+  })
+
+  it('posts the exact contract-checked cancellation body and accepts only no-content success', async () => {
+    const capture = fetchCapture(new Response(null, { status: 204 }))
+    const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'отмена-133', timeoutMs: 111 })
+    const result = await client.cancelDoctorAppointment({ uuid: UUID_ONE.toUpperCase() })
+    expect({ request: postRequest(capture.calls[0]), result }).toEqual({ request: { url: `${FIXED_ORIGIN}/direct_appointment/doctor/cancel/`, method: 'POST', headers: { Accept: 'application/json', Authorization: 'Token отмена-133', 'Content-Type': 'application/json' }, redirect: 'error', body: { uuid: UUID_ONE } }, result: { cancelled: true } })
+  })
+
+  it('rejects unknown cancellation fields before network access', async () => {
+    const capture = fetchCapture(new Response(null, { status: 204 }))
+    const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'отмена-135', timeoutMs: 112 })
+    const error = await failure(() => client.cancelDoctorAppointment({ uuid: UUID_ONE, patient: 'не отправлять' }))
+    expect({ calls: capture.calls.length, type: error.constructor }).toEqual({ calls: 0, type: TypeError })
+  })
+
+  it('treats an unexpected cancellation success body as uncertain', async () => {
+    const capture = fetchCapture(jsonResponse({ cancelled: true }, 200, {}))
+    const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'отмена-136', timeoutMs: 112 })
+    const error = await failure(() => client.cancelDoctorAppointment({ uuid: UUID_ONE }))
+    expect(error).toMatchObject({ code: 'MEDFLEX_INVALID_RESPONSE', outcomeUncertain: true })
   })
 })
 

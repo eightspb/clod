@@ -18,6 +18,7 @@ const CREATE_DOCTOR_KEYS = Object.freeze(['id', 'lpu_id', 'speciality_id'])
 const CREATE_APPOINTMENT_KEYS = Object.freeze(['comment', 'dt_end', 'dt_start', 'price'])
 const CREATE_CLIENT_KEYS = Object.freeze(['birthday', 'first_name', 'last_name', 'mobile_phone', 'second_name'])
 const CALL_TRACKING_KEYS = Object.freeze(['uis_id'])
+const CANCEL_KEYS = Object.freeze(['uuid'])
 const INVALID_JSON = Symbol('invalid-json')
 const INTERNAL_ERRORS = new WeakSet()
 const ERROR_MESSAGES = Object.freeze({
@@ -289,6 +290,12 @@ function normalizeCreateBody(input) {
   return Object.freeze(value)
 }
 
+function normalizeCancelBody(input) {
+  const body = readOptions(input, CANCEL_KEYS, 'Medflex appointment cancellation')
+  requireFields(body, CANCEL_KEYS, 'Medflex appointment cancellation')
+  return Object.freeze({ uuid: normalizeUuid(body.uuid, 'Medflex cancellation UUID') })
+}
+
 function runtimeToken() {
   if (typeof process !== 'undefined' && typeof process.env?.MEDFLEX_CLINIC_TOKEN === 'string') return process.env.MEDFLEX_CLINIC_TOKEN
   return undefined
@@ -489,6 +496,14 @@ async function request(configuration, operation) {
       cancelResponseBody(response)
       throw error
     }
+    if (operation.shape === 'empty') {
+      if (response.status !== 204) {
+        const error = invalidResponse(response.status, outcomeUncertain)
+        cancelResponseBody(response)
+        throw error
+      }
+      return Object.freeze({ cancelled: true })
+    }
     const payload = await readJson(response, outcomeUncertain)
     if (controller.signal.aborted) throw new DOMException('Timed out', 'AbortError')
     return operation.shape === 'claim' ? normalizeClaim(payload, response.status) : normalizePage(payload, response.status, outcomeUncertain)
@@ -512,6 +527,7 @@ export function createMedflexClient(options = {}) {
     listDoctors: (input = {}) => request(configuration, { method: 'GET', path: '/models/doctor/', query: doctorQuery(input), shape: 'page' }),
     getSchedule: (input = {}) => request(configuration, { method: 'GET', path: '/schedule/', query: scheduleQuery(input), shape: 'page' }),
     createDoctorAppointment: (input) => request(configuration, { method: 'POST', path: '/direct_appointment/doctor/execute/', body: normalizeCreateBody(input), shape: 'claim' }),
+    cancelDoctorAppointment: (input) => request(configuration, { method: 'POST', path: '/direct_appointment/doctor/cancel/', body: normalizeCancelBody(input), shape: 'empty' }),
     getAppointmentHistory: (input = {}) => request(configuration, { method: 'GET', path: '/direct_appointment/history/', query: historyQuery(input), shape: 'page' }),
   })
 }

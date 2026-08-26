@@ -242,27 +242,28 @@ Run: `git add src/lib/admin-clinic-query.js src/lib/admin-clinic-query.test.js s
 - Modify: `src/lib/medflex-client.test.js`
 - Create: `src/lib/admin-appointment.js`
 - Create: `src/lib/admin-appointment.test.js`
+- Create: `src/lib/admin-appointment-api.js`
 - Create: `src/pages/api/admin/appointments/index.js`
 - Create: `src/pages/api/admin/appointments/[id].js`
 - Create: `src/pages/api/admin/appointments/[id]/cancel.js`
 - Create: `src/pages/api/admin/appointments/[id]/resolve.js`
 - Create: `src/test/admin-appointments-api.test.js`
 
-- [ ] **Step 1: Write failing Medflex and admin appointment tests**
+- [x] **Step 1: Write failing Medflex and admin appointment tests**
 
 From the checked OpenAPI schema, assert the exact cancellation method/path/body and sanitized error mapping. Cover filtered list/detail, local existing creation with no Medflex call, `admin_medflex` creation through the shared booking service, external-first cancellation for Medflex appointments, local-only cancellation warning for `admin_existing`, no local cancellation after ambiguous external failure, idempotent repeated cancellation, manual confirmation of `needs_review`, invalid transitions, auth/origin/rate limits, and bounded bodies.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `bun run test:run -- src/lib/medflex-client.test.js src/lib/admin-appointment.test.js src/test/admin-appointments-api.test.js`
 
 Expected: FAIL because cancellation and admin appointment operations do not exist.
 
-- [ ] **Step 3: Implement domain operations and routes**
+- [x] **Step 3: Implement domain operations and routes**
 
 Extend only the current allowlisted Medflex client surface. Keep source-specific cancellation rules in `admin-appointment.js`, delegate local storage to `appointment-records.js`, delegate charged creates to `appointment-booking.js`, and keep route files limited to request guards, parsing, invocation, and response mapping.
 
-- [ ] **Step 4: Run the focused tests and verify GREEN**
+- [x] **Step 4: Run the focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/lib/medflex-client.test.js src/lib/admin-appointment.test.js src/test/admin-appointments-api.test.js`
 
