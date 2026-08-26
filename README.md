@@ -146,6 +146,10 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `BOOKING_INTENT_SECRET` | Отдельный сильный случайный HMAC-секрет для идентичности и дедупликации попыток онлайн-записи |
 | `CONTACT_FINGERPRINT_KEY` | Отдельный стабильный HMAC-секрет для дедупликации пациентов по нормализованному телефону |
 | `PATIENT_ENCRYPTION_KEY` | Base64-кодированный 32-байтовый AES-256-GCM ключ для зашифрованных профилей пациентов |
+| `MANGO_VPBX_API_KEY` | Server-only уникальный код API-коннектора MANGO OFFICE |
+| `MANGO_VPBX_API_SALT` | Server-only ключ подписи того же API-коннектора MANGO OFFICE |
+| `MANGO_CALL_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ для номеров звонящих |
+| `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую, например `+78127482210` |
 | `SMTP_HOST` | SMTP-хост для отправки заявок формы “Второе мнение” |
 | `SMTP_PORT` | SMTP-порт (по умолчанию ожидается `465`, если явно задан) |
 | `SMTP_USER` | SMTP-пользователь для исходящих писем |
@@ -189,6 +193,12 @@ Reconciliation использует официальный history API с огр
 
 SQLite-файл `/data/db.sqlite` теперь содержит также `Patient`, `PatientAccess`, `Appointment` и `MedflexDoctorLink`. Backup volume `db-data` должен выполняться вместе с защищённой резервной копией ключей, но храниться отдельно от неё. Перед восстановлением остановите запись в приложение, восстановите согласованные версии базы и секретов, запустите контейнер для строгой проверки схемы и только затем откройте трафик. Копия базы без исходного `PATIENT_ENCRYPTION_KEY` сохраняет обезличенную историю, но не позволяет восстановить профили.
 
+### Телефония MANGO OFFICE
+
+Server-side интеграция принимает подписанные входящие `events/call` и `events/summary`, хранит защищённый журнал и связывает звонящего только с уже существующим пациентом по `CONTACT_FINGERPRINT_KEY`. Неизвестный звонящий не создаёт профиль пациента автоматически. Dashboard и `/admin/calls` показывают активные, отвеченные и пропущенные звонки, долю ответов, ожидание и длительность разговора по московскому времени. Номер по умолчанию маскирован; reveal отдельно ограничен и журналируется, а уничтожение номера оставляет только обезличенные показатели.
+
+Интеграция не импортирует старые звонки, не инициирует вызовы и не получает записи разговоров. Для production нужны отдельные `MANGO_VPBX_API_KEY`, `MANGO_VPBX_API_SALT`, `MANGO_CALL_ENCRYPTION_KEY` и `MANGO_INBOUND_LINES`. HTTPS Nginx пропускает callback только с актуального allowlist API Realtime и всё равно передаёт запрос в обязательную HMAC-проверку приложения; HTTP-шаблон webhook отклоняет. Полная настройка, диагностика, backup, ротация, rollback и ручной activation-checklist описаны в [`docs/mango-office-integration.md`](./docs/mango-office-integration.md).
+
 ### Админ-панель
 
 Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
@@ -200,6 +210,7 @@ SQLite-файл `/data/db.sqlite` теперь содержит также `Pati
 | Логи | `/admin/logs` | Все события с фильтрами и пагинацией |
 | Пациенты | `/admin/patients` | Маскированный журнал, аудируемый reveal и уничтожение ПДн |
 | Записи | `/admin/appointments` | Источники, статусы, отмена и ручная проверка записи |
+| Звонки | `/admin/calls` | Live-журнал MANGO, фильтры, метрики, reveal и уничтожение номера |
 | Доктора | `/admin/doctors` | Редактирование данных докторов |
 
 ---
@@ -787,6 +798,10 @@ integrations: [
 | `BOOKING_INTENT_SECRET` | Отдельный стабильный server-only HMAC-секрет для защищённой дедупликации записи |
 | `CONTACT_FINGERPRINT_KEY` | Стабильный отдельный HMAC-секрет отпечатков телефонов; генерировать `openssl rand -hex 32` |
 | `PATIENT_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ профилей; генерировать `openssl rand -base64 32` |
+| `MANGO_VPBX_API_KEY` | Уникальный код API-коннектора из MANGO OFFICE |
+| `MANGO_VPBX_API_SALT` | Ключ подписи того же API-коннектора; только server-side |
+| `MANGO_CALL_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ номеров; генерировать `openssl rand -base64 32` |
+| `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую |
 | `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу: `file:/data/db.sqlite` |
 
 ### Первый деплой (Bootstrap HTTPS)
@@ -817,6 +832,21 @@ docker compose run --rm certbot certonly \
 cp nginx.https.conf nginx.conf
 # отредактировать nginx.conf: server_name и пути /etc/letsencrypt/live/ВАШ_ДОМЕН/
 docker compose up -d --build
+```
+
+Перед reload проверьте именно фактически смонтированный рабочий конфиг. После `cp nginx.https.conf nginx.conf` на production эта же команда проверяет HTTPS-шаблон вместе с реальными сертификатами:
+
+```bash
+docker compose config --quiet
+docker compose run --rm --no-deps nginx nginx -t
+```
+
+Если локальный `nginx` не установлен, рабочий HTTP-конфиг можно проверить тем же production-образом без запуска стека и чтения `.env`:
+
+```bash
+docker run --rm --add-host app:127.0.0.1 \
+  -v "$PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+  nginx:alpine nginx -t
 ```
 
 ### Обновление (деплой новой версии)

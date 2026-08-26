@@ -314,19 +314,19 @@ Run: `git add src/pages/api/admin/stats.js src/test/analytics-api.test.js src/co
 - Create: `docs/mango-office-integration.md`
 - Modify: `docs/superpowers/plans/2026-08-26-mango-call-integration.md`
 
-- [ ] **Step 1: Verify actual deployment entry points**
+- [x] **Step 1: Verify actual deployment entry points**
 
 Confirm that `docker-compose.yml` mounts `nginx.conf`, that production deployment copies `nginx.https.conf` into that path, and that the cleartext default must not proxy webhook traffic. Re-check the current Realtime API source addresses against official MANGO documentation before editing the HTTPS template. Keep application signature verification mandatory even behind the network allowlist.
 
-- [ ] **Step 2: Add least-privilege proxy rules**
+- [x] **Step 2: Add least-privilege proxy rules**
 
 In `nginx.https.conf`, allow MANGO webhook paths only from the currently verified API Realtime addresses (expected baseline: `81.88.80.132`, `81.88.80.133`, `81.88.82.36`, `81.88.82.44`, and `81.88.82.45`), deny other source IPs, preserve original body and form content type, set a 64 KiB client-body limit, and use bounded proxy timeouts. In the cleartext `nginx.conf`, reject webhook POST paths instead of proxying them. Keep the health route data-free and do not expose configuration state.
 
-- [ ] **Step 3: Document configuration and MANGO dashboard steps**
+- [x] **Step 3: Document configuration and MANGO dashboard steps**
 
 Document generation/storage of `MANGO_VPBX_API_KEY`, `MANGO_VPBX_API_SALT`, `MANGO_CALL_ENCRYPTION_KEY`, and `MANGO_INBOUND_LINES`, exact callback URLs, live/summary subscription configuration, 300-per-minute delivery limit, IP allowlist maintenance, a signed synthetic smoke-test procedure using non-real phone data, alert symptoms, backup/restore implications, secret rotation order, rollback, and explicit absence of recordings/history import. Add a factual privacy-policy section for appointment identity data and call-number metadata, with no unsupported compliance claim; require clinic-owner review before production activation. Add a manual activation checklist for one explicitly authorized paid Medflex booking/cancellation and controlled answered, missed, and repeat calls; do not perform those external mutations as part of automated execution.
 
-- [ ] **Step 4: Validate Nginx and application quality gates**
+- [x] **Step 4: Validate Nginx and application quality gates**
 
 Run: `docker compose config --quiet`
 
@@ -350,10 +350,10 @@ Run: `bun run test:e2e`
 
 Expected: PASS.
 
-- [ ] **Step 5: Perform a final security and contract review**
+- [x] **Step 5: Perform a final security and contract review**
 
 Check every requirement in the approved design against a completed task; verify no raw webhook or PII logging, constant-time signatures, signature-before-parse, app verification despite Nginx allowlist, sequence race safety, summary truth rules, auth/origin/PII rate limiting, server-only secrets, anonymization behavior, and no real MANGO or paid Medflex mutation in automated tests.
 
-- [ ] **Step 6: Mark completed checkboxes and commit operations docs**
+- [x] **Step 6: Mark completed checkboxes and commit operations docs**
 
 Run: `git add .env.example README.md nginx.conf nginx.https.conf src/components/pages/PrivacyPolicy.jsx src/components/pages/PrivacyPolicy.test.jsx docs/mango-office-integration.md docs/superpowers/plans/2026-08-26-mango-call-integration.md && git commit -m "docs: describe MANGO production operations"`
