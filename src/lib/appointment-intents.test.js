@@ -494,6 +494,28 @@ describe('booking intent transitions', () => {
     expect(result).toEqual({ action: 'retry', staleApplied: false })
   })
 
+  it('revalidates a definitive upstream non-acceptance before granting a fresh retry capability', async () => {
+    const first = await fixture({})
+    const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    const failed = await first.repository.fail({ capability: acquired.capability, failureCode: 'UPSTREAM_NOT_ACCEPTED' })
+    const resumed = await first.repository.resume({ booking: booking({}) })
+    const retried = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    const stale = await first.repository.confirm({ capability: acquired.capability, claimId: CLAIM_ID })
+    const confirmed = await first.repository.confirm({ capability: retried.capability, claimId: CLAIM_ID })
+    const result = await closeWith(first.client, { failed: [failed.applied, failed.public.status, failed.public.failureCode], resumed: [resumed.action, resumed.public.status, Object.hasOwn(resumed, 'capability')], retried: [retried.action, Object.isFrozen(retried.capability), retried.capability !== acquired.capability], staleApplied: stale.applied, confirmed: [confirmed.applied, confirmed.public.status] })
+    expect(result).toEqual({ failed: [true, 'failed', 'UPSTREAM_NOT_ACCEPTED'], resumed: ['validate', 'failed', false], retried: ['retry', true, true], staleApplied: false, confirmed: [true, 'confirmed'] })
+  })
+
+  it('rejects a lookalike upstream failure code without changing the pending owner', async () => {
+    const first = await fixture({})
+    const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    let error
+    try { await first.repository.fail({ capability: acquired.capability, failureCode: 'UPSTREAM_NOT_ACCEPTED_WITHOUT_PROOF' }) } catch (caught) { error = caught }
+    const replay = await first.repository.resume({ booking: booking({}) })
+    const result = await closeWith(first.client, { type: error?.constructor, action: replay.action, status: replay.public.status })
+    expect(result).toEqual({ type: TypeError, action: 'pending', status: 'pending' })
+  })
+
   it('fails closed when the UUID source repeats the current failed-attempt fence', async () => {
     const first = await fixture({ uuid: () => FIRST_FENCE })
     const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
@@ -564,6 +586,28 @@ describe('booking intent transitions', () => {
     const reconciled = await first.repository.reconcile({ capability: uncertain.capability, history: { found: false } })
     const result = await closeWith(first.client, { applied: reconciled.applied, status: reconciled.public.status })
     expect(result).toEqual({ applied: false, status: 'uncertain' })
+  })
+
+  it('reveals only the persisted trusted slot through a live reconciliation capability', async () => {
+    const first = await fixture({})
+    const persisted = slot({ doctorId: 80120, lpuId: 44871, specialityId: 155, price: 6_250 })
+    const acquired = await first.repository.acquire({ booking: booking({}), slot: persisted })
+    const uncertain = await first.repository.markUncertain({ capability: acquired.capability })
+    const scope = await first.repository.reconciliationScope({ capability: uncertain.capability })
+    const serialized = JSON.stringify(scope)
+    const result = await closeWith(first.client, { scope, frozen: Object.isFrozen(scope), leaked: [FIRST_INTENT_ID, FIRST_FENCE, 'requestFingerprint', 'fencingToken'].some((value) => serialized.includes(value)) })
+    expect(result).toEqual({ scope: persisted, frozen: true, leaked: false })
+  })
+
+  it('rejects a reconciliation scope after its capability leaves uncertainty', async () => {
+    const first = await fixture({})
+    const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    const uncertain = await first.repository.markUncertain({ capability: acquired.capability })
+    await first.repository.reconcile({ capability: uncertain.capability, history: { found: true, claimId: CLAIM_ID } })
+    let caught
+    try { await first.repository.reconciliationScope({ capability: uncertain.capability }) } catch (error) { caught = error }
+    const result = await closeWith(first.client, caught?.constructor)
+    expect(result).toBe(BookingIntentError)
   })
 
   it('allows at most one concurrent finalizer to win its conditional CAS', async () => {
@@ -688,6 +732,14 @@ describe('booking intent hostile inputs', () => {
     const first = await fixture({})
     let error
     try { await first.repository.confirm({ capability: Object.freeze({ fence: FIRST_FENCE }), claimId: CLAIM_ID }) } catch (caught) { error = caught }
+    const result = await closeWith(first.client, error?.constructor)
+    expect(result).toBe(TypeError)
+  })
+
+  it('rejects a forged reconciliation capability without querying trusted scope', async () => {
+    const first = await fixture({})
+    let error
+    try { await first.repository.reconciliationScope({ capability: Object.freeze({ fence: FIRST_FENCE }) }) } catch (caught) { error = caught }
     const result = await closeWith(first.client, error?.constructor)
     expect(result).toBe(TypeError)
   })

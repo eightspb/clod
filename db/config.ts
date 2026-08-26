@@ -104,7 +104,7 @@ const BookingIntent = defineTable({
     endsAt: column.text(),
     price: column.number(),
     medflexClaimId: column.text({ optional: true }),
-    failureCode: column.text({ optional: true, enum: ['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH'] }),
+    failureCode: column.text({ optional: true, enum: ['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH', 'UPSTREAM_NOT_ACCEPTED'] }),
     createdAt: column.text(),
     updatedAt: column.text(),
     pendingUntil: column.text(),

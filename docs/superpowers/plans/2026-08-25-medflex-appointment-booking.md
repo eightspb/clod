@@ -173,6 +173,15 @@
 
 - Create `src/pages/api/appointments/slots.js`
 - Create `src/pages/api/appointments/book.js`
+- Create `src/lib/appointment-history.js`
+- Create `src/lib/appointment-history.test.js`
+- Create `src/lib/appointment-booking.js`
+- Create `src/lib/appointment-booking.test.js`
+- Modify `src/lib/appointment-intents.js`
+- Modify `src/lib/appointment-intents.test.js`
+- Modify `src/lib/appointment-validation.js`
+- Modify `src/lib/appointment-validation.test.js`
+- Modify `db/config.ts`
 - Create `src/test/appointments-api.test.js`
 
 **Red:**

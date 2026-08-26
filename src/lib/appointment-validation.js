@@ -1,7 +1,7 @@
 const QUERY_KEYS = Object.freeze(['doctor', 'from', 'days'])
 const BOOKING_KEYS = Object.freeze(['doctorSlug', 'appointmentType', 'intentId', 'dtStart', 'dtEnd', 'patient', 'comment', 'consent'])
 const PATIENT_KEYS = Object.freeze(['firstName', 'lastName', 'secondName', 'phone', 'birthday'])
-const BOOKING_OPTIONS_KEYS = Object.freeze(['now'])
+const BOOKING_OPTIONS_KEYS = Object.freeze(['now', 'mode'])
 const SAFE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const SAFE_KEY_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/
 const RESERVED_KEYS = Object.freeze(['__proto__', 'constructor', 'prototype'])
@@ -173,14 +173,14 @@ function parseTimestamp(value) {
   return Object.freeze({ valid: true, code: '', milliseconds, value: instant.toISOString() })
 }
 
-function validateTimestamps(dtStart, dtEnd, now) {
+function validateTimestamps(dtStart, dtEnd, now, requireFuture) {
   const start = parseTimestamp(dtStart)
   const end = parseTimestamp(dtEnd)
   const errors = []
   if (!start.valid) errors.push(fieldError('dtStart', start.code))
   if (!end.valid) errors.push(fieldError('dtEnd', end.code))
   if (!start.valid || !end.valid) return { fields: mergeFields(errors), start, end }
-  if (start.milliseconds <= now.getTime()) errors.push(fieldError('dtStart', 'NOT_FUTURE'))
+  if (requireFuture && start.milliseconds <= now.getTime()) errors.push(fieldError('dtStart', 'NOT_FUTURE'))
   if (end.milliseconds <= start.milliseconds) errors.push(fieldError('dtEnd', 'NOT_AFTER_START'))
   const duration = end.milliseconds - start.milliseconds
   if (duration > 0 && (duration < MIN_APPOINTMENT_MS || duration > MAX_APPOINTMENT_MS)) errors.push(fieldError('dtEnd', 'INVALID_DURATION'))
@@ -258,22 +258,24 @@ function normalizeIntentId(value) {
   return { valid: true, code: '', value: value.toLowerCase() }
 }
 
-function resolveNow(options) {
+function resolveOptions(options) {
   const record = readDataRecord(options)
   if (!record.valid) throw new TypeError('Booking validation options must be a plain object')
   if (!hasOnlyKeys(record.value, BOOKING_OPTIONS_KEYS)) throw new TypeError('Booking validation options contain unknown keys')
   const now = record.value.now === undefined ? new Date() : record.value.now
   if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new TypeError('Booking validation now must be a valid Date')
-  return now
+  const mode = record.value.mode === undefined ? 'booking' : record.value.mode
+  if (mode !== 'booking' && mode !== 'resume') throw new TypeError('Booking validation mode must be booking or resume')
+  return Object.freeze({ now, requireFuture: mode === 'booking' })
 }
 
-function validateBooking(input, now) {
+function validateBooking(input, options) {
   const record = readDataRecord(input)
   if (!record.valid) return validationFailure({ booking: 'INVALID_OBJECT' })
   if (!hasOnlyKeys(record.value, BOOKING_KEYS)) return validationFailure({ booking: 'UNKNOWN_FIELDS' })
-  const patient = validatePatient(record.value.patient, now)
+  const patient = validatePatient(record.value.patient, options.now)
   if (patient.fields.patient) return validationFailure(patient.fields)
-  const timestamps = validateTimestamps(record.value.dtStart, record.value.dtEnd, now)
+  const timestamps = validateTimestamps(record.value.dtStart, record.value.dtEnd, options.now, options.requireFuture)
   const doctor = validateSlug(record.value.doctorSlug)
   const appointmentType = validateAppointmentType(record.value.appointmentType)
   const intentId = normalizeIntentId(record.value.intentId)
@@ -311,5 +313,5 @@ export function validateScheduleQuery(input) {
  * Validates and normalizes a browser booking payload without reflecting patient data.
  */
 export function validateBookingPayload(input, options = {}) {
-  return validateBooking(input, resolveNow(options))
+  return validateBooking(input, resolveOptions(options))
 }

@@ -157,6 +157,13 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 Контейнер при каждом запуске выполняет `scripts/init-db.mjs`. Миграция аддитивна и идемпотентна: существующие данные SQLite сохраняются, таблица и индексы `BookingIntent` добавляются при отсутствии, а несовместимая схема останавливает запуск. Наличие этих переменных и таблицы само по себе не означает, что публичный интерфейс записи уже подключён.
 
+Серверный API записи работает через два same-origin маршрута и всегда отвечает с `Cache-Control: no-store`:
+
+- `GET /api/appointments/slots` принимает публичный slug врача и окно дат, запрашивает только разрешённые идентификаторы Medflex и возвращает браузеру нормализованные типы приёма, цены, возрастные ограничения и свободное время без внутренних doctor/LPU/speciality ID. Лимит — 30 запросов на доверенный IP за 60 секунд.
+- `POST /api/appointments/book` принимает только JSON размером до 16 КиБ, проверяет Origin, согласие, поля пациента и актуальность слота. Лимит — 5 запросов на доверенный IP за 15 минут. Операция создания записи защищена durable intent и fencing-токеном; после неясного ответа повторная отправка сначала сверяется с историей Medflex и никогда не выполняется вслепую.
+
+Ошибки API не содержат токен, персональные данные, внутренние идентификаторы, stack trace или сырой ответ Medflex. Серверный журнал получает только безопасный код этапа без содержимого запроса. Токен, опубликованный в чате или журнале, считается скомпрометированным: перед production его нужно отозвать, выпустить заново и поместить только в серверный `.env`.
+
 ### Админ-панель
 
 Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
@@ -316,6 +323,9 @@ clod/
 │   │       ├── analytics/
 │   │       │   ├── event.js       # POST - приём событий трекера
 │   │       │   └── heartbeat.js   # POST - heartbeat сессий
+│   │       ├── appointments/
+│   │       │   ├── slots.js       # GET - безопасное нормализованное расписание Medflex
+│   │       │   └── book.js        # POST - защищённое создание и согласование записи
 │   │       ├── tax-form.js        # POST - заявка на справку для налогового вычета
 │   │       ├── auth/
 │   │       │   ├── login.js       # POST - вход (rate limiting: 5 попыток / 15 мин)
@@ -433,6 +443,13 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
 | `theme-config.js` | `COLOR_THEMES`, `HEADING_FONTS`, `BODY_FONTS`, `NAV_FONTS`, `STORAGE_KEY`, `buildFullPalette`, `hexToHsl`, `hslToHex` | `ThemeSwitcher`, `Layout.astro` (FOUC script) |
 | `rate-limit.js` | `checkRateLimit`, `resetRateLimit` | Все API endpoints (admin, analytics, forms, auth) |
+| `appointment-validation.js` | Валидация и нормализация расписания, пациента и opaque intent ID | API онлайн-записи |
+| `appointment-history.js` | Ограниченная постраничная сверка неясной попытки с историей Medflex | Сценарий онлайн-записи |
+| `appointment-intents.js` | Durable intent, HMAC-дедупликация, fencing и атомарные переходы состояния | Сценарий онлайн-записи и startup-миграция |
+| `appointment-booking.js` | Оркестрация возобновления, live-slot проверки, создания записи и reconciliation | `api/appointments/book` |
+| `appointment-schedule.js` | Browser-safe нормализация расписания и повторная серверная проверка слота | API онлайн-записи |
+| `medflex-client.js` | Фиксированный server-only клиент официального API | API онлайн-записи и discovery |
+| `medflex-doctors.js` | Явный allowlist девяти врачей и локальных типов приёма | API онлайн-записи |
 | `admin-api.js` | `guardAdminRead`, `guardAdminWrite` | Все `api/admin/*` endpoints |
 | `file-constraints.js` | `MAX_FILES`, `MAX_FILE_SIZE_BYTES`, `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES` | `SecondOpinionForm`, `api/second-opinion` |
 | `useAdminFetch.js` | `useAdminFetch` | `Dashboard`, `DoctorList`, `SessionsViewer`, `LogsViewer` |

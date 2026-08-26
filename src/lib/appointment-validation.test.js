@@ -309,6 +309,23 @@ describe('appointment booking validation', () => {
     expect(result.error.fields).toEqual({ dtStart: 'NOT_FUTURE' })
   })
 
+  it('normalizes a past interval only in explicit resume mode', () => {
+    const payload = makeBooking({ dtStart: '2026-08-24T10:00:00+03:00', dtEnd: '2026-08-24T10:40:00+03:00' })
+    const result = validateBookingPayload(payload, { now: new Date(NOW_ISO), mode: 'resume' })
+    expect(result).toMatchObject({ valid: true, value: { dtStart: '2026-08-24T07:00:00.000Z', dtEnd: '2026-08-24T07:40:00.000Z' } })
+  })
+
+  it('keeps interval ordering strict in resume mode', () => {
+    const payload = makeBooking({ dtStart: '2026-08-24T10:40:00+03:00', dtEnd: '2026-08-24T10:00:00+03:00' })
+    const result = validateBookingPayload(payload, { now: new Date(NOW_ISO), mode: 'resume' })
+    expect(result.error.fields).toEqual({ dtEnd: 'NOT_AFTER_START' })
+  })
+
+  it('rejects an unknown booking validation mode', () => {
+    const operation = () => validateBookingPayload(makeBooking({}), { now: new Date(NOW_ISO), mode: 'bypass' })
+    expect(operation).toThrow(TypeError)
+  })
+
   it('rejects an end timestamp that does not follow the start', () => {
     const result = validateBooking(makeBooking({ dtStart: '2026-09-02T14:00:00Z', dtEnd: '2026-09-02T13:59:00Z' }))
     expect(result.error.fields).toEqual({ dtEnd: 'NOT_AFTER_START' })

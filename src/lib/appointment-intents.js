@@ -20,8 +20,8 @@ const UTC_TIMESTAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\
 const MEDFLEX_TIMESTAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/
 const RESERVED_KEYS = Object.freeze(['__proto__', 'constructor', 'prototype'])
 const STATUSES = Object.freeze(['pending', 'confirmed', 'uncertain', 'failed'])
-const FAILURE_CODES = Object.freeze(['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH'])
-const RETRYABLE_FAILURE_CODES = new Set(['SLOT_UNAVAILABLE', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH'])
+const FAILURE_CODES = Object.freeze(['SLOT_UNAVAILABLE', 'PATIENT_REJECTED', 'UPSTREAM_REJECTED', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH', 'UPSTREAM_NOT_ACCEPTED'])
+const RETRYABLE_FAILURE_CODES = new Set(['SLOT_UNAVAILABLE', 'UPSTREAM_UNAVAILABLE_BEFORE_DISPATCH', 'UPSTREAM_NOT_ACCEPTED'])
 const DEFAULT_PENDING_TTL_MS = 120_000
 const MAX_RESUME_CANDIDATES = 32
 const MOSCOW_OFFSET_MS = 3 * 60 * 60 * 1000
@@ -541,9 +541,12 @@ function medflexTimestampFromUtc(value) {
   return `${shifted.slice(0, 10)} ${shifted.slice(11, 16)}`
 }
 
+function storedSlot(row) {
+  return Object.freeze({ valid: true, doctorId: row.doctorId, lpuId: row.lpuId, specialityId: row.specialityId, price: row.price, dtStart: medflexTimestampFromUtc(row.startsAt), dtEnd: medflexTimestampFromUtc(row.endsAt) })
+}
+
 function storedIdentity(booking, row) {
-  const slot = Object.freeze({ doctorId: row.doctorId, lpuId: row.lpuId, specialityId: row.specialityId, price: row.price, dtStart: medflexTimestampFromUtc(row.startsAt), dtEnd: medflexTimestampFromUtc(row.endsAt) })
-  return Object.freeze({ booking, slot })
+  return Object.freeze({ booking, slot: storedSlot(row) })
 }
 
 function matchesVisibleBookingScope(row, booking) {
@@ -612,6 +615,14 @@ async function currentTransition(configuration, capability, applied) {
   if (row.status === 'uncertain' && sameFence) return transition('reconcile', applied, row, createCapability(row))
   const action = row.status === 'uncertain' ? 'reconcile' : row.status
   return transition(action, applied, row)
+}
+
+async function reconciliationScope(configuration, input) {
+  const options = readRecord(input, CAPABILITY_KEYS, CAPABILITY_KEYS, 'Booking intent reconciliation scope')
+  const capability = readCapability(options.capability)
+  const row = await selectCapabilityRow(configuration, capability)
+  if (!row || row.status !== 'uncertain' || row.fencingToken !== capability.fencingToken) throw invariant()
+  return storedSlot(row)
 }
 
 async function confirm(configuration, input) {
@@ -699,6 +710,7 @@ export function createBookingIntentRepository(input) {
     confirm: (value) => confirm(configuration, value),
     fail: (value) => fail(configuration, value),
     markUncertain: (value) => markUncertain(configuration, value),
+    reconciliationScope: (value) => reconciliationScope(configuration, value),
     reconcile: (value) => reconcile(configuration, value),
   })
 }

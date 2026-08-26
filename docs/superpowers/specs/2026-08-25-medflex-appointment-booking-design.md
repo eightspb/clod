@@ -126,6 +126,8 @@ The browser calls a same-origin backend-for-frontend:
 
 The API handlers use `prerender = false`, return `Cache-Control: no-store`, and produce the project's stable JSON error shape. The slots response includes safe local appointment-type keys, labels, current prices, age ranges, and availability. The browser supplies only a local doctor slug, local appointment-type key, selected start/end timestamps, patient data, consent, and an opaque booking intent identifier.
 
+Schedule reads are limited to 30 requests per trusted client IP per 60 seconds. Booking writes are limited to 5 requests per trusted client IP per 15 minutes, require a valid same-origin submission and JSON content type, and enforce a streamed 16 KiB body cap before parsing. Operational failure logs contain only a fixed stage code; they never include caught error objects, request bodies, patient values, upstream identifiers, raw responses, or authorization data.
+
 ### Medflex client
 
 `src/lib/medflex-client.js` is the only module that knows the upstream origin and authentication format. It:
@@ -198,6 +200,8 @@ Medflex does not expose an idempotency key for direct appointment creation, and 
 - A known validation or slot conflict marks the attempt failed and permits a new slot selection. Selecting a different slot preserves the patient fields but creates a fresh browser intent identifier; an existing identifier is never rebound to different booking semantics.
 - A network timeout after submission marks the intent uncertain and does not retry automatically.
 - An uncertain intent is reconciled against Medflex appointment history before the UI offers any new submission.
+- Reconciliation uses the trusted doctor/LPU/specialty/price/time scope persisted with that exact intent, not a potentially changed current website mapping.
+- History proof is bounded to four complete pages and at most 200 rows. Confirmation requires exactly one active exact match; canceled matches, mixed active/canceled matches, duplicates, schema drift, incomplete pagination, or upstream failure remain uncertain and preserve phone fallback.
 - A confirmed intent returns the original confirmation on a safe repeat request.
 - The additive booking-intent schema migration runs idempotently on every container startup so existing SQLite volumes receive the table and indexes without losing current data.
 
