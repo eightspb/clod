@@ -46,5 +46,5 @@ const faqSchema = generateFaqSchema(GYNECOLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология' }]} />
-  <Gynecology servicesData={services} />
+  <Gynecology servicesData={services} client:idle />
 </Layout>

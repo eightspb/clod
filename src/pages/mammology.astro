@@ -41,5 +41,5 @@ const faqSchema = generateFaqSchema(MAMMOLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология' }]} />
-  <Mammology />
+  <Mammology client:idle />
 </Layout>

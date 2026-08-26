@@ -67,5 +67,5 @@ const faqSchema = generateFaqSchema(FAQ_ITEMS)
   <script type="application/ld+json" set:html={JSON.stringify(medicalProcedureSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'ВАБ - вакуумная аспирационная биопсия' }]} />
-  <Vab />
+  <Vab client:idle />
 </Layout>

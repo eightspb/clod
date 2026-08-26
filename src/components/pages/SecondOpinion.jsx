@@ -4,8 +4,8 @@ import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { SecondOpinionForm } from '../SecondOpinionForm.jsx'
-import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
+import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
 
 const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
 
@@ -147,7 +147,7 @@ export function SecondOpinion() {
                 </a>
               </div>
             </div>
-            <HeroDoctorCard doctors={MAMMOLOGISTS} ctaHref="/second-opinion" />
+            <ResponsiveDoctorHero doctors={MAMMOLOGISTS} label="Карусель маммологов для второго мнения" ctaHref="/second-opinion" />
           </div>
         </div>
       </section>

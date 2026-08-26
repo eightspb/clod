@@ -2,8 +2,8 @@ import { ArrowRight, Check, CheckCircle, Clock, Shield, Zap, AlertCircle, Messag
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { FaqSection } from '../FaqSection.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { DoctorCard } from '../DoctorCard.jsx'
-import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
+import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
+import { ResponsiveDoctorCollection } from '../ResponsiveDoctorCollection.jsx'
 
 const VAB_DOCTORS = DOCTORS.filter((d) =>
   /онколог/i.test(d.specialization)
@@ -161,7 +161,7 @@ export function Vab() {
               </a>
             </div>
           </div>
-          <HeroDoctorCard doctors={VAB_DOCTORS} />
+          <ResponsiveDoctorHero doctors={VAB_DOCTORS} label="Карусель врачей ВАБ в начале страницы" ctaHref="/second-opinion" />
         </div>
       </section>
 
@@ -366,18 +366,12 @@ export function Vab() {
       <section className="mb-10">
         <h2 className="heading-serif text-2xl text-clay-dark mb-2">Доктора, выполняющие ВАБ</h2>
         <p className="text-clay-muted mb-6">Онкологи-маммологи с опытом от 12 лет</p>
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
-          {VAB_DOCTORS.map((doctor) => (
-            <DoctorCard key={doctor.slug} doctor={doctor} />
-          ))}
-        </div>
-        <div className="sm:hidden flex gap-4 pt-10 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4 pb-4">
-          {VAB_DOCTORS.map((doctor) => (
-            <div key={doctor.slug} className="snap-start flex-shrink-0 w-[80vw]">
-              <DoctorCard doctor={doctor} />
-            </div>
-          ))}
-        </div>
+        <ResponsiveDoctorCollection
+          doctors={VAB_DOCTORS}
+          label="Карусель врачей ВАБ клиники"
+          mobileClassName="md:hidden pt-10"
+          desktopClassName="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-10"
+        />
       </section>
 
       <FaqSection items={FAQ_ITEMS} title="Частые вопросы о ВАБ" />
