@@ -139,27 +139,27 @@ Run: `git add src/lib/patient-records.js src/lib/patient-records.test.js && git 
 - Create: `src/lib/appointment-records.js`
 - Create: `src/lib/appointment-records.test.js`
 
-- [ ] **Step 1: Write failing appointment repository tests**
+- [x] **Step 1: Write failing appointment repository tests**
 
 Cover atomic patient upsert plus pending appointment insert, idempotent prepare by intent UUID, conflict on mismatched reuse, deterministic booking fingerprint duplicate prevention, projection of all BookingIntent states, confirmed claim uniqueness, recovery after a failed local final update, local `admin_existing` creation without Medflex identifiers, UTC validation, integer kopeck conversion, immutable doctor/speciality/type snapshots, safe `MedflexDoctorLink` upsert from the already verified mapping without ambiguous name matching, date/status/source/doctor filters, 50-row pagination, and allowed local/manual review transitions.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `bun run test:run -- src/lib/appointment-records.test.js`
 
 Expected: FAIL because the appointment repository does not exist.
 
-- [ ] **Step 3: Implement the appointment repository**
+- [x] **Step 3: Implement the appointment repository**
 
 Compose the patient repository rather than duplicating contact cryptography. Keep prepare and projection idempotent, use parameterized SQL, validate stored rows before returning them, and expose only masked patient data from list/detail operations. Store ruble prices from the current Medflex flow as checked integer kopecks.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun run test:run -- src/lib/appointment-records.test.js`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit local appointment records**
+- [x] **Step 5: Commit local appointment records**
 
 Run: `git add src/lib/appointment-records.js src/lib/appointment-records.test.js && git commit -m "feat: add local appointment records"`
 
