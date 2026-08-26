@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { createClient } from '@libsql/client'
 import { describe, expect, it } from 'vitest'
+import { fingerprintContactPhone } from './contact-identity.js'
 
 const executeFile = promisify(execFile)
 const PROJECT_ROOT = resolve(import.meta.dirname, '../..')
@@ -165,5 +166,16 @@ describe('patient records', () => {
     const result = await captured(() => records.upsert({ profile }))
     client.close()
     expect(result).toEqual({ threw: true, name: 'TypeError', code: undefined })
+  })
+
+  it('backfills every active matching MANGO call when a patient is created later', async () => {
+    const { client, records } = await fixture()
+    const fingerprint = fingerprintContactPhone({ phone: FIRST_PROFILE.phone, key: FINGERPRINT_KEY })
+    const values = ['entry-older', 'entry-newer'].map((entryId, index) => [entryId, null, 'missed', 'sealed', '+7 •••••••• 29', fingerprint, index, '78127482210', null, `2026-08-2${index + 4}T10:00:00.000Z`, null, null, `2026-08-2${index + 4}T10:01:00.000Z`, 60, 0, null, `2026-08-2${index + 4}T10:01:00.000Z`, FIRST_TIME.toISOString(), FIRST_TIME.toISOString(), null])
+    for (const args of values) await client.execute({ sql: 'INSERT INTO MangoCall VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args })
+    await invoke(records, 'upsert', { profile: FIRST_PROFILE })
+    const calls = await client.execute('SELECT entryId, patientId FROM MangoCall ORDER BY entryId')
+    client.close()
+    expect(calls.rows).toEqual([{ entryId: 'entry-newer', patientId: FIRST_ID }, { entryId: 'entry-older', patientId: FIRST_ID }])
   })
 })

@@ -79,6 +79,19 @@ describe('contact identity', () => {
     expect(result).toBe(true)
   })
 
+  it('round-trips a call phone through a separate authenticated-encryption domain', async () => {
+    const identity = await contactIdentity()
+    const envelope = typeof identity.encryptContactPhone === 'function' ? identity.encryptContactPhone({ phone: RUSSIAN_FORMATTED, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV }) : 'missing'
+    const phone = typeof identity.decryptContactPhone === 'function' ? identity.decryptContactPhone({ envelope, key: ENCRYPTION_KEY }) : 'missing'
+    expect({ phone, plaintext: envelope.includes(RUSSIAN_NORMALIZED) }).toEqual({ phone: RUSSIAN_NORMALIZED, plaintext: false })
+  })
+
+  it('does not allow a call-phone envelope to open as a patient profile', async () => {
+    const identity = await contactIdentity()
+    const envelope = identity.encryptContactPhone({ phone: RUSSIAN_FORMATTED, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV })
+    expect(captured(() => identity.decryptPatientProfile({ envelope, key: ENCRYPTION_KEY }))).toMatchObject({ threw: true, name: 'ContactIdentityError', code: 'DECRYPTION_FAILED' })
+  })
+
   it('uses a fresh random IV for repeated patient-profile encryption', async () => {
     const identity = await contactIdentity()
     const first = typeof identity.encryptPatientProfile === 'function' ? identity.encryptPatientProfile({ profile: PROFILE, key: ENCRYPTION_KEY }) : 'missing'

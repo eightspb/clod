@@ -132,32 +132,34 @@ Run: `git add src/lib/mango-call-event.js src/lib/mango-call-event.test.js && gi
 **Files:**
 - Create: `src/lib/mango-call-records.js`
 - Create: `src/lib/mango-call-records.test.js`
+- Modify: `src/lib/contact-identity.js`
+- Modify: `src/lib/contact-identity.test.js`
 - Modify: `src/lib/patient-records.js`
 - Modify: `src/lib/patient-records.test.js`
 
-- [ ] **Step 1: Write failing repository and patient-backfill tests**
+- [x] **Step 1: Write failing repository and patient-backfill tests**
 
 Cover first live aggregate/leg insert, same-event duplicate, stale lower `seq`, accepted higher `seq`, independent legs under one entry, atomic aggregate updates, existing-patient linkage, unknown caller remaining patientless, repeat-caller flag from prior finalized calls, idempotent summary, summary overriding provisional status, late live events unable to overwrite a final summary, contradictory `entry_result` unable to override the `talk_time` answer rule, non-inbound cleanup, concurrent delivery races, masked list/detail, filters and 50-row pages, aggregate metrics, audited reveal, destruction, and patient upsert backfilling all non-destroyed matching calls.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `bun run test:run -- src/lib/mango-call-records.test.js src/lib/patient-records.test.js`
 
 Expected: FAIL because call storage/backfill are absent.
 
-- [ ] **Step 3: Implement transactional persistence**
+- [x] **Step 3: Implement transactional persistence**
 
 Use conditional SQL on `maxSeq`, unique primary keys, and write transactions so stale events cannot win races. Reuse `contact-identity.js` for caller encryption/fingerprint/mask. Add a narrowly scoped patient-upsert backfill statement instead of importing the MANGO repository into patient domain code.
 
-- [ ] **Step 4: Run focused tests and verify GREEN**
+- [x] **Step 4: Run focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/lib/mango-call-records.test.js src/lib/patient-records.test.js`
 
 Expected: PASS including the concurrent race fixture.
 
-- [ ] **Step 5: Commit call persistence**
+- [x] **Step 5: Commit call persistence**
 
-Run: `git add src/lib/mango-call-records.js src/lib/mango-call-records.test.js src/lib/patient-records.js src/lib/patient-records.test.js && git commit -m "feat: persist sequenced MANGO calls"`
+Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/lib/contact-identity.js src/lib/contact-identity.test.js src/lib/mango-call-event.js src/lib/mango-call-records.js src/lib/mango-call-records.test.js src/lib/patient-records.js src/lib/patient-records.test.js && git commit -m "feat: persist sequenced MANGO calls"`
 
 ### Task 5: Expose health and webhook routes
 

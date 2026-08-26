@@ -5,7 +5,6 @@ const LOCATIONS = new Set(['ivr', 'queue', 'abonent'])
 const INTEGER_TEXT = /^(?:0|[1-9]\d*)$/
 const MAX_TIMESTAMP = 253_402_300_799
 const MAX_CALL_SECONDS = 86_400
-const CONTROL = /[\u0000-\u001f\u007f]/
 const ERROR_MESSAGES = Object.freeze({ INVALID_LIVE_EVENT: 'MANGO live call event is invalid', INVALID_SUMMARY_EVENT: 'MANGO call summary event is invalid' })
 
 /**
@@ -26,8 +25,13 @@ function plain(value, code) {
   return value
 }
 
+function prohibitedTextCharacter(value) {
+  const code = value.codePointAt(0)
+  return code <= 31 || code === 127
+}
+
 function identifier(value, code) {
-  if (typeof value !== 'string' || value.trim() !== value || value.length === 0 || Buffer.byteLength(value, 'utf8') > 128 || CONTROL.test(value)) throw new MangoCallEventError(code)
+  if (typeof value !== 'string' || value.trim() !== value || value.length === 0 || Buffer.byteLength(value, 'utf8') > 128 || [...value].some(prohibitedTextCharacter)) throw new MangoCallEventError(code)
   return value
 }
 
@@ -53,7 +57,7 @@ function extension(value, code) {
 function reason(value, code) {
   if (value === undefined || value === null || value === '') return null
   const text = typeof value === 'number' && Number.isSafeInteger(value) ? String(value) : value
-  if (typeof text !== 'string' || text.trim() !== text || text.length === 0 || Buffer.byteLength(text, 'utf8') > 128 || CONTROL.test(text)) throw new MangoCallEventError(code)
+  if (typeof text !== 'string' || text.trim() !== text || text.length === 0 || Buffer.byteLength(text, 'utf8') > 128 || [...text].some(prohibitedTextCharacter)) throw new MangoCallEventError(code)
   return text
 }
 

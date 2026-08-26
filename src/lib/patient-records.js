@@ -163,6 +163,7 @@ async function executeUpsert(configuration, executor, input) {
   })
   const rows = readRows(result).map(parseRow)
   if (rows.length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  await executor.execute({ sql: 'UPDATE MangoCall SET patientId = ?, updatedAt = max(updatedAt, ?) WHERE callerFingerprint = ? AND piiDestroyedAt IS NULL', args: [rows[0].id, now, protectedData.phoneFingerprint] })
   return publicPatient(configuration, rows[0])
 }
 

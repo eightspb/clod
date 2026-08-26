@@ -5,6 +5,7 @@ const CANONICAL_PHONE_PATTERN = /^[1-9][0-9]{7,14}$/
 const FINGERPRINT_DOMAIN = 'clod.contact-fingerprint'
 const VERSION = 'v1'
 const PROFILE_DOMAIN = 'clod.patient-profile'
+const PHONE_DOMAIN = 'clod.contact-phone'
 const PROFILE_KEYS = Object.freeze(['firstName', 'lastName', 'secondName', 'phone', 'birthday'])
 const REQUIRED_PROFILE_KEYS = Object.freeze(['firstName', 'lastName', 'phone'])
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
@@ -104,8 +105,8 @@ function initializationVector(source) {
   return Buffer.from(value)
 }
 
-function additionalData() {
-  return Buffer.from(`${PROFILE_DOMAIN}\0${VERSION}`, 'utf8')
+function additionalData(domain) {
+  return Buffer.from(`${domain}\0${VERSION}`, 'utf8')
 }
 
 function envelopePart(value, expectedBytes) {
@@ -167,7 +168,7 @@ export function encryptPatientProfile({ profile, key, randomBytes = secureRandom
   const secret = encryptionKey(key)
   const iv = initializationVector(randomBytes)
   const cipher = createCipheriv('aes-256-gcm', secret, iv)
-  cipher.setAAD(additionalData())
+  cipher.setAAD(additionalData(PROFILE_DOMAIN))
   const ciphertext = Buffer.concat([cipher.update(JSON.stringify(protectedProfile), 'utf8'), cipher.final()])
   const tag = cipher.getAuthTag()
   return [VERSION, iv.toString('base64url'), ciphertext.toString('base64url'), tag.toString('base64url')].join('.')
@@ -181,10 +182,42 @@ export function decryptPatientProfile({ envelope, key }) {
   const { iv, ciphertext, tag } = encryptedParts(envelope)
   try {
     const decipher = createDecipheriv('aes-256-gcm', secret, iv)
-    decipher.setAAD(additionalData())
+    decipher.setAAD(additionalData(PROFILE_DOMAIN))
     decipher.setAuthTag(tag)
     const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
     return patientProfile(JSON.parse(plaintext))
+  } catch (error) {
+    if (error instanceof TypeError && error.message.startsWith('Contact encryption key')) throw error
+    throw new ContactIdentityError('DECRYPTION_FAILED')
+  }
+}
+
+/**
+ * Seals a normalized contact phone in a call-specific AES-256-GCM domain.
+ */
+export function encryptContactPhone({ phone, key, randomBytes = secureRandomBytes }) {
+  const value = normalizeContactPhone(phone)
+  const secret = encryptionKey(key)
+  const iv = initializationVector(randomBytes)
+  const cipher = createCipheriv('aes-256-gcm', secret, iv)
+  cipher.setAAD(additionalData(PHONE_DOMAIN))
+  const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()])
+  const tag = cipher.getAuthTag()
+  return [VERSION, iv.toString('base64url'), ciphertext.toString('base64url'), tag.toString('base64url')].join('.')
+}
+
+/**
+ * Opens and revalidates a call phone without leaking cryptographic errors.
+ */
+export function decryptContactPhone({ envelope, key }) {
+  const secret = encryptionKey(key)
+  const { iv, ciphertext, tag } = encryptedParts(envelope)
+  try {
+    const decipher = createDecipheriv('aes-256-gcm', secret, iv)
+    decipher.setAAD(additionalData(PHONE_DOMAIN))
+    decipher.setAuthTag(tag)
+    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
+    return canonicalPhone(plaintext)
   } catch (error) {
     if (error instanceof TypeError && error.message.startsWith('Contact encryption key')) throw error
     throw new ContactIdentityError('DECRYPTION_FAILED')
