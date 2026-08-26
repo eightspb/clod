@@ -2,14 +2,19 @@ export const prerender = false
 
 import { db } from 'astro:db'
 import { createAppointmentBooking } from '../../../lib/appointment-booking.js'
+import { createAppointmentRecords } from '../../../lib/appointment-records.js'
+import { validateBookingPayload } from '../../../lib/appointment-validation.js'
 import { validateOrigin } from '../../../lib/auth.js'
 import { getClientIp } from '../../../lib/client-ip.js'
+import { fingerprintContactPhone } from '../../../lib/contact-identity.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
 
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
 const JSON_MEDIA_TYPE = /^application\/(?:[a-z0-9!#$&^_.+-]+\+)?json(?:\s*;|$)/i
 const BODY_LIMIT_BYTES = 16 * 1024
 const RATE_LIMIT_OPTIONS = Object.freeze({ namespace: 'appointments-book', maxRequests: 5, windowMs: 15 * 60_000 })
+const CONTACT_RATE_LIMIT_OPTIONS = Object.freeze({ namespace: 'appointments-book-contact', maxRequests: 3, windowMs: 15 * 60_000 })
+const ENDPOINT_KEYS = Object.freeze(['fingerprintKey', 'contactLimit'])
 
 function json(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), { status, headers: { ...JSON_HEADERS, ...headers } })
@@ -25,6 +30,12 @@ function unavailable() {
 
 function safeLog(stage) {
   console.error('[appointments/book]', stage)
+}
+
+function environment(name) {
+  const value = import.meta.env[name] || process.env[name]
+  if (typeof value !== 'string' || value.length === 0) throw new TypeError(`${name} environment variable is required`)
+  return value
 }
 
 function declaredLength(request) {
@@ -91,14 +102,35 @@ async function boundedJson(request) {
 }
 
 function productionWorkflow() {
-  return createAppointmentBooking({ intentClient: db.$client })
+  const appointmentRecords = createAppointmentRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('PATIENT_ENCRYPTION_KEY') })
+  return createAppointmentBooking({ intentClient: db.$client, appointmentRecords })
+}
+
+function endpointOptions(input) {
+  if (input === null || typeof input !== 'object' || Array.isArray(input)) throw new TypeError('Appointment booking endpoint options must be a plain object')
+  const prototype = Object.getPrototypeOf(input)
+  if (prototype !== Object.prototype && prototype !== null) throw new TypeError('Appointment booking endpoint options must be a plain object')
+  if (!Reflect.ownKeys(input).every((key) => typeof key === 'string' && ENDPOINT_KEYS.includes(key))) throw new TypeError('Appointment booking endpoint options contain unknown fields')
+  const fingerprintKey = input.fingerprintKey === undefined ? () => environment('CONTACT_FINGERPRINT_KEY') : () => input.fingerprintKey
+  const contactLimit = input.contactLimit === undefined ? checkRateLimit : input.contactLimit
+  if (input.fingerprintKey !== undefined && typeof input.fingerprintKey !== 'string') throw new TypeError('Appointment contact fingerprint key must be runtime text')
+  if (typeof contactLimit !== 'function') throw new TypeError('Appointment contact limiter must be a function')
+  return Object.freeze({ fingerprintKey, contactLimit })
+}
+
+function contactRate(configuration, value) {
+  const structural = validateBookingPayload(value, { now: new Date(), mode: 'resume' })
+  if (!structural.valid) return Object.freeze({ allowed: true })
+  const key = fingerprintContactPhone({ phone: structural.value.patient.phone, key: configuration.fingerprintKey() })
+  return configuration.contactLimit(key, CONTACT_RATE_LIMIT_OPTIONS)
 }
 
 /**
  * Creates the HTTP adapter for the appointment booking workflow.
  */
-export function createBookEndpoint(workflow = productionWorkflow) {
+export function createBookEndpoint(workflow = productionWorkflow, input = {}) {
   if (typeof workflow !== 'function') throw new TypeError('Appointment booking workflow must be a function')
+  const configuration = endpointOptions(input)
   return async function bookEndpoint({ request }) {
     if (!validateOrigin(request)) return error(403, 'FORBIDDEN_ORIGIN', 'Недопустимый источник запроса')
     const mediaType = request.headers.get('content-type')
@@ -112,6 +144,8 @@ export function createBookEndpoint(workflow = productionWorkflow) {
     if (body.tooLarge) return error(413, 'BODY_TOO_LARGE', 'Данные записи превышают допустимый размер')
     if (!body.valid) return error(400, 'INVALID_JSON', 'Передайте корректный JSON')
     try {
+      const contact = contactRate(configuration, body.value)
+      if (!contact.allowed) return error(429, 'RATE_LIMITED', 'Слишком много попыток записи. Попробуйте позже', { 'Retry-After': String(contact.retryAfterSec) })
       const appointment = workflow()
       if (!appointment || typeof appointment.submit !== 'function') throw new TypeError('Appointment booking workflow is invalid')
       const response = await appointment.submit(body.value)

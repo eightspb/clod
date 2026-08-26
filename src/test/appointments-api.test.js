@@ -59,6 +59,12 @@ function upstreamFixture() {
   return Object.freeze({ state, medflex, log: vi.fn() })
 }
 
+function appointmentRecordFixture() {
+  const state = { prepares: [], projects: [] }
+  const records = Object.freeze({ prepare: async (input) => { state.prepares.push(structuredClone(input)); return Object.freeze({ id: input.id, status: 'pending' }) }, project: async (input) => { state.projects.push(structuredClone(input)); return Object.freeze({ id: input.id, status: input.status }) } })
+  return Object.freeze({ state, records })
+}
+
 const SECRET = '807d53fb6db10feee627348937439500e68d766c63e9a18a1d27b74dff81ef30'
 const INTENT_ID = '3335ac38-8090-42f1-8e05-f6c29bc73a9c'
 const OTHER_INTENT_ID = '3027f8bc-9637-4d3d-8b8c-0b0b58e93b3a'
@@ -212,11 +218,12 @@ async function loadSlots(upstream, { productionLog = false } = {}) {
   return { ...module, GET: module.createSlotsEndpoint(input) }
 }
 
-async function loadBook(upstream, intentClient) {
+async function loadBook(upstream, intentClient, endpoint = {}) {
   const module = await import('../pages/api/appointments/book.js')
   if (!upstream) return module
-  const workflow = () => createAppointmentBooking({ intentClient, intentSecret: SECRET, medflex: upstream.medflex, log: upstream.log })
-  return { ...module, POST: module.createBookEndpoint(workflow) }
+  const record = appointmentRecordFixture()
+  const workflow = () => createAppointmentBooking({ intentClient, intentSecret: SECRET, appointmentRecords: record.records, medflex: upstream.medflex, log: upstream.log })
+  return { ...module, POST: module.createBookEndpoint(workflow, { fingerprintKey: SECRET, contactLimit: endpoint.contactLimit ?? (() => Object.freeze({ allowed: true })) }) }
 }
 
 function medflexError(code, input = {}) {
@@ -562,6 +569,21 @@ describe('POST /api/appointments/book intent flow', () => {
       return { statuses: responses.map(({ status }) => status), retry: responses.at(-1).headers.get('Retry-After'), creates: upstream.state.createCalls }
     })
     expect(result).toEqual({ statuses: [201, 200, 200, 200, 200, 429], retry: expect.any(String), creates: 1 })
+  })
+
+  it('limits one normalized contact fingerprint after three attempts across changing IP addresses', async () => {
+    const upstream = upstreamFixture()
+    const keys = []
+    const contactLimit = (key) => { keys.push(key); return keys.length <= 3 ? { allowed: true } : { allowed: false, retryAfterSec: 317 } }
+    const ids = [INTENT_ID, OTHER_INTENT_ID, '7027f8bc-9637-4d3d-8b8c-0b0b58e93b3a', '8027f8bc-9637-4d3d-8b8c-0b0b58e93b3a']
+    const result = await withDatabase(async (fixture) => {
+      const { POST } = await loadBook(upstream, fixture.client, { contactLimit })
+      const responses = []
+      for (let index = 0; index < ids.length; index += 1) responses.push(await POST({ request: bookRequest({ body: booking({ intentId: ids[index], patient: { ...booking().patient, phone: index % 2 === 0 ? '+7 (921) 555-01-29' : '8 921 555-01-29' } }), realIp: `203.0.113.${210 + index}` }) }))
+      return responses
+    })
+    const serialized = JSON.stringify(keys)
+    expect({ statuses: result.map(({ status }) => status), sameKey: new Set(keys).size, safeKey: keys.every((key) => /^v1:[0-9a-f]{64}$/.test(key)), leaked: serialized.includes('79215550129') || serialized.includes('89215550129'), retry: result.at(-1).headers.get('Retry-After') }).toEqual({ statuses: [201, 409, 409, 429], sameKey: 1, safeKey: true, leaked: false, retry: '317' })
   })
 })
 

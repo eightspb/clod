@@ -494,6 +494,16 @@ describe('booking intent transitions', () => {
     expect(result).toEqual({ action: 'retry', staleApplied: false })
   })
 
+  it('retries a local persistence failure with a fresh fenced capability', async () => {
+    const first = await fixture({})
+    const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    const failed = await first.repository.fail({ capability: acquired.capability, failureCode: 'LOCAL_PERSISTENCE_FAILED' })
+    const retried = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    const stale = await first.repository.confirm({ capability: acquired.capability, claimId: CLAIM_ID })
+    const result = await closeWith(first.client, { failed: failed.public.failureCode, action: retried.action, fresh: retried.capability !== acquired.capability, staleApplied: stale.applied })
+    expect(result).toEqual({ failed: 'LOCAL_PERSISTENCE_FAILED', action: 'retry', fresh: true, staleApplied: false })
+  })
+
   it('revalidates a definitive upstream non-acceptance before granting a fresh retry capability', async () => {
     const first = await fixture({})
     const acquired = await first.repository.acquire({ booking: booking({}), slot: slot({}) })

@@ -173,27 +173,27 @@ Run: `git add src/lib/appointment-records.js src/lib/appointment-records.test.js
 - Modify: `src/pages/api/appointments/book.js`
 - Modify: `src/test/appointments-api.test.js`
 
-- [ ] **Step 1: Write failing intent and booking orchestration tests**
+- [x] **Step 1: Write failing intent and booking orchestration tests**
 
 Add `LOCAL_PERSISTENCE_FAILED` as a retryable failure and test its fenced retry. At the booking-service level prove that prepare runs before Medflex, prepare failure produces sanitized `503` and zero upstream creates, a retry repairs local state then dispatches once, every confirmed/failed/uncertain outcome is projected, a confirmed replay repairs a missing projection without dispatch, final projection uses at most three short local-only retries, and exhaustion after upstream confirmation returns safe `202 needs_review` without a second external call. At the route level prove the existing stricter IP limit remains intact and add 3 attempts per 15 minutes by contact fingerprint without retaining the plaintext phone in limiter keys.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `bun run test:run -- src/lib/appointment-intents.test.js src/lib/appointment-booking.test.js src/test/appointments-api.test.js`
 
 Expected: FAIL on the new failure code and missing record adapter.
 
-- [ ] **Step 3: Extend booking configuration and transitions**
+- [x] **Step 3: Extend booking configuration and transitions**
 
 Require an appointment-record adapter in production route construction, prepare it immediately after a `dispatch` or `retry` acquisition, and project state after all transitions and resume outcomes. Retry only the local final projection up to three times with an injectable bounded retry adapter; never retry the Medflex create. Preserve the current 16 KiB boundary, origin check, stricter IP rate limit, 65-second Medflex timeout, intent capabilities, public response contract, and no-automatic-retry rule for uncertain upstream outcomes. Apply the contact-fingerprint rate limit only after strict structural validation and before schedule/Medflex access.
 
-- [ ] **Step 4: Run the focused tests and verify GREEN**
+- [x] **Step 4: Run the focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/lib/appointment-intents.test.js src/lib/appointment-booking.test.js src/test/appointments-api.test.js`
 
 Expected: PASS with existing appointment tests unchanged except explicit adapter fixtures.
 
-- [ ] **Step 5: Commit the public dual-write flow**
+- [x] **Step 5: Commit the public dual-write flow**
 
 Run: `git add src/lib/appointment-intents.js src/lib/appointment-intents.test.js src/lib/appointment-booking.js src/lib/appointment-booking.test.js src/pages/api/appointments/book.js src/test/appointments-api.test.js && git commit -m "feat: persist website bookings locally"`
 
