@@ -34,7 +34,7 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
       <div className={`clay clay-card hero-doctor-card-inner hero-doctor-fade ${fading ? 'hero-doctor-fade-out' : ''}`}>
         <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
           {portraitMedia ? (
-            <picture>
+            <picture className="hero-doctor-picture flex h-full w-full items-end">
               <source media={portraitMedia} srcSet={portraitSource} />
               <img
                 src={TRANSPARENT_PIXEL}

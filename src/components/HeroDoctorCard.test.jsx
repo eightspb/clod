@@ -44,4 +44,10 @@ describe('HeroDoctorCard', () => {
     const picture = portrait.closest('picture')
     expect({ source: picture?.querySelector('source')?.getAttribute('srcset'), media: picture?.querySelector('source')?.getAttribute('media'), fallback: portrait.getAttribute('src') }).toEqual({ source: '/first.png', media: portraitMedia, fallback: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' })
   })
+
+  it('keeps the media-gated portrait full-sized and bottom-aligned', () => {
+    render(<HeroDoctorCard doctors={doctors} portraitMedia="(min-width: 768px)" />)
+    const picture = screen.getByRole('img', { name: 'Первый врач' }).closest('picture')
+    expect(picture).toHaveClass('hero-doctor-picture', 'flex', 'h-full', 'w-full', 'items-end')
+  })
 })
