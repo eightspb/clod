@@ -31,7 +31,8 @@ describe('ResponsiveDoctorCollection', () => {
     const { container } = render(<ResponsiveDoctorCollection doctors={[doctor]} label="Карусель врачей" mobileClassName="md:hidden mobile-single-doctor" desktopClassName="hidden md:grid desktop-single-doctor" />)
     const mobileWrapper = container.querySelector('.mobile-single-doctor')
     const desktopWrapper = container.querySelector('.desktop-single-doctor')
-    expect({ carousel: screen.queryByRole('region'), mobile: within(mobileWrapper).getByRole('heading', { level: 3, name: doctor.name }).textContent, desktop: within(desktopWrapper).getAllByRole('article').map((card) => within(card).getByRole('heading', { level: 3 }).textContent), previous: screen.queryByRole('button', { name: 'Предыдущий врач' }), next: screen.queryByRole('button', { name: 'Следующий врач' }) }).toEqual({ carousel: null, mobile: doctor.name, desktop: [doctor.name], previous: null, next: null })
+    const mobileCard = within(mobileWrapper).getByRole('article')
+    expect({ carousel: screen.queryByRole('region'), mobile: { article: mobileCard.tagName, heading: within(mobileCard).getByRole('heading', { level: 3, name: doctor.name }).textContent, booking: within(mobileCard).getByRole('button', { name: `Записаться на приём к врачу ${doctor.name}` }).getAttribute('data-booking-doctor'), profile: within(mobileCard).getByRole('link', { name: 'Подробнее' }).getAttribute('href') }, desktop: within(desktopWrapper).getAllByRole('article').map((card) => within(card).getByRole('heading', { level: 3 }).textContent), previous: screen.queryByRole('button', { name: 'Предыдущий врач' }), next: screen.queryByRole('button', { name: 'Следующий врач' }) }).toEqual({ carousel: null, mobile: { article: 'ARTICLE', heading: doctor.name, booking: doctor.slug, profile: `/doctors/${doctor.slug}` }, desktop: [doctor.name], previous: null, next: null })
   })
 
   it('renders no doctor presentation for an empty collection', () => {
