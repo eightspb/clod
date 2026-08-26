@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 
+process.env.ADMIN_PASSWORD ||= 'playwright-admin-password'
+process.env.TOKEN_SECRET ||= 'playwright-token-secret-for-admin-authentication'
+const port = process.env.PLAYWRIGHT_PORT || '4322'
+const baseURL = `http://localhost:${port}`
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -8,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:4321',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,7 +24,12 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI ? 'bun run build && bun run preview' : 'bun run dev',
-    url: 'http://localhost:4321',
+    env: {
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+      PORT: port,
+      TOKEN_SECRET: process.env.TOKEN_SECRET,
+    },
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
 })

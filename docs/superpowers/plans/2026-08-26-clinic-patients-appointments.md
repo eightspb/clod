@@ -231,7 +231,7 @@ Run: `bun run test:run -- src/lib/admin-clinic-query.test.js src/lib/admin-api.t
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit patient admin APIs**
+- [x] **Step 5: Commit patient admin APIs**
 
 Run: `git add src/lib/admin-clinic-query.js src/lib/admin-clinic-query.test.js src/lib/admin-api.js src/lib/admin-api.test.js src/pages/api/admin/patients src/test/admin-patients-api.test.js && git commit -m "feat: expose protected patient admin APIs"`
 
@@ -269,7 +269,7 @@ Run: `bun run test:run -- src/lib/medflex-client.test.js src/lib/admin-appointme
 
 Expected: PASS without Internet or external mutations.
 
-- [ ] **Step 5: Commit appointment admin APIs**
+- [x] **Step 5: Commit appointment admin APIs**
 
 Run: `git add src/lib/medflex-client.js src/lib/medflex-client.test.js src/lib/admin-appointment.js src/lib/admin-appointment.test.js src/pages/api/admin/appointments src/test/admin-appointments-api.test.js && git commit -m "feat: add appointment admin workflows"`
 
@@ -283,23 +283,24 @@ Run: `git add src/lib/medflex-client.js src/lib/medflex-client.test.js src/lib/a
 - Create: `src/pages/admin/patients.astro`
 - Create: `src/pages/admin/appointments.astro`
 - Modify: `src/layouts/AdminLayout.astro`
+- Modify: `playwright.config.js`
 - Create: `e2e/admin-clinic.spec.js`
 
-- [ ] **Step 1: Write failing component and browser tests**
+- [x] **Step 1: Write failing component and browser tests**
 
 Cover loading/error/empty states, filters and pagination, masked-by-default phone display, explicit reveal with automatic 30-second re-hide using fake timers, destruction confirmation and post-success anonymized rendering, appointment source/status labels, local-only cancellation warning, manual review action, accessible labels/focus behavior, and authenticated route navigation. Keep network fixtures local and deterministic.
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `bun run test:run -- src/components/admin/Patients.test.jsx src/components/admin/Appointments.test.jsx`
 
 Expected: FAIL because the components do not exist.
 
-- [ ] **Step 3: Implement the React islands and Astro pages**
+- [x] **Step 3: Implement the React islands and Astro pages**
 
 Follow the current `useAdminFetch` pattern, retain Astro route protection, render all statuses in Russian and dates in `Europe/Moscow`, clear revealed PII on timer expiry/unmount/navigation, and add semantic buttons, tables, dialogs, labels, and visible errors. Add the two navigation entries without changing existing admin routes.
 
-- [ ] **Step 4: Run component and route tests**
+- [x] **Step 4: Run component and route tests**
 
 Run: `bun run test:run -- src/components/admin/Patients.test.jsx src/components/admin/Appointments.test.jsx`
 
@@ -309,7 +310,7 @@ Run: `bun run test:e2e -- e2e/admin-clinic.spec.js`
 
 Expected: PASS for the mocked authenticated admin flow.
 
-- [ ] **Step 5: Commit the admin UI**
+- [x] **Step 5: Commit the admin UI**
 
 Run: `git add src/components/admin/Patients.jsx src/components/admin/Patients.test.jsx src/components/admin/Appointments.jsx src/components/admin/Appointments.test.jsx src/pages/admin/patients.astro src/pages/admin/appointments.astro src/layouts/AdminLayout.astro e2e/admin-clinic.spec.js && git commit -m "feat: add patient and appointment admin views"`
 
