@@ -242,21 +242,21 @@ Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/li
 - Modify: `src/components/admin/Patients.test.jsx`
 - Create: `e2e/admin-calls.spec.js`
 
-- [ ] **Step 1: Write failing component and browser tests**
+- [x] **Step 1: Write failing component and browser tests**
 
 Cover active/today/answered/missed/answer-rate/average-wait/average-talk cards, filters and 50-row pagination, Russian state labels, patient link or unknown caller label, masked phone, explicit reveal with 30-second auto-hide, destruction confirmation, Moscow time rendering, polling every five seconds only while `document.visibilityState` is visible, cleanup on unmount, retained state during refresh, errors, keyboard/focus accessibility, admin navigation, and a patient's masked linked-call section.
 
-- [ ] **Step 2: Run focused UI tests and verify RED**
+- [x] **Step 2: Run focused UI tests and verify RED**
 
 Run: `bun run test:run -- src/components/admin/Calls.test.jsx`
 
 Expected: FAIL because the Calls component does not exist.
 
-- [ ] **Step 3: Implement the call journal island and page**
+- [x] **Step 3: Implement the call journal island and page**
 
 Use `useAdminFetch` and accessible native controls, isolate polling in a small effect with visibility listeners, re-hide and discard plaintext on timeout/navigation/unmount, and keep current results visible while a background refresh runs. Add `/admin/calls` to the sidebar and extend the existing patient detail without duplicating call rendering rules.
 
-- [ ] **Step 4: Run component and browser tests**
+- [x] **Step 4: Run component and browser tests**
 
 Run: `bun run test:run -- src/components/admin/Calls.test.jsx`
 
@@ -266,9 +266,9 @@ Run: `bun run test:e2e -- e2e/admin-calls.spec.js`
 
 Expected: PASS with local mocked webhook/admin traffic.
 
-- [ ] **Step 5: Commit the call UI**
+- [x] **Step 5: Commit the call UI**
 
-Run: `git add src/components/admin/Calls.jsx src/components/admin/Calls.test.jsx src/components/admin/Patients.jsx src/components/admin/Patients.test.jsx src/pages/admin/calls.astro src/layouts/AdminLayout.astro e2e/admin-calls.spec.js && git commit -m "feat: add live MANGO call journal"`
+Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/components/admin/Calls.jsx src/components/admin/Calls.test.jsx src/components/admin/Patients.jsx src/components/admin/Patients.test.jsx src/pages/admin/calls.astro src/layouts/AdminLayout.astro e2e/admin-calls.spec.js && git commit -m "feat: add live MANGO call journal"`
 
 ### Task 8: Add call counters to the main dashboard
 

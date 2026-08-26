@@ -87,4 +87,17 @@ describe('Patients admin view', () => {
     render(<Patients />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить пациентов')
   })
+
+  it('loads a paginated masked call section for one patient on demand', async () => {
+    const call = { entryId: 'entry-1', patientId: PATIENT_ID, status: 'missed', callerMask: PATIENT.phoneMask, repeatCaller: false, lineNumber: '78127482210', operatorExtension: null, startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: null, answeredAt: null, endedAt: '2026-08-26T10:01:00.000Z', waitSeconds: 60, talkSeconds: 0, disconnectReason: null, finalizedAt: '2026-08-26T10:01:00.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null }
+    const calls = transport([json(PAGE), json({ data: PATIENT, calls: { data: [call], page: { number: 1, size: 10, total: 1, pages: 2 } } }), json({ data: PATIENT, calls: { data: [call], page: { number: 2, size: 10, total: 1, pages: 2 } } })])
+    render(<Patients />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: `История звонков ${PATIENT.name}` }))
+    expect(await screen.findByText('Звонки пациента')).toBeVisible()
+    expect(screen.getByText('Пропущен')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Следующая страница звонков' }))
+    await waitFor(() => expect(calls.length).toBe(3))
+    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/patients?page=1&pageSize=50', `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10`, `/api/admin/patients/${PATIENT_ID}?callsPage=2&callsPageSize=10`])
+  })
 })
