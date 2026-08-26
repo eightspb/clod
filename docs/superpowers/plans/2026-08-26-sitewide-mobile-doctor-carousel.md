@@ -100,7 +100,7 @@ Commit the two new component files, their two tests, and the `HeroDoctorCard` im
 
 - [ ] **Step 1: Add the mobile route inventory contract**
 
-At `393x852`, enumerate all 14 scoped routes and assert the visible carousel count. Expect two on `/mammology`, `/gynecology`, `/vab`, `/adenomioz`, `/endometrioz`, `/eroziya-sheyki-matki`, `/fibroadenoma`, `/kista-molochnoy-zhelezy`, and `/mastopatiya`; one on `/nutrition` and `/second-opinion`; and zero on `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`. Wait for each React island to hydrate before measuring.
+At `393x852`, enumerate all 14 scoped routes and assert the visible carousel count. Expect two on `/mammology`, `/gynecology`, `/vab`, `/adenomioz`, `/endometrioz`, `/eroziya-sheyki-matki`, `/fibroadenoma`, `/kista-molochnoy-zhelezy`, and `/mastopatiya`; one on `/nutrition` and `/second-opinion`; and zero on `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`. On positive multi-doctor routes, wait for every expected carousel island to hydrate before measuring. On the three zero-carousel single-doctor routes, inspect the server-rendered presentation without waiting for hydration.
 
 - [ ] **Step 2: Add the representative interaction contract**
 
@@ -118,7 +118,7 @@ On `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`, assert that no 
 
 Run: `bun run test:e2e -- e2e/sitewide-mobile-doctor-carousel.spec.js --project=chromium --reporter=line --workers=1`
 
-Expected: FAIL because specialty heroes still render `HeroDoctorCard`, lower sections still use snap strips, and five page components are not hydrated.
+Expected: FAIL because specialty heroes still render `HeroDoctorCard`, lower sections still use snap strips, and four previously static multi-doctor specialty components are not hydrated.
 
 - [ ] **Step 6: Commit the red browser contract**
 
@@ -136,7 +136,6 @@ Commit the new E2E file with message: `test: require sitewide mobile doctor caro
 - Modify: `src/components/pages/Vab.jsx`
 - Modify: `src/pages/mammology.astro`
 - Modify: `src/pages/gynecology.astro`
-- Modify: `src/pages/endocrinology.astro`
 - Modify: `src/pages/nutrition.astro`
 - Modify: `src/pages/vab.astro`
 
@@ -148,9 +147,9 @@ Use `ResponsiveDoctorHero` with route-specific accessible labels. Preserve each 
 
 Use `ResponsiveDoctorCollection` in Mammology, Gynecology, Endocrinology, and Vab. Preserve section copy, doctor order, desktop column counts, and the existing `pt-6` or `pt-10` spacing through adapter props. Remove obsolete `DoctorCard` imports and all four hand-built `overflow-x-auto` snap strips.
 
-- [ ] **Step 3: Hydrate five previously server-only page components**
+- [ ] **Step 3: Hydrate four previously server-only multi-doctor page components**
 
-Add `client:idle` to Mammology, Gynecology, Endocrinology, Nutrition, and Vab in their Astro routes. Do not change prerender flags, metadata, canonical data, JSON-LD, breadcrumbs, or service-data props. Keep the existing `SecondOpinion client:idle` directive unchanged.
+Add `client:idle` to Mammology, Gynecology, Nutrition, and Vab in their Astro routes. Do not change prerender flags, metadata, canonical data, JSON-LD, breadcrumbs, or service-data props. Keep the existing `SecondOpinion client:idle` directive unchanged. Keep the single-doctor Endocrinology route static without a client directive.
 
 > **Accepted Astro-first refinement:** implementation adds `client:idle` only to the four previously static multi-doctor routes `/mammology`, `/gynecology`, `/nutrition`, and `/vab`. `/second-opinion` was already hydrated. `/endocrinology` has one doctor and remains static because it needs no carousel state. All disease routes were already hydrated, so their Astro files remain unchanged.
 
@@ -168,7 +167,7 @@ Expected: the six migrated routes pass; route inventory cases for unmigrated con
 
 - [ ] **Step 6: Commit the specialty migration**
 
-Commit only the six page components and five Astro routes with message: `feat: use mobile doctor carousel on specialty pages`.
+Commit only the six page components and four Astro routes with message: `feat: use mobile doctor carousel on specialty pages`.
 
 ### Task 5: Migrate disease pages
 
