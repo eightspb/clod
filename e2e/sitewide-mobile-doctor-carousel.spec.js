@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test'
 
 const MOBILE_VIEWPORT = Object.freeze({ width: 393, height: 852 })
 const DESKTOP_VIEWPORT = Object.freeze({ width: 1280, height: 900 })
-const TEST_ORIGIN = 'http://localhost:4321'
 const CAROUSEL_SELECTOR = '[data-mobile-doctor-carousel]'
 const HYDRATED_CAROUSEL_ISLAND_SELECTOR = `main astro-island:has(${CAROUSEL_SELECTOR}):not([ssr])`
 const LEGACY_DOCTOR_STRIP_SELECTOR = 'main .overflow-x-auto:has(.doctor-card)'
@@ -37,17 +36,24 @@ const SINGLE_DOCTOR_ROUTES = Object.freeze([
   Object.freeze({ route: '/tireoidit-khashimoto', sectionHeading: 'Наши эндокринологи', heroDoctor: null }),
 ])
 
-async function isolateNetwork(page) {
+function configuredOrigin(baseURL) {
+  const validType = typeof baseURL === 'string' && baseURL.trim() !== '' || baseURL instanceof URL
+  if (!validType) throw new TypeError('Playwright project baseURL must be a non-empty absolute URL')
+  const url = new URL(baseURL)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new TypeError('Playwright project baseURL must use HTTP or HTTPS')
+  return url.origin
+}
+
+async function isolateNetwork(page, origin) {
   await page.route('**/*', async (requestRoute) => {
     const url = new URL(requestRoute.request().url())
-    if (url.origin !== TEST_ORIGIN) return requestRoute.abort('blockedbyclient')
+    if (url.origin !== origin) return requestRoute.abort('blockedbyclient')
     if (url.pathname.startsWith('/api/analytics/')) return requestRoute.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { accepted: true } }) })
     return requestRoute.continue()
   })
 }
 
 async function visitRoute(page, route, viewport) {
-  await isolateNetwork(page)
   await page.setViewportSize(viewport)
   const response = await page.goto(route)
   if (!response?.ok()) throw new Error(`Route ${route} returned status ${response?.status() ?? 'unknown'}`)
@@ -149,6 +155,11 @@ async function singleDoctorState(page, sectionHeading) {
     return { carouselHooks: carouselHooks.length, semanticCarousels: semanticCarousels.length, controls: controls.length, heroDoctor: visible(heroName) ? heroName.textContent.trim() : null, sectionDoctors: cards.length, sectionHeadings: cards.map((card) => card.querySelector('h3')?.textContent.trim() ?? null), bookingSlugs: cards.map((card) => card.querySelector('[data-booking-doctor]')?.getAttribute('data-booking-doctor') ?? null), profileHrefs: cards.map((card) => card.querySelector('a[href^="/doctors/"]')?.getAttribute('href') ?? null), horizontalOverflow: cards.map(horizontalOverflow) }
   }, sectionHeading)
 }
+
+test.beforeEach(async ({ page }, testInfo) => {
+  const origin = configuredOrigin(testInfo.project.use.baseURL)
+  await isolateNetwork(page, origin)
+})
 
 for (const { route, carousels } of MOBILE_ROUTES) {
   test(`shows ${route} with ${carousels} mobile doctor carousels and no legacy doctor strip`, async ({ page }) => {
