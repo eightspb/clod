@@ -79,27 +79,27 @@ Run: `git add db/config.ts scripts/init-db.mjs src/test/appointment-database-mig
 - Create: `src/lib/contact-identity.js`
 - Create: `src/lib/contact-identity.test.js`
 
-- [ ] **Step 1: Write failing normalization and cryptography tests**
+- [x] **Step 1: Write failing normalization and cryptography tests**
 
 Cover `+7`, `8`, spaces, parentheses, hyphens, Unicode rejection, invalid lengths, HMAC domain separation, deterministic fingerprints, stable safe masks, random 96-bit IVs, AES-GCM authentication failure, strict base64 key length, envelope version rejection, oversized profile rejection, and absence of plaintext PII from fingerprint/envelope metadata.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `bun run test:run -- src/lib/contact-identity.test.js`
 
 Expected: FAIL because `contact-identity.js` does not exist.
 
-- [ ] **Step 3: Implement the focused module**
+- [x] **Step 3: Implement the focused module**
 
 Export immutable operations for phone normalization, mask creation, `v1:` HMAC-SHA256 fingerprints, AES-256-GCM profile encryption, and decryption. Accept explicit keys and random/clock adapters where determinism is required by tests; validate all inputs before cryptographic work and use authenticated additional data containing the envelope version and domain.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run: `bun run test:run -- src/lib/contact-identity.test.js`
 
 Expected: PASS with no Internet access.
 
-- [ ] **Step 5: Commit the identity boundary**
+- [x] **Step 5: Commit the identity boundary**
 
 Run: `git add src/lib/contact-identity.js src/lib/contact-identity.test.js && git commit -m "feat: protect clinic contact identity"`
 
