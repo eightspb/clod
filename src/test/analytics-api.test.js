@@ -68,6 +68,7 @@ vi.mock('astro:db', () => ({
   Appointment: { startsAt: 'appointment.startsAt', status: 'appointment.status' },
   PageView: { id: 'page_view.id', duration: 'page_view.duration', page: 'page_view.page' },
   EventLog: { id: 'event_log.id', createdAt: 'event_log.createdAt' },
+  MangoCall: { status: 'mango_call.status', startedAt: 'mango_call.startedAt', waitSeconds: 'mango_call.waitSeconds', talkSeconds: 'mango_call.talkSeconds' },
   Patient: { piiDestroyedAt: 'patient.piiDestroyedAt' },
   and: andMock,
   avg: avgMock,
@@ -302,13 +303,19 @@ describe('admin clinic statistics', () => {
       [{ count: 4 }],
       [{ count: 8 }],
       [{ count: 2 }],
-      [{ count: 15 }]
+      [{ count: 15 }],
+      [{ count: 2 }],
+      [{ count: 6 }],
+      [{ count: 4 }],
+      [{ count: 2 }],
+      [{ averageWait: 15.4, averageTalk: 82.6 }]
     )
     const { GET } = await loadStatsHandler()
     const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
     const body = await response.json()
     expect(response.status).toBe(200)
     expect(body.clinic).toEqual({ todayAppointments: 4, upcomingAppointments: 8, needsReviewAppointments: 2, activePatients: 15 })
+    expect(body.calls).toEqual({ active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83 })
     expect(body.today).toEqual({ sessions: 3, uniqueVisitors: 2 })
     const todayQuery = selectCalls.find((call) => call.table?.startsAt === 'appointment.startsAt' && call.where?.values?.some((condition) => condition.type === 'lt'))
     expect(todayQuery.where).toEqual({
@@ -319,15 +326,18 @@ describe('admin clinic statistics', () => {
         { type: 'inArray', values: ['appointment.status', ['pending', 'confirmed', 'needs_review']] },
       ],
     })
+    const callTodayQuery = selectCalls.find((call) => call.table?.startedAt === 'mango_call.startedAt' && call.where?.values?.some((condition) => condition.type === 'lt'))
+    expect(callTodayQuery.where.values.slice(0, 2)).toEqual([{ type: 'gte', values: ['mango_call.startedAt', '2026-08-26T21:00:00.000Z'] }, { type: 'lt', values: ['mango_call.startedAt', '2026-08-27T21:00:00.000Z'] }])
   })
 
   it('returns zero clinic defaults for empty aggregate rows', async () => {
-    selectRows.push(...Array.from({ length: 12 }, () => []))
+    selectRows.push(...Array.from({ length: 17 }, () => []))
     const { GET } = await loadStatsHandler()
     const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
     const body = await response.json()
     expect(response.status).toBe(200)
     expect(body.clinic).toEqual({ todayAppointments: 0, upcomingAppointments: 0, needsReviewAppointments: 0, activePatients: 0 })
+    expect(body.calls).toEqual({ active: 0, incomingToday: 0, answeredToday: 0, missedToday: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0 })
   })
 
   it('checks authentication before querying clinic statistics', async () => {

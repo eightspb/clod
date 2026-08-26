@@ -278,27 +278,27 @@ Run: `git add docs/superpowers/plans/2026-08-26-mango-call-integration.md src/co
 - Modify: `src/components/admin/Dashboard.jsx`
 - Modify: `src/components/admin/Dashboard.test.jsx`
 
-- [ ] **Step 1: Write failing dashboard call tests**
+- [x] **Step 1: Write failing dashboard call tests**
 
 Cover active inbound calls, incoming today, answered, missed, answer rate, average wait, average talk, Moscow-day boundaries, zero/empty results, and links to corresponding call filters while preserving website and appointment statistics.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `bun run test:run -- src/test/analytics-api.test.js src/components/admin/Dashboard.test.jsx`
 
 Expected: FAIL because call counters are absent.
 
-- [ ] **Step 3: Extend stats and dashboard presentation**
+- [x] **Step 3: Extend stats and dashboard presentation**
 
 Add aggregate-only queries under a `calls` response key and render compact linked cards. Avoid decrypting any caller data for statistics.
 
-- [ ] **Step 4: Run focused tests and verify GREEN**
+- [x] **Step 4: Run focused tests and verify GREEN**
 
 Run: `bun run test:run -- src/test/analytics-api.test.js src/components/admin/Dashboard.test.jsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit dashboard call statistics**
+- [x] **Step 5: Commit dashboard call statistics**
 
 Run: `git add src/pages/api/admin/stats.js src/test/analytics-api.test.js src/components/admin/Dashboard.jsx src/components/admin/Dashboard.test.jsx && git commit -m "feat: show MANGO activity on admin dashboard"`
 

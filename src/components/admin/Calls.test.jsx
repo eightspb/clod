@@ -24,6 +24,7 @@ function transport(responses) {
 }
 
 afterEach(() => {
+  window.history.replaceState({}, '', '/admin/calls')
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
@@ -68,6 +69,15 @@ describe('Calls admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Следующая страница' }))
     await waitFor(() => expect(calls.length).toBe(3))
     expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/calls?page=1&pageSize=50', '/api/admin/calls?page=1&pageSize=50&status=missed&lineNumber=%2B7+812+748-22-10&operatorExtension=321', '/api/admin/calls?page=2&pageSize=50&status=missed&lineNumber=%2B7+812+748-22-10&operatorExtension=321'])
+  })
+
+  it('applies a supported status filter from a dashboard deep link', async () => {
+    window.history.replaceState({}, '', '/admin/calls?status=missed')
+    const calls = transport([json(PAGE)])
+    render(<Calls />)
+    await screen.findByRole('table')
+    expect(screen.getByLabelText('Статус звонка')).toHaveValue('missed')
+    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/calls?page=1&pageSize=50&status=missed'])
   })
 
   it('reveals a caller explicitly and discards plaintext after thirty seconds', async () => {

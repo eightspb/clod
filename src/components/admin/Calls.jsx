@@ -25,6 +25,12 @@ function duration(value) {
   return seconds === 0 ? `${minutes} мин` : `${minutes} мин ${seconds} с`
 }
 
+function initialFilters() {
+  if (typeof window === 'undefined') return { ...EMPTY_FILTERS }
+  const status = new URLSearchParams(window.location.search).get('status') || ''
+  return { ...EMPTY_FILTERS, status: Object.prototype.hasOwnProperty.call(STATUS_LABELS, status) ? status : '' }
+}
+
 async function mutate(url, options) {
   const response = await fetch(url, { ...options, headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...options.headers } })
   if (response.status === 401) {
@@ -44,16 +50,17 @@ function MetricCard({ label, value, tone = 'text-clay-admin-dark' }) {
  */
 export function Calls() {
   const { loading, error, fetchData } = useAdminFetch()
+  const [initial] = useState(initialFilters)
   const [calls, setCalls] = useState([])
   const [page, setPage] = useState(EMPTY_PAGE)
   const [metrics, setMetrics] = useState(EMPTY_METRICS)
-  const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
+  const [filters, setFilters] = useState(initial)
   const [revealed, setRevealed] = useState({})
   const [busy, setBusy] = useState('')
   const [actionError, setActionError] = useState('')
   const [destroyTarget, setDestroyTarget] = useState(undefined)
   const pageRef = useRef(1)
-  const appliedRef = useRef(EMPTY_FILTERS)
+  const appliedRef = useRef(initial)
   const revealTimers = useRef(new Map())
   const load = useCallback(async (number, active) => {
     const parameters = new URLSearchParams({ page: String(number), pageSize: '50' })
@@ -68,7 +75,7 @@ export function Calls() {
     pageRef.current = result.page?.number ?? number
   }, [fetchData])
   useEffect(() => {
-    load(1, EMPTY_FILTERS)
+    load(1, initial)
     const refresh = () => { if (document.visibilityState === 'visible') load(pageRef.current, appliedRef.current) }
     const interval = setInterval(refresh, 5_000)
     document.addEventListener('visibilitychange', refresh)
@@ -76,7 +83,7 @@ export function Calls() {
       clearInterval(interval)
       document.removeEventListener('visibilitychange', refresh)
     }
-  }, [load])
+  }, [initial, load])
   useEffect(() => () => {
     for (const timer of revealTimers.current.values()) clearTimeout(timer)
     revealTimers.current.clear()

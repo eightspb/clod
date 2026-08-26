@@ -31,6 +31,12 @@ function ClinicCard({ title, value, href, color }) {
   )
 }
 
+function callDuration(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return minutes > 0 ? `${minutes} мин ${remainingSeconds} с` : `${remainingSeconds} с`
+}
+
 function BarChart({ data }) {
   if (!data || data.length === 0) return null
   const max = Math.max(...data.map(d => d.count), 1)
@@ -103,6 +109,7 @@ export function Dashboard() {
   if (error) return <div style={{ color: '#dc2626', padding: '20px' }}>{error}</div>
   if (!stats) return null
   const clinic = stats.clinic || { todayAppointments: 0, upcomingAppointments: 0, needsReviewAppointments: 0, activePatients: 0 }
+  const calls = stats.calls || { active: 0, incomingToday: 0, answeredToday: 0, missedToday: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0 }
 
   function fmtDuration(sec) {
     if (sec < 60) return `${sec}с`
@@ -120,6 +127,18 @@ export function Dashboard() {
           <ClinicCard title="Предстоящих записей" value={clinic.upcomingAppointments} href="/admin/appointments?range=upcoming" color="#60A5FA" />
           <ClinicCard title="Требуют проверки" value={clinic.needsReviewAppointments} href="/admin/appointments?status=needs_review" color="#F59E0B" />
           <ClinicCard title="Активных пациентов" value={clinic.activePatients} href="/admin/patients" color="#A78BFA" />
+        </div>
+      </section>
+      <section aria-labelledby="mango-statistics-title">
+        <div className="mb-3 flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-mint">Телефония</p><h2 id="mango-statistics-title" className="mt-1 font-serif text-2xl text-clay-dark">Звонки MANGO</h2></div><span className="text-xs text-clay-admin-muted">Сегодня, время по Москве</span></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+          <ClinicCard title="Активные звонки" value={calls.active} href="/admin/calls" color="#22C55E" />
+          <ClinicCard title="Входящие сегодня" value={calls.incomingToday} href="/admin/calls" color="#38BDF8" />
+          <ClinicCard title="Отвеченные" value={calls.answeredToday} href="/admin/calls?status=answered" color="#4DC8A8" />
+          <ClinicCard title="Пропущенные" value={calls.missedToday} href="/admin/calls?status=missed" color="#F97316" />
+          <ClinicCard title="Доля ответов" value={`${calls.answerRate}%`} href="/admin/calls" color="#A78BFA" />
+          <ClinicCard title="Среднее ожидание" value={callDuration(calls.averageWaitSeconds)} href="/admin/calls" color="#F59E0B" />
+          <ClinicCard title="Средний разговор" value={callDuration(calls.averageTalkSeconds)} href="/admin/calls" color="#EC4899" />
         </div>
       </section>
       {/* Stats cards */}

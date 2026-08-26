@@ -12,6 +12,7 @@ const STATS = {
   dailyVisits: [],
   recentEvents: [],
   clinic: { todayAppointments: 4, upcomingAppointments: 8, needsReviewAppointments: 2, activePatients: 15 },
+  calls: { active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83 },
 }
 
 describe('Dashboard clinic counters', () => {
@@ -26,5 +27,18 @@ describe('Dashboard clinic counters', () => {
     expect(screen.getByRole('link', { name: 'Предстоящих записей: 8' })).toHaveAttribute('href', '/admin/appointments?range=upcoming')
     expect(screen.getByRole('link', { name: 'Требуют проверки: 2' })).toHaveAttribute('href', '/admin/appointments?status=needs_review')
     expect(screen.getByRole('link', { name: 'Активных пациентов: 15' })).toHaveAttribute('href', '/admin/patients')
+  })
+
+  it('shows seven linked MANGO operational counters without caller data', async () => {
+    render(<Dashboard />)
+    expect(await screen.findByRole('heading', { name: 'Звонки MANGO' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Активные звонки: 2' })).toHaveAttribute('href', '/admin/calls')
+    expect(screen.getByRole('link', { name: 'Входящие сегодня: 6' })).toHaveAttribute('href', '/admin/calls')
+    expect(screen.getByRole('link', { name: 'Отвеченные: 4' })).toHaveAttribute('href', '/admin/calls?status=answered')
+    expect(screen.getByRole('link', { name: 'Пропущенные: 2' })).toHaveAttribute('href', '/admin/calls?status=missed')
+    expect(screen.getByRole('link', { name: 'Доля ответов: 66.7%' })).toHaveAttribute('href', '/admin/calls')
+    expect(screen.getByRole('link', { name: 'Среднее ожидание: 15 с' })).toHaveAttribute('href', '/admin/calls')
+    expect(screen.getByRole('link', { name: 'Средний разговор: 1 мин 23 с' })).toHaveAttribute('href', '/admin/calls')
+    expect(screen.queryByText('79215550129')).toBeNull()
   })
 })

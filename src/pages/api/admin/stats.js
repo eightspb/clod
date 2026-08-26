@@ -14,6 +14,7 @@ import {
   inArray,
   isNull,
   lt,
+  MangoCall,
   AnalyticsSession,
   PageView,
   Patient,
@@ -23,6 +24,8 @@ import { moscowDayBounds } from '../../../lib/clinic-time.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const ACTIVE_APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'needs_review'])
+const ACTIVE_CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing'])
+const FINAL_CALL_STATUSES = Object.freeze(['answered', 'missed'])
 
 function jsonResponse(payload, status) {
   return new Response(JSON.stringify(payload), {
@@ -47,6 +50,16 @@ function errorResponse(status, code, message) {
 function aggregateCount(rows) {
   const value = Number(rows[0]?.count ?? 0)
   return Number.isSafeInteger(value) && value >= 0 ? value : 0
+}
+
+function aggregateAverage(rows, key) {
+  const value = Number(rows[0]?.[key] ?? 0)
+  return Number.isFinite(value) && value >= 0 ? Math.round(value) : 0
+}
+
+function answerRate(answered, missed) {
+  const finalCalls = answered + missed
+  return finalCalls > 0 ? Math.round((answered * 1000) / finalCalls) / 10 : 0
 }
 
 export async function GET({ request }) {
@@ -75,6 +88,11 @@ export async function GET({ request }) {
       upcomingAppointmentRows,
       needsReviewAppointmentRows,
       activePatientRows,
+      activeCallRows,
+      incomingCallRows,
+      answeredCallRows,
+      missedCallRows,
+      callAverageRows,
     ] = await Promise.all([
       db.select({ count: count() }).from(AnalyticsSession).where(gte(AnalyticsSession.lastActiveAt, onlineThreshold)),
       db.select({
@@ -102,6 +120,11 @@ export async function GET({ request }) {
       db.select({ count: count() }).from(Appointment).where(and(gte(Appointment.startsAt, now.toISOString()), inArray(Appointment.status, ACTIVE_APPOINTMENT_STATUSES))),
       db.select({ count: count() }).from(Appointment).where(eq(Appointment.status, 'needs_review')),
       db.select({ count: count() }).from(Patient).where(isNull(Patient.piiDestroyedAt)),
+      db.select({ count: count() }).from(MangoCall).where(inArray(MangoCall.status, ACTIVE_CALL_STATUSES)),
+      db.select({ count: count() }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end))),
+      db.select({ count: count() }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), eq(MangoCall.status, 'answered'))),
+      db.select({ count: count() }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), eq(MangoCall.status, 'missed'))),
+      db.select({ averageWait: avg(MangoCall.waitSeconds), averageTalk: avg(MangoCall.talkSeconds) }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), inArray(MangoCall.status, FINAL_CALL_STATUSES))),
     ])
 
     const dailyVisitsMap = new Map()
@@ -126,6 +149,8 @@ export async function GET({ request }) {
     const week = weekRows[0] || { sessions: 0, uniqueVisitors: 0 }
     const month = monthRows[0] || { sessions: 0, uniqueVisitors: 0 }
     const avgDurationValue = avgDurationRows[0]?.avgDuration
+    const answeredToday = aggregateCount(answeredCallRows)
+    const missedToday = aggregateCount(missedCallRows)
 
     return jsonResponse({
       onlineNow: onlineNowRows[0]?.count || 0,
@@ -154,9 +179,18 @@ export async function GET({ request }) {
         needsReviewAppointments: aggregateCount(needsReviewAppointmentRows),
         activePatients: aggregateCount(activePatientRows),
       },
+      calls: {
+        active: aggregateCount(activeCallRows),
+        incomingToday: aggregateCount(incomingCallRows),
+        answeredToday,
+        missedToday,
+        answerRate: answerRate(answeredToday, missedToday),
+        averageWaitSeconds: aggregateAverage(callAverageRows, 'averageWait'),
+        averageTalkSeconds: aggregateAverage(callAverageRows, 'averageTalk'),
+      },
     }, 200)
-  } catch (error) {
-    console.error('[admin/stats]', error)
+  } catch {
+    console.error('[admin/stats]', 'QUERY_FAILED')
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось загрузить статистику.')
   }
 }
