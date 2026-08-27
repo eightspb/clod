@@ -10,30 +10,34 @@ The behavior belongs to the presentation layer in `MobileDoctorCarousel`. Swipe 
 
 ## Interaction
 
-- Record the first touch point when a single-finger gesture starts in the portrait track.
-- On touch end, compare horizontal and vertical displacement.
+- Record the primary pointer contact when a one-finger gesture starts in the portrait track.
+- On pointer end, compare horizontal and vertical displacement.
 - Move to the next doctor after a left swipe and the previous doctor after a right swipe only when horizontal displacement is at least 48 pixels and greater than vertical displacement.
-- Ignore short, vertical, multi-touch, and cancelled gestures.
+- Ignore short, primarily vertical, secondary-pointer, and cancelled gestures.
 - Do not cancel the browser's touch event or call `preventDefault`; the existing `touch-action: pan-y` declaration keeps vertical scrolling native.
 
 ## Implementation Boundary
 
-Replace the current pointer-based swipe state and handlers with touch-specific handlers in `src/components/MobileDoctorCarousel.jsx`. Keep the gesture state in a ref so touch movement does not trigger React renders. Reuse the existing `moveTo` operation so wrapping and selection feedback continue to have one source of truth.
+Retain the existing Pointer Events implementation in `src/components/MobileDoctorCarousel.jsx`. A touch-enabled Chromium reproduction confirms that a native touch sequence produces `pointerdown`, `pointermove`, and `pointerup`, changes the active doctor, and leaves vertical scrolling available through `touch-action: pan-y`. Replacing this standard input path with touch-only handlers would reduce input compatibility without fixing a reproduced defect.
+
+The missing boundary is browser-level regression coverage. Add a Chromium E2E scenario that dispatches native touch input through the browser protocol on the `/doctors` route and proves both horizontal selection and vertical scrolling from the portrait track. Production component code changes are required only if this browser scenario exposes a reproducible failure.
 
 ## Testing
 
-Follow Red-Green-Refactor in `src/components/MobileDoctorCarousel.test.jsx`:
+Add browser-level characterization coverage in `e2e/mobile-doctor-carousel.spec.js`:
 
-1. Add a failing test proving that a single-finger horizontal touch gesture changes the active doctor.
-2. Add a test proving that a primarily vertical touch gesture does not change the doctor and is not prevented.
-3. Add a test proving that a horizontal gesture shorter than the threshold does not change the doctor.
-4. Run the focused component test, then the full unit suite and lint.
-5. Verify the `/doctors` route in a mobile viewport at `scrollY = 0`, including horizontal swipe behavior and uninterrupted vertical scrolling from the portrait area.
+1. Create a touch-enabled mobile Chromium context for the `/doctors` route.
+2. Dispatch a native horizontal touch sequence inside the portrait track and prove that exactly one doctor becomes active.
+3. Dispatch a native vertical touch sequence from the same track at `scrollY = 0` and prove that the page scrolls while the doctor remains unchanged.
+4. Dispatch a horizontal touch sequence over the information plinth and prove that it does not control the carousel.
+5. Add focused component characterization for vertical, short, cancelled, and secondary pointer paths.
+6. Run the focused E2E file, component tests, the full unit suite, and lint.
+7. Recheck both `/doctors` at `scrollY = 0` and the home-page carousel without changing portrait geometry.
 
 ## Acceptance Criteria
 
 - A left or right one-finger swipe over the portrait track changes exactly one doctor.
 - Vertical scrolling beginning over the portrait track remains available.
 - Touches outside the portrait track do not control the carousel.
-- Short, vertical, cancelled, and multi-touch gestures do not change the active doctor.
+- Short, vertical, cancelled, and secondary-pointer gestures do not change the active doctor.
 - Existing arrow, keyboard, wrapping, feedback, accessibility, and portrait-depth behavior remains green.
