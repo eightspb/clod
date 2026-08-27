@@ -12,7 +12,7 @@ const SOURCE_ROLES = Object.freeze(['pd', 'patients', 'visits', 'invoices', 'pdW
 const SOURCE_NAMES = Object.freeze({ pd: '544663c3807aab090001bad8PD.csv', patients: '544663c3807aab090001bad8_patients.csv', visits: '544663c3807aab090001bad8_visits.csv', invoices: '544663c3807aab090001bad8_invoices.csv', pdWorkbook: '544663c3807aab090001bad8PD — копия.xlsx', medesk: 'medesk.csv', legacyPatients: 'Vse pacienty.xlsx' })
 const MANIFEST_FILES = Object.freeze(SOURCE_ROLES.map((role, index) => Object.freeze({ role, filename: SOURCE_NAMES[role], sha256: String(index + 1).repeat(64), byteSize: index + 1, rowCount: ['pd', 'visits', 'invoices'].includes(role) ? 1 : 0, parsingMode: role === 'visits' ? 'legacy_physical_rows' : 'strict', structuralIssueCount: 0 })))
 const MANIFEST_HASH = createHash('sha256').update(JSON.stringify({ version: 1, files: MANIFEST_FILES })).digest('hex')
-const SECRET_VALUES = Object.freeze(['Скрытая Фамилия', '+79991112233', '0000000000007001', 'Скрытый комментарий', 'Скрытый адрес', 'Скрытая услуга'])
+const SECRET_VALUES = Object.freeze(['Скрытая Фамилия', '+79991112233', '0000000000007001', 'Скрытый комментарий', 'Скрытый адрес', 'Скрытая услуга', 'female'])
 const IDENTITY_EVIDENCE = Object.freeze({ exactEhr: 0, sameFioBirthDate: 0, patronymicCorrection: 0, surnameChange: 0, sameFioMissingBirthDate: 0, surnameChangeMissingBirthDate: 0, componentConflicts: 0, conflictingStrongIdentifiers: 0, insufficientEvidence: 0, sharedCardDifferentPeople: 0, supplementalPatients: 0, supplementalEnrichments: 0, supplementalIssues: 0 })
 const VISIT_EVIDENCE = Object.freeze({ total: 1, linked: 1, ambiguous: 0, unmatched: 0, exactEhr: 1, exactClinicCard: 0, leadingZeroClinicCard: 0, phoneCompatibleName: 0, exactFullName: 0, conflictingCommentEvidence: 0, missingDate: 0, emptyStatus: 0, shortRow: 0, invalidStartDate: 0, invalidEndDate: 0, controlCharValue: 0, valueTooLarge: 0 })
 const CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 1, patients: 1, visits: 1, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0 })
@@ -61,8 +61,8 @@ function bundle() {
   })
 }
 
-function randomSource() {
-  let counter = 0
+function randomSource(seed = 0) {
+  let counter = seed
   return (size) => Buffer.alloc(size, ++counter)
 }
 
@@ -151,7 +151,25 @@ describe('clinic import encrypted stage', () => {
     const opened = await readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: written.planHash })
     const profile = decryptPatientProfile({ envelope: opened.plan.patients[0].profileEnvelope, key: ENCRYPTION_KEY })
     const protectedJson = JSON.stringify(opened.plan)
-    expect({ writeError: writeResult.error?.code ?? null, databaseSame: before.equals(after), manifestHash: opened.manifestHash, planHash: opened.planHash, safeWriteReport: SECRET_VALUES.some((value) => JSON.stringify(written).includes(value)), plaintextInPlan: SECRET_VALUES.some((value) => protectedJson.includes(value)), envelopeCount: (protectedJson.match(/v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g) ?? []).length, attachments: opened.plan.attachments, profile }).toEqual({ writeError: null, databaseSame: true, manifestHash: MANIFEST_HASH, planHash: written.planHash, safeWriteReport: false, plaintextInPlan: false, envelopeCount: 10, attachments: [], profile: { firstName: 'Ия', lastName: 'Скрытая Фамилия', secondName: 'Тестовна', phone: '79991112233', birthday: '1988-02-29' } })
+    expect({ writeError: writeResult.error?.code ?? null, databaseSame: before.equals(after), manifestHash: opened.manifestHash, planHash: opened.planHash, safeWriteReport: SECRET_VALUES.some((value) => JSON.stringify(written).includes(value)), plaintextInPlan: SECRET_VALUES.some((value) => protectedJson.includes(value)), envelopeCount: (protectedJson.match(/v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g) ?? []).length, attachments: opened.plan.attachments, profile }).toEqual({ writeError: null, databaseSame: true, manifestHash: MANIFEST_HASH, planHash: written.planHash, safeWriteReport: false, plaintextInPlan: false, envelopeCount: 11, attachments: [], profile: { firstName: 'Ия', lastName: 'Скрытая Фамилия', secondName: 'Тестовна', phone: '79991112233', birthday: '1988-02-29' } })
+  })
+
+  it('gives independently encrypted stages of one logical bundle the same plan hash', async () => {
+    const first = await paths()
+    const second = await paths()
+    const firstWrite = await writeClinicImportStage({ bundle: bundle(), stagePath: first.stagePath, databasePath: first.databasePath, repositoryPath: first.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource(0) })
+    const secondWrite = await writeClinicImportStage({ bundle: bundle(), stagePath: second.stagePath, databasePath: second.databasePath, repositoryPath: second.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource(91) })
+    const firstRead = await readClinicImportStage({ stagePath: first.stagePath, repositoryPath: first.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: firstWrite.manifestHash, expectedPlanHash: firstWrite.planHash })
+    const secondRead = await readClinicImportStage({ stagePath: second.stagePath, repositoryPath: second.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: secondWrite.manifestHash, expectedPlanHash: secondWrite.planHash })
+    expect({ differentArtifacts: (await readFile(first.stagePath)).equals(await readFile(second.stagePath)), hashes: [firstWrite.planHash, firstRead.planHash, secondWrite.planHash, secondRead.planHash] }).toEqual({ differentArtifacts: false, hashes: Array.from({ length: 4 }, () => firstWrite.planHash) })
+  })
+
+  it('includes every verified patient profile field in the logical plan hash', async () => {
+    const first = await paths()
+    const second = await paths()
+    const firstWrite = await writeClinicImportStage({ bundle: bundle(), stagePath: first.stagePath, databasePath: first.databasePath, repositoryPath: first.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    const secondWrite = await writeClinicImportStage({ bundle: changedBundle((value) => { value.patients[0].profile.gender = 'male' }), stagePath: second.stagePath, databasePath: second.databasePath, repositoryPath: second.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    expect(firstWrite.planHash).not.toBe(secondWrite.planHash)
   })
 
   it('rejects tampering, the wrong key and mismatched expected hashes with frozen value-free errors', async () => {
@@ -404,6 +422,14 @@ describe('clinic import encrypted stage', () => {
     const written = await writeClinicImportStage({ bundle: bundle(), stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
     const planHash = await authenticatedMutation(location.stagePath, (plan) => { plan.report.visits.linked = 2 })
     const result = await captured(() => readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: planHash }))
+    expect({ name: result.error?.name, code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ name: 'ClinicImportStageError', code: 'STAGE_INTEGRITY_FAILED', frozen: true })
+  })
+
+  it('rejects an authenticated artifact whose valid logical content no longer matches its plan hash', async () => {
+    const location = await paths()
+    await writeClinicImportStage({ bundle: bundle(), stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    const forgedPlanHash = await authenticatedMutation(location.stagePath, (plan) => { plan.patients[0].lastSeenAt = '2025-01-01T00:00:00.000Z' })
+    const result = await captured(() => readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: MANIFEST_HASH, expectedPlanHash: forgedPlanHash }))
     expect({ name: result.error?.name, code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ name: 'ClinicImportStageError', code: 'STAGE_INTEGRITY_FAILED', frozen: true })
   })
 

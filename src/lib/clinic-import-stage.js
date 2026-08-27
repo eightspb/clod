@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes as secureRand
 import { constants } from 'node:fs'
 import { link, lstat, open, realpath, unlink } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, isAbsolute as pathIsAbsolute, join, relative, sep } from 'node:path'
-import { decryptPatientProfile, encryptImportedPatientProfile } from './contact-identity.js'
+import { decryptPatientProfile, encryptImportedPatientProfile, normalizeImportedPatientProfile } from './contact-identity.js'
 import { decryptProtectedData, encryptProtectedData } from './protected-patient-data.js'
 
 const VERSION = 1
@@ -55,7 +55,7 @@ const COLLECTION_KEYS = Object.freeze({
   attachments: Object.freeze([])
 })
 const PROTECTED_COLLECTION_KEYS = Object.freeze(Object.fromEntries(Object.entries(COLLECTION_KEYS).map(([collection, keys]) => {
-  if (collection === 'patients') return [collection, Object.freeze(keys.filter((key) => key !== 'profile').concat('profileEnvelope'))]
+  if (collection === 'patients') return [collection, Object.freeze(keys.filter((key) => key !== 'profile').concat('profileDataEnvelope', 'profileEnvelope'))]
   if (['externalIdentifiers', 'contacts', 'privateData', 'visitDetails', 'sourceRows', 'invoices'].includes(collection)) return [collection, Object.freeze(keys.filter((key) => !['value', 'payload'].includes(key)).concat(keys.includes('value') ? 'valueEnvelope' : 'payloadEnvelope'))]
   if (collection === 'nameHistory') return [collection, Object.freeze(keys.filter((key) => !['lastName', 'sourceIdentifier'].includes(key)).concat('valueEnvelope'))]
   return [collection, keys]
@@ -326,10 +326,22 @@ function safeMask(value) {
   return value
 }
 
+function normalizedPatientProfile(value) {
+  const input = exactRecord(value, ['birthDate', 'firstName', 'gender', 'lastName', 'middleName', 'primaryPhone'])
+  if (input.gender !== null && input.gender !== 'female' && input.gender !== 'male') invalid()
+  let normalized
+  try {
+    normalized = normalizeImportedPatientProfile({ firstName: input.firstName, lastName: input.lastName, secondName: input.middleName, phone: input.primaryPhone, birthday: input.birthDate })
+  } catch {
+    invalid()
+  }
+  return Object.freeze({ lastName: normalized.lastName, firstName: normalized.firstName, middleName: normalized.secondName, birthDate: normalized.birthday, gender: input.gender, primaryPhone: normalized.phone === null ? null : `+${normalized.phone}` })
+}
+
 function safeCollectionRecord(collection, value) {
   const record = canonicalized(exactRecord(value, COLLECTION_KEYS[collection]))
   if (collection === 'patients') {
-    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if (typeof record.isSupplemental !== 'boolean') invalid()
+    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if (typeof record.isSupplemental !== 'boolean') invalid(); return Object.freeze({ ...record, profile: normalizedPatientProfile(record.profile) })
   } else if (collection === 'externalIdentifiers') {
     safeUuid(record.id); safeUuid(record.patientId); if (!['medesk_ehr', 'clinic_card', 'legacy_system'].includes(record.system)) invalid(); safeFingerprint(record.fingerprint); safeFingerprint(record.globalFingerprint, true); safeFingerprint(record.identityKey); if (typeof record.isPrimary !== 'boolean') invalid(); safeSource(record.source); safeSources(record.sources)
   } else if (collection === 'contacts') {
@@ -409,10 +421,11 @@ function sealedNameHistory(record, key, randomBytes) {
 
 function sealedPatient(record, key, randomBytes) {
   const input = plainRecord(record)
-  const profile = plainRecord(input.profile)
+  const profile = normalizedPatientProfile(input.profile)
   const output = without(input, ['profile'])
   try {
     output.profileEnvelope = encryptImportedPatientProfile({ profile: Object.freeze({ firstName: profile.firstName, lastName: profile.lastName, secondName: profile.middleName, phone: profile.primaryPhone, birthday: profile.birthDate }), key, randomBytes })
+    output.profileDataEnvelope = encryptProtectedData({ domain: 'private_profile', value: profile, key, randomBytes })
   } catch {
     invalid('INPUT_TOO_COMPLEX')
   }
@@ -803,6 +816,14 @@ function bundleInput(value) {
   return Object.freeze({ manifest: canonicalized(manifest), manifestHash: manifest.sha256, report, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts, collections: Object.freeze(collections) })
 }
 
+function logicalPlan(input, collections) {
+  return Object.freeze({ version: VERSION, manifest: input.manifest, manifestHash: input.manifestHash, report: input.report, identityMergeEvidence: input.identityMergeEvidence, identityEvidenceCounts: input.identityEvidenceCounts, visitEvidenceCounts: input.visitEvidenceCounts, ...collections })
+}
+
+function logicalPlanHash(input, collections) {
+  return sha256(canonicalJson(logicalPlan(input, collections)))
+}
+
 function protectedPlan(value, key, randomBytes) {
   const input = bundleInput(value)
   const { collections } = input
@@ -831,7 +852,7 @@ function protectedPlan(value, key, randomBytes) {
     invoices: collections.invoices.map((record) => sealedField(record, 'payload', 'payloadEnvelope', 'invoice', key, randomBytes)),
     attachments: []
   }
-  return canonicalized(plan)
+  return Object.freeze({ plan: canonicalized(plan), planHash: logicalPlanHash(input, collections) })
 }
 
 function safeEnvelope(value, maximum = 87_425) {
@@ -842,9 +863,12 @@ function safeEnvelope(value, maximum = 87_425) {
 function protectedRecord(collection, value) {
   const record = exactRecord(value, PROTECTED_COLLECTION_KEYS[collection])
   if (!['consents', 'sourceLinks', 'historicalVisits', 'visitCandidates', 'identityIssues', 'visitIssues', 'normalizationIssues', 'attachments'].includes(collection)) safeEnvelope(record[collection === 'patients' ? 'profileEnvelope' : ['sourceRows', 'invoices'].includes(collection) ? 'payloadEnvelope' : 'valueEnvelope'], collection === 'patients' ? 4_096 : 87_425)
+  if (collection === 'patients') safeEnvelope(record.profileDataEnvelope, 4_096)
+  if (collection === 'patients') {
+    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if (typeof record.isSupplemental !== 'boolean') invalid(); return record
+  }
   const raw = Object.create(null)
   for (const key of COLLECTION_KEYS[collection]) if (Object.hasOwn(record, key)) raw[key] = record[key]
-  if (collection === 'patients') raw.profile = null
   if (['externalIdentifiers', 'contacts', 'privateData', 'visitDetails'].includes(collection)) raw.value = null
   if (collection === 'nameHistory') { raw.lastName = null; raw.sourceIdentifier = null }
   if (['sourceRows', 'invoices'].includes(collection)) raw.payload = null
@@ -868,9 +892,11 @@ function openedNameHistory(record, key) {
 }
 
 function openedPatient(record, key) {
-  const output = without(record, ['profileEnvelope'])
-  const profile = decryptPatientProfile({ envelope: record.profileEnvelope, key })
-  output.profile = Object.freeze({ firstName: profile.firstName, lastName: profile.lastName, middleName: profile.secondName, birthDate: profile.birthday, gender: null, primaryPhone: profile.phone === null ? null : `+${profile.phone}` })
+  const output = without(record, ['profileDataEnvelope', 'profileEnvelope'])
+  const profile = normalizedPatientProfile(decryptProtectedData({ domain: 'private_profile', envelope: record.profileDataEnvelope, key }))
+  const operational = decryptPatientProfile({ envelope: record.profileEnvelope, key })
+  if (operational.firstName !== profile.firstName || operational.lastName !== profile.lastName || operational.secondName !== profile.middleName || operational.birthday !== profile.birthDate || operational.phone !== (profile.primaryPhone === null ? null : profile.primaryPhone.slice(1))) invalid()
+  output.profile = profile
   return Object.freeze(output)
 }
 
@@ -892,8 +918,11 @@ function protectedInput(value, key) {
   const collections = Object.fromEntries(BUNDLE_COLLECTIONS.map((collection) => [collection, Object.freeze(denseArray(input[collection], collection === 'visitCandidates' ? MAX_TOTAL_CANDIDATES : MAX_ARRAY_LENGTH).map((record) => protectedRecord(collection, record)))]))
   if (collections.attachments.length !== 0) invalid()
   verifyRelations(manifest, report, collections, mergeEvidence, identityEvidenceCounts, visitEvidenceCounts, true)
-  verifyRelations(manifest, report, openedCollections(collections, key), mergeEvidence, identityEvidenceCounts, visitEvidenceCounts)
-  return Object.freeze({ version: VERSION, manifest, manifestHash, report, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts, ...collections })
+  const opened = openedCollections(collections, key)
+  verifyRelations(manifest, report, opened, mergeEvidence, identityEvidenceCounts, visitEvidenceCounts)
+  const foundation = Object.freeze({ manifest, manifestHash, report, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts })
+  const plan = Object.freeze({ version: VERSION, ...foundation, ...collections })
+  return Object.freeze({ plan, planHash: logicalPlanHash(foundation, opened) })
 }
 
 function stageSummary(plan) {
@@ -904,9 +933,9 @@ function stageAad(manifestHash, planHash) {
   return Buffer.from(`${STAGE_DOMAIN}\0${VERSION}\0${manifestHash}\0${planHash}`, 'utf8')
 }
 
-function encryptedArtifact(plan, manifestHash, keyValue, randomBytes) {
+function encryptedArtifact(plan, manifestHash, planHash, keyValue, randomBytes) {
   const plaintext = Buffer.from(canonicalJson(plan), 'utf8')
-  const planHash = sha256(plaintext)
+  hashValue(planHash)
   const iv = randomPart(randomBytes, 12)
   const cipher = createCipheriv(ALGORITHM, encryptionKey(keyValue), iv)
   cipher.setAAD(stageAad(manifestHash, planHash))
@@ -1175,7 +1204,7 @@ function openedPlan(parts, keyValue) {
     if (error instanceof ClinicImportStageError) throw error
     invalid('STAGE_INTEGRITY_FAILED')
   }
-  if (plaintext.byteLength > MAX_STAGE_BYTES || sha256(plaintext) !== parts.artifact.planHash) invalid('STAGE_INTEGRITY_FAILED')
+  if (plaintext.byteLength > MAX_STAGE_BYTES) invalid('STAGE_INTEGRITY_FAILED')
   let parsed
   try {
     parsed = JSON.parse(plaintext.toString('utf8'))
@@ -1184,9 +1213,9 @@ function openedPlan(parts, keyValue) {
   }
   const canonical = canonicalized(parsed)
   if (Buffer.from(canonicalJson(canonical), 'utf8').compare(plaintext) !== 0) invalid('STAGE_INTEGRITY_FAILED')
-  const plan = protectedInput(canonical, keyValue)
-  if (plan.manifestHash !== parts.artifact.manifestHash) invalid('STAGE_INTEGRITY_FAILED')
-  return canonicalized(plan)
+  const opened = protectedInput(canonical, keyValue)
+  if (opened.plan.manifestHash !== parts.artifact.manifestHash || opened.planHash !== parts.artifact.planHash) invalid('STAGE_INTEGRITY_FAILED')
+  return canonicalized(opened.plan)
 }
 
 /** Writes a fully encrypted dry-run stage while proving the target database stayed byte-identical. */
@@ -1199,12 +1228,12 @@ export async function writeClinicImportStage(value, dependencies) {
     const stage = await outsideStagePath(input.stagePath, input.repositoryPath, fileSystem)
     if (!safePathText(input.databasePath)) invalid('INVALID_STAGE_PATH')
     const before = await regularDigest(input.databasePath, fileSystem)
-    const plan = protectedPlan(input.bundle, key, randomBytes)
-    const encrypted = encryptedArtifact(plan, plan.manifestHash, key, randomBytes)
+    const staged = protectedPlan(input.bundle, key, randomBytes)
+    const encrypted = encryptedArtifact(staged.plan, staged.plan.manifestHash, staged.planHash, key, randomBytes)
     const after = await regularDigest(input.databasePath, fileSystem)
     if (before.hash !== after.hash || before.byteSize !== after.byteSize) invalid('DATABASE_CHANGED')
     await writeExclusive(stage.target, stage, encrypted.bytes, randomBytes, afterLink, fileSystem)
-    return Object.freeze({ version: VERSION, manifestHash: plan.manifestHash, planHash: encrypted.planHash, byteSize: encrypted.bytes.byteLength, summary: stageSummary(plan) })
+    return Object.freeze({ version: VERSION, manifestHash: staged.plan.manifestHash, planHash: encrypted.planHash, byteSize: encrypted.bytes.byteLength, summary: stageSummary(staged.plan) })
   } catch (error) {
     if (error instanceof ClinicImportStageError) throw error
     throw new ClinicImportStageError('STAGE_WRITE_FAILED')
