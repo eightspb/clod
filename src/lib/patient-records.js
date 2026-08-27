@@ -19,6 +19,7 @@ const ERROR_MESSAGES = Object.freeze({
   PATIENT_PII_DESTROYED: 'Patient personal data has been destroyed',
   PATIENT_STORAGE_INVARIANT: 'Patient storage contains an invalid record',
 })
+const TRUSTED_ERRORS = new WeakSet()
 
 /**
  * Represents a safe patient-record failure without exposing personal data.
@@ -29,8 +30,14 @@ export class PatientRecordError extends Error {
     super(ERROR_MESSAGES[safeCode])
     this.name = 'PatientRecordError'
     this.code = safeCode
+    TRUSTED_ERRORS.add(this)
     Object.freeze(this)
   }
+}
+
+/** Identifies only value-safe patient-record failures created by this module. */
+export function isPatientRecordError(value) {
+  return value !== null && typeof value === 'object' && TRUSTED_ERRORS.has(value)
 }
 
 function readRecord(input, allowed, required, scope) {

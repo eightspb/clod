@@ -17,11 +17,13 @@ const LOCATIONS = new Set(['ivr', 'queue', 'abonent'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ACTOR_PATTERN = /^v1:[0-9a-f]{64}$/
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+const PHONE_MASK_PATTERN = /^\+[1-9] •{5,12} [0-9]{2}$/u
 const PUBLIC_COLUMNS = Object.freeze(['entryId', 'patientId', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const SELECT_PUBLIC = PUBLIC_COLUMNS.join(', ')
 const ERROR_MESSAGES = Object.freeze({ CALL_NOT_FOUND: 'Call record was not found', CALL_PII_DESTROYED: 'Call personal data has been destroyed', CALL_CONFLICT: 'Call identity conflicts with stored data', CALL_STORAGE_INVARIANT: 'Call storage contains an invalid record' })
 const MAX_STORAGE_ROWS = 1_000
 const MAX_STORAGE_COLUMNS = 128
+const TRUSTED_ERRORS = new WeakSet()
 let localWriteQueue = Promise.resolve()
 
 /**
@@ -33,8 +35,14 @@ export class MangoCallRecordError extends Error {
     super(ERROR_MESSAGES[safeCode])
     this.name = 'MangoCallRecordError'
     this.code = safeCode
+    TRUSTED_ERRORS.add(this)
     Object.freeze(this)
   }
+}
+
+/** Identifies only value-safe call-record failures created by this module. */
+export function isMangoCallRecordError(value) {
+  return value !== null && typeof value === 'object' && TRUSTED_ERRORS.has(value)
 }
 
 function readRecord(input, allowed, required, scope) {
@@ -177,7 +185,7 @@ function integerOrNull(value) {
 function publicCall(input) {
   if (input === null || typeof input !== 'object' || !PUBLIC_COLUMNS.every((key) => Object.hasOwn(input, key))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   const result = { entryId: identifier(input.entryId, 'Stored call ID'), patientId: input.patientId === null ? null : storedUuid(input.patientId), status: input.status, callerMask: input.callerMask, repeatCaller: booleanOrNull(input.repeatCaller), lineNumber: normalizeContactPhone(input.lineNumber), operatorExtension: input.operatorExtension, startedAt: timestamp(input.startedAt, 'Stored call start'), forwardedAt: timestamp(input.forwardedAt, 'Stored call forward', true), answeredAt: timestamp(input.answeredAt, 'Stored call answer', true), endedAt: timestamp(input.endedAt, 'Stored call end', true), waitSeconds: integerOrNull(input.waitSeconds), talkSeconds: integerOrNull(input.talkSeconds), disconnectReason: input.disconnectReason, finalizedAt: timestamp(input.finalizedAt, 'Stored call finalization', true), createdAt: timestamp(input.createdAt, 'Stored call creation'), updatedAt: timestamp(input.updatedAt, 'Stored call update'), piiDestroyedAt: timestamp(input.piiDestroyedAt, 'Stored call PII destruction', true) }
-  if (!ALL_STATES.has(result.status) || (result.piiDestroyedAt === null && (typeof result.callerMask !== 'string' || result.repeatCaller === null)) || (result.piiDestroyedAt !== null && (result.callerMask !== null || result.repeatCaller !== null))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  if (!ALL_STATES.has(result.status) || (result.piiDestroyedAt === null && (typeof result.callerMask !== 'string' || !PHONE_MASK_PATTERN.test(result.callerMask) || result.repeatCaller === null)) || (result.piiDestroyedAt !== null && (result.callerMask !== null || result.repeatCaller !== null))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   return Object.freeze(result)
 }
 

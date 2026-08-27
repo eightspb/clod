@@ -1,9 +1,8 @@
 export const prerender = false
 
 import { db } from 'astro:db'
-import { createPatientIndexEndpoint } from '../../../../lib/admin-patient-api.js'
+import { createPatientHistoryIssueEndpoint } from '../../../../lib/admin-patient-history-api.js'
 import { createPatientHistoryRecords } from '../../../../lib/patient-history-records.js'
-import { createPatientRecords } from '../../../../lib/patient-records.js'
 
 function environment(name) {
   const value = import.meta.env[name] || process.env[name]
@@ -11,17 +10,13 @@ function environment(name) {
   return value
 }
 
-function records() {
-  return createPatientRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('PATIENT_ENCRYPTION_KEY') })
-}
-
 function history() {
   return createPatientHistoryRecords({ client: db.$client, encryptionKey: environment('PATIENT_ENCRYPTION_KEY') })
 }
 
 function log(stage) {
-  console.error('[admin/patients]', stage)
+  console.error('[admin/patient-history/issues]', stage)
 }
 
-export { createPatientIndexEndpoint }
-export const GET = createPatientIndexEndpoint({ records, history, log })
+export { createPatientHistoryIssueEndpoint }
+export const GET = createPatientHistoryIssueEndpoint({ history, log })

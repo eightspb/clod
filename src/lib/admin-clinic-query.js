@@ -8,11 +8,16 @@ const APPOINTMENT_CANCEL_KEYS = Object.freeze(['confirmation'])
 const APPOINTMENT_RESOLVE_KEYS = Object.freeze(['claimId'])
 const CALL_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'from', 'to'])
 const PATIENT_CALL_QUERY_KEYS = Object.freeze(['callsPage', 'callsPageSize'])
+const PATIENT_DETAIL_QUERY_KEYS = Object.freeze(['callsPage', 'callsPageSize', 'visitsPage', 'visitsPageSize', 'visitsStatus', 'issuesPage', 'issuesPageSize'])
+const PATIENT_HISTORY_ISSUE_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status'])
 const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
 const APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'cancelled', 'failed', 'needs_review'])
 const APPOINTMENT_SOURCES = Object.freeze(['website', 'admin_medflex', 'admin_existing'])
+const VISIT_STATUSES = Object.freeze(['linked', 'ambiguous', 'unmatched'])
+const UNRESOLVED_VISIT_STATUSES = Object.freeze(['ambiguous', 'unmatched'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+const TRUSTED_ERRORS = new WeakSet()
 
 /**
  * Represents a safe validation failure at the administrative clinic boundary.
@@ -23,8 +28,14 @@ export class AdminClinicQueryError extends Error {
     super(safeCode === 'INVALID_BODY' ? 'Administrative request body is invalid' : 'Administrative query is invalid')
     this.name = 'AdminClinicQueryError'
     this.code = safeCode
+    TRUSTED_ERRORS.add(this)
     Object.freeze(this)
   }
+}
+
+/** Identifies only value-safe administrative query failures created here. */
+export function isAdminClinicQueryError(value) {
+  return value !== null && typeof value === 'object' && TRUSTED_ERRORS.has(value)
 }
 
 function singleValue(parameters, key) {
@@ -211,6 +222,26 @@ export function parsePatientCallQuery(parameters) {
   if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
   for (const key of parameters.keys()) if (!PATIENT_CALL_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
   return Object.freeze({ page: positiveInteger(singleValue(parameters, 'callsPage'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'callsPageSize'), 10), 50) })
+}
+
+/** Parses independently bounded call, visit, and issue pages for patient detail. */
+export function parsePatientDetailQuery(parameters) {
+  if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
+  for (const key of parameters.keys()) if (!PATIENT_DETAIL_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
+  const calls = Object.freeze({ page: positiveInteger(singleValue(parameters, 'callsPage'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'callsPageSize'), 10), 50) })
+  const visits = { page: positiveInteger(singleValue(parameters, 'visitsPage'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'visitsPageSize'), 10), 50) }
+  const visitStatus = optionalFilter(parameters, 'visitsStatus', VISIT_STATUSES)
+  if (visitStatus !== undefined) visits.status = visitStatus
+  const issues = Object.freeze({ page: positiveInteger(singleValue(parameters, 'issuesPage'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'issuesPageSize'), 10), 50) })
+  return Object.freeze({ calls, visits: Object.freeze(visits), issues })
+}
+
+/** Parses the read-only unresolved historical-visit queue. */
+export function parsePatientHistoryIssueQuery(parameters) {
+  if (!(parameters instanceof URLSearchParams)) throw new AdminClinicQueryError('INVALID_QUERY')
+  for (const key of parameters.keys()) if (!PATIENT_HISTORY_ISSUE_QUERY_KEYS.includes(key)) throw new AdminClinicQueryError('INVALID_QUERY')
+  const status = optionalFilter(parameters, 'status', UNRESOLVED_VISIT_STATUSES) ?? 'ambiguous'
+  return Object.freeze({ page: positiveInteger(singleValue(parameters, 'page'), 1), pageSize: Math.min(positiveInteger(singleValue(parameters, 'pageSize'), 50), 50), status })
 }
 
 /**

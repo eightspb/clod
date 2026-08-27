@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseCallEntryId, parseCallQuery, parseDestroyCallBody, parseDestroyPatientBody, parsePatientCallQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
+import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseCallEntryId, parseCallQuery, parseDestroyCallBody, parseDestroyPatientBody, parsePatientCallQuery, parsePatientDetailQuery, parsePatientHistoryIssueQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
 
 const PATIENT_ID = 'A68F05C5-8528-4E08-86E5-3BD00CC3A79F'
 
@@ -93,5 +93,16 @@ describe('admin clinic query', () => {
   it('parses patient call pagination and exact call destruction confirmation', () => {
     expect(parsePatientCallQuery(new URLSearchParams('callsPage=3&callsPageSize=70'))).toEqual({ page: 3, pageSize: 50 })
     expect(parseDestroyCallBody({ confirmation: 'УНИЧТОЖИТЬ' })).toEqual({ confirmation: 'УНИЧТОЖИТЬ' })
+  })
+
+  it('parses independently bounded calls, visits, and issues in one patient detail query', () => {
+    const query = parsePatientDetailQuery(new URLSearchParams('callsPage=2&callsPageSize=70&visitsPage=3&visitsPageSize=80&visitsStatus=ambiguous&issuesPage=4&issuesPageSize=90'))
+    expect(query).toEqual({ calls: { page: 2, pageSize: 50 }, visits: { page: 3, pageSize: 50, status: 'ambiguous' }, issues: { page: 4, pageSize: 50 } })
+  })
+
+  it('accepts only unresolved visit statuses in the global history issue query', () => {
+    const accepted = ['ambiguous', 'unmatched'].map((status) => parsePatientHistoryIssueQuery(new URLSearchParams(`status=${status}`)))
+    const rejected = captured(() => parsePatientHistoryIssueQuery(new URLSearchParams('status=linked')))
+    expect({ accepted, rejected }).toEqual({ accepted: [{ page: 1, pageSize: 50, status: 'ambiguous' }, { page: 1, pageSize: 50, status: 'unmatched' }], rejected: { threw: true, name: 'AdminClinicQueryError', code: 'INVALID_QUERY' } })
   })
 })

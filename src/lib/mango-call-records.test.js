@@ -246,6 +246,15 @@ describe('MANGO call records', () => {
     expect({ detail: { entryId: detail.entryId, callerMask: detail.callerMask, patientId: detail.patientId }, metrics }).toEqual({ detail: { entryId: 'entry-1', callerMask: '+7 •••••••• 29', patientId: null }, metrics: { active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 } })
   })
 
+  it('rejects an exact caller number stored in the mask column', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'apply', summary())
+    await client.execute({ sql: 'UPDATE MangoCall SET callerMask = ? WHERE entryId = ?', args: [PHONE, 'entry-1'] })
+    const failure = await captured(() => records.get({ entryId: 'entry-1' }))
+    client.close()
+    expect(failure).toEqual({ threw: true, name: 'MangoCallRecordError', code: 'CALL_STORAGE_INVARIANT' })
+  })
+
   it('reveals a caller and writes its audit in the same transaction', async () => {
     const { client, records } = await fixture()
     await invoke(records, 'apply', live())

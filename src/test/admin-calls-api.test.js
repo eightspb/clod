@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { safeCall, safeCallPage } from '../lib/admin-call-api.js'
 import { MangoCallRecordError } from '../lib/mango-call-records.js'
 
 vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
@@ -50,9 +51,86 @@ describe('admin MANGO call API', () => {
   it('returns one masked filtered page with metrics and no protected storage fields', async () => {
     const fixture = calls()
     const { GET_INDEX } = await endpoints(fixture)
-    const path = '/api/admin/calls?page=2&pageSize=80&status=answered&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'
+    const path = '/api/admin/calls?page=1&pageSize=80&status=answered&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'
     const result = await responseValue(await GET_INDEX({ request: request(path) }))
-    expect({ result, calls: fixture.state, leaked: /79215550129|callerCiphertext|callerFingerprint/.test(JSON.stringify(result)) }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: [CALL], page: { number: 2, size: 50, total: 1, pages: 1 }, metrics: METRICS } }, calls: { list: [{ page: 2, pageSize: 50, status: 'answered', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], get: [], metrics: [{ from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], reveal: [], destroy: [] }, leaked: false })
+    expect({ result, calls: fixture.state, leaked: /79215550129|callerCiphertext|callerFingerprint/.test(JSON.stringify(result)) }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: [CALL], page: { number: 1, size: 50, total: 1, pages: 1 }, metrics: METRICS } }, calls: { list: [{ page: 1, pageSize: 50, status: 'answered', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], get: [], metrics: [{ from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], reveal: [], destroy: [] }, leaked: false })
+  })
+
+  it.each([
+    ['phone-shaped count', { ...METRICS, active: 79_215_550_129 }],
+    ['fractional count', { ...METRICS, incoming: 3.5 }],
+    ['out-of-range rate', { ...METRICS, answerRate: 101 }],
+    ['out-of-range duration', { ...METRICS, averageWaitSeconds: 86_401 }],
+    ['unrounded duration', { ...METRICS, averageWaitSeconds: 20.01 }],
+    ['incoherent outcome counts', { ...METRICS, incoming: 1, answered: 1, missed: 1 }],
+    ['nonzero empty average', { active: 0, incoming: 0, answered: 0, missed: 0, answerRate: 0, averageWaitSeconds: 1, averageTalkSeconds: 0 }],
+  ])('rejects call metrics with a %s', async (_label, metrics) => {
+    const { GET_INDEX } = await endpoints(calls({ metrics }), { log: () => undefined })
+    const result = await responseValue(await GET_INDEX({ request: request('/api/admin/calls') }))
+    expect({ status: result.status, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, leaked: false })
+  })
+
+  it('rejects an accessor call metric without invoking it', async () => {
+    const reads = { active: 0 }
+    const metrics = { ...METRICS }
+    Object.defineProperty(metrics, 'active', { enumerable: true, get: () => { reads.active += 1; return 79_215_550_129 } })
+    const { GET_INDEX } = await endpoints(calls({ metrics }), { log: () => undefined })
+    const result = await responseValue(await GET_INDEX({ request: request('/api/admin/calls') }))
+    expect({ status: result.status, reads, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, reads: { active: 0 }, leaked: false })
+  })
+
+  it.each([
+    ['entry ID', { entryId: '\u0000entry' }],
+    ['patient ID', { patientId: 'patient-unsafe' }],
+    ['status', { status: 'deleted' }],
+    ['caller mask', { callerMask: '79215550129' }],
+    ['repeat caller', { repeatCaller: 1 }],
+    ['line number', { lineNumber: '+7 812 748-22-10' }],
+    ['operator extension', { operatorExtension: 'operator-7' }],
+    ['start timestamp', { startedAt: '2026-02-30T10:00:00.000Z' }],
+    ['forward timestamp', { forwardedAt: 'not-a-time' }],
+    ['answer timestamp', { answeredAt: 'not-a-time' }],
+    ['end timestamp', { endedAt: 'not-a-time' }],
+    ['wait count', { waitSeconds: -1 }],
+    ['talk count', { talkSeconds: 86_401 }],
+    ['disconnect reason', { disconnectReason: 'reason\u0000secret' }],
+    ['final timestamp', { finalizedAt: 'not-a-time' }],
+    ['creation timestamp', { createdAt: 'not-a-time' }],
+    ['update chronology', { updatedAt: '2026-08-26T09:59:59.000Z' }],
+    ['destruction timestamp', { callerMask: null, repeatCaller: null, piiDestroyedAt: 'not-a-time' }],
+  ])('rejects an unsafe %s in a masked call', (_label, override) => {
+    expect(() => safeCall({ ...CALL, ...override })).toThrow(TypeError)
+  })
+
+  it('rejects an accessor call field without invoking it', () => {
+    const reads = { callerMask: 0 }
+    const unsafe = { ...CALL }
+    Object.defineProperty(unsafe, 'callerMask', { enumerable: true, get: () => { reads.callerMask += 1; return '79215550129' } })
+    let threw = false
+    try { safeCall(unsafe) } catch { threw = true }
+    expect({ threw, reads }).toEqual({ threw: true, reads: { callerMask: 0 } })
+  })
+
+  it('returns one immutable empty call page after the declared last page', () => {
+    const result = safeCallPage({ items: [], page: 2, pageSize: 50, total: 1, pages: 1 })
+    expect({ result, frozen: Object.isFrozen(result) && Object.isFrozen(result.data) && Object.isFrozen(result.page) }).toEqual({ result: { data: [], page: { number: 2, size: 50, total: 1, pages: 1 } }, frozen: true })
+  })
+
+  it.each([
+    ['nonempty page after the end', { items: [CALL], page: 2, pageSize: 50, total: 1, pages: 1 }],
+    ['oversized page', { items: [], page: 1_000_001, pageSize: 50, total: 0, pages: 0 }],
+    ['oversized page size', { items: [], page: 1, pageSize: 51, total: 0, pages: 0 }],
+    ['oversized total', { items: [], page: 1, pageSize: 50, total: 50_000_001, pages: 1_000_001 }],
+    ['inconsistent pages', { items: [], page: 1, pageSize: 50, total: 51, pages: 1 }],
+  ])('rejects a call page with %s', (_label, page) => {
+    expect(() => safeCallPage(page)).toThrow(TypeError)
+  })
+
+  it('does not return an exact phone through the ordinary caller mask', async () => {
+    const fixture = calls({ get: { ...CALL, callerMask: '79215550129' } })
+    const { GET_DETAIL } = await endpoints(fixture, { log: () => undefined })
+    const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/calls/${encodeURIComponent(ENTRY_ID)}`), params: { entryId: ENTRY_ID } }))
+    expect({ status: result.status, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, leaked: false })
   })
 
   it('uses the current Moscow calendar day for unfiltered dashboard metrics', async () => {
@@ -76,6 +154,12 @@ describe('admin MANGO call API', () => {
     expect({ result, calls: fixture.state.get }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: CALL } }, calls: [{ entryId: ENTRY_ID }] })
   })
 
+  it('binds a call detail response to the requested entry', async () => {
+    const { GET_DETAIL } = await endpoints(calls({ get: { ...CALL, entryId: 'entry:clinic:2' } }), { log: () => undefined })
+    const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/calls/${ENTRY_ID}`), params: { entryId: ENTRY_ID } }))
+    expect(result.status).toBe(503)
+  })
+
   it('maps missing and destroyed caller records to stable statuses', async () => {
     const missing = calls({ getError: new MangoCallRecordError('CALL_NOT_FOUND') })
     const destroyed = calls({ revealError: new MangoCallRecordError('CALL_PII_DESTROYED') })
@@ -93,6 +177,25 @@ describe('admin MANGO call API', () => {
     expect({ result, guarded: guard.mock.calls.length, calls: fixture.state.reveal }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: { entryId: ENTRY_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } } }, guarded: 1, calls: [{ entryId: ENTRY_ID, actor: ACTOR }] })
   })
 
+  it.each([
+    ['mismatched entry ID', { entryId: 'entry:clinic:2', phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' }],
+    ['noncanonical phone', { entryId: ENTRY_ID, phone: '+7 921 555-01-29', revealedAt: '2026-08-27T11:00:00.000Z' }],
+    ['noncanonical timestamp', { entryId: ENTRY_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00Z' }],
+  ])('rejects a call reveal with a %s', async (_label, reveal) => {
+    const { POST_REVEAL } = await endpoints(calls({ reveal }), { log: () => undefined })
+    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/calls/${ENTRY_ID}/reveal`, { method: 'POST' }), params: { entryId: ENTRY_ID } }))
+    expect({ status: result.status, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, leaked: false })
+  })
+
+  it('rejects an accessor call reveal field without invoking it', async () => {
+    const reads = { phone: 0 }
+    const reveal = { entryId: ENTRY_ID, revealedAt: '2026-08-27T11:00:00.000Z' }
+    Object.defineProperty(reveal, 'phone', { enumerable: true, get: () => { reads.phone += 1; return '79215550129' } })
+    const { POST_REVEAL } = await endpoints(calls({ reveal }), { log: () => undefined })
+    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/calls/${ENTRY_ID}/reveal`, { method: 'POST' }), params: { entryId: ENTRY_ID } }))
+    expect({ status: result.status, reads, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, reads: { phone: 0 }, leaked: false })
+  })
+
   it('requires an exact bounded JSON confirmation before caller destruction', async () => {
     const fixture = calls()
     const { DELETE_CALLER } = await endpoints(fixture)
@@ -108,16 +211,46 @@ describe('admin MANGO call API', () => {
     expect({ result, calls: fixture.state.destroy }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: { entryId: ENTRY_ID, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } } }, calls: [{ entryId: ENTRY_ID, actor: ACTOR }] })
   })
 
-  it('passes guard failures through before parsing or repository access', async () => {
+  it.each([
+    ['mismatched entry ID', { entryId: 'entry:clinic:2', destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false }],
+    ['noncanonical timestamp', { entryId: ENTRY_ID, destroyedAt: '2026-08-27T12:00:00Z', alreadyDestroyed: false }],
+    ['nonboolean state', { entryId: ENTRY_ID, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: 0 }],
+  ])('rejects a call destruction with a %s', async (_label, destroy) => {
+    const { DELETE_CALLER } = await endpoints(calls({ destroy }), { log: () => undefined })
+    const result = await responseValue(await DELETE_CALLER({ request: request(`/api/admin/calls/${ENTRY_ID}/caller`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { entryId: ENTRY_ID } }))
+    expect(result.status).toBe(503)
+  })
+
+  it('rejects an accessor call destruction field without invoking it', async () => {
+    const reads = { destroyedAt: 0 }
+    const destroy = { entryId: ENTRY_ID, alreadyDestroyed: false }
+    Object.defineProperty(destroy, 'destroyedAt', { enumerable: true, get: () => { reads.destroyedAt += 1; return '2026-08-27T12:00:00.000Z' } })
+    const { DELETE_CALLER } = await endpoints(calls({ destroy }), { log: () => undefined })
+    const result = await responseValue(await DELETE_CALLER({ request: request(`/api/admin/calls/${ENTRY_ID}/caller`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { entryId: ENTRY_ID } }))
+    expect({ status: result.status, reads }).toEqual({ status: 503, reads: { destroyedAt: 0 } })
+  })
+
+  it('preserves no-store on guard failures before repository access', async () => {
     const fixture = calls()
-    const blocked = new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
-    const { DELETE_CALLER } = await endpoints(fixture, { guard: async () => blocked })
-    const response = await DELETE_CALLER({ request: request(`/api/admin/calls/${ENTRY_ID}/caller`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { entryId: ENTRY_ID } })
-    expect({ status: response.status, calls: fixture.state.destroy.length }).toEqual({ status: 403, calls: 0 })
+    const guard = async () => new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+    const { GET_INDEX, GET_DETAIL, POST_REVEAL, DELETE_CALLER } = await endpoints(fixture, { guard })
+    const responses = await Promise.all([GET_INDEX({ request: request('/api/admin/calls') }), GET_DETAIL({ request: request(`/api/admin/calls/${ENTRY_ID}`), params: { entryId: ENTRY_ID } }), POST_REVEAL({ request: request(`/api/admin/calls/${ENTRY_ID}/reveal`, { method: 'POST' }), params: { entryId: ENTRY_ID } }), DELETE_CALLER({ request: request(`/api/admin/calls/${ENTRY_ID}/caller`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { entryId: ENTRY_ID } })])
+    expect({ statuses: responses.map(({ status }) => status), caches: responses.map((response) => response.headers.get('cache-control')), calls: fixture.state }).toEqual({ statuses: [403, 403, 403, 403], caches: ['no-store', 'no-store', 'no-store', 'no-store'], calls: { list: [], get: [], metrics: [], reveal: [], destroy: [] } })
   })
 
   it('sanitizes unexpected storage failures and logs only a fixed stage', async () => {
     const fixture = calls({ getError: new Error('sqlite://token-secret caller 79215550129') })
+    const stages = []
+    const { GET_DETAIL } = await endpoints(fixture, { log: (stage) => stages.push(stage) })
+    const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/calls/${ENTRY_ID}`), params: { entryId: ENTRY_ID } }))
+    expect({ result, stages, leaked: JSON.stringify({ result, stages }).includes('79215550129') }).toEqual({ result: { status: 503, cache: 'no-store', body: { error: 'CALLS_UNAVAILABLE', message: 'Данные звонков временно недоступны' } }, stages: ['DETAIL_FAILED'], leaked: false })
+  })
+
+  it.each([
+    ['revoked proxy', () => { const value = Proxy.revocable({}, {}); value.revoke(); return value.proxy }],
+    ['hostile proxy', () => new Proxy({}, { getPrototypeOf: () => { throw new Error('caller-storage-secret-79215550129') } })],
+  ])('sanitizes a %s thrown by call storage', async (_label, failure) => {
+    const fixture = calls({ getError: failure() })
     const stages = []
     const { GET_DETAIL } = await endpoints(fixture, { log: (stage) => stages.push(stage) })
     const result = await responseValue(await GET_DETAIL({ request: request(`/api/admin/calls/${ENTRY_ID}`), params: { entryId: ENTRY_ID } }))
