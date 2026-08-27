@@ -18,8 +18,26 @@ const FAR_POSITIONS = ['previous-far', 'next-far']
 test.use({ viewport: MOBILE_VIEWPORT })
 
 async function gotoHydratedDoctors(page) {
-  await page.goto('/doctors')
+  await gotoHydratedCarousel(page, '/doctors')
+}
+
+async function gotoHydratedCarousel(page, path) {
+  await page.goto(path)
   await page.locator(HYDRATED_CAROUSEL_SELECTOR).waitFor()
+}
+
+async function openTouchCarousel(browser, baseURL, path = '/doctors') {
+  const context = await browser.newContext({ baseURL, viewport: MOBILE_VIEWPORT, hasTouch: true, isMobile: true })
+  const page = await context.newPage()
+  await gotoHydratedCarousel(page, path)
+  const session = await context.newCDPSession(page)
+  return { context, page, session }
+}
+
+async function dispatchTouchGesture(session, points) {
+  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] })
+  for (const point of points.slice(1)) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] })
+  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
 }
 
 async function computedDisplay(page, selector) {
@@ -164,6 +182,53 @@ test('shows selection controls before the mobile carousel and editorial block', 
   await gotoHydratedDoctors(page)
   const order = await selectionOrder(page)
   expect(order).toEqual({ scrollY: 0, headerBeforeHeading: true, headingBeforeFilters: true, filtersBeforeCarousel: true, carouselBeforeEditorial: true })
+})
+
+test('changes exactly one doctor after left and right finger swipes over each portrait track', async ({ browser, baseURL }) => {
+  const results = {}
+  for (const path of ['/', '/doctors']) {
+    const { context, page, session } = await openTouchCarousel(browser, baseURL, path)
+    const count = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-count`)
+    const stage = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-track`)
+    await stage.scrollIntoViewIfNeeded()
+    const track = await stage.boundingBox()
+    const y = track.y + Math.min(180, track.height / 2)
+    const counts = [await count.textContent()]
+    await dispatchTouchGesture(session, [{ x: track.x + 300, y }, { x: track.x + 180, y: y + 5 }])
+    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '2 из 9')
+    counts.push(await count.textContent())
+    await dispatchTouchGesture(session, [{ x: track.x + 180, y }, { x: track.x + 300, y: y + 5 }])
+    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '1 из 9')
+    counts.push(await count.textContent())
+    results[path] = counts
+    await context.close()
+  }
+  expect(results).toEqual({ '/': ['1 из 9', '2 из 9', '1 из 9'], '/doctors': ['1 из 9', '2 из 9', '1 из 9'] })
+})
+
+test('preserves vertical page scrolling from the portrait track', async ({ browser, baseURL }) => {
+  const { context, page, session } = await openTouchCarousel(browser, baseURL)
+  const count = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-count`)
+  const track = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-track`).boundingBox()
+  const x = track.x + track.width / 2
+  const startY = track.y + Math.min(220, track.height - 30)
+  const before = { count: await count.textContent(), scrollY: await page.evaluate(() => window.scrollY) }
+  await dispatchTouchGesture(session, [0, 25, 50, 75, 100, 125].map((delta) => ({ x: x + Math.min(delta, 3), y: startY - delta })))
+  await page.waitForFunction(() => window.scrollY > 0)
+  const after = { count: await count.textContent(), scrollY: await page.evaluate(() => window.scrollY) }
+  await context.close()
+  expect({ counts: [before.count, after.count], startedAtTop: before.scrollY === 0, scrolled: after.scrollY > before.scrollY }).toEqual({ counts: ['1 из 9', '1 из 9'], startedAtTop: true, scrolled: true })
+})
+
+test('ignores a horizontal finger swipe over the information plinth', async ({ browser, baseURL }) => {
+  const { context, page, session } = await openTouchCarousel(browser, baseURL)
+  const count = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-count`)
+  const plinth = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-plinth`).boundingBox()
+  const y = plinth.y + 24
+  await dispatchTouchGesture(session, [{ x: plinth.x + 300, y }, { x: plinth.x + 180, y: y + 4 }])
+  const active = await count.textContent()
+  await context.close()
+  expect(active).toBe('1 из 9')
 })
 
 test('keeps specialty filters inside the page at 320 pixels', async ({ page }) => {

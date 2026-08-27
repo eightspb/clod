@@ -86,6 +86,12 @@ function installSelectionFeedbackFakes({ state = 'running' } = {}) {
   return calls
 }
 
+function pointerEvent(type, { x, y, pointerId = 7, isPrimary = true }) {
+  const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y })
+  Object.defineProperties(event, { isPrimary: { value: isPrimary }, pointerId: { value: pointerId } })
+  return event
+}
+
 afterEach(() => vi.unstubAllGlobals())
 
 describe('MobileDoctorCarousel', () => {
@@ -207,9 +213,42 @@ describe('MobileDoctorCarousel', () => {
   it('moves to the next doctor after a horizontal pointer swipe', () => {
     render(<MobileDoctorCarousel doctors={DOCTORS} label="Свайп врачей" />)
     const stage = screen.getByRole('group', { name: 'Листать врачей' })
-    fireEvent(stage, new MouseEvent('pointerdown', { bubbles: true, clientX: 260, clientY: 140 }))
-    fireEvent(stage, new MouseEvent('pointerup', { bubbles: true, clientX: 160, clientY: 145 }))
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140 }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 160, y: 145 }))
     expect(screen.getByRole('group', { name: /Каримов Руслан Фаридович/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('ignores a primarily vertical pointer gesture', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Вертикальный жест" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140 }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 250, y: 240 }))
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('ignores a horizontal pointer gesture shorter than 48 pixels', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Короткий жест" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140 }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 230, y: 142 }))
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('clears an interrupted pointer gesture', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Отменённый жест" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140 }))
+    fireEvent(stage, pointerEvent('pointercancel', { x: 210, y: 142 }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 160, y: 145 }))
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('ignores a non-primary pointer gesture', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Вторичный указатель" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140, isPrimary: false }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 160, y: 145, isPrimary: false }))
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
   })
 
   it('supports ArrowLeft, ArrowRight, Home, and End keys', () => {
