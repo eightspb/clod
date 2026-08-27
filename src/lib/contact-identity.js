@@ -5,6 +5,7 @@ const CANONICAL_PHONE_PATTERN = /^[1-9][0-9]{7,14}$/
 const FINGERPRINT_DOMAIN = 'clod.contact-fingerprint'
 const VERSION = 'v1'
 const PROFILE_DOMAIN = 'clod.patient-profile'
+const IMPORTED_PROFILE_DOMAIN = 'clod.imported-patient-profile'
 const PHONE_DOMAIN = 'clod.contact-phone'
 const PROFILE_KEYS = Object.freeze(['firstName', 'lastName', 'secondName', 'phone', 'birthday'])
 const REQUIRED_PROFILE_KEYS = Object.freeze(['firstName', 'lastName', 'phone'])
@@ -49,12 +50,24 @@ function encryptionKey(value) {
 
 function plainRecord(value, allowed, required, scope) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new TypeError(`${scope} must be a plain data object`)
-  const prototype = Object.getPrototypeOf(value)
+  let prototype
+  let keys
+  try {
+    prototype = Object.getPrototypeOf(value)
+    keys = Reflect.ownKeys(value)
+  } catch {
+    throw new TypeError(`${scope} must be a plain data object`)
+  }
   if (prototype !== Object.prototype && prototype !== null) throw new TypeError(`${scope} must be a plain data object`)
   const result = Object.create(null)
-  for (const key of Reflect.ownKeys(value)) {
+  for (const key of keys) {
     if (typeof key !== 'string' || !allowed.includes(key)) throw new TypeError(`${scope} contains unknown fields`)
-    const descriptor = Object.getOwnPropertyDescriptor(value, key)
+    let descriptor
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(value, key)
+    } catch {
+      throw new TypeError(`${scope} must be a plain data object`)
+    }
     if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new TypeError(`${scope} must contain data fields only`)
     result[key] = descriptor.value
   }
@@ -91,10 +104,33 @@ function profileBirthday(value) {
   return value
 }
 
-function patientProfile(value) {
+function profileJson(value) {
+  const result = Object.create(null)
+  for (const key of PROFILE_KEYS) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)
+    if (!descriptor || !descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) throw new TypeError('Patient profile must contain data fields only')
+    result[key] = descriptor.value
+  }
+  return JSON.stringify(Object.freeze(result))
+}
+
+export function normalizePatientProfile(value) {
   const input = plainRecord(value, PROFILE_KEYS, REQUIRED_PROFILE_KEYS, 'Patient profile')
   const profile = Object.freeze({ firstName: profileText(input.firstName, 'Patient first name', false), lastName: profileText(input.lastName, 'Patient last name', false), secondName: profileText(input.secondName ?? '', 'Patient second name', true), phone: normalizeContactPhone(input.phone), birthday: profileBirthday(input.birthday) })
-  if (Buffer.byteLength(JSON.stringify(profile), 'utf8') > MAX_PROFILE_BYTES) throw new TypeError('Patient profile is too large')
+  if (Buffer.byteLength(profileJson(profile), 'utf8') > MAX_PROFILE_BYTES) throw new TypeError('Patient profile is too large')
+  return profile
+}
+
+function importedProfileText(value, scope) {
+  if (value === undefined || value === null || value === '') return null
+  return profileText(value, scope, false)
+}
+
+export function normalizeImportedPatientProfile(value) {
+  const input = plainRecord(value, PROFILE_KEYS, [], 'Imported patient profile')
+  const phone = input.phone === undefined || input.phone === null || input.phone === '' ? null : normalizeContactPhone(input.phone)
+  const profile = Object.freeze({ firstName: importedProfileText(input.firstName, 'Imported patient first name'), lastName: importedProfileText(input.lastName, 'Imported patient last name'), secondName: importedProfileText(input.secondName, 'Imported patient second name'), phone, birthday: profileBirthday(input.birthday) })
+  if (Buffer.byteLength(profileJson(profile), 'utf8') > MAX_PROFILE_BYTES) throw new TypeError('Imported patient profile is too large')
   return profile
 }
 
@@ -163,15 +199,41 @@ export function fingerprintContactPhone({ phone, key }) {
 /**
  * Seals a normalized patient profile in a versioned AES-256-GCM envelope.
  */
-export function encryptPatientProfile({ profile, key, randomBytes = secureRandomBytes }) {
-  const protectedProfile = patientProfile(profile)
+function encryptProfile(profile, key, randomBytes, domain) {
   const secret = encryptionKey(key)
   const iv = initializationVector(randomBytes)
   const cipher = createCipheriv('aes-256-gcm', secret, iv)
-  cipher.setAAD(additionalData(PROFILE_DOMAIN))
-  const ciphertext = Buffer.concat([cipher.update(JSON.stringify(protectedProfile), 'utf8'), cipher.final()])
+  cipher.setAAD(additionalData(domain))
+  const ciphertext = Buffer.concat([cipher.update(profileJson(profile), 'utf8'), cipher.final()])
   const tag = cipher.getAuthTag()
   return [VERSION, iv.toString('base64url'), ciphertext.toString('base64url'), tag.toString('base64url')].join('.')
+}
+
+export function encryptPatientProfile({ profile, key, randomBytes = secureRandomBytes }) {
+  return encryptProfile(normalizePatientProfile(profile), key, randomBytes, PROFILE_DOMAIN)
+}
+
+/**
+ * Seals an imported root profile whose identity is anchored by external identifiers.
+ */
+export function encryptImportedPatientProfile({ profile, key, randomBytes = secureRandomBytes }) {
+  return encryptProfile(normalizeImportedPatientProfile(profile), key, randomBytes, IMPORTED_PROFILE_DOMAIN)
+}
+
+function decryptProfile(secret, encrypted, domain, normalize) {
+  const decipher = createDecipheriv('aes-256-gcm', secret, encrypted.iv)
+  decipher.setAAD(additionalData(domain))
+  decipher.setAuthTag(encrypted.tag)
+  const plaintext = Buffer.concat([decipher.update(encrypted.ciphertext), decipher.final()]).toString('utf8')
+  return normalize(JSON.parse(plaintext))
+}
+
+function attemptedProfile(secret, encrypted, domain, normalize) {
+  try {
+    return decryptProfile(secret, encrypted, domain, normalize)
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -179,17 +241,12 @@ export function encryptPatientProfile({ profile, key, randomBytes = secureRandom
  */
 export function decryptPatientProfile({ envelope, key }) {
   const secret = encryptionKey(key)
-  const { iv, ciphertext, tag } = encryptedParts(envelope)
-  try {
-    const decipher = createDecipheriv('aes-256-gcm', secret, iv)
-    decipher.setAAD(additionalData(PROFILE_DOMAIN))
-    decipher.setAuthTag(tag)
-    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8')
-    return patientProfile(JSON.parse(plaintext))
-  } catch (error) {
-    if (error instanceof TypeError && error.message.startsWith('Contact encryption key')) throw error
-    throw new ContactIdentityError('DECRYPTION_FAILED')
-  }
+  const encrypted = encryptedParts(envelope)
+  const operational = attemptedProfile(secret, encrypted, PROFILE_DOMAIN, normalizePatientProfile)
+  if (operational !== null) return operational
+  const imported = attemptedProfile(secret, encrypted, IMPORTED_PROFILE_DOMAIN, normalizeImportedPatientProfile)
+  if (imported !== null) return imported
+  throw new ContactIdentityError('DECRYPTION_FAILED')
 }
 
 /**

@@ -13,6 +13,8 @@ const OTHER_ENCRYPTION_KEY = Buffer.from('abcdef0123456789abcdef0123456789').toS
 const FIXED_IV = Buffer.from('0102030405060708090a0b0c', 'hex')
 const PROFILE = Object.freeze({ firstName: ' Лёля ', lastName: ' О’Коннор-Сидорова ', secondName: ' Алиевна ', phone: RUSSIAN_FORMATTED, birthday: '1988-02-29' })
 const NORMALIZED_PROFILE = Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: RUSSIAN_NORMALIZED, birthday: '1988-02-29' })
+const INCOMPLETE_PROFILE = Object.freeze({ firstName: ' Ия ', lastName: null, secondName: null, phone: null, birthday: null })
+const NORMALIZED_INCOMPLETE_PROFILE = Object.freeze({ firstName: 'Ия', lastName: null, secondName: null, phone: null, birthday: null })
 
 async function contactIdentity() {
   return import('./contact-identity.js').catch(() => Object.freeze({}))
@@ -70,6 +72,44 @@ describe('contact identity', () => {
     const envelope = typeof identity.encryptPatientProfile === 'function' ? identity.encryptPatientProfile({ profile: PROFILE, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV }) : 'missing'
     const result = typeof identity.decryptPatientProfile === 'function' ? identity.decryptPatientProfile({ envelope, key: ENCRYPTION_KEY }) : Object.freeze({})
     expect(result).toEqual(NORMALIZED_PROFILE)
+  })
+
+  it('round-trips an explicitly imported profile without inventing missing name or phone values', async () => {
+    const identity = await contactIdentity()
+    const envelope = typeof identity.encryptImportedPatientProfile === 'function' ? identity.encryptImportedPatientProfile({ profile: INCOMPLETE_PROFILE, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV }) : 'missing'
+    const result = typeof identity.decryptPatientProfile === 'function' && envelope !== 'missing' ? identity.decryptPatientProfile({ envelope, key: ENCRYPTION_KEY }) : Object.freeze({})
+    expect({ result, frozen: Object.isFrozen(result) }).toEqual({ result: NORMALIZED_INCOMPLETE_PROFILE, frozen: true })
+  })
+
+  it('encrypts an imported profile without invoking Object prototype JSON hooks', async () => {
+    const identity = await contactIdentity()
+    const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'toJSON')
+    let calls = 0
+    Object.defineProperty(Object.prototype, 'toJSON', { configurable: true, value() { calls += 1; return this } })
+    let envelope
+    try { envelope = identity.encryptImportedPatientProfile({ profile: INCOMPLETE_PROFILE, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV }) } finally { if (descriptor === undefined) delete Object.prototype.toJSON; else Object.defineProperty(Object.prototype, 'toJSON', descriptor) }
+    const result = identity.decryptPatientProfile({ envelope, key: ENCRYPTION_KEY })
+    expect({ calls, result }).toEqual({ calls: 0, result: NORMALIZED_INCOMPLETE_PROFILE })
+  })
+
+  it('allows an explicitly imported profile with no name components when an external identity owns it', async () => {
+    const identity = await contactIdentity()
+    const profile = Object.freeze({ firstName: null, lastName: null, secondName: null, phone: '+7 921 555-01-29', birthday: '1988-02-29' })
+    const result = typeof identity.normalizeImportedPatientProfile === 'function' ? identity.normalizeImportedPatientProfile(profile) : Object.freeze({ missing: true })
+    expect(result).toEqual({ firstName: null, lastName: null, secondName: null, phone: RUSSIAN_NORMALIZED, birthday: '1988-02-29' })
+  })
+
+  it('keeps the public patient-profile boundary strict when imported fields are absent', async () => {
+    const identity = await contactIdentity()
+    const result = captured(() => identity.encryptPatientProfile({ profile: INCOMPLETE_PROFILE, key: ENCRYPTION_KEY, randomBytes: () => FIXED_IV }))
+    expect(result).toMatchObject({ threw: true, name: 'TypeError' })
+  })
+
+  it('rejects a hostile imported-profile proxy without reflecting its thrown value', async () => {
+    const identity = await contactIdentity()
+    const profile = new Proxy({}, { ownKeys: () => { throw new Error('Ия-секрет-прокси') } })
+    const result = captured(() => identity.normalizeImportedPatientProfile(profile))
+    expect(result).toEqual({ threw: true, name: 'TypeError', code: undefined, message: 'Imported patient profile must be a plain data object' })
   })
 
   it('creates a versioned envelope without plaintext profile values', async () => {

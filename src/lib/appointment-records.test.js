@@ -17,6 +17,8 @@ const APPOINTMENT_ID = '30000000-0000-4000-8000-000000000003'
 const OTHER_APPOINTMENT_ID = '40000000-0000-4000-8000-000000000004'
 const CLAIM_ID = '50000000-0000-4000-8000-000000000005'
 const OTHER_CLAIM_ID = '60000000-0000-4000-8000-000000000006'
+const FIRST_CONTACT_ID = '70000000-0000-4000-8000-000000000007'
+const SECOND_CONTACT_ID = '80000000-0000-4000-8000-000000000008'
 const NOW = new Date('2026-08-26T10:00:00.000Z')
 const FIRST_PROFILE = Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '+7 (921) 555-01-29', birthday: '1988-02-29' })
 const OTHER_PROFILE = Object.freeze({ firstName: 'Мария', lastName: 'Кюри', secondName: 'Склодовская', phone: '+7 921 555-83-47', birthday: null })
@@ -39,7 +41,7 @@ async function fixture(overrides = {}) {
   const client = overrides.client ?? await database()
   const module = await import('./appointment-records.js')
   const factory = typeof module.createAppointmentRecords === 'function' ? module.createAppointmentRecords : () => Object.freeze({})
-  const records = factory({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: overrides.clock ?? (() => NOW), uuid: overrides.uuid ?? sequence([PATIENT_ID, OTHER_PATIENT_ID]) })
+  const records = factory({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: overrides.clock ?? (() => NOW), uuid: overrides.uuid ?? sequence([PATIENT_ID, FIRST_CONTACT_ID, OTHER_PATIENT_ID, SECOND_CONTACT_ID]) })
   return Object.freeze({ client, records })
 }
 

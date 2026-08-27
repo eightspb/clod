@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { decryptPatientProfile, encryptPatientProfile, fingerprintContactPhone, maskContactPhone, normalizeContactPhone } from './contact-identity.js'
+import { decryptPatientProfile, encryptContactPhone, encryptPatientProfile, fingerprintContactPhone, maskContactPhone, normalizePatientProfile } from './contact-identity.js'
 
 const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'clock', 'uuid'])
 const UPSERT_KEYS = Object.freeze(['profile', 'executor'])
@@ -12,6 +12,8 @@ const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const FINGERPRINT_PATTERN = /^v1:[0-9a-f]{64}$/
 const ROW_COLUMNS = Object.freeze(['id', 'profileCiphertext', 'phoneMask', 'phoneFingerprint', 'firstSeenAt', 'lastSeenAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const SELECT_COLUMNS = ROW_COLUMNS.join(', ')
+const MAX_PHONE_CANDIDATES = 100
+const MAX_STORAGE_ROWS = 1_000
 const ERROR_MESSAGES = Object.freeze({
   PATIENT_NOT_FOUND: 'Patient record was not found',
   PATIENT_PII_DESTROYED: 'Patient personal data has been destroyed',
@@ -33,12 +35,24 @@ export class PatientRecordError extends Error {
 
 function readRecord(input, allowed, required, scope) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) throw new TypeError(`${scope} must be a plain data object`)
-  const prototype = Object.getPrototypeOf(input)
+  let prototype
+  let keys
+  try {
+    prototype = Object.getPrototypeOf(input)
+    keys = Reflect.ownKeys(input)
+  } catch {
+    throw new TypeError(`${scope} must be a plain data object`)
+  }
   if (prototype !== Object.prototype && prototype !== null) throw new TypeError(`${scope} must be a plain data object`)
   const value = Object.create(null)
-  for (const key of Reflect.ownKeys(input)) {
+  for (const key of keys) {
     if (typeof key !== 'string' || !allowed.includes(key)) throw new TypeError(`${scope} contains unknown fields`)
-    const descriptor = Object.getOwnPropertyDescriptor(input, key)
+    let descriptor
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(input, key)
+    } catch {
+      throw new TypeError(`${scope} must be a plain data object`)
+    }
     if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new TypeError(`${scope} must contain data fields only`)
     value[key] = descriptor.value
   }
@@ -98,9 +112,36 @@ function nextUuid(configuration, scope) {
   return normalizeUuid(configuration.uuid(), scope)
 }
 
+function storedValue(value, key) {
+  let descriptor
+  try {
+    descriptor = value === null || typeof value !== 'object' ? undefined : Object.getOwnPropertyDescriptor(value, key)
+  } catch {
+    throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  }
+  if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return descriptor.value
+}
+
 function readRows(result) {
-  if (result === null || typeof result !== 'object' || !Array.isArray(result.rows)) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  return [...result.rows]
+  const rows = storedValue(result, 'rows')
+  let rowsAreArray
+  try {
+    rowsAreArray = Array.isArray(rows)
+  } catch {
+    throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  }
+  if (!rowsAreArray) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  const length = storedValue(rows, 'length')
+  if (!Number.isSafeInteger(length) || length < 0 || length > MAX_STORAGE_ROWS) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  let keys
+  try {
+    keys = Reflect.ownKeys(rows)
+  } catch {
+    throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  }
+  if (keys.length !== length + 1 || !keys.includes('length')) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return Object.freeze(Array.from({ length }, (_value, index) => storedValue(rows, String(index))))
 }
 
 function storedTimestamp(value) {
@@ -108,23 +149,30 @@ function storedTimestamp(value) {
   return value
 }
 
+function nullableStoredTimestamp(value) {
+  return value === null ? null : storedTimestamp(value)
+}
+
 function parseRow(input) {
-  if (input === null || typeof input !== 'object' || !ROW_COLUMNS.every((key) => Object.hasOwn(input, key))) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  const id = normalizeUuid(input.id, 'Stored patient ID')
-  const firstSeenAt = storedTimestamp(input.firstSeenAt)
-  const lastSeenAt = storedTimestamp(input.lastSeenAt)
-  const createdAt = storedTimestamp(input.createdAt)
-  const updatedAt = storedTimestamp(input.updatedAt)
-  const piiDestroyedAt = input.piiDestroyedAt === null ? null : storedTimestamp(input.piiDestroyedAt)
+  if (input === null || typeof input !== 'object') throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  const row = Object.create(null)
+  for (const key of ROW_COLUMNS) row[key] = storedValue(input, key)
+  const id = normalizeUuid(row.id, 'Stored patient ID')
+  const firstSeenAt = nullableStoredTimestamp(row.firstSeenAt)
+  const lastSeenAt = nullableStoredTimestamp(row.lastSeenAt)
+  const createdAt = storedTimestamp(row.createdAt)
+  const updatedAt = storedTimestamp(row.updatedAt)
+  const piiDestroyedAt = row.piiDestroyedAt === null ? null : storedTimestamp(row.piiDestroyedAt)
   const active = piiDestroyedAt === null
-  if (lastSeenAt < firstSeenAt || updatedAt < createdAt) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  if (active && (typeof input.profileCiphertext !== 'string' || typeof input.phoneMask !== 'string' || typeof input.phoneFingerprint !== 'string' || !FINGERPRINT_PATTERN.test(input.phoneFingerprint))) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  if (!active && (input.profileCiphertext !== null || input.phoneMask !== null || input.phoneFingerprint !== null)) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  return Object.freeze({ id, profileCiphertext: input.profileCiphertext, phoneMask: input.phoneMask, phoneFingerprint: input.phoneFingerprint, firstSeenAt, lastSeenAt, createdAt, updatedAt, piiDestroyedAt })
+  if ((firstSeenAt === null) !== (lastSeenAt === null) || (firstSeenAt !== null && lastSeenAt < firstSeenAt) || updatedAt < createdAt) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  const hasPhone = row.phoneMask !== null || row.phoneFingerprint !== null
+  if (active && (typeof row.profileCiphertext !== 'string' || (hasPhone && (typeof row.phoneMask !== 'string' || typeof row.phoneFingerprint !== 'string' || !FINGERPRINT_PATTERN.test(row.phoneFingerprint))))) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  if (!active && (row.profileCiphertext !== null || row.phoneMask !== null || row.phoneFingerprint !== null)) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return Object.freeze({ id, profileCiphertext: row.profileCiphertext, phoneMask: row.phoneMask, phoneFingerprint: row.phoneFingerprint, firstSeenAt, lastSeenAt, createdAt, updatedAt, piiDestroyedAt })
 }
 
 function patientName(profile) {
-  return [profile.lastName, profile.firstName, profile.secondName].filter(Boolean).join(' ')
+  return [profile.lastName, profile.firstName, profile.secondName].filter(Boolean).join(' ') || null
 }
 
 function publicPatient(configuration, row) {
@@ -147,24 +195,90 @@ async function inTransaction(client, operation) {
 }
 
 function protectedProfile(configuration, profile) {
-  const ciphertext = encryptPatientProfile({ profile, key: configuration.encryptionKey })
-  const phoneValue = Object.getOwnPropertyDescriptor(profile, 'phone').value
-  const phone = normalizeContactPhone(phoneValue)
-  return Object.freeze({ ciphertext, phoneMask: maskContactPhone(phone), phoneFingerprint: fingerprintContactPhone({ phone: phoneValue, key: configuration.fingerprintKey }) })
+  const normalized = normalizePatientProfile(profile)
+  const phoneMask = maskContactPhone(normalized.phone)
+  const phoneFingerprint = fingerprintContactPhone({ phone: normalized.phone, key: configuration.fingerprintKey })
+  return Object.freeze({ profile: normalized, ciphertext: encryptPatientProfile({ profile: normalized, key: configuration.encryptionKey }), phoneCiphertext: encryptContactPhone({ phone: normalized.phone, key: configuration.encryptionKey }), phoneMask, phoneFingerprint })
+}
+
+function comparableIdentity(value) {
+  return typeof value === 'string' && value.length > 0 ? value.toLowerCase() : null
+}
+
+function compatibleProfile(first, second) {
+  const fields = ['firstName', 'lastName', 'secondName', 'birthday']
+  for (const field of fields) {
+    const left = comparableIdentity(first[field])
+    const right = comparableIdentity(second[field])
+    if (left !== null && right !== null && left !== right) return false
+  }
+  const firstName = comparableIdentity(first.firstName) !== null && comparableIdentity(first.firstName) === comparableIdentity(second.firstName)
+  const lastName = comparableIdentity(first.lastName) !== null && comparableIdentity(first.lastName) === comparableIdentity(second.lastName)
+  const birthday = first.birthday !== null && first.birthday === second.birthday
+  return (firstName && lastName) || (birthday && (firstName || lastName))
+}
+
+async function phoneCandidateRows(configuration, executor, fingerprint) {
+  const result = await executor.execute({ sql: `SELECT ${ROW_COLUMNS.map((column) => `p.${column} AS ${column}`).join(', ')} FROM Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL WHERE p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?) ORDER BY p.id LIMIT ?`, args: ['phone', fingerprint, fingerprint, MAX_PHONE_CANDIDATES + 1] })
+  const rows = readRows(result).map(parseRow)
+  if (rows.length > MAX_PHONE_CANDIDATES || new Set(rows.map(({ id }) => id)).size !== rows.length) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return rows
+}
+
+async function compatibleCandidate(configuration, executor, protectedData) {
+  const candidates = await phoneCandidateRows(configuration, executor, protectedData.phoneFingerprint)
+  const matching = candidates.filter((row) => compatibleProfile(protectedData.profile, decryptPatientProfile({ envelope: row.profileCiphertext, key: configuration.encryptionKey })))
+  if (matching.length > 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return matching[0] ?? null
+}
+
+async function writePatient(configuration, executor, candidate, protectedData, now) {
+  if (candidate === null) {
+    const id = nextUuid(configuration, 'Patient ID')
+    const inserted = await executor.execute({ sql: `INSERT INTO Patient (${SELECT_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING ${SELECT_COLUMNS}`, args: [id, protectedData.ciphertext, protectedData.phoneMask, protectedData.phoneFingerprint, now, now, now, now, null] })
+    const rows = readRows(inserted).map(parseRow)
+    if (rows.length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+    return rows[0]
+  }
+  const updated = await executor.execute({ sql: `UPDATE Patient SET profileCiphertext = ?, phoneMask = ?, phoneFingerprint = ?, firstSeenAt = COALESCE(firstSeenAt, ?), lastSeenAt = CASE WHEN lastSeenAt IS NULL OR lastSeenAt < ? THEN ? ELSE lastSeenAt END, updatedAt = max(updatedAt, ?) WHERE id = ? AND piiDestroyedAt IS NULL RETURNING ${SELECT_COLUMNS}`, args: [protectedData.ciphertext, protectedData.phoneMask, protectedData.phoneFingerprint, now, now, now, now, candidate.id] })
+  const rows = readRows(updated).map(parseRow)
+  if (rows.length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return rows[0]
+}
+
+async function projectPrimaryContact(configuration, executor, patientId, protectedData, now) {
+  await executor.execute({ sql: 'UPDATE PatientContact SET isPrimary = ? WHERE patientId = ? AND kind = ? AND fingerprint <> ? AND piiDestroyedAt IS NULL', args: [0, patientId, 'phone', protectedData.phoneFingerprint] })
+  const updated = await executor.execute({ sql: 'UPDATE PatientContact SET ciphertext = ?, mask = ?, isPrimary = ?, firstSeenAt = COALESCE(firstSeenAt, ?), lastSeenAt = CASE WHEN lastSeenAt IS NULL OR lastSeenAt < ? THEN ? ELSE lastSeenAt END WHERE patientId = ? AND kind = ? AND fingerprint = ? AND piiDestroyedAt IS NULL RETURNING id', args: [protectedData.phoneCiphertext, protectedData.phoneMask, 1, now, now, now, patientId, 'phone', protectedData.phoneFingerprint] })
+  const rows = readRows(updated)
+  if (rows.length > 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  if (rows.length === 1) return
+  const id = nextUuid(configuration, 'Patient contact ID')
+  await executor.execute({ sql: 'INSERT INTO PatientContact (id, patientId, kind, ciphertext, fingerprint, mask, isPrimary, sourceName, firstSeenAt, lastSeenAt, piiDestroyedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [id, patientId, 'phone', protectedData.phoneCiphertext, protectedData.phoneFingerprint, protectedData.phoneMask, 1, 'operational', now, now, null] })
+}
+
+async function activeContactPatientIds(executor, fingerprint) {
+  const result = await executor.execute({ sql: 'SELECT DISTINCT p.id FROM Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL WHERE p.piiDestroyedAt IS NULL AND (p.phoneFingerprint = ? OR c.id IS NOT NULL) ORDER BY p.id LIMIT 2', args: ['phone', fingerprint, fingerprint] })
+  const rows = readRows(result)
+  const ids = rows.map((row) => {
+    return normalizeUuid(storedValue(row, 'id'), 'Stored patient ID')
+  })
+  if (new Set(ids).size !== ids.length) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return ids
+}
+
+async function synchronizeMango(executor, fingerprint, now) {
+  const ids = await activeContactPatientIds(executor, fingerprint)
+  await executor.execute({ sql: 'UPDATE MangoCall SET patientId = ?, updatedAt = max(updatedAt, ?) WHERE callerFingerprint = ? AND piiDestroyedAt IS NULL', args: [ids.length === 1 ? ids[0] : null, now, fingerprint] })
 }
 
 async function executeUpsert(configuration, executor, input) {
   const protectedData = protectedProfile(configuration, input.profile)
-  const id = nextUuid(configuration, 'Patient ID')
   const now = currentTime(configuration)
-  const result = await executor.execute({
-    sql: `INSERT INTO Patient (${SELECT_COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(phoneFingerprint) DO UPDATE SET profileCiphertext = excluded.profileCiphertext, phoneMask = excluded.phoneMask, lastSeenAt = max(Patient.lastSeenAt, excluded.lastSeenAt), updatedAt = max(Patient.updatedAt, excluded.updatedAt) RETURNING ${SELECT_COLUMNS}`,
-    args: [id, protectedData.ciphertext, protectedData.phoneMask, protectedData.phoneFingerprint, now, now, now, now, null],
-  })
-  const rows = readRows(result).map(parseRow)
-  if (rows.length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  await executor.execute({ sql: 'UPDATE MangoCall SET patientId = ?, updatedAt = max(updatedAt, ?) WHERE callerFingerprint = ? AND piiDestroyedAt IS NULL', args: [rows[0].id, now, protectedData.phoneFingerprint] })
-  return publicPatient(configuration, rows[0])
+  const candidate = await compatibleCandidate(configuration, executor, protectedData)
+  const row = await writePatient(configuration, executor, candidate, protectedData, now)
+  await projectPrimaryContact(configuration, executor, row.id, protectedData, now)
+  await synchronizeMango(executor, protectedData.phoneFingerprint, now)
+  return publicPatient(configuration, row)
 }
 
 async function upsert(configuration, raw) {
@@ -178,13 +292,15 @@ async function list(configuration, raw) {
   const page = normalizePage(input.page)
   const pageSize = normalizePageSize(input.pageSize)
   const phoneFingerprint = input.phone === undefined ? undefined : fingerprintContactPhone({ phone: input.phone, key: configuration.fingerprintKey })
-  const where = phoneFingerprint === undefined ? '' : ' WHERE phoneFingerprint = ?'
-  const args = phoneFingerprint === undefined ? [] : [phoneFingerprint]
-  const count = await configuration.client.execute({ sql: `SELECT COUNT(*) AS total FROM Patient${where}`, args })
+  const source = phoneFingerprint === undefined ? 'Patient p' : 'Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL'
+  const where = phoneFingerprint === undefined ? '' : ' WHERE p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?)'
+  const args = phoneFingerprint === undefined ? [] : ['phone', phoneFingerprint, phoneFingerprint]
+  const count = await configuration.client.execute({ sql: `SELECT COUNT(DISTINCT p.id) AS total FROM ${source}${where}`, args })
   const countRows = readRows(count)
-  if (countRows.length !== 1 || !Number.isSafeInteger(Number(countRows[0].total)) || Number(countRows[0].total) < 0) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
-  const total = Number(countRows[0].total)
-  const result = await configuration.client.execute({ sql: `SELECT ${SELECT_COLUMNS} FROM Patient${where} ORDER BY lastSeenAt DESC, id LIMIT ? OFFSET ?`, args: [...args, pageSize, (page - 1) * pageSize] })
+  const total = countRows.length === 1 ? Number(storedValue(countRows[0], 'total')) : Number.NaN
+  if (!Number.isSafeInteger(total) || total < 0) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  const columns = ROW_COLUMNS.map((column) => `p.${column} AS ${column}`).join(', ')
+  const result = await configuration.client.execute({ sql: `SELECT DISTINCT ${columns} FROM ${source}${where} ORDER BY p.lastSeenAt DESC, p.id LIMIT ? OFFSET ?`, args: [...args, pageSize, (page - 1) * pageSize] })
   const items = readRows(result).map(parseRow).map((row) => publicPatient(configuration, row))
   return Object.freeze({ items: Object.freeze(items), page, pageSize, total, pages: total === 0 ? 0 : Math.ceil(total / pageSize) })
 }
@@ -228,8 +344,17 @@ async function destroy(configuration, raw) {
     if (rows.length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
     if (rows[0].piiDestroyedAt !== null) return Object.freeze({ id, destroyedAt: rows[0].piiDestroyedAt, alreadyDestroyed: true })
     const destroyedAt = currentTime(configuration)
+    const selectedContacts = await transaction.execute({ sql: 'SELECT fingerprint FROM PatientContact WHERE patientId = ? AND kind = ? AND fingerprint IS NOT NULL AND piiDestroyedAt IS NULL ORDER BY fingerprint', args: [id, 'phone'] })
+    const fingerprints = readRows(selectedContacts).map((row) => {
+      const fingerprint = storedValue(row, 'fingerprint')
+      if (typeof fingerprint !== 'string' || !FINGERPRINT_PATTERN.test(fingerprint)) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+      return fingerprint
+    })
+    if (rows[0].phoneFingerprint !== null) fingerprints.push(rows[0].phoneFingerprint)
     const updated = await transaction.execute({ sql: 'UPDATE Patient SET profileCiphertext = ?, phoneMask = ?, phoneFingerprint = ?, piiDestroyedAt = ?, updatedAt = max(updatedAt, ?) WHERE id = ? AND piiDestroyedAt IS NULL RETURNING id', args: [null, null, null, destroyedAt, destroyedAt, id] })
     if (readRows(updated).length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+    await transaction.execute({ sql: 'UPDATE PatientContact SET ciphertext = ?, fingerprint = ?, mask = ?, isPrimary = ?, piiDestroyedAt = ?, lastSeenAt = max(lastSeenAt, ?) WHERE patientId = ? AND piiDestroyedAt IS NULL', args: [null, null, null, 0, destroyedAt, destroyedAt, id] })
+    for (const fingerprint of new Set(fingerprints)) await synchronizeMango(transaction, fingerprint, destroyedAt)
     const accessId = nextUuid(configuration, 'Patient access ID')
     await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [accessId, id, 'destroy', actor, destroyedAt] })
     return Object.freeze({ id, destroyedAt, alreadyDestroyed: false })

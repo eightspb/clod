@@ -48,6 +48,10 @@ const LEGACY_PATIENT_INDEXES = Object.freeze([
   'CREATE UNIQUE INDEX Patient_phoneFingerprint_unique ON Patient(phoneFingerprint)',
   'CREATE INDEX Patient_lastSeenAt_idx ON Patient(lastSeenAt)',
 ])
+const PREVIOUS_PATIENT_INDEXES = Object.freeze([
+  'CREATE INDEX Patient_phoneFingerprint_idx ON Patient(phoneFingerprint)',
+  'CREATE INDEX Patient_lastSeenAt_idx ON Patient(lastSeenAt)',
+])
 const LEGACY_PATIENT_ID = 'f50b5ea7-8791-4be8-92f4-30c177fdadd7'
 const SECOND_PATIENT_ID = '477f18dd-d87e-41d7-b7cf-d558a8448be8'
 const SHARED_FINGERPRINT = `v1:${'6d'.repeat(32)}`
@@ -149,6 +153,50 @@ describe('clinic history production migration', () => {
     expect({ indexes: indexes.rows.map(({ name, unique }) => ({ name, unique })).sort((first, second) => first.name.localeCompare(second.name)), patients: patients.rows.map(({ id }) => id) }).toEqual({ indexes: [{ name: 'Patient_lastSeenAt_idx', unique: 0 }, { name: 'Patient_phoneFingerprint_idx', unique: 0 }, { name: 'sqlite_autoindex_Patient_1', unique: 1 }], patients: [SECOND_PATIENT_ID, LEGACY_PATIENT_ID] })
   })
 
+  it('upgrades the previous nonunique patient schema without losing rows', async () => {
+    const databasePathname = await databasePath('clod-history-patient-nullable-')
+    const client = open(databasePathname)
+    await client.execute(LEGACY_PATIENT_TABLE)
+    for (const statement of PREVIOUS_PATIENT_INDEXES) await client.execute(statement)
+    await insertLegacyPatient(client)
+    client.close()
+    await migrate(databasePathname)
+    const verified = open(databasePathname)
+    const columns = await verified.execute("PRAGMA table_info('Patient')")
+    const patients = await verified.execute('SELECT id, firstSeenAt, lastSeenAt FROM Patient')
+    verified.close()
+    expect({ datesNullable: columns.rows.filter(({ name }) => ['firstSeenAt', 'lastSeenAt'].includes(name)).map(({ notnull }) => notnull), patients: patients.rows }).toEqual({ datesNullable: [0, 0], patients: [{ id: LEGACY_PATIENT_ID, firstSeenAt: '2024-02-29T10:00:00.000Z', lastSeenAt: '2026-08-27T10:00:00.000Z' }] })
+  })
+
+  it('fails closed before rebuilding a patient table referenced by an external view', async () => {
+    const databasePathname = await databasePath('clod-history-patient-view-')
+    const client = open(databasePathname)
+    await createLegacyPatient(client)
+    await insertLegacyPatient(client)
+    await client.execute('CREATE VIEW ActivePatient AS SELECT id FROM Patient WHERE piiDestroyedAt IS NULL')
+    client.close()
+    const failed = await migrationFails(databasePathname)
+    const verified = open(databasePathname)
+    const view = await verified.execute("SELECT name FROM sqlite_master WHERE type = 'view' AND name = 'ActivePatient'")
+    const patients = await verified.execute('SELECT id FROM Patient')
+    verified.close()
+    expect({ failed, views: view.rows, patients: patients.rows }).toEqual({ failed: true, views: [{ name: 'ActivePatient' }], patients: [{ id: LEGACY_PATIENT_ID }] })
+  })
+
+  it('rejects a nullable patient table carrying the obsolete unique index', async () => {
+    const databasePathname = await databasePath('clod-history-patient-mixed-')
+    await migrate(databasePathname)
+    const client = open(databasePathname)
+    await client.execute('DROP INDEX Patient_phoneFingerprint_idx')
+    await client.execute('CREATE UNIQUE INDEX Patient_phoneFingerprint_unique ON Patient(phoneFingerprint)')
+    client.close()
+    const failed = await migrationFails(databasePathname)
+    const verified = open(databasePathname)
+    const indexes = await verified.execute("PRAGMA index_list('Patient')")
+    verified.close()
+    expect({ failed, unique: indexes.rows.find(({ name }) => name === 'Patient_phoneFingerprint_unique')?.unique }).toEqual({ failed: true, unique: 1 })
+  })
+
   it('keeps source coordinates unique inside one import batch', async () => {
     const databasePathname = await databasePath('clod-history-source-unique-')
     await migrate(databasePathname)
@@ -193,6 +241,23 @@ describe('clinic history production migration', () => {
     const result = await client.execute({ sql: 'SELECT id FROM PatientExternalIdentifier WHERE fingerprint = ?', args: ['hmac:shared-card'] })
     client.close()
     expect(result.rows.length).toBe(2)
+  })
+
+  it('preserves unknown observation dates as null', async () => {
+    const databasePathname = await databasePath('clod-history-consent-date-')
+    await migrate(databasePathname)
+    const client = open(databasePathname)
+    const now = '2026-08-27T12:00:00.000Z'
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [SECOND_PATIENT_ID, 'protected-profile', null, null, null, null, now, now, null] })
+    await client.execute({ sql: 'INSERT INTO PatientContact VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['e215e04b-1441-4785-b66e-99429200fa40', SECOND_PATIENT_ID, 'email', 'protected-contact', 'hmac:email', 's•••@example.test', true, 'medesk.csv', null, null, null] })
+    await client.execute({ sql: 'INSERT INTO PatientConsent VALUES (?, ?, ?, ?, ?, ?, ?, ?)', args: ['d99a8e25-26ab-4bca-aabe-85952ed4001f', LEGACY_PATIENT_ID, 'sms_notifications', 'not_granted', 'medesk.csv', null, now, now] })
+    await client.execute({ sql: 'INSERT INTO PatientNameHistory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['74db6a11-1b0a-4974-b6ec-0ef11921b016', LEGACY_PATIENT_ID, 'protected-name', 'hmac:name', 'medesk.csv', null, null, 'source_correction', null] })
+    const consent = await client.execute('SELECT observedAt FROM PatientConsent')
+    const name = await client.execute('SELECT observedAt FROM PatientNameHistory')
+    const patient = await client.execute({ sql: 'SELECT firstSeenAt, lastSeenAt FROM Patient WHERE id = ?', args: [SECOND_PATIENT_ID] })
+    const contact = await client.execute('SELECT firstSeenAt, lastSeenAt FROM PatientContact')
+    client.close()
+    expect({ consent: consent.rows, name: name.rows, patient: patient.rows, contact: contact.rows }).toEqual({ consent: [{ observedAt: null }], name: [{ observedAt: null }], patient: [{ firstSeenAt: null, lastSeenAt: null }], contact: [{ firstSeenAt: null, lastSeenAt: null }] })
   })
 
   it('deduplicates an external identity only within its patient', async () => {

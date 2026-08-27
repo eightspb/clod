@@ -20,6 +20,8 @@ const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const PUBLIC_COLUMNS = Object.freeze(['entryId', 'patientId', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const SELECT_PUBLIC = PUBLIC_COLUMNS.join(', ')
 const ERROR_MESSAGES = Object.freeze({ CALL_NOT_FOUND: 'Call record was not found', CALL_PII_DESTROYED: 'Call personal data has been destroyed', CALL_CONFLICT: 'Call identity conflicts with stored data', CALL_STORAGE_INVARIANT: 'Call storage contains an invalid record' })
+const MAX_STORAGE_ROWS = 1_000
+const MAX_STORAGE_COLUMNS = 128
 let localWriteQueue = Promise.resolve()
 
 /**
@@ -107,9 +109,55 @@ function sequenceNumber(value) {
   return value
 }
 
+function storedValue(value, key) {
+  let descriptor
+  try {
+    descriptor = value === null || typeof value !== 'object' ? undefined : Object.getOwnPropertyDescriptor(value, key)
+  } catch {
+    throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  }
+  if (!descriptor || !Object.hasOwn(descriptor, 'value')) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  return descriptor.value
+}
+
+function storedRow(value) {
+  let keys
+  try {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+    keys = Reflect.ownKeys(value)
+  } catch {
+    throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  }
+  if (keys.length > MAX_STORAGE_COLUMNS || keys.some((key) => typeof key !== 'string')) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  const result = Object.create(null)
+  for (const key of keys) Object.defineProperty(result, key, { configurable: false, enumerable: true, value: storedValue(value, key), writable: false })
+  return Object.freeze(result)
+}
+
 function readRows(result) {
-  if (result === null || typeof result !== 'object' || !Array.isArray(result.rows)) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
-  return [...result.rows]
+  const rows = storedValue(result, 'rows')
+  let rowsAreArray
+  try {
+    rowsAreArray = Array.isArray(rows)
+  } catch {
+    throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  }
+  if (!rowsAreArray) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  const length = storedValue(rows, 'length')
+  if (!Number.isSafeInteger(length) || length < 0 || length > MAX_STORAGE_ROWS) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  let keys
+  try {
+    keys = Reflect.ownKeys(rows)
+  } catch {
+    throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  }
+  if (keys.length !== length + 1 || !keys.includes('length')) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  return Object.freeze(Array.from({ length }, (_value, index) => storedRow(storedValue(rows, String(index)))))
+}
+
+function storedUuid(value) {
+  if (typeof value !== 'string' || !UUID_PATTERN.test(value)) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  return value.toLowerCase()
 }
 
 function booleanOrNull(value) {
@@ -128,7 +176,7 @@ function integerOrNull(value) {
 
 function publicCall(input) {
   if (input === null || typeof input !== 'object' || !PUBLIC_COLUMNS.every((key) => Object.hasOwn(input, key))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
-  const result = { entryId: identifier(input.entryId, 'Stored call ID'), patientId: input.patientId === null ? null : identifier(input.patientId, 'Stored patient ID'), status: input.status, callerMask: input.callerMask, repeatCaller: booleanOrNull(input.repeatCaller), lineNumber: normalizeContactPhone(input.lineNumber), operatorExtension: input.operatorExtension, startedAt: timestamp(input.startedAt, 'Stored call start'), forwardedAt: timestamp(input.forwardedAt, 'Stored call forward', true), answeredAt: timestamp(input.answeredAt, 'Stored call answer', true), endedAt: timestamp(input.endedAt, 'Stored call end', true), waitSeconds: integerOrNull(input.waitSeconds), talkSeconds: integerOrNull(input.talkSeconds), disconnectReason: input.disconnectReason, finalizedAt: timestamp(input.finalizedAt, 'Stored call finalization', true), createdAt: timestamp(input.createdAt, 'Stored call creation'), updatedAt: timestamp(input.updatedAt, 'Stored call update'), piiDestroyedAt: timestamp(input.piiDestroyedAt, 'Stored call PII destruction', true) }
+  const result = { entryId: identifier(input.entryId, 'Stored call ID'), patientId: input.patientId === null ? null : storedUuid(input.patientId), status: input.status, callerMask: input.callerMask, repeatCaller: booleanOrNull(input.repeatCaller), lineNumber: normalizeContactPhone(input.lineNumber), operatorExtension: input.operatorExtension, startedAt: timestamp(input.startedAt, 'Stored call start'), forwardedAt: timestamp(input.forwardedAt, 'Stored call forward', true), answeredAt: timestamp(input.answeredAt, 'Stored call answer', true), endedAt: timestamp(input.endedAt, 'Stored call end', true), waitSeconds: integerOrNull(input.waitSeconds), talkSeconds: integerOrNull(input.talkSeconds), disconnectReason: input.disconnectReason, finalizedAt: timestamp(input.finalizedAt, 'Stored call finalization', true), createdAt: timestamp(input.createdAt, 'Stored call creation'), updatedAt: timestamp(input.updatedAt, 'Stored call update'), piiDestroyedAt: timestamp(input.piiDestroyedAt, 'Stored call PII destruction', true) }
   if (!ALL_STATES.has(result.status) || (result.piiDestroyedAt === null && (typeof result.callerMask !== 'string' || result.repeatCaller === null)) || (result.piiDestroyedAt !== null && (result.callerMask !== null || result.repeatCaller !== null))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   return Object.freeze(result)
 }
@@ -181,10 +229,10 @@ function protectCaller(configuration, phone) {
 }
 
 async function linkedPatient(executor, fingerprint) {
-  const result = await executor.execute({ sql: 'SELECT id FROM Patient WHERE phoneFingerprint = ? AND piiDestroyedAt IS NULL ORDER BY lastSeenAt DESC, id LIMIT 2', args: [fingerprint] })
-  const rows = readRows(result)
-  if (rows.length > 1) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
-  return rows[0]?.id ?? null
+  const result = await executor.execute({ sql: 'SELECT DISTINCT p.id FROM Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL WHERE p.piiDestroyedAt IS NULL AND (p.phoneFingerprint = ? OR c.id IS NOT NULL) ORDER BY p.id LIMIT 2', args: ['phone', fingerprint, fingerprint] })
+  const ids = readRows(result).map((row) => storedUuid(storedValue(row, 'id')))
+  if (new Set(ids).size !== ids.length) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  return ids.length === 1 ? ids[0] : null
 }
 
 async function repeatedCaller(executor, entryId, fingerprint) {

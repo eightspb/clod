@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { createClient } from '@libsql/client'
 import { describe, expect, it } from 'vitest'
+import { encryptPatientProfile, fingerprintContactPhone } from './contact-identity.js'
 import { createPatientRecords } from './patient-records.js'
 
 const executeFile = promisify(execFile)
@@ -14,6 +15,9 @@ const FINGERPRINT_KEY = 'mango-fingerprint-Ω-secret-with-enough-entropy-2026'
 const ENCRYPTION_KEY = Buffer.from('0123456789abcdef0123456789abcdef').toString('base64')
 const OTHER_ENCRYPTION_KEY = Buffer.from('abcdef0123456789abcdef0123456789').toString('base64')
 const PATIENT_ID = '10000000-0000-4000-8000-000000000001'
+const SECOND_PATIENT_ID = '40000000-0000-4000-8000-000000000004'
+const FIRST_CONTACT_ID = '50000000-0000-4000-8000-000000000005'
+const SECOND_CONTACT_ID = '60000000-0000-4000-8000-000000000006'
 const ACCESS_ID = '20000000-0000-4000-8000-000000000002'
 const OTHER_ACCESS_ID = '30000000-0000-4000-8000-000000000003'
 const ACTOR = `v1:${'a7'.repeat(32)}`
@@ -22,6 +26,7 @@ const OTHER_PHONE = '79215558347'
 const LINE = '78127482210'
 const NOW = new Date('2026-08-26T12:00:00.000Z')
 const PROFILE = Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: PHONE, birthday: '1988-02-29' })
+const SHARED_PHONE_PROFILE = Object.freeze({ firstName: 'Мария', lastName: 'Кюри', secondName: 'Склодовская', phone: PHONE, birthday: '1867-11-07' })
 
 function sequence(values) {
   let index = 0
@@ -61,6 +66,15 @@ async function captured(operation) {
     return Object.freeze({ threw: false })
   } catch (error) {
     return Object.freeze({ threw: true, name: error.name, code: error.code })
+  }
+}
+
+async function capturedMessage(operation, secret) {
+  try {
+    await operation()
+    return Object.freeze({ threw: false })
+  } catch (error) {
+    return Object.freeze({ threw: true, name: error.name, code: error.code, message: error.message, frozen: Object.isFrozen(error), leaked: error.message.includes(secret) })
   }
 }
 
@@ -106,6 +120,53 @@ describe('MANGO call records', () => {
     const count = await client.execute('SELECT COUNT(*) AS total FROM Patient')
     client.close()
     expect({ calls: calls.rows, patients: Number(count.rows[0]?.total) }).toEqual({ calls: [{ entryId: 'entry-1', patientId: PATIENT_ID }, { entryId: 'entry-2', patientId: null }], patients: 1 })
+  })
+
+  it('links a legacy root-only active patient by its projected phone fingerprint', async () => {
+    const { client, records } = await fixture()
+    const fingerprint = fingerprintContactPhone({ phone: PROFILE.phone, key: FINGERPRINT_KEY })
+    const ciphertext = encryptPatientProfile({ profile: PROFILE, key: ENCRYPTION_KEY })
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [PATIENT_ID, ciphertext, '+7 •••••••• 29', fingerprint, NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), null] })
+    await invoke(records, 'apply', live())
+    const row = await client.execute('SELECT patientId FROM MangoCall WHERE entryId = ?', ['entry-1'])
+    client.close()
+    expect(row.rows[0]).toEqual({ patientId: PATIENT_ID })
+  })
+
+  it('keeps a mixed legacy-root and contact-backed shared phone ambiguous', async () => {
+    const { client, records } = await fixture()
+    const fingerprint = fingerprintContactPhone({ phone: PROFILE.phone, key: FINGERPRINT_KEY })
+    const ciphertext = encryptPatientProfile({ profile: PROFILE, key: ENCRYPTION_KEY })
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [PATIENT_ID, ciphertext, '+7 •••••••• 29', fingerprint, NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), null] })
+    const patients = createPatientRecords({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: () => NOW, uuid: sequence([SECOND_PATIENT_ID, FIRST_CONTACT_ID]) })
+    await patients.upsert({ profile: SHARED_PHONE_PROFILE })
+    await invoke(records, 'apply', live())
+    const row = await client.execute('SELECT patientId FROM MangoCall WHERE entryId = ?', ['entry-1'])
+    client.close()
+    expect(row.rows[0]).toEqual({ patientId: null })
+  })
+
+  it('rejects a malformed stored patient ID before persisting a call link', async () => {
+    const { client, records } = await fixture()
+    const fingerprint = fingerprintContactPhone({ phone: PROFILE.phone, key: FINGERPRINT_KEY })
+    const ciphertext = encryptPatientProfile({ profile: PROFILE, key: ENCRYPTION_KEY })
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['invalid-patient-id', ciphertext, null, null, NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), NOW.toISOString(), null] })
+    await client.execute({ sql: 'INSERT INTO PatientContact (id, patientId, kind, ciphertext, fingerprint, mask, isPrimary, sourceName, firstSeenAt, lastSeenAt, piiDestroyedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [FIRST_CONTACT_ID, 'invalid-patient-id', 'phone', 'sealed', fingerprint, '+7 •••••••• 29', 1, 'synthetic', NOW.toISOString(), NOW.toISOString(), null] })
+    const failure = await captured(() => records.apply(live()))
+    client.close()
+    expect(failure).toEqual({ threw: true, name: 'MangoCallRecordError', code: 'CALL_STORAGE_INVARIANT' })
+  })
+
+  it('leaves a future call unlinked when its contact belongs to multiple active patients', async () => {
+    const { client, records } = await fixture()
+    const uuid = sequence([PATIENT_ID, FIRST_CONTACT_ID, SECOND_PATIENT_ID, SECOND_CONTACT_ID])
+    const patients = createPatientRecords({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: () => NOW, uuid })
+    await patients.upsert({ profile: PROFILE })
+    await patients.upsert({ profile: SHARED_PHONE_PROFILE })
+    const result = await invoke(records, 'apply', live())
+    const call = await client.execute('SELECT patientId FROM MangoCall WHERE entryId = ?', ['entry-1'])
+    client.close()
+    expect({ result, patientId: call.rows[0]?.patientId }).toEqual({ result: { outcome: 'applied', entryId: 'entry-1' }, patientId: null })
   })
 
   it('marks a caller as repeated only after an earlier finalized call', async () => {
@@ -213,5 +274,24 @@ describe('MANGO call records', () => {
     const audit = await client.execute('SELECT action FROM MangoCallAccess')
     client.close()
     expect({ destroyed, row: row.rows[0], audit: audit.rows[0] }).toEqual({ destroyed: { entryId: 'entry-1', destroyedAt: NOW.toISOString(), alreadyDestroyed: false }, row: { patientId: null, callerCiphertext: null, callerMask: null, callerFingerprint: null, repeatCaller: null, status: 'answered', talkSeconds: 60, piiDestroyedAt: NOW.toISOString() }, audit: { action: 'destroy' } })
+  })
+
+  it('maps hostile storage result getters to a frozen value-free invariant', async () => {
+    const secret = 'секрет-хранилища-MANGO'
+    const result = Object.defineProperty({}, 'rows', { get: () => { throw new Error(secret) } })
+    const client = { execute: async () => result, transaction: async () => ({}) }
+    const { records } = await fixture({ storage: { client, url: 'file:synthetic' } })
+    const failure = await capturedMessage(() => records.list({ page: 1, pageSize: 10 }), secret)
+    expect(failure).toEqual({ threw: true, name: 'MangoCallRecordError', code: 'CALL_STORAGE_INVARIANT', message: 'Call storage contains an invalid record', frozen: true, leaked: false })
+  })
+
+  it('maps a revoked storage rows proxy to a frozen value-free invariant', async () => {
+    const secret = 'revoked-storage-rows-secret'
+    const revoked = Proxy.revocable([], {})
+    revoked.revoke()
+    const client = { execute: async () => Object.freeze({ rows: revoked.proxy }), transaction: async () => ({}) }
+    const { records } = await fixture({ storage: { client, url: 'file:synthetic' } })
+    const failure = await capturedMessage(() => records.list({ page: 1, pageSize: 10 }), secret)
+    expect(failure).toEqual({ threw: true, name: 'MangoCallRecordError', code: 'CALL_STORAGE_INVARIANT', message: 'Call storage contains an invalid record', frozen: true, leaked: false })
   })
 })

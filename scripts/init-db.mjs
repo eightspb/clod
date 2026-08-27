@@ -28,6 +28,17 @@ const patientTableStatement = `CREATE TABLE IF NOT EXISTS Patient (
     profileCiphertext TEXT,
     phoneMask TEXT,
     phoneFingerprint TEXT,
+    firstSeenAt TEXT,
+    lastSeenAt TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const previousPatientTableStatement = `CREATE TABLE Patient (
+    id TEXT PRIMARY KEY,
+    profileCiphertext TEXT,
+    phoneMask TEXT,
+    phoneFingerprint TEXT,
     firstSeenAt TEXT NOT NULL,
     lastSeenAt TEXT NOT NULL,
     createdAt TEXT NOT NULL,
@@ -57,8 +68,8 @@ const patientContactTableStatement = `CREATE TABLE IF NOT EXISTS PatientContact 
     mask TEXT,
     isPrimary INTEGER NOT NULL,
     sourceName TEXT NOT NULL,
-    firstSeenAt TEXT NOT NULL,
-    lastSeenAt TEXT NOT NULL,
+    firstSeenAt TEXT,
+    lastSeenAt TEXT,
     piiDestroyedAt TEXT
   )`
 const patientNameHistoryTableStatement = `CREATE TABLE IF NOT EXISTS PatientNameHistory (
@@ -68,7 +79,7 @@ const patientNameHistoryTableStatement = `CREATE TABLE IF NOT EXISTS PatientName
     lastNameFingerprint TEXT,
     sourceName TEXT NOT NULL,
     sourceIdentifierCiphertext TEXT,
-    observedAt TEXT NOT NULL,
+    observedAt TEXT,
     reason TEXT NOT NULL,
     piiDestroyedAt TEXT
   )`
@@ -86,7 +97,7 @@ const patientConsentTableStatement = `CREATE TABLE IF NOT EXISTS PatientConsent 
     type TEXT NOT NULL,
     status TEXT NOT NULL,
     sourceName TEXT NOT NULL,
-    observedAt TEXT NOT NULL,
+    observedAt TEXT,
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL
   )`
@@ -422,12 +433,13 @@ const patientColumns = [
   ['profileCiphertext', 'TEXT', 0, null, 0],
   ['phoneMask', 'TEXT', 0, null, 0],
   ['phoneFingerprint', 'TEXT', 0, null, 0],
-  ['firstSeenAt', 'TEXT', 1, null, 0],
-  ['lastSeenAt', 'TEXT', 1, null, 0],
+  ['firstSeenAt', 'TEXT', 0, null, 0],
+  ['lastSeenAt', 'TEXT', 0, null, 0],
   ['createdAt', 'TEXT', 1, null, 0],
   ['updatedAt', 'TEXT', 1, null, 0],
   ['piiDestroyedAt', 'TEXT', 0, null, 0],
 ]
+const previousPatientColumns = patientColumns.map((column) => ['firstSeenAt', 'lastSeenAt'].includes(column[0]) ? [column[0], column[1], 1, column[3], column[4]] : column)
 const patientIndexes = [
   { name: 'Patient_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
   { name: 'Patient_phoneFingerprint_idx', unique: 0, origin: 'c', partial: 0, columns: ['phoneFingerprint'], collations: ['BINARY'], descending: [0] },
@@ -476,8 +488,8 @@ const patientContactColumns = [
   ['mask', 'TEXT', 0, null, 0],
   ['isPrimary', 'INTEGER', 1, null, 0],
   ['sourceName', 'TEXT', 1, null, 0],
-  ['firstSeenAt', 'TEXT', 1, null, 0],
-  ['lastSeenAt', 'TEXT', 1, null, 0],
+  ['firstSeenAt', 'TEXT', 0, null, 0],
+  ['lastSeenAt', 'TEXT', 0, null, 0],
   ['piiDestroyedAt', 'TEXT', 0, null, 0],
 ]
 const patientContactIndexes = tableIndexes('PatientContact', [
@@ -492,7 +504,7 @@ const patientNameHistoryColumns = [
   ['lastNameFingerprint', 'TEXT', 0, null, 0],
   ['sourceName', 'TEXT', 1, null, 0],
   ['sourceIdentifierCiphertext', 'TEXT', 0, null, 0],
-  ['observedAt', 'TEXT', 1, null, 0],
+  ['observedAt', 'TEXT', 0, null, 0],
   ['reason', 'TEXT', 1, null, 0],
   ['piiDestroyedAt', 'TEXT', 0, null, 0],
 ]
@@ -517,7 +529,7 @@ const patientConsentColumns = [
   ['type', 'TEXT', 1, null, 0],
   ['status', 'TEXT', 1, null, 0],
   ['sourceName', 'TEXT', 1, null, 0],
-  ['observedAt', 'TEXT', 1, null, 0],
+  ['observedAt', 'TEXT', 0, null, 0],
   ['createdAt', 'TEXT', 1, null, 0],
   ['updatedAt', 'TEXT', 1, null, 0],
 ]
@@ -793,18 +805,39 @@ async function schemaIndexes(database, tableName) {
 }
 
 async function patientMigrationState(database) {
+  const migrationTable = await database.execute("SELECT name FROM sqlite_master WHERE name = 'Patient_nullable_migration'")
+  if (migrationTable.rows.length !== 0) throw new Error('[init-db] Patient migration artifact invariant failed')
   const objects = await database.execute("SELECT type, name, sql FROM sqlite_master WHERE name = 'Patient' OR tbl_name = 'Patient'")
   if (objects.rows.length === 0) return 'absent'
   const tables = objects.rows.filter(({ type, name }) => type === 'table' && name === 'Patient')
   const unsupported = objects.rows.filter(({ type }) => type !== 'table' && type !== 'index')
-  if (tables.length !== 1 || unsupported.length !== 0 || canonicalSchemaSql(tables[0].sql) !== canonicalSchemaSql(patientTableStatement)) throw new Error('[init-db] Patient preflight table invariant failed')
+  if (tables.length !== 1 || unsupported.length !== 0) throw new Error('[init-db] Patient preflight table invariant failed')
+  const tableSql = canonicalSchemaSql(tables[0].sql)
+  const targetTable = tableSql === canonicalSchemaSql(patientTableStatement)
+  const previousTable = tableSql === canonicalSchemaSql(previousPatientTableStatement)
+  if (!targetTable && !previousTable) throw new Error('[init-db] Patient preflight table invariant failed')
+  if (previousTable) {
+    const dependencies = await database.execute("SELECT type, name, sql FROM sqlite_master WHERE type IN ('view', 'trigger') ORDER BY type, name")
+    if (dependencies.rows.some(({ sql }) => typeof sql !== 'string' || /\bPatient\b/i.test(sql))) throw new Error('[init-db] Patient dependency invariant failed')
+  }
   const columns = await database.execute({ sql: 'SELECT name, type, "notnull" AS required, dflt_value, pk FROM pragma_table_info(?)', args: ['Patient'] })
   const actualColumns = columns.rows.map(({ name, type, required, dflt_value: defaultValue, pk }) => [name, type, required, defaultValue, pk])
-  if (JSON.stringify(actualColumns) !== JSON.stringify(patientColumns)) throw new Error('[init-db] Patient preflight column invariant failed')
+  const expectedColumns = targetTable ? patientColumns : previousPatientColumns
+  if (JSON.stringify(actualColumns) !== JSON.stringify(expectedColumns)) throw new Error('[init-db] Patient preflight column invariant failed')
   const actualIndexes = await schemaIndexes(database, 'Patient')
-  if (JSON.stringify(actualIndexes) === JSON.stringify(legacyPatientIndexes)) return 'legacy'
-  if (JSON.stringify(actualIndexes) === JSON.stringify(patientIndexes)) return 'target'
+  const legacyIndexes = JSON.stringify(actualIndexes) === JSON.stringify(legacyPatientIndexes)
+  const targetIndexes = JSON.stringify(actualIndexes) === JSON.stringify(patientIndexes)
+  if (!legacyIndexes && !targetIndexes) throw new Error('[init-db] Patient preflight index invariant failed')
+  if (previousTable) return 'previous'
+  if (targetIndexes) return 'target'
   throw new Error('[init-db] Patient preflight index invariant failed')
+}
+
+async function rebuildPatientTable(database) {
+  await database.execute('ALTER TABLE Patient RENAME TO Patient_nullable_migration')
+  await database.execute(patientTableStatement)
+  await database.execute('INSERT INTO Patient (id, profileCiphertext, phoneMask, phoneFingerprint, firstSeenAt, lastSeenAt, createdAt, updatedAt, piiDestroyedAt) SELECT id, profileCiphertext, phoneMask, phoneFingerprint, firstSeenAt, lastSeenAt, createdAt, updatedAt, piiDestroyedAt FROM Patient_nullable_migration')
+  await database.execute('DROP TABLE Patient_nullable_migration')
 }
 
 async function verifySchema(database, schema) {
@@ -843,10 +876,7 @@ try {
   transaction = await db.transaction('write')
   try {
     const patientState = await patientMigrationState(transaction)
-    if (patientState === 'legacy') {
-      await transaction.execute('DROP INDEX Patient_phoneFingerprint_unique')
-      await transaction.execute('CREATE INDEX Patient_phoneFingerprint_idx ON Patient(phoneFingerprint)')
-    }
+    if (patientState === 'previous') await rebuildPatientTable(transaction)
     for (const statement of statements) await transaction.execute(statement)
     await verifyBookingIntentSchema(transaction)
     for (const schema of clinicSchemas) await verifySchema(transaction, schema)
