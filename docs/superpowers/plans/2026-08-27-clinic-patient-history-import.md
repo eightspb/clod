@@ -96,7 +96,7 @@ All tasks ─> Task 12 docs, real dry-run, isolated apply, full verification
 
   Add `PatientExternalIdentifier`, `PatientContact`, `PatientNameHistory`, `PatientPrivateData`, `PatientConsent`, `PatientAttachment`, `ImportBatch`, `ImportSourceRow`, `ImportIssue`, `HistoricalVisit`, `HistoricalVisitCandidate`, and `HistoricalInvoice`. Use UUID/text primary keys, encrypted payload columns, safe fingerprints, explicit status enums, and the index contracts from the approved design. Make every child ciphertext/mask/fingerprint cleared by destruction nullable. Give `ImportSourceRow` optional patient/visit associations plus `piiDestroyedAt`, and give `ImportIssue` optional patient/visit associations for safe counts and later cleanup.
 
-  Use a nullable globally unique `lookupKey` only for identifiers such as `medesk_ehr`. Use a required per-patient `identityKey` for deduplication. Clinic-card lookup remains nonunique.
+  Use a nullable globally unique `globalFingerprint` only for identifiers such as `medesk_ehr`. Use a required per-patient `identityKey` for deduplication. Clinic-card lookup remains nonunique.
 
 - [ ] **Step 4: Implement the idempotent production migration**
 

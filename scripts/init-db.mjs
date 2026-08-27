@@ -34,6 +34,146 @@ const patientTableStatement = `CREATE TABLE IF NOT EXISTS Patient (
     updatedAt TEXT NOT NULL,
     piiDestroyedAt TEXT
   )`
+const patientExternalIdentifierTableStatement = `CREATE TABLE IF NOT EXISTS PatientExternalIdentifier (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    system TEXT NOT NULL,
+    ciphertext TEXT,
+    fingerprint TEXT,
+    globalFingerprint TEXT,
+    identityKey TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    sourceRow INTEGER NOT NULL,
+    isPrimary INTEGER NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )`
+const patientContactTableStatement = `CREATE TABLE IF NOT EXISTS PatientContact (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    ciphertext TEXT,
+    fingerprint TEXT,
+    mask TEXT,
+    isPrimary INTEGER NOT NULL,
+    sourceName TEXT NOT NULL,
+    firstSeenAt TEXT NOT NULL,
+    lastSeenAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const patientNameHistoryTableStatement = `CREATE TABLE IF NOT EXISTS PatientNameHistory (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    lastNameCiphertext TEXT,
+    lastNameFingerprint TEXT,
+    sourceName TEXT NOT NULL,
+    sourceIdentifierCiphertext TEXT,
+    observedAt TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const patientPrivateDataTableStatement = `CREATE TABLE IF NOT EXISTS PatientPrivateData (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    profileCiphertext TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const patientConsentTableStatement = `CREATE TABLE IF NOT EXISTS PatientConsent (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    observedAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )`
+const patientAttachmentTableStatement = `CREATE TABLE IF NOT EXISTS PatientAttachment (
+    id TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    urlCiphertext TEXT,
+    metadataCiphertext TEXT,
+    sourceName TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    deletedAt TEXT,
+    piiDestroyedAt TEXT
+  )`
+const importBatchTableStatement = `CREATE TABLE IF NOT EXISTS ImportBatch (
+    id TEXT PRIMARY KEY,
+    manifestHash TEXT NOT NULL,
+    planHash TEXT NOT NULL,
+    mode TEXT NOT NULL,
+    status TEXT NOT NULL,
+    controlTotals TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    completedAt TEXT
+  )`
+const importSourceRowTableStatement = `CREATE TABLE IF NOT EXISTS ImportSourceRow (
+    id TEXT PRIMARY KEY,
+    batchId TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    sourceRow INTEGER NOT NULL,
+    patientId TEXT,
+    historicalVisitId TEXT,
+    payloadCiphertext TEXT,
+    payloadHash TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const importIssueTableStatement = `CREATE TABLE IF NOT EXISTS ImportIssue (
+    id TEXT PRIMARY KEY,
+    batchId TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    sourceRow INTEGER NOT NULL,
+    code TEXT NOT NULL,
+    patientId TEXT,
+    historicalVisitId TEXT,
+    candidatesCiphertext TEXT,
+    detailsCiphertext TEXT,
+    createdAt TEXT NOT NULL,
+    resolvedAt TEXT
+  )`
+const historicalVisitTableStatement = `CREATE TABLE IF NOT EXISTS HistoricalVisit (
+    id TEXT PRIMARY KEY,
+    batchId TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    sourceRow INTEGER NOT NULL,
+    patientId TEXT,
+    appointmentIdCiphertext TEXT,
+    appointmentIdFingerprint TEXT,
+    startsAt TEXT,
+    endsAt TEXT,
+    sourceStatus TEXT NOT NULL,
+    doctorCiphertext TEXT,
+    detailsCiphertext TEXT,
+    linkStatus TEXT NOT NULL,
+    linkMethod TEXT,
+    evidenceLevel TEXT,
+    createdAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
+const historicalVisitCandidateTableStatement = `CREATE TABLE IF NOT EXISTS HistoricalVisitCandidate (
+    id TEXT PRIMARY KEY,
+    historicalVisitId TEXT NOT NULL,
+    patientId TEXT NOT NULL,
+    evidenceCode TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    createdAt TEXT NOT NULL
+  )`
+const historicalInvoiceTableStatement = `CREATE TABLE IF NOT EXISTS HistoricalInvoice (
+    id TEXT PRIMARY KEY,
+    batchId TEXT NOT NULL,
+    sourceName TEXT NOT NULL,
+    sourceRow INTEGER NOT NULL,
+    historicalVisitId TEXT,
+    payloadCiphertext TEXT,
+    sourceStatus TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    piiDestroyedAt TEXT
+  )`
 const patientAccessTableStatement = `CREATE TABLE IF NOT EXISTS PatientAccess (
     id TEXT PRIMARY KEY,
     patientId TEXT NOT NULL,
@@ -180,8 +320,48 @@ const statements = [
   'CREATE INDEX IF NOT EXISTS BookingIntent_resumeScope_idx ON BookingIntent(doctorSlug, appointmentType, startsAt, endsAt)',
   'CREATE INDEX IF NOT EXISTS BookingIntent_status_pendingUntil_idx ON BookingIntent(status, pendingUntil)',
   patientTableStatement,
-  'CREATE UNIQUE INDEX IF NOT EXISTS Patient_phoneFingerprint_unique ON Patient(phoneFingerprint)',
+  'CREATE INDEX IF NOT EXISTS Patient_phoneFingerprint_idx ON Patient(phoneFingerprint)',
   'CREATE INDEX IF NOT EXISTS Patient_lastSeenAt_idx ON Patient(lastSeenAt)',
+  patientExternalIdentifierTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientExternalIdentifier_globalFingerprint_unique ON PatientExternalIdentifier(globalFingerprint)',
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientExternalIdentifier_patientId_identityKey_unique ON PatientExternalIdentifier(patientId, identityKey)',
+  'CREATE INDEX IF NOT EXISTS PatientExternalIdentifier_fingerprint_idx ON PatientExternalIdentifier(fingerprint)',
+  'CREATE INDEX IF NOT EXISTS PatientExternalIdentifier_patientId_idx ON PatientExternalIdentifier(patientId)',
+  patientContactTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientContact_patientId_kind_fingerprint_unique ON PatientContact(patientId, kind, fingerprint)',
+  'CREATE INDEX IF NOT EXISTS PatientContact_fingerprint_idx ON PatientContact(fingerprint)',
+  'CREATE INDEX IF NOT EXISTS PatientContact_patientId_idx ON PatientContact(patientId)',
+  patientNameHistoryTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientNameHistory_patientId_lastNameFingerprint_unique ON PatientNameHistory(patientId, lastNameFingerprint)',
+  'CREATE INDEX IF NOT EXISTS PatientNameHistory_patientId_idx ON PatientNameHistory(patientId)',
+  patientPrivateDataTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientPrivateData_patientId_unique ON PatientPrivateData(patientId)',
+  patientConsentTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientConsent_patientId_type_unique ON PatientConsent(patientId, type)',
+  patientAttachmentTableStatement,
+  'CREATE INDEX IF NOT EXISTS PatientAttachment_patientId_createdAt_idx ON PatientAttachment(patientId, createdAt)',
+  importBatchTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS ImportBatch_manifestHash_unique ON ImportBatch(manifestHash)',
+  'CREATE INDEX IF NOT EXISTS ImportBatch_status_createdAt_idx ON ImportBatch(status, createdAt)',
+  importSourceRowTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS ImportSourceRow_batchId_sourceName_sourceRow_unique ON ImportSourceRow(batchId, sourceName, sourceRow)',
+  'CREATE INDEX IF NOT EXISTS ImportSourceRow_patientId_idx ON ImportSourceRow(patientId)',
+  'CREATE INDEX IF NOT EXISTS ImportSourceRow_historicalVisitId_idx ON ImportSourceRow(historicalVisitId)',
+  importIssueTableStatement,
+  'CREATE INDEX IF NOT EXISTS ImportIssue_batchId_code_idx ON ImportIssue(batchId, code)',
+  'CREATE INDEX IF NOT EXISTS ImportIssue_patientId_idx ON ImportIssue(patientId)',
+  'CREATE INDEX IF NOT EXISTS ImportIssue_historicalVisitId_idx ON ImportIssue(historicalVisitId)',
+  historicalVisitTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS HistoricalVisit_batchId_sourceName_sourceRow_unique ON HistoricalVisit(batchId, sourceName, sourceRow)',
+  'CREATE INDEX IF NOT EXISTS HistoricalVisit_appointmentIdFingerprint_idx ON HistoricalVisit(appointmentIdFingerprint)',
+  'CREATE INDEX IF NOT EXISTS HistoricalVisit_patientId_startsAt_idx ON HistoricalVisit(patientId, startsAt)',
+  'CREATE INDEX IF NOT EXISTS HistoricalVisit_linkStatus_startsAt_idx ON HistoricalVisit(linkStatus, startsAt)',
+  historicalVisitCandidateTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS HistoricalVisitCandidate_visitId_patientId_unique ON HistoricalVisitCandidate(historicalVisitId, patientId)',
+  'CREATE INDEX IF NOT EXISTS HistoricalVisitCandidate_patientId_idx ON HistoricalVisitCandidate(patientId)',
+  historicalInvoiceTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS HistoricalInvoice_batchId_sourceName_sourceRow_unique ON HistoricalInvoice(batchId, sourceName, sourceRow)',
+  'CREATE INDEX IF NOT EXISTS HistoricalInvoice_historicalVisitId_idx ON HistoricalInvoice(historicalVisitId)',
   patientAccessTableStatement,
   'CREATE INDEX IF NOT EXISTS PatientAccess_patientId_createdAt_idx ON PatientAccess(patientId, createdAt)',
   appointmentTableStatement,
@@ -250,9 +430,215 @@ const patientColumns = [
 ]
 const patientIndexes = [
   { name: 'Patient_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'Patient_phoneFingerprint_idx', unique: 0, origin: 'c', partial: 0, columns: ['phoneFingerprint'], collations: ['BINARY'], descending: [0] },
+  { name: 'sqlite_autoindex_Patient_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const legacyPatientIndexes = [
+  { name: 'Patient_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
   { name: 'Patient_phoneFingerprint_unique', unique: 1, origin: 'c', partial: 0, columns: ['phoneFingerprint'], collations: ['BINARY'], descending: [0] },
   { name: 'sqlite_autoindex_Patient_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
 ]
+
+function indexContract(name, columns, unique = 0) {
+  return { name, unique, origin: 'c', partial: 0, columns, collations: columns.map(() => 'BINARY'), descending: columns.map(() => 0) }
+}
+
+function tableIndexes(tableName, indexes) {
+  return [...indexes, { name: `sqlite_autoindex_${tableName}_1`, unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] }].sort((first, second) => first.name < second.name ? -1 : first.name > second.name ? 1 : 0)
+}
+
+const patientExternalIdentifierColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['system', 'TEXT', 1, null, 0],
+  ['ciphertext', 'TEXT', 0, null, 0],
+  ['fingerprint', 'TEXT', 0, null, 0],
+  ['globalFingerprint', 'TEXT', 0, null, 0],
+  ['identityKey', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceRow', 'INTEGER', 1, null, 0],
+  ['isPrimary', 'INTEGER', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+]
+const patientExternalIdentifierIndexes = tableIndexes('PatientExternalIdentifier', [
+  indexContract('PatientExternalIdentifier_globalFingerprint_unique', ['globalFingerprint'], 1),
+  indexContract('PatientExternalIdentifier_patientId_identityKey_unique', ['patientId', 'identityKey'], 1),
+  indexContract('PatientExternalIdentifier_fingerprint_idx', ['fingerprint']),
+  indexContract('PatientExternalIdentifier_patientId_idx', ['patientId']),
+])
+const patientContactColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['kind', 'TEXT', 1, null, 0],
+  ['ciphertext', 'TEXT', 0, null, 0],
+  ['fingerprint', 'TEXT', 0, null, 0],
+  ['mask', 'TEXT', 0, null, 0],
+  ['isPrimary', 'INTEGER', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['firstSeenAt', 'TEXT', 1, null, 0],
+  ['lastSeenAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const patientContactIndexes = tableIndexes('PatientContact', [
+  indexContract('PatientContact_patientId_kind_fingerprint_unique', ['patientId', 'kind', 'fingerprint'], 1),
+  indexContract('PatientContact_fingerprint_idx', ['fingerprint']),
+  indexContract('PatientContact_patientId_idx', ['patientId']),
+])
+const patientNameHistoryColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['lastNameCiphertext', 'TEXT', 0, null, 0],
+  ['lastNameFingerprint', 'TEXT', 0, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceIdentifierCiphertext', 'TEXT', 0, null, 0],
+  ['observedAt', 'TEXT', 1, null, 0],
+  ['reason', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const patientNameHistoryIndexes = tableIndexes('PatientNameHistory', [
+  indexContract('PatientNameHistory_patientId_lastNameFingerprint_unique', ['patientId', 'lastNameFingerprint'], 1),
+  indexContract('PatientNameHistory_patientId_idx', ['patientId']),
+])
+const patientPrivateDataColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['profileCiphertext', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const patientPrivateDataIndexes = tableIndexes('PatientPrivateData', [
+  indexContract('PatientPrivateData_patientId_unique', ['patientId'], 1),
+])
+const patientConsentColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['type', 'TEXT', 1, null, 0],
+  ['status', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['observedAt', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['updatedAt', 'TEXT', 1, null, 0],
+]
+const patientConsentIndexes = tableIndexes('PatientConsent', [
+  indexContract('PatientConsent_patientId_type_unique', ['patientId', 'type'], 1),
+])
+const patientAttachmentColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['kind', 'TEXT', 1, null, 0],
+  ['urlCiphertext', 'TEXT', 0, null, 0],
+  ['metadataCiphertext', 'TEXT', 0, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['deletedAt', 'TEXT', 0, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const patientAttachmentIndexes = tableIndexes('PatientAttachment', [
+  indexContract('PatientAttachment_patientId_createdAt_idx', ['patientId', 'createdAt']),
+])
+const importBatchColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['manifestHash', 'TEXT', 1, null, 0],
+  ['planHash', 'TEXT', 1, null, 0],
+  ['mode', 'TEXT', 1, null, 0],
+  ['status', 'TEXT', 1, null, 0],
+  ['controlTotals', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['completedAt', 'TEXT', 0, null, 0],
+]
+const importBatchIndexes = tableIndexes('ImportBatch', [
+  indexContract('ImportBatch_manifestHash_unique', ['manifestHash'], 1),
+  indexContract('ImportBatch_status_createdAt_idx', ['status', 'createdAt']),
+])
+const importSourceRowColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['batchId', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceRow', 'INTEGER', 1, null, 0],
+  ['patientId', 'TEXT', 0, null, 0],
+  ['historicalVisitId', 'TEXT', 0, null, 0],
+  ['payloadCiphertext', 'TEXT', 0, null, 0],
+  ['payloadHash', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const importSourceRowIndexes = tableIndexes('ImportSourceRow', [
+  indexContract('ImportSourceRow_batchId_sourceName_sourceRow_unique', ['batchId', 'sourceName', 'sourceRow'], 1),
+  indexContract('ImportSourceRow_patientId_idx', ['patientId']),
+  indexContract('ImportSourceRow_historicalVisitId_idx', ['historicalVisitId']),
+])
+const importIssueColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['batchId', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceRow', 'INTEGER', 1, null, 0],
+  ['code', 'TEXT', 1, null, 0],
+  ['patientId', 'TEXT', 0, null, 0],
+  ['historicalVisitId', 'TEXT', 0, null, 0],
+  ['candidatesCiphertext', 'TEXT', 0, null, 0],
+  ['detailsCiphertext', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['resolvedAt', 'TEXT', 0, null, 0],
+]
+const importIssueIndexes = tableIndexes('ImportIssue', [
+  indexContract('ImportIssue_batchId_code_idx', ['batchId', 'code']),
+  indexContract('ImportIssue_patientId_idx', ['patientId']),
+  indexContract('ImportIssue_historicalVisitId_idx', ['historicalVisitId']),
+])
+const historicalVisitColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['batchId', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceRow', 'INTEGER', 1, null, 0],
+  ['patientId', 'TEXT', 0, null, 0],
+  ['appointmentIdCiphertext', 'TEXT', 0, null, 0],
+  ['appointmentIdFingerprint', 'TEXT', 0, null, 0],
+  ['startsAt', 'TEXT', 0, null, 0],
+  ['endsAt', 'TEXT', 0, null, 0],
+  ['sourceStatus', 'TEXT', 1, null, 0],
+  ['doctorCiphertext', 'TEXT', 0, null, 0],
+  ['detailsCiphertext', 'TEXT', 0, null, 0],
+  ['linkStatus', 'TEXT', 1, null, 0],
+  ['linkMethod', 'TEXT', 0, null, 0],
+  ['evidenceLevel', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const historicalVisitIndexes = tableIndexes('HistoricalVisit', [
+  indexContract('HistoricalVisit_batchId_sourceName_sourceRow_unique', ['batchId', 'sourceName', 'sourceRow'], 1),
+  indexContract('HistoricalVisit_appointmentIdFingerprint_idx', ['appointmentIdFingerprint']),
+  indexContract('HistoricalVisit_patientId_startsAt_idx', ['patientId', 'startsAt']),
+  indexContract('HistoricalVisit_linkStatus_startsAt_idx', ['linkStatus', 'startsAt']),
+])
+const historicalVisitCandidateColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['historicalVisitId', 'TEXT', 1, null, 0],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['evidenceCode', 'TEXT', 1, null, 0],
+  ['score', 'INTEGER', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+]
+const historicalVisitCandidateIndexes = tableIndexes('HistoricalVisitCandidate', [
+  indexContract('HistoricalVisitCandidate_visitId_patientId_unique', ['historicalVisitId', 'patientId'], 1),
+  indexContract('HistoricalVisitCandidate_patientId_idx', ['patientId']),
+])
+const historicalInvoiceColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['batchId', 'TEXT', 1, null, 0],
+  ['sourceName', 'TEXT', 1, null, 0],
+  ['sourceRow', 'INTEGER', 1, null, 0],
+  ['historicalVisitId', 'TEXT', 0, null, 0],
+  ['payloadCiphertext', 'TEXT', 0, null, 0],
+  ['sourceStatus', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['piiDestroyedAt', 'TEXT', 0, null, 0],
+]
+const historicalInvoiceIndexes = tableIndexes('HistoricalInvoice', [
+  indexContract('HistoricalInvoice_batchId_sourceName_sourceRow_unique', ['batchId', 'sourceName', 'sourceRow'], 1),
+  indexContract('HistoricalInvoice_historicalVisitId_idx', ['historicalVisitId']),
+])
 const patientAccessColumns = [
   ['id', 'TEXT', 0, null, 1],
   ['patientId', 'TEXT', 1, null, 0],
@@ -375,6 +761,18 @@ function canonicalSchemaSql(value) {
 const bookingIntentCanonicalSql = canonicalSchemaSql(bookingIntentTableStatement)
 const clinicSchemas = [
   { name: 'Patient', statement: patientTableStatement, columns: patientColumns, indexes: patientIndexes },
+  { name: 'PatientExternalIdentifier', statement: patientExternalIdentifierTableStatement, columns: patientExternalIdentifierColumns, indexes: patientExternalIdentifierIndexes },
+  { name: 'PatientContact', statement: patientContactTableStatement, columns: patientContactColumns, indexes: patientContactIndexes },
+  { name: 'PatientNameHistory', statement: patientNameHistoryTableStatement, columns: patientNameHistoryColumns, indexes: patientNameHistoryIndexes },
+  { name: 'PatientPrivateData', statement: patientPrivateDataTableStatement, columns: patientPrivateDataColumns, indexes: patientPrivateDataIndexes },
+  { name: 'PatientConsent', statement: patientConsentTableStatement, columns: patientConsentColumns, indexes: patientConsentIndexes },
+  { name: 'PatientAttachment', statement: patientAttachmentTableStatement, columns: patientAttachmentColumns, indexes: patientAttachmentIndexes },
+  { name: 'ImportBatch', statement: importBatchTableStatement, columns: importBatchColumns, indexes: importBatchIndexes },
+  { name: 'ImportSourceRow', statement: importSourceRowTableStatement, columns: importSourceRowColumns, indexes: importSourceRowIndexes },
+  { name: 'ImportIssue', statement: importIssueTableStatement, columns: importIssueColumns, indexes: importIssueIndexes },
+  { name: 'HistoricalVisit', statement: historicalVisitTableStatement, columns: historicalVisitColumns, indexes: historicalVisitIndexes },
+  { name: 'HistoricalVisitCandidate', statement: historicalVisitCandidateTableStatement, columns: historicalVisitCandidateColumns, indexes: historicalVisitCandidateIndexes },
+  { name: 'HistoricalInvoice', statement: historicalInvoiceTableStatement, columns: historicalInvoiceColumns, indexes: historicalInvoiceIndexes },
   { name: 'PatientAccess', statement: patientAccessTableStatement, columns: patientAccessColumns, indexes: patientAccessIndexes },
   { name: 'Appointment', statement: appointmentTableStatement, columns: appointmentColumns, indexes: appointmentIndexes },
   { name: 'MedflexDoctorLink', statement: medflexDoctorLinkTableStatement, columns: medflexDoctorLinkColumns, indexes: medflexDoctorLinkIndexes },
@@ -382,6 +780,32 @@ const clinicSchemas = [
   { name: 'MangoCallLeg', statement: mangoCallLegTableStatement, columns: mangoCallLegColumns, indexes: mangoCallLegIndexes },
   { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes },
 ]
+
+async function schemaIndexes(database, tableName) {
+  const indexes = await database.execute({ sql: 'SELECT name, "unique", origin, partial FROM pragma_index_list(?)', args: [tableName] })
+  const actualIndexes = []
+  for (const index of indexes.rows) {
+    const details = await database.execute({ sql: 'SELECT name, coll, desc, key FROM pragma_index_xinfo(?) ORDER BY seqno', args: [index.name] })
+    const keys = details.rows.filter(({ key }) => key === 1)
+    actualIndexes.push({ name: index.name, unique: index.unique, origin: index.origin, partial: index.partial, columns: keys.map(({ name }) => name), collations: keys.map(({ coll }) => coll), descending: keys.map(({ desc }) => desc) })
+  }
+  return actualIndexes.sort((first, second) => first.name < second.name ? -1 : first.name > second.name ? 1 : 0)
+}
+
+async function patientMigrationState(database) {
+  const objects = await database.execute("SELECT type, name, sql FROM sqlite_master WHERE name = 'Patient' OR tbl_name = 'Patient'")
+  if (objects.rows.length === 0) return 'absent'
+  const tables = objects.rows.filter(({ type, name }) => type === 'table' && name === 'Patient')
+  const unsupported = objects.rows.filter(({ type }) => type !== 'table' && type !== 'index')
+  if (tables.length !== 1 || unsupported.length !== 0 || canonicalSchemaSql(tables[0].sql) !== canonicalSchemaSql(patientTableStatement)) throw new Error('[init-db] Patient preflight table invariant failed')
+  const columns = await database.execute({ sql: 'SELECT name, type, "notnull" AS required, dflt_value, pk FROM pragma_table_info(?)', args: ['Patient'] })
+  const actualColumns = columns.rows.map(({ name, type, required, dflt_value: defaultValue, pk }) => [name, type, required, defaultValue, pk])
+  if (JSON.stringify(actualColumns) !== JSON.stringify(patientColumns)) throw new Error('[init-db] Patient preflight column invariant failed')
+  const actualIndexes = await schemaIndexes(database, 'Patient')
+  if (JSON.stringify(actualIndexes) === JSON.stringify(legacyPatientIndexes)) return 'legacy'
+  if (JSON.stringify(actualIndexes) === JSON.stringify(patientIndexes)) return 'target'
+  throw new Error('[init-db] Patient preflight index invariant failed')
+}
 
 async function verifySchema(database, schema) {
   const table = await database.execute({ sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", args: [schema.name] })
@@ -391,14 +815,7 @@ async function verifySchema(database, schema) {
   if (JSON.stringify(actualColumns) !== JSON.stringify(schema.columns)) throw new Error(`[init-db] ${schema.name} column invariant failed`)
   const unexpectedObjects = await database.execute({ sql: "SELECT type, name FROM sqlite_master WHERE tbl_name = ? AND type NOT IN ('table', 'index')", args: [schema.name] })
   if (unexpectedObjects.rows.length !== 0) throw new Error(`[init-db] ${schema.name} schema object invariant failed`)
-  const indexes = await database.execute({ sql: 'SELECT name, "unique", origin, partial FROM pragma_index_list(?)', args: [schema.name] })
-  const actualIndexes = []
-  for (const index of indexes.rows) {
-    const details = await database.execute({ sql: 'SELECT name, coll, desc, key FROM pragma_index_xinfo(?) ORDER BY seqno', args: [index.name] })
-    const keys = details.rows.filter(({ key }) => key === 1)
-    actualIndexes.push({ name: index.name, unique: index.unique, origin: index.origin, partial: index.partial, columns: keys.map(({ name }) => name), collations: keys.map(({ coll }) => coll), descending: keys.map(({ desc }) => desc) })
-  }
-  actualIndexes.sort((first, second) => first.name < second.name ? -1 : first.name > second.name ? 1 : 0)
+  const actualIndexes = await schemaIndexes(database, schema.name)
   if (JSON.stringify(actualIndexes) !== JSON.stringify(schema.indexes)) throw new Error(`[init-db] ${schema.name} index invariant failed`)
 }
 
@@ -425,6 +842,11 @@ let transaction
 try {
   transaction = await db.transaction('write')
   try {
+    const patientState = await patientMigrationState(transaction)
+    if (patientState === 'legacy') {
+      await transaction.execute('DROP INDEX Patient_phoneFingerprint_unique')
+      await transaction.execute('CREATE INDEX Patient_phoneFingerprint_idx ON Patient(phoneFingerprint)')
+    }
     for (const statement of statements) await transaction.execute(statement)
     await verifyBookingIntentSchema(transaction)
     for (const schema of clinicSchemas) await verifySchema(transaction, schema)

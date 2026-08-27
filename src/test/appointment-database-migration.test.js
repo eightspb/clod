@@ -105,7 +105,7 @@ const EXPECTED_CLINIC_SCHEMA = Object.freeze({
     ]),
     indexes: Object.freeze({
       sqlite_autoindex_Patient_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
-      Patient_phoneFingerprint_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['phoneFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Patient_phoneFingerprint_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['phoneFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
       Patient_lastSeenAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['lastSeenAt']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
     }),
   }),
