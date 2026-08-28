@@ -3,7 +3,10 @@ import { decryptPatientProfile, encryptContactPhone, encryptPatientProfile, fing
 
 const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'clock', 'uuid'])
 const UPSERT_KEYS = Object.freeze(['profile', 'executor'])
-const LIST_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patientId'])
+const LIST_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patientId', 'piiStatus', 'history', 'issues', 'from', 'to'])
+const PII_STATUSES = Object.freeze(['active', 'destroyed'])
+const HISTORY_FILTERS = Object.freeze(['with_visits', 'without_visits'])
+const ISSUE_FILTERS = Object.freeze(['with_issues', 'without_issues'])
 const ACCESS_KEYS = Object.freeze(['id', 'actor'])
 const ID_KEYS = Object.freeze(['id'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -156,6 +159,12 @@ function storedTimestamp(value) {
   return value
 }
 
+function filterTimestamp(value, scope) {
+  const milliseconds = typeof value === 'string' ? Date.parse(value) : Number.NaN
+  if (typeof value !== 'string' || !TIMESTAMP_PATTERN.test(value) || !Number.isFinite(milliseconds) || new Date(milliseconds).toISOString() !== value) throw new TypeError(`${scope} is invalid`)
+  return value
+}
+
 function nullableStoredTimestamp(value) {
   return value === null ? null : storedTimestamp(value)
 }
@@ -300,10 +309,26 @@ async function list(configuration, raw) {
   const pageSize = normalizePageSize(input.pageSize)
   const phoneFingerprint = input.phone === undefined ? undefined : fingerprintContactPhone({ phone: input.phone, key: configuration.fingerprintKey })
   const patientId = input.patientId === undefined ? undefined : normalizeUuid(input.patientId, 'Patient list ID')
+  if (input.piiStatus !== undefined && !PII_STATUSES.includes(input.piiStatus)) throw new TypeError('Patient PII filter is invalid')
+  if (input.history !== undefined && !HISTORY_FILTERS.includes(input.history)) throw new TypeError('Patient history filter is invalid')
+  if (input.issues !== undefined && !ISSUE_FILTERS.includes(input.issues)) throw new TypeError('Patient issue filter is invalid')
+  const from = input.from === undefined ? undefined : filterTimestamp(input.from, 'Patient activity filter start')
+  const to = input.to === undefined ? undefined : filterTimestamp(input.to, 'Patient activity filter end')
+  if ((from === undefined) !== (to === undefined) || (from !== undefined && from >= to)) throw new TypeError('Patient activity range is invalid')
   if (phoneFingerprint !== undefined && patientId !== undefined) throw new TypeError('Patient list filters are mutually exclusive')
   const source = phoneFingerprint === undefined ? 'Patient p' : 'Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL'
-  const where = patientId !== undefined ? ' WHERE p.id = ?' : phoneFingerprint === undefined ? '' : ' WHERE p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?)'
-  const args = patientId !== undefined ? [patientId] : phoneFingerprint === undefined ? [] : ['phone', phoneFingerprint, phoneFingerprint]
+  const clauses = []
+  const args = phoneFingerprint === undefined ? [] : ['phone', phoneFingerprint]
+  if (patientId !== undefined) { clauses.push('p.id = ?'); args.push(patientId) }
+  if (phoneFingerprint !== undefined) { clauses.push('p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?)'); args.push(phoneFingerprint) }
+  if (input.piiStatus === 'active') clauses.push('p.piiDestroyedAt IS NULL')
+  if (input.piiStatus === 'destroyed') clauses.push('p.piiDestroyedAt IS NOT NULL')
+  if (input.history === 'with_visits') clauses.push('EXISTS (SELECT 1 FROM HistoricalVisit v WHERE v.patientId = p.id)')
+  if (input.history === 'without_visits') clauses.push('NOT EXISTS (SELECT 1 FROM HistoricalVisit v WHERE v.patientId = p.id)')
+  if (input.issues === 'with_issues') clauses.push('EXISTS (SELECT 1 FROM ImportIssue i WHERE i.patientId = p.id OR i.historicalVisitId IN (SELECT v.id FROM HistoricalVisit v WHERE v.patientId = p.id))')
+  if (input.issues === 'without_issues') clauses.push('NOT EXISTS (SELECT 1 FROM ImportIssue i WHERE i.patientId = p.id OR i.historicalVisitId IN (SELECT v.id FROM HistoricalVisit v WHERE v.patientId = p.id))')
+  if (from !== undefined) { clauses.push('p.lastSeenAt >= ?'); args.push(from); clauses.push('p.lastSeenAt < ?'); args.push(to) }
+  const where = clauses.length === 0 ? '' : ` WHERE ${clauses.join(' AND ')}`
   const count = await configuration.client.execute({ sql: `SELECT COUNT(DISTINCT p.id) AS total FROM ${source}${where}`, args })
   const countRows = readRows(count)
   const total = countRows.length === 1 ? Number(storedValue(countRows[0], 'total')) : Number.NaN

@@ -4,7 +4,8 @@ import { discoverMedflexDoctors } from '../src/lib/medflex-doctors.js'
 
 async function run() {
   const client = createMedflexClient()
-  const report = await discoverMedflexDoctors({ client, websiteDoctors: DOCTORS.map(({ slug, name }) => ({ slug, name })) })
+  const discoveryClient = Object.freeze({ listDoctors: client.listDoctors, listLpus: client.listLpus })
+  const report = await discoverMedflexDoctors({ client: discoveryClient, websiteDoctors: DOCTORS.map(({ slug, name }) => ({ slug, name })) })
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
 }
 

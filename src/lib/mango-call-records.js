@@ -6,7 +6,9 @@ const LIVE_KEYS = Object.freeze(['kind', 'entryId', 'callId', 'seq', 'state', 'l
 const FINAL_KEYS = Object.freeze(['kind', 'entryId', 'status', 'callerPhone', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt'])
 const REMOVE_KEYS = Object.freeze(['kind', 'entryId'])
 const IGNORE_KEYS = Object.freeze(['kind', 'reason', 'entryId'])
-const LIST_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'patientId', 'from', 'to'])
+const LIST_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'patientId', 'from', 'to', 'repeat', 'patientLink'])
+const REPEAT_FILTERS = new Set(['first', 'repeat'])
+const PATIENT_LINK_FILTERS = new Set(['linked', 'unlinked', 'destroyed'])
 const RANGE_KEYS = Object.freeze(['from', 'to'])
 const ENTRY_KEYS = Object.freeze(['entryId'])
 const ACCESS_KEYS = Object.freeze(['entryId', 'actor'])
@@ -369,13 +371,15 @@ function pageSize(value) {
 
 function filters(raw) {
   const input = readRecord(raw, LIST_KEYS, ['page', 'pageSize'], 'MANGO call list')
-  const result = { page: page(input.page), pageSize: pageSize(input.pageSize), status: input.status, lineNumber: input.lineNumber, operatorExtension: input.operatorExtension, patientId: input.patientId, from: input.from, to: input.to }
+  const result = { page: page(input.page), pageSize: pageSize(input.pageSize), status: input.status, lineNumber: input.lineNumber, operatorExtension: input.operatorExtension, patientId: input.patientId, from: input.from, to: input.to, repeat: input.repeat, patientLink: input.patientLink }
   if (result.status !== undefined && !ALL_STATES.has(result.status)) throw new TypeError('MANGO call status filter is invalid')
   if (result.lineNumber !== undefined) result.lineNumber = normalizeContactPhone(result.lineNumber)
   if (result.operatorExtension !== undefined) result.operatorExtension = nullableText(result.operatorExtension, 'MANGO operator filter', /^[0-9]{1,32}$/)
   if (result.patientId !== undefined) result.patientId = identifier(result.patientId, 'MANGO patient filter')
   if (result.from !== undefined) result.from = timestamp(result.from, 'MANGO call range start')
   if (result.to !== undefined) result.to = timestamp(result.to, 'MANGO call range end')
+  if (result.repeat !== undefined && !REPEAT_FILTERS.has(result.repeat)) throw new TypeError('MANGO call repetition filter is invalid')
+  if (result.patientLink !== undefined && !PATIENT_LINK_FILTERS.has(result.patientLink)) throw new TypeError('MANGO call patient-link filter is invalid')
   if (result.from !== undefined && result.to !== undefined && result.from >= result.to) throw new TypeError('MANGO call range is invalid')
   return result
 }
@@ -389,6 +393,11 @@ function whereClause(input) {
       args.push(input[field])
     }
   }
+  if (input.repeat === 'first') clauses.push('repeatCaller = 0')
+  if (input.repeat === 'repeat') clauses.push('repeatCaller = 1')
+  if (input.patientLink === 'linked') clauses.push('patientId IS NOT NULL AND piiDestroyedAt IS NULL')
+  if (input.patientLink === 'unlinked') clauses.push('patientId IS NULL AND piiDestroyedAt IS NULL')
+  if (input.patientLink === 'destroyed') clauses.push('piiDestroyedAt IS NOT NULL')
   return Object.freeze({ sql: clauses.length === 0 ? '' : ` WHERE ${clauses.join(' AND ')}`, args })
 }
 

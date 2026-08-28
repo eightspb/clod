@@ -29,6 +29,11 @@ describe('admin clinic query', () => {
     expect(parsePatientQuery(new URLSearchParams('phone=8%20921%20555-01-29'))).toEqual({ page: 1, pageSize: 50, phone: '79215550129' })
   })
 
+  it('parses bounded patient metadata and activity filters', () => {
+    const query = parsePatientQuery(new URLSearchParams('piiStatus=destroyed&history=without_visits&issues=with_issues&from=2026-08-01T00%3A00%3A00.000Z&to=2026-09-01T00%3A00%3A00.000Z'))
+    expect(query).toEqual({ page: 1, pageSize: 50, piiStatus: 'destroyed', history: 'without_visits', issues: 'with_issues', from: '2026-08-01T00:00:00.000Z', to: '2026-09-01T00:00:00.000Z' })
+  })
+
   it('normalizes an exact patient deep-link identifier', () => {
     expect(parsePatientQuery(new URLSearchParams('patient=a68f05c5-8528-4e08-86e5-3bd00cc3a79f'))).toEqual({ page: 1, pageSize: 50, patientId: 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f' })
   })
@@ -82,6 +87,11 @@ describe('admin clinic query', () => {
   it('parses the exact bounded MANGO call filters and clamps page size', () => {
     const query = parseCallQuery(new URLSearchParams('page=2&pageSize=999&status=on_hold&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'))
     expect(query).toEqual({ page: 2, pageSize: 50, status: 'on_hold', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' })
+  })
+
+  it('parses call repetition and patient-link filters', () => {
+    const query = parseCallQuery(new URLSearchParams('repeat=first&patientLink=destroyed'))
+    expect(query).toEqual({ page: 1, pageSize: 50, repeat: 'first', patientLink: 'destroyed' })
   })
 
   it('rejects unknown, repeated, wildcard, and half-open call filters', () => {

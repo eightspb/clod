@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Eye, EyeOff, PhoneCall, Search, ShieldX } from 'lucide-react'
+import { moscowFilterEnd, moscowFilterStart } from '../../lib/admin-filter-date.js'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
+import { FilterPanel } from './FilterPanel.jsx'
 
 const EMPTY_PAGE = Object.freeze({ number: 1, size: 50, total: 0, pages: 0 })
 const EMPTY_METRICS = Object.freeze({ active: 0, incoming: 0, answered: 0, missed: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0 })
-const EMPTY_FILTERS = Object.freeze({ status: '', lineNumber: '', operatorExtension: '' })
+const EMPTY_FILTERS = Object.freeze({ status: '', lineNumber: '', operatorExtension: '', fromDate: '', toDate: '', repeat: '', patientLink: '' })
 const STATUS_LABELS = Object.freeze({ ringing: 'Входящий', queued: 'В очереди', connected: 'Разговор', on_hold: 'Удержание', finalizing: 'Завершается', answered: 'Отвечен', missed: 'Пропущен' })
 const STATUS_CLASSES = Object.freeze({ ringing: 'bg-sky-50 text-sky-800', queued: 'bg-violet-50 text-violet-800', connected: 'bg-emerald-50 text-emerald-800', on_hold: 'bg-amber-50 text-amber-800', finalizing: 'bg-slate-100 text-slate-700', answered: 'bg-teal-50 text-teal-800', missed: 'bg-red-50 text-red-700' })
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', dateStyle: 'short', timeStyle: 'short' })
 const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
 const SELECT_CLASS = `admin-select ${INPUT_CLASS}`
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
+const REPEAT_LABELS = Object.freeze({ first: 'Первое обращение', repeat: 'Повторное обращение' })
+const PATIENT_LINK_LABELS = Object.freeze({ linked: 'Связан с пациентом', unlinked: 'Новый звонящий', destroyed: 'Данные уничтожены' })
 
 function date(value) {
   if (typeof value !== 'string') return '—'
@@ -58,6 +62,7 @@ export function Calls() {
   const [page, setPage] = useState(EMPTY_PAGE)
   const [metrics, setMetrics] = useState(EMPTY_METRICS)
   const [filters, setFilters] = useState(initial)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [revealed, setRevealed] = useState({})
   const [busy, setBusy] = useState('')
   const [actionError, setActionError] = useState('')
@@ -70,6 +75,12 @@ export function Calls() {
     if (active.status) parameters.set('status', active.status)
     if (active.lineNumber) parameters.set('lineNumber', active.lineNumber)
     if (active.operatorExtension) parameters.set('operatorExtension', active.operatorExtension)
+    if (active.fromDate && active.toDate) {
+      parameters.set('from', moscowFilterStart(active.fromDate))
+      parameters.set('to', moscowFilterEnd(active.toDate))
+    }
+    if (active.repeat) parameters.set('repeat', active.repeat)
+    if (active.patientLink) parameters.set('patientLink', active.patientLink)
     const result = await fetchData(`/api/admin/calls?${parameters}`, { errorMessage: 'Не удалось загрузить звонки' })
     if (!result) return
     setCalls(Array.isArray(result.data) ? result.data : [])
@@ -94,10 +105,20 @@ export function Calls() {
   }, [])
   function apply(event) {
     event.preventDefault()
-    const next = Object.freeze({ status: filters.status, lineNumber: filters.lineNumber.trim(), operatorExtension: filters.operatorExtension.trim() })
+    const next = Object.freeze({ ...filters, lineNumber: filters.lineNumber.trim(), operatorExtension: filters.operatorExtension.trim() })
     appliedRef.current = next
     pageRef.current = 1
+    setFilters(next)
+    setFiltersOpen(false)
     load(1, next)
+  }
+  function resetFilters() {
+    const next = { ...EMPTY_FILTERS }
+    setFilters(next)
+    setFiltersOpen(false)
+    appliedRef.current = EMPTY_FILTERS
+    pageRef.current = 1
+    load(1, EMPTY_FILTERS)
   }
   function changePage(number) {
     pageRef.current = number
@@ -146,12 +167,14 @@ export function Calls() {
   }
   if (loading && calls.length === 0) return <div role="status" className="clay-card flex min-h-48 items-center justify-center p-8 text-clay-admin-muted">Загружаем звонки…</div>
   if (error && calls.length === 0) return <div role="alert" className="clay-card border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">{error}</div>
+  const activeFilters = [appliedRef.current.status, appliedRef.current.lineNumber, appliedRef.current.operatorExtension, appliedRef.current.repeat, appliedRef.current.patientLink].filter(Boolean).length + (appliedRef.current.fromDate && appliedRef.current.toDate ? 1 : 0)
+  const summaries = [appliedRef.current.status && STATUS_LABELS[appliedRef.current.status], appliedRef.current.lineNumber && `Линия: ${appliedRef.current.lineNumber}`, appliedRef.current.operatorExtension && `Добавочный: ${appliedRef.current.operatorExtension}`, appliedRef.current.fromDate && appliedRef.current.toDate && `${appliedRef.current.fromDate} — ${appliedRef.current.toDate}`, appliedRef.current.repeat && REPEAT_LABELS[appliedRef.current.repeat], appliedRef.current.patientLink && PATIENT_LINK_LABELS[appliedRef.current.patientLink]].filter(Boolean)
   return (
     <section className="space-y-5" aria-label="Журнал звонков клиники">
       <div className="clay-card-soft-blue overflow-hidden p-5 sm:p-6"><div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-blue">MANGO OFFICE · live</p><h1 className="mt-2 font-serif text-2xl text-clay-dark sm:text-3xl">Журнал звонков</h1><p className="mt-2 text-sm text-clay-muted">Входящие обновляются каждые 5 секунд. Номера скрыты, а время показано по Москве.</p></div><div className="flex items-center gap-2 rounded-2xl bg-white/80 px-5 py-3 text-sm font-semibold text-clay-admin-muted"><span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50"></span><span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span></span>Мониторинг включён</div></div></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7"><MetricCard label="Активные сейчас" value={metrics.active} tone="text-emerald-700" /><MetricCard label="Входящие сегодня" value={metrics.incoming} /><MetricCard label="Отвеченные" value={metrics.answered} /><MetricCard label="Пропущенные" value={metrics.missed} tone="text-red-700" /><MetricCard label="Доля ответов" value={`${metrics.answerRate}%`} /><MetricCard label="Среднее ожидание" value={duration(metrics.averageWaitSeconds)} /><MetricCard label="Средний разговор" value={duration(metrics.averageTalkSeconds)} /></div>
       <section role="region" aria-label="Текущие звонки" className="clay-card overflow-hidden p-5 sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Сейчас на линии</p><h2 className="mt-1 font-serif text-2xl text-clay-dark">Текущие звонки</h2></div><span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800">Активных: {activeCalls.length}</span></div>{activeCalls.length === 0 ? <p className="py-6 text-sm text-clay-admin-muted">Сейчас активных звонков нет</p> : <div className="mt-4 grid gap-3 lg:grid-cols-2">{activeCalls.map((call) => { const phone = revealed[call.entryId] || call.callerMask; return <article key={call.entryId} className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_CLASSES[call.status] || 'bg-slate-100 text-slate-700'}`}>{STATUS_LABELS[call.status] || call.status}</span><span className="text-xs font-semibold text-clay-admin-muted">с {date(call.startedAt)}</span></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><div><span className="block text-[11px] font-bold uppercase tracking-wider text-clay-admin-muted">Звонящий</span>{call.patientId ? <a className="mt-1 block font-mono font-semibold text-clay-mint hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-mint" href={`/admin/patients?patient=${encodeURIComponent(call.patientId)}`}>{phone || '—'}</a> : <strong className="mt-1 block font-mono text-clay-admin-dark">{phone || '—'}</strong>}{call.patientId ? <a className="mt-1 inline-flex text-xs font-semibold text-clay-mint hover:underline" href={`/admin/patients?patient=${encodeURIComponent(call.patientId)}`}>Карточка пациента</a> : <span className="mt-1 block text-xs text-clay-admin-muted">Новый звонящий</span>}</div><div><span className="block text-[11px] font-bold uppercase tracking-wider text-clay-admin-muted">Маршрут</span><strong className="mt-1 block font-mono text-clay-admin-dark">+{call.lineNumber}</strong><span className="mt-1 block text-xs text-clay-admin-muted">{call.operatorExtension ? `доб. ${call.operatorExtension}` : 'без оператора'}</span></div></div><div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 border-t border-emerald-200 pt-3 text-sm text-clay-admin-muted"><span>Ожидание: {duration(call.waitSeconds)}</span><span>Разговор: {duration(call.talkSeconds)}</span></div></article> })}</div>}</section>
-      <form aria-label="Фильтры звонков" className="clay-card grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_auto] xl:items-end" onSubmit={apply}><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Статус звонка<select className={SELECT_CLASS} value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}><option value="">Все статусы</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Линия клиники<input className={INPUT_CLASS} value={filters.lineNumber} onChange={(event) => setFilters((current) => ({ ...current, lineNumber: event.target.value }))} placeholder="+7 812 748-22-10" /></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Добавочный<input className={INPUT_CLASS} value={filters.operatorExtension} onChange={(event) => setFilters((current) => ({ ...current, operatorExtension: event.target.value }))} inputMode="numeric" placeholder="123" /></label><button type="submit" className="btn-clay-primary min-h-11 px-6 py-2.5"><Search aria-hidden="true" size={17} />Применить</button></form>
+      <FilterPanel scope="звонков" open={filtersOpen} active={activeFilters} summaries={summaries} onToggle={() => setFiltersOpen((current) => !current)} onReset={resetFilters}><form aria-label="Фильтры звонков" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" onSubmit={apply}><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Статус звонка<select className={SELECT_CLASS} value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}><option value="">Все статусы</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Линия клиники<input className={INPUT_CLASS} value={filters.lineNumber} onChange={(event) => setFilters((current) => ({ ...current, lineNumber: event.target.value }))} placeholder="+7 812 748-22-10" /></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Добавочный<input className={INPUT_CLASS} value={filters.operatorExtension} onChange={(event) => setFilters((current) => ({ ...current, operatorExtension: event.target.value }))} inputMode="numeric" placeholder="123" /></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Обращение<select className={SELECT_CLASS} value={filters.repeat} onChange={(event) => setFilters((current) => ({ ...current, repeat: event.target.value }))}><option value="">Первое или повторное</option><option value="first">Первое</option><option value="repeat">Повторное</option></select></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Связь с пациентом<select className={SELECT_CLASS} value={filters.patientLink} onChange={(event) => setFilters((current) => ({ ...current, patientLink: event.target.value }))}><option value="">Любая связь</option><option value="linked">Связан с пациентом</option><option value="unlinked">Новый звонящий</option><option value="destroyed">Данные уничтожены</option></select></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Звонки с<input type="date" className={INPUT_CLASS} value={filters.fromDate} max={filters.toDate || undefined} onChange={(event) => setFilters((current) => ({ ...current, fromDate: event.target.value }))} /></label><label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Звонки по<input type="date" className={INPUT_CLASS} value={filters.toDate} min={filters.fromDate || undefined} onChange={(event) => setFilters((current) => ({ ...current, toDate: event.target.value }))} /></label><div className="flex items-end gap-3 xl:justify-end"><button type="button" className={SMALL_BUTTON} onClick={resetFilters}>Сбросить</button><button type="submit" className="btn-clay-primary min-h-11 px-6 py-2.5" disabled={Boolean(filters.fromDate) !== Boolean(filters.toDate)}><Search aria-hidden="true" size={17} />Применить</button></div></form></FilterPanel>
       {actionError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{actionError}</div>}
       <div className="clay-card overflow-hidden">{calls.length === 0 ? <div className="flex min-h-52 flex-col items-center justify-center gap-3 p-8 text-center text-clay-admin-muted"><PhoneCall aria-hidden="true" size={36} /><strong className="text-clay-admin-dark">Звонков не найдено</strong><span className="text-sm">Измените фильтры или дождитесь нового входящего.</span></div> : <div className="overflow-x-auto"><table className="w-full min-w-[1120px] border-collapse text-left text-sm"><thead className="bg-clay-admin-bg text-xs uppercase tracking-wider text-clay-admin-muted"><tr><th className="px-5 py-3">Время</th><th className="px-5 py-3">Звонящий</th><th className="px-5 py-3">Статус</th><th className="px-5 py-3">Линия / оператор</th><th className="px-5 py-3">Ожидание / разговор</th><th className="px-5 py-3 text-right">Действия</th></tr></thead><tbody>{calls.map((call) => {
           const destroyed = Boolean(call.piiDestroyedAt)

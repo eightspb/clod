@@ -1,22 +1,50 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { DoctorEditForm } from './DoctorEditForm.jsx'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 export function DoctorList() {
-  const { data, loading, error, fetchData } = useAdminFetch()
+  const { loading, error, fetchData } = useAdminFetch()
   const [doctors, setDoctors] = useState([])
   const [editing, setEditing] = useState(null)
   const [saved, setSaved] = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState('')
+  const [syncMessage, setSyncMessage] = useState('')
 
-  async function loadDoctors() {
+  const syncDoctors = useCallback(async () => {
+    setSyncing(true)
+    setSyncError('')
+    setSyncMessage('')
+    try {
+      const response = await fetch('/api/admin/doctors/sync', { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' } })
+      if (response.status === 401) {
+        window.location.href = '/admin/login'
+        return
+      }
+      if (!response.ok) throw new Error('Doctor synchronization failed')
+      const result = await response.json()
+      setDoctors(result.doctors || [])
+      setSyncMessage(`Medflex: ${result.report.active} активных, ${result.report.created} новых, ${result.report.preserved} сохранено без изменений`)
+    } catch {
+      setSyncError('Не удалось обновить врачей из Medflex')
+    } finally {
+      setSyncing(false)
+    }
+  }, [])
+
+  const loadDoctors = useCallback(async () => {
     const result = await fetchData('/api/admin/doctors', { errorMessage: 'Не удалось загрузить докторов' })
-    if (result) setDoctors(result.doctors || [])
-  }
+    if (!result) return
+    const loaded = result.doctors || []
+    setDoctors(loaded)
+    if (loaded.length === 0) await syncDoctors()
+  }, [fetchData, syncDoctors])
 
-  useEffect(() => { loadDoctors() }, [])
+  useEffect(() => { loadDoctors() }, [loadDoctors])
 
   function handleSave(updated) {
-    setDoctors(prev => prev.map(d => d.id === updated.id ? updated : d))
+    setDoctors(prev => prev.map(d => d.id === updated.id ? { ...d, ...updated, certificates: updated.certificates ?? d.certificates, medflexLinks: updated.medflexLinks ?? d.medflexLinks } : d))
     setEditing(null)
     setSaved(updated.id)
     setTimeout(() => setSaved(null), 2000)
@@ -27,6 +55,17 @@ export function DoctorList() {
 
   return (
     <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          {syncMessage && <p role="status" className="m-0 text-sm font-medium text-emerald-700">{syncMessage}</p>}
+          {syncError && <p role="alert" className="m-0 text-sm font-medium text-red-700">{syncError}</p>}
+          {!syncMessage && !syncError && <p className="m-0 text-sm text-slate-500">Карточки клиники связаны с актуальным каталогом Medflex</p>}
+        </div>
+        <button type="button" onClick={syncDoctors} disabled={syncing} aria-label="Обновить врачей из Medflex" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">
+          <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} aria-hidden="true" />
+          {syncing ? 'Обновляем...' : 'Обновить из Medflex'}
+        </button>
+      </div>
       {editing && (
         <DoctorEditForm
           doctor={editing}
@@ -65,7 +104,10 @@ export function DoctorList() {
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '10px 16px', fontWeight: '500', color: '#1e293b' }}>{doc.name}</td>
+                <td style={{ padding: '10px 16px', fontWeight: '500', color: '#1e293b' }}>
+                  <div>{doc.name}</div>
+                  {Number.isInteger(doc.medflexDoctorId) && <div className={`mt-1 text-[11px] font-semibold ${doc.active ? 'text-emerald-700' : 'text-slate-400'}`}>{doc.active ? 'Medflex активен' : 'Нет в текущем каталоге Medflex'}</div>}
+                </td>
                 <td style={{ padding: '10px 16px', color: '#374151' }}>{doc.specialization}</td>
                 <td style={{ padding: '10px 16px', textAlign: 'center', color: '#64748b' }}>{doc.experienceYears} лет</td>
                 <td style={{ padding: '10px 16px', textAlign: 'center' }}>

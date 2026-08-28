@@ -32,6 +32,29 @@ afterEach(() => {
 })
 
 describe('Calls admin view', () => {
+  it('keeps call filters collapsed until an administrator opens them', async () => {
+    transport([json(PAGE)])
+    render(<Calls />)
+    await screen.findByRole('heading', { name: 'Журнал звонков' })
+    const toggle = screen.getByRole('button', { name: 'Показать фильтры звонков' })
+    expect({ expanded: toggle.getAttribute('aria-expanded'), form: screen.queryByRole('form', { name: 'Фильтры звонков' }) }).toEqual({ expanded: 'false', form: null })
+  })
+
+  it('applies call date, repetition, and patient-link filters', async () => {
+    const calls = transport([json(PAGE), json(PAGE)])
+    render(<Calls />)
+    await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры звонков' }))
+    fireEvent.change(screen.getByLabelText('Звонки с'), { target: { value: '2026-08-26' } })
+    fireEvent.change(screen.getByLabelText('Звонки по'), { target: { value: '2026-08-27' } })
+    fireEvent.change(screen.getByLabelText('Обращение'), { target: { value: 'repeat' } })
+    fireEvent.change(screen.getByLabelText('Связь с пациентом'), { target: { value: 'linked' } })
+    fireEvent.submit(screen.getByRole('form', { name: 'Фильтры звонков' }))
+    await waitFor(() => expect(calls.length).toBe(2))
+    expect(String(calls[1][0])).toBe('/api/admin/calls?page=1&pageSize=50&from=2026-08-25T21%3A00%3A00.000Z&to=2026-08-27T21%3A00%3A00.000Z&repeat=repeat&patientLink=linked')
+    expect(screen.getByText('3 активных')).toBeTruthy()
+  })
+
   it('shows an explicit loading state before the first call page arrives', () => {
     transport([new Promise(() => undefined)])
     render(<Calls />)
@@ -79,6 +102,7 @@ describe('Calls admin view', () => {
     transport([json({ ...PAGE, activeCalls: [ACTIVE_CALL, second] }), json({ ...PAGE, activeCalls: [ACTIVE_CALL, second] })])
     render(<Calls />)
     await screen.findByRole('region', { name: 'Текущие звонки' })
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры звонков' }))
     fireEvent.change(screen.getByLabelText('Статус звонка'), { target: { value: 'missed' } })
     fireEvent.submit(screen.getByRole('form', { name: 'Фильтры звонков' }))
     const current = await screen.findByRole('region', { name: 'Текущие звонки' })
@@ -89,6 +113,7 @@ describe('Calls admin view', () => {
     const calls = transport([json(PAGE), json(PAGE), json(PAGE)])
     render(<Calls />)
     await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры звонков' }))
     fireEvent.change(screen.getByLabelText('Статус звонка'), { target: { value: 'missed' } })
     fireEvent.change(screen.getByLabelText('Линия клиники'), { target: { value: '+7 812 748-22-10' } })
     fireEvent.change(screen.getByLabelText('Добавочный'), { target: { value: '321' } })
@@ -104,6 +129,7 @@ describe('Calls admin view', () => {
     const calls = transport([json(PAGE)])
     render(<Calls />)
     await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры звонков' }))
     expect(screen.getByLabelText('Статус звонка')).toHaveValue('missed')
     expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/calls?page=1&pageSize=50&status=missed'])
   })

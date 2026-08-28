@@ -15,6 +15,7 @@ const ENCRYPTION_KEY = Buffer.from('0123456789abcdef0123456789abcdef').toString(
 const OTHER_ENCRYPTION_KEY = Buffer.from('abcdef0123456789abcdef0123456789').toString('base64')
 const FIRST_ID = '10000000-0000-4000-8000-000000000001'
 const SECOND_ID = '20000000-0000-4000-8000-000000000002'
+const THIRD_ID = '70000000-0000-4000-8000-000000000007'
 const FIRST_ACCESS_ID = '30000000-0000-4000-8000-000000000003'
 const SECOND_ACCESS_ID = '40000000-0000-4000-8000-000000000004'
 const FIRST_CONTACT_ID = '50000000-0000-4000-8000-000000000005'
@@ -200,6 +201,18 @@ describe('patient records', () => {
     const page = await invoke(records, 'list', { page: 1, pageSize: 50, patientId: FIRST_ACCESS_ID })
     client.close()
     expect(page.items?.map(({ id }) => id)).toEqual([FIRST_ACCESS_ID])
+  })
+
+  it('filters patients by data state, activity, visits, and matching issues', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'upsert', { profile: FIRST_PROFILE })
+    await invoke(records, 'upsert', { profile: OTHER_PROFILE })
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [THIRD_ID, null, null, null, FIRST_TIME.toISOString(), FIRST_TIME.toISOString(), FIRST_TIME.toISOString(), FIRST_TIME.toISOString(), FIRST_TIME.toISOString()] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit (id, batchId, sourceName, sourceRow, patientId, appointmentIdCiphertext, appointmentIdFingerprint, startsAt, endsAt, sourceStatus, doctorCiphertext, detailsCiphertext, linkStatus, linkMethod, evidenceLevel, createdAt, piiDestroyedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['80000000-0000-4000-8000-000000000008', 'batch-filter', 'medesk.csv', 29, FIRST_ID, null, null, FIRST_TIME.toISOString(), null, 'completed', null, null, 'linked', 'exact_ehr', 'exact', FIRST_TIME.toISOString(), null] })
+    await client.execute({ sql: 'INSERT INTO ImportIssue (id, batchId, sourceName, sourceRow, code, patientId, historicalVisitId, candidatesCiphertext, detailsCiphertext, createdAt, resolvedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['90000000-0000-4000-8000-000000000009', 'batch-filter', 'medesk.csv', 29, 'missing_birthday', FIRST_ID, null, null, null, FIRST_TIME.toISOString(), null] })
+    const pages = await Promise.all([{ piiStatus: 'destroyed' }, { history: 'without_visits' }, { issues: 'with_issues' }, { from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }].map((filter) => invoke(records, 'list', { page: 1, pageSize: 50, ...filter })))
+    client.close()
+    expect(pages.map(({ items }) => items.map(({ id }) => id))).toEqual([[THIRD_ID], [FIRST_ACCESS_ID, THIRD_ID], [FIRST_ID], [FIRST_ID, THIRD_ID]])
   })
 
   it('reveals a phone and writes an audit record in the same transaction', async () => {

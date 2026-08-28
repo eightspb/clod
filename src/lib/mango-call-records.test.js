@@ -235,6 +235,18 @@ describe('MANGO call records', () => {
     expect({ page: { ...page, items: page.items?.map(({ entryId, status, callerMask }) => ({ entryId, status, callerMask })) }, leaked: JSON.stringify(page).includes(OTHER_PHONE) || JSON.stringify(page).includes('callerCiphertext') || JSON.stringify(page).includes('callerFingerprint') }).toEqual({ page: { items: [{ entryId: 'entry-2', status: 'missed', callerMask: '+7 •••••••• 47' }], page: 1, pageSize: 50, total: 1, pages: 1 }, leaked: false })
   })
 
+  it('filters calls by repetition and patient-link state', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'apply', summary())
+    await invoke(records, 'apply', summary({ entryId: 'entry-2', callerPhone: PHONE, startedAt: '2026-08-26T10:02:00.000Z', answeredAt: '2026-08-26T10:02:10.000Z', endedAt: '2026-08-26T10:03:10.000Z', finalizedAt: '2026-08-26T10:03:10.000Z' }))
+    await invoke(records, 'apply', summary({ entryId: 'entry-3', callerPhone: OTHER_PHONE, startedAt: '2026-08-26T10:04:00.000Z', answeredAt: '2026-08-26T10:04:10.000Z', endedAt: '2026-08-26T10:05:10.000Z', finalizedAt: '2026-08-26T10:05:10.000Z' }))
+    await client.execute({ sql: 'UPDATE MangoCall SET patientId = ? WHERE entryId = ?', args: ['10000000-0000-4000-8000-000000000001', 'entry-1'] })
+    await client.execute({ sql: 'UPDATE MangoCall SET patientId = ?, callerCiphertext = ?, callerMask = ?, callerFingerprint = ?, repeatCaller = ?, piiDestroyedAt = ?, updatedAt = ? WHERE entryId = ?', args: [null, null, null, null, null, '2026-08-26T10:06:00.000Z', '2026-08-26T10:06:00.000Z', 'entry-3'] })
+    const pages = await Promise.all([{ repeat: 'repeat' }, { patientLink: 'linked' }, { patientLink: 'destroyed' }].map((filter) => invoke(records, 'list', { page: 1, pageSize: 50, ...filter })))
+    client.close()
+    expect(pages.map(({ items }) => items.map(({ entryId }) => entryId))).toEqual([['entry-2'], ['entry-1'], ['entry-3']])
+  })
+
   it('lists every active call independently from finalized journal entries', async () => {
     const { client, records } = await fixture()
     await invoke(records, 'apply', summary())

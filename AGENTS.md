@@ -49,11 +49,13 @@ For purely editorial content or non-behavioral styling tweaks, use judgment and 
 - If a new project rule is introduced, keep `.cursor/rules/`, `AGENTS.md`, and `CLAUDE.md` aligned
 - Be verbose and direct in README.md and code documentation
 - Keep documentation as short as possible, no code duplication in docs
+- End every task report with `Что сделано`, `Что нужно от вас`, and `Как увидеть результат`.
 
 ### Pre-Deploy Check
 
 - Before finalizing admin UI changes, verify that every state-changing API call includes CSRF/origin handling
 - Before finalizing API changes, verify validation, auth, and rate limiting are intact
+- Production runs via SSH alias `clod` from `/srv/clod`; for requested site changes, deploy with the repository workflow and verify the live route before reporting completion.
 
 ## Domain-Specific Rules
 

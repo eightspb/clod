@@ -1,6 +1,8 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { AlertTriangle, ChevronLeft, ChevronRight, Eye, EyeOff, FolderOpen, PhoneCall, Search, ShieldX, UserRound } from 'lucide-react'
+import { moscowFilterEnd, moscowFilterStart } from '../../lib/admin-filter-date.js'
 import { handleDialogKeyDown } from './dialog-keyboard.js'
+import { FilterPanel } from './FilterPanel.jsx'
 import { PatientDetails } from './PatientDetails.jsx'
 import { PatientHistoryIssues } from './PatientHistoryIssues.jsx'
 
@@ -10,6 +12,10 @@ const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-whit
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
 const CALL_STATUS_LABELS = Object.freeze({ ringing: 'Входящий', queued: 'В очереди', connected: 'Разговор', on_hold: 'Удержание', finalizing: 'Завершается', answered: 'Отвечен', missed: 'Пропущен' })
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const EMPTY_FILTERS = Object.freeze({ phone: '', piiStatus: '', history: '', issues: '', fromDate: '', toDate: '' })
+const PII_LABELS = Object.freeze({ active: 'Активные данные', destroyed: 'Данные уничтожены' })
+const HISTORY_LABELS = Object.freeze({ with_visits: 'Есть исторические визиты', without_visits: 'Нет исторических визитов' })
+const ISSUE_LABELS = Object.freeze({ with_issues: 'Есть проблемы сопоставления', without_issues: 'Нет проблем сопоставления' })
 
 function date(value) {
   if (typeof value !== 'string') return '—'
@@ -42,8 +48,9 @@ export function Patients() {
   const [page, setPage] = useState(EMPTY_PAGE)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [phone, setPhone] = useState('')
-  const [appliedPhone, setAppliedPhone] = useState('')
+  const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
+  const [applied, setApplied] = useState(EMPTY_FILTERS)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [revealed, setRevealed] = useState({})
   const [busy, setBusy] = useState('')
   const [actionError, setActionError] = useState('')
@@ -78,11 +85,18 @@ export function Patients() {
     setBusy((current) => current.startsWith('reveal:') ? '' : current)
     setRevealed({})
   }, [])
-  const load = useCallback(async (number, exactPhone, patientId = '') => {
+  const load = useCallback(async (number, active, patientId = '') => {
     const generation = loadGeneration.current + 1
     loadGeneration.current = generation
     const parameters = new URLSearchParams({ page: String(number), pageSize: '50' })
-    if (exactPhone) parameters.set('phone', exactPhone)
+    if (active.phone) parameters.set('phone', active.phone)
+    if (active.piiStatus) parameters.set('piiStatus', active.piiStatus)
+    if (active.history) parameters.set('history', active.history)
+    if (active.issues) parameters.set('issues', active.issues)
+    if (active.fromDate && active.toDate) {
+      parameters.set('from', moscowFilterStart(active.fromDate))
+      parameters.set('to', moscowFilterEnd(active.toDate))
+    }
     if (patientId) parameters.set('patient', patientId)
     setLoading(true)
     setError('')
@@ -102,10 +116,10 @@ export function Patients() {
       if (loadGeneration.current === generation) setLoading(false)
     }
   }, [])
-  useEffect(() => { load(1, '', initialPatient) }, [initialPatient, load])
+  useEffect(() => { load(1, EMPTY_FILTERS, initialPatient) }, [initialPatient, load])
   useEffect(() => {
     const clearIfHidden = () => { if (document.visibilityState !== 'visible') clearReveals() }
-    const followLocation = () => { const patientId = deepLinkedPatient(); clearReveals(); setSelectionGeneration((current) => current + 1); setSelectedPatientId(patientId); load(1, '', patientId) }
+    const followLocation = () => { const patientId = deepLinkedPatient(); clearReveals(); setSelectionGeneration((current) => current + 1); setSelectedPatientId(patientId); load(1, EMPTY_FILTERS, patientId) }
     document.addEventListener('visibilitychange', clearIfHidden)
     window.addEventListener('pagehide', clearReveals)
     window.addEventListener('popstate', followLocation)
@@ -126,10 +140,12 @@ export function Patients() {
   }
   function apply(event) {
     event.preventDefault()
-    const exactPhone = phone.trim()
+    const next = Object.freeze({ ...filters, phone: filters.phone.trim() })
     clearPatient()
-    setAppliedPhone(exactPhone)
-    load(1, exactPhone, '')
+    setApplied(next)
+    setFilters(next)
+    setFiltersOpen(false)
+    load(1, next, '')
   }
   async function reveal(patient) {
     const epoch = revealEpoch.current
@@ -198,11 +214,18 @@ export function Patients() {
   function closePatient() {
     const reload = listedPatient.current.length > 0
     clearPatient()
-    if (reload) load(1, appliedPhone, '')
+    if (reload) load(1, applied, '')
   }
   function changePage(number) {
     clearPatient()
-    load(number, appliedPhone, '')
+    load(number, applied, '')
+  }
+  function resetFilters() {
+    setFilters({ ...EMPTY_FILTERS })
+    setApplied(EMPTY_FILTERS)
+    setFiltersOpen(false)
+    clearPatient()
+    load(1, EMPTY_FILTERS, '')
   }
   function patientDestroyed(result) {
     setPatients((current) => current.map((patient) => patient.id === result.id ? { ...patient, name: null, phoneMask: null, piiDestroyedAt: result.destroyedAt } : patient))
@@ -214,6 +237,8 @@ export function Patients() {
     if (id) destroyButtons.current.get(id)?.focus()
   }
   if (loading && patients.length === 0) return <div role="status" className="clay-card flex min-h-48 items-center justify-center p-8 text-clay-admin-muted">Загружаем пациентов…</div>
+  const activeFilters = [applied.phone, applied.piiStatus, applied.history, applied.issues].filter(Boolean).length + (applied.fromDate && applied.toDate ? 1 : 0)
+  const summaries = [applied.phone && `Телефон: ${applied.phone}`, applied.piiStatus && PII_LABELS[applied.piiStatus], applied.history && HISTORY_LABELS[applied.history], applied.issues && ISSUE_LABELS[applied.issues], applied.fromDate && applied.toDate && `${applied.fromDate} — ${applied.toDate}`].filter(Boolean)
   return (
     <section className="space-y-5" aria-label="Журнал пациентов">
       <div className="clay-card-soft-mint overflow-hidden p-5 sm:p-6">
@@ -222,10 +247,17 @@ export function Patients() {
           <div className="rounded-2xl bg-white/80 px-5 py-3 text-sm text-clay-admin-muted"><span className="block text-2xl font-bold text-clay-admin-dark">{page.total}</span>карточек в журнале</div>
         </div>
       </div>
-      <form aria-label="Фильтры пациентов" className="clay-card flex flex-col gap-3 p-4 sm:flex-row sm:items-end" onSubmit={apply}>
-        <label className="flex flex-1 flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Точный телефон<input className={INPUT_CLASS} value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+7 921 555-01-29" autoComplete="off" /></label>
-        <button type="submit" className="btn-clay-primary min-h-11 px-6 py-2.5"><Search aria-hidden="true" size={17} />Найти</button>
-      </form>
+      <FilterPanel scope="пациентов" open={filtersOpen} active={activeFilters} summaries={summaries} onToggle={() => setFiltersOpen((current) => !current)} onReset={resetFilters}>
+        <form aria-label="Фильтры пациентов" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" onSubmit={apply}>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Точный телефон<input className={INPUT_CLASS} value={filters.phone} onChange={(event) => setFilters((current) => ({ ...current, phone: event.target.value }))} placeholder="+7 921 555-01-29" autoComplete="off" /></label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Состояние данных<select className={`admin-select ${INPUT_CLASS}`} value={filters.piiStatus} onChange={(event) => setFilters((current) => ({ ...current, piiStatus: event.target.value }))}><option value="">Любое состояние</option><option value="active">Активные</option><option value="destroyed">Обезличенные</option></select></label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Исторические визиты<select className={`admin-select ${INPUT_CLASS}`} value={filters.history} onChange={(event) => setFilters((current) => ({ ...current, history: event.target.value }))}><option value="">Неважно</option><option value="with_visits">Есть визиты</option><option value="without_visits">Нет визитов</option></select></label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Проблемы сопоставления<select className={`admin-select ${INPUT_CLASS}`} value={filters.issues} onChange={(event) => setFilters((current) => ({ ...current, issues: event.target.value }))}><option value="">Неважно</option><option value="with_issues">Есть проблемы</option><option value="without_issues">Нет проблем</option></select></label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Последнее обращение с<input type="date" className={INPUT_CLASS} value={filters.fromDate} max={filters.toDate || undefined} onChange={(event) => setFilters((current) => ({ ...current, fromDate: event.target.value }))} /></label>
+          <label className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Последнее обращение по<input type="date" className={INPUT_CLASS} value={filters.toDate} min={filters.fromDate || undefined} onChange={(event) => setFilters((current) => ({ ...current, toDate: event.target.value }))} /></label>
+          <div className="flex gap-3 sm:col-span-2 xl:col-span-3 xl:justify-end"><button type="button" className={SMALL_BUTTON} onClick={resetFilters}>Сбросить</button><button type="submit" className="btn-clay-primary min-h-11 px-6 py-2.5" disabled={Boolean(filters.fromDate) !== Boolean(filters.toDate)}><Search aria-hidden="true" size={17} />Применить</button></div>
+        </form>
+      </FilterPanel>
       {error && <div role="alert" className="clay-card border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">{error}</div>}
       {actionError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{actionError}</div>}
       {!error && <div className="clay-card overflow-hidden">

@@ -1,18 +1,23 @@
 import { normalizeContactPhone } from './contact-identity.js'
 
-const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patient'])
+const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patient', 'piiStatus', 'history', 'issues', 'from', 'to'])
 const DESTROY_KEYS = Object.freeze(['confirmation'])
 const APPOINTMENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'source', 'doctorId', 'from', 'to'])
 const APPOINTMENT_CREATE_KEYS = Object.freeze(['source', 'profile', 'appointment', 'booking'])
 const APPOINTMENT_CANCEL_KEYS = Object.freeze(['confirmation'])
 const APPOINTMENT_RESOLVE_KEYS = Object.freeze(['claimId'])
-const CALL_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'from', 'to'])
+const CALL_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'lineNumber', 'operatorExtension', 'from', 'to', 'repeat', 'patientLink'])
 const PATIENT_CALL_QUERY_KEYS = Object.freeze(['callsPage', 'callsPageSize'])
 const PATIENT_DETAIL_QUERY_KEYS = Object.freeze(['callsPage', 'callsPageSize', 'visitsPage', 'visitsPageSize', 'visitsStatus', 'issuesPage', 'issuesPageSize'])
 const PATIENT_HISTORY_ISSUE_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status'])
 const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
 const APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'cancelled', 'failed', 'needs_review'])
 const APPOINTMENT_SOURCES = Object.freeze(['website', 'admin_medflex', 'admin_existing'])
+const PATIENT_PII_STATUSES = Object.freeze(['active', 'destroyed'])
+const PATIENT_HISTORY_FILTERS = Object.freeze(['with_visits', 'without_visits'])
+const PATIENT_ISSUE_FILTERS = Object.freeze(['with_issues', 'without_issues'])
+const CALL_REPEAT_FILTERS = Object.freeze(['first', 'repeat'])
+const CALL_PATIENT_LINK_FILTERS = Object.freeze(['linked', 'unlinked', 'destroyed'])
 const VISIT_STATUSES = Object.freeze(['linked', 'ambiguous', 'unmatched'])
 const UNRESOLVED_VISIT_STATUSES = Object.freeze(['ambiguous', 'unmatched'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -76,14 +81,23 @@ export function parsePatientQuery(parameters) {
   const pageSize = Math.min(positiveInteger(singleValue(parameters, 'pageSize'), 50), 50)
   const phoneValue = singleValue(parameters, 'phone')
   const patientValue = singleValue(parameters, 'patient')
+  const piiStatus = optionalFilter(parameters, 'piiStatus', PATIENT_PII_STATUSES)
+  const history = optionalFilter(parameters, 'history', PATIENT_HISTORY_FILTERS)
+  const issues = optionalFilter(parameters, 'issues', PATIENT_ISSUE_FILTERS)
+  const from = optionalTimestamp(parameters, 'from')
+  const to = optionalTimestamp(parameters, 'to')
   if (phoneValue !== undefined && patientValue !== undefined) throw new AdminClinicQueryError('INVALID_QUERY')
-  if (patientValue !== undefined) return Object.freeze({ page, pageSize, patientId: parsePatientId(patientValue) })
-  if (phoneValue === undefined) return Object.freeze({ page, pageSize })
-  try {
-    return Object.freeze({ page, pageSize, phone: normalizeContactPhone(phoneValue) })
-  } catch {
-    throw new AdminClinicQueryError('INVALID_QUERY')
+  if ((from === undefined) !== (to === undefined) || (from !== undefined && to <= from)) throw new AdminClinicQueryError('INVALID_QUERY')
+  const value = { page, pageSize }
+  if (patientValue !== undefined) value.patientId = parsePatientId(patientValue)
+  if (phoneValue !== undefined) {
+    try { value.phone = normalizeContactPhone(phoneValue) } catch { throw new AdminClinicQueryError('INVALID_QUERY') }
   }
+  if (piiStatus !== undefined) value.piiStatus = piiStatus
+  if (history !== undefined) value.history = history
+  if (issues !== undefined) value.issues = issues
+  if (from !== undefined) { value.from = from; value.to = to }
+  return Object.freeze(value)
 }
 
 /**
@@ -190,6 +204,8 @@ export function parseCallQuery(parameters) {
   const operator = singleValue(parameters, 'operatorExtension')
   const from = optionalTimestamp(parameters, 'from')
   const to = optionalTimestamp(parameters, 'to')
+  const repeat = optionalFilter(parameters, 'repeat', CALL_REPEAT_FILTERS)
+  const patientLink = optionalFilter(parameters, 'patientLink', CALL_PATIENT_LINK_FILTERS)
   if ((from === undefined) !== (to === undefined) || (from !== undefined && to <= from)) throw new AdminClinicQueryError('INVALID_QUERY')
   if (status !== undefined) value.status = status
   if (line !== undefined) {
@@ -207,6 +223,8 @@ export function parseCallQuery(parameters) {
     value.from = from
     value.to = to
   }
+  if (repeat !== undefined) value.repeat = repeat
+  if (patientLink !== undefined) value.patientLink = patientLink
   return Object.freeze(value)
 }
 

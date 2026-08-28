@@ -46,6 +46,7 @@ Before finalizing any significant change, verify:
 - Run broader validation when the blast radius is large
 - Summarize assumptions if a decision was made without explicit user input
 - If validation is skipped, state why explicitly
+- End every task report with `Что сделано`, `Что нужно от вас`, and `Как увидеть результат`.
 
 ## Validation Expectations
 

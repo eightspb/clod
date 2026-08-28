@@ -36,6 +36,43 @@ afterEach(() => {
 describe('Appointments admin view', () => {
   beforeEach(() => window.history.replaceState({}, '', '/admin/appointments'))
 
+  it('keeps appointment filters collapsed until an administrator opens them', async () => {
+    transport([json(page())])
+    render(<Appointments />)
+    await screen.findByText(PATIENT.name)
+    const toggle = screen.getByRole('button', { name: 'Показать фильтры записей' })
+    expect({ expanded: toggle.getAttribute('aria-expanded'), form: screen.queryByRole('form', { name: 'Фильтры записей' }) }).toEqual({ expanded: 'false', form: null })
+  })
+
+  it('filters appointments by a loaded Medflex doctor and custom period', async () => {
+    const doctors = { doctors: [{ id: 'local-egorova', name: 'Егорова Анастасия Александровна', medflexDoctorId: 224878, active: true }] }
+    const calls = transport([json(page()), json(doctors), json(page())])
+    render(<Appointments />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры записей' }))
+    await screen.findByRole('option', { name: 'Егорова Анастасия Александровна' })
+    fireEvent.change(screen.getByLabelText('Врач'), { target: { value: '224878' } })
+    fireEvent.change(screen.getByLabelText('Период'), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByLabelText('Приём с'), { target: { value: '2026-08-26' } })
+    fireEvent.change(screen.getByLabelText('Приём по'), { target: { value: '2026-08-27' } })
+    fireEvent.submit(screen.getByRole('form', { name: 'Фильтры записей' }))
+    await waitFor(() => expect(calls.length).toBe(3))
+    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/appointments?page=1&pageSize=50', '/api/admin/doctors', '/api/admin/appointments?page=1&pageSize=50&doctorId=224878&from=2026-08-25T21%3A00%3A00.000Z&to=2026-08-27T21%3A00%3A00.000Z'])
+  })
+
+  it('keeps an inactive Medflex identity available for historical appointment filtering', async () => {
+    const doctors = { doctors: [{ id: 'local-egorova', name: 'Егорова Анастасия Александровна', medflexDoctorId: 224879, active: true, medflexLinks: [{ medflexDoctorId: 224879, medflexName: 'Егорова Анастасия Александровна', active: true }, { medflexDoctorId: 224878, medflexName: 'Егорова Анастасия Александровна', active: false }] }] }
+    const calls = transport([json(page()), json(doctors), json(page())])
+    render(<Appointments />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры записей' }))
+    fireEvent.change(await screen.findByLabelText('Врач'), { target: { value: '224878' } })
+    const option = screen.getByRole('option', { name: 'Егорова Анастасия Александровна (неактивен)' }).textContent
+    fireEvent.submit(screen.getByRole('form', { name: 'Фильтры записей' }))
+    await waitFor(() => expect(calls.length).toBe(3))
+    expect({ option, url: String(calls[2][0]) }).toEqual({ option: 'Егорова Анастасия Александровна (неактивен)', url: '/api/admin/appointments?page=1&pageSize=50&doctorId=224878' })
+  })
+
   it('renders Russian source and status labels with Moscow appointment time', async () => {
     transport([json(page())])
     render(<Appointments />)
@@ -52,16 +89,17 @@ describe('Appointments admin view', () => {
   })
 
   it('applies source and status filters and advances pagination', async () => {
-    const calls = transport([json(page()), json(page()), json(page())])
+    const calls = transport([json(page()), json({ doctors: [] }), json(page()), json(page())])
     render(<Appointments />)
     await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: 'Показать фильтры записей' }))
     fireEvent.change(screen.getByLabelText('Статус записи'), { target: { value: 'confirmed' } })
     fireEvent.change(screen.getByLabelText('Источник записи'), { target: { value: 'admin_existing' } })
     fireEvent.submit(screen.getByRole('form', { name: 'Фильтры записей' }))
-    await waitFor(() => expect(calls.length).toBe(2))
-    fireEvent.click(screen.getByRole('button', { name: 'Следующая страница' }))
     await waitFor(() => expect(calls.length).toBe(3))
-    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/appointments?page=1&pageSize=50', '/api/admin/appointments?page=1&pageSize=50&status=confirmed&source=admin_existing', '/api/admin/appointments?page=2&pageSize=50&status=confirmed&source=admin_existing'])
+    fireEvent.click(screen.getByRole('button', { name: 'Следующая страница' }))
+    await waitFor(() => expect(calls.length).toBe(4))
+    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/appointments?page=1&pageSize=50', '/api/admin/doctors', '/api/admin/appointments?page=1&pageSize=50&status=confirmed&source=admin_existing', '/api/admin/appointments?page=2&pageSize=50&status=confirmed&source=admin_existing'])
   })
 
   it('translates the dashboard today link into exact Moscow UTC boundaries', async () => {
