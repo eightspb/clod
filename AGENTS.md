@@ -55,7 +55,7 @@ For purely editorial content or non-behavioral styling tweaks, use judgment and 
 
 - Before finalizing admin UI changes, verify that every state-changing API call includes CSRF/origin handling
 - Before finalizing API changes, verify validation, auth, and rate limiting are intact
-- Production runs via SSH alias `clod` from `/srv/clod`; for requested site changes, deploy with the repository workflow and verify the live route before reporting completion.
+- Production runs at `https://new.odintsovclinic.ru` via SSH alias `clod` from `/srv/clod`; `https://odintsovclinic.ru` is the separate Tilda site. For requested site changes, deploy with the repository workflow and verify the live route before reporting completion.
 
 ## Domain-Specific Rules
 
