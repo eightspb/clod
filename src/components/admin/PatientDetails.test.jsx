@@ -75,10 +75,20 @@ describe('PatientDetails', () => {
     await act(async () => undefined)
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
     await act(async () => undefined)
-    const exposed = [REVEALED.profile.phone, REVEALED.previousLastNames[0].lastName, REVEALED.privateData.passport.number].every((value) => screen.getByText((content) => content.includes(value)))
+    const disclosure = screen.getByLabelText('Раскрытые персональные данные')
+    const exposed = [REVEALED.profile.phone, REVEALED.previousLastNames[0].lastName, REVEALED.privateData.passport.number].every((value) => within(disclosure).getByText((content) => content.includes(value)))
     act(() => vi.advanceTimersByTime(30_000))
     const request = calls[1][1]
     expect({ exposed, hidden: screen.queryByText(REVEALED.profile.phone), method: request.method, credentials: request.credentials }).toEqual({ exposed: true, hidden: null, method: 'POST', credentials: 'same-origin' })
+  })
+
+  it('shows the revealed phone in the protected card header', async () => {
+    transport([json(DETAIL), json({ data: REVEALED })])
+    render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
+    const heading = await screen.findByRole('heading', { name: PATIENT.name })
+    fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
+    await screen.findByLabelText('Раскрытые персональные данные')
+    expect(heading.nextElementSibling.textContent).toBe(REVEALED.profile.phone)
   })
 
   it('renders private patient data as labelled text instead of JSON', async () => {
