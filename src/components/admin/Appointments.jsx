@@ -9,7 +9,7 @@ const STATUS_LABELS = Object.freeze({ pending: 'Ожидает', confirmed: 'П�
 const SOURCE_LABELS = Object.freeze({ website: 'С сайта', admin_medflex: 'Создана администратором', admin_existing: 'Внесена из МИС' })
 const STATUS_CLASSES = Object.freeze({ pending: 'bg-amber-50 text-amber-800', confirmed: 'bg-emerald-50 text-emerald-800', cancelled: 'bg-slate-100 text-slate-700', failed: 'bg-red-50 text-red-700', needs_review: 'bg-orange-50 text-orange-800' })
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', dateStyle: 'short', timeStyle: 'short' })
-const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
+const INPUT_CLASS = 'admin-select min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
 const NOW = () => new Date()
 

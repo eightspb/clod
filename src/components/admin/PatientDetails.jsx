@@ -4,7 +4,7 @@ import { handleDialogKeyDown } from './dialog-keyboard.js'
 
 const EMPTY_PAGE = Object.freeze({ data: Object.freeze([]), page: Object.freeze({ number: 1, size: 10, total: 0, pages: 0 }) })
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
-const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
+const INPUT_CLASS = 'admin-select min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', dateStyle: 'short', timeStyle: 'short' })
 const VISIT_STATUS_LABELS = Object.freeze({ '': 'Статус не указан', cancelled: 'Отменён', completed: 'Завершён', confirmed: 'Подтверждён', noshow: 'Не явился', tentative: 'Предварительный', unknown: 'Неизвестен' })
 const LINK_STATUS_LABELS = Object.freeze({ linked: 'Сопоставлен', ambiguous: 'Неоднозначно', unmatched: 'Не сопоставлен' })

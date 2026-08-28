@@ -1,6 +1,6 @@
 import { normalizeContactPhone } from './contact-identity.js'
 
-const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone'])
+const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patient'])
 const DESTROY_KEYS = Object.freeze(['confirmation'])
 const APPOINTMENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'source', 'doctorId', 'from', 'to'])
 const APPOINTMENT_CREATE_KEYS = Object.freeze(['source', 'profile', 'appointment', 'booking'])
@@ -75,6 +75,9 @@ export function parsePatientQuery(parameters) {
   const page = positiveInteger(singleValue(parameters, 'page'), 1)
   const pageSize = Math.min(positiveInteger(singleValue(parameters, 'pageSize'), 50), 50)
   const phoneValue = singleValue(parameters, 'phone')
+  const patientValue = singleValue(parameters, 'patient')
+  if (phoneValue !== undefined && patientValue !== undefined) throw new AdminClinicQueryError('INVALID_QUERY')
+  if (patientValue !== undefined) return Object.freeze({ page, pageSize, patientId: parsePatientId(patientValue) })
   if (phoneValue === undefined) return Object.freeze({ page, pageSize })
   try {
     return Object.freeze({ page, pageSize, phone: normalizeContactPhone(phoneValue) })

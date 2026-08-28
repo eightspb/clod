@@ -3,7 +3,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const EMPTY_PAGE = Object.freeze({ number: 1, size: 50, total: 0, pages: 0 })
 const SMALL_BUTTON = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-clay-admin-border bg-white px-4 text-sm font-semibold text-clay-admin-dark transition hover:border-clay-mint hover:text-clay-mint disabled:cursor-not-allowed disabled:opacity-45'
-const INPUT_CLASS = 'min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
+const INPUT_CLASS = 'admin-select min-h-11 rounded-xl border border-clay-admin-border bg-white px-3 text-sm text-clay-dark outline-none transition focus:border-clay-mint'
 const EVIDENCE_LABELS = Object.freeze({ EXACT_EHR: 'Точный MEDESK ID', EXACT_CLINIC_CARD: 'Точная карта клиники', LEADING_ZERO_CLINIC_CARD: 'Карта с исправленным ведущим нулём', PHONE_COMPATIBLE_NAME: 'Телефон и совместимое имя', EXACT_FULL_NAME: 'Точное полное имя', CONFLICTING_COMMENT_EVIDENCE: 'Противоречивые данные комментария' })
 const STATUS_LABELS = Object.freeze({ ambiguous: 'Неоднозначный визит', unmatched: 'Не сопоставлен' })
 

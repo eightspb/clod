@@ -37,6 +37,7 @@ function deepLinkedPatient() {
  * Renders the masked patient journal with audited, temporary PII access.
  */
 export function Patients() {
+  const [initialPatient] = useState(deepLinkedPatient)
   const [patients, setPatients] = useState([])
   const [page, setPage] = useState(EMPTY_PAGE)
   const [loading, setLoading] = useState(true)
@@ -49,13 +50,14 @@ export function Patients() {
   const [destroyTarget, setDestroyTarget] = useState(undefined)
   const [expandedPatient, setExpandedPatient] = useState('')
   const [callHistory, setCallHistory] = useState({})
-  const [selectedPatientId, setSelectedPatientId] = useState(deepLinkedPatient)
+  const [selectedPatientId, setSelectedPatientId] = useState(initialPatient)
   const [selectionGeneration, setSelectionGeneration] = useState(0)
   const [showHistoryIssues, setShowHistoryIssues] = useState(false)
   const timers = useRef(new Map())
   const revealEpoch = useRef(0)
   const revealGenerations = useRef(new Map())
   const loadGeneration = useRef(0)
+  const listedPatient = useRef(initialPatient)
   const destroyButtons = useRef(new Map())
   const hide = useCallback((id) => {
     revealGenerations.current.set(id, (revealGenerations.current.get(id) ?? 0) + 1)
@@ -76,11 +78,12 @@ export function Patients() {
     setBusy((current) => current.startsWith('reveal:') ? '' : current)
     setRevealed({})
   }, [])
-  const load = useCallback(async (number, exactPhone) => {
+  const load = useCallback(async (number, exactPhone, patientId = '') => {
     const generation = loadGeneration.current + 1
     loadGeneration.current = generation
     const parameters = new URLSearchParams({ page: String(number), pageSize: '50' })
     if (exactPhone) parameters.set('phone', exactPhone)
+    if (patientId) parameters.set('patient', patientId)
     setLoading(true)
     setError('')
     try {
@@ -88,6 +91,7 @@ export function Patients() {
       if (loadGeneration.current !== generation) return
       setPatients(Array.isArray(result.data) ? result.data : [])
       setPage(result.page ?? EMPTY_PAGE)
+      listedPatient.current = patientId
     } catch {
       if (loadGeneration.current === generation) {
         setPatients([])
@@ -98,10 +102,10 @@ export function Patients() {
       if (loadGeneration.current === generation) setLoading(false)
     }
   }, [])
-  useEffect(() => { load(1, '') }, [load])
+  useEffect(() => { load(1, '', initialPatient) }, [initialPatient, load])
   useEffect(() => {
     const clearIfHidden = () => { if (document.visibilityState !== 'visible') clearReveals() }
-    const followLocation = () => { clearReveals(); setSelectionGeneration((current) => current + 1); setSelectedPatientId(deepLinkedPatient()) }
+    const followLocation = () => { const patientId = deepLinkedPatient(); clearReveals(); setSelectionGeneration((current) => current + 1); setSelectedPatientId(patientId); load(1, '', patientId) }
     document.addEventListener('visibilitychange', clearIfHidden)
     window.addEventListener('pagehide', clearReveals)
     window.addEventListener('popstate', followLocation)
@@ -112,13 +116,20 @@ export function Patients() {
       window.removeEventListener('popstate', followLocation)
       clearReveals()
     }
-  }, [clearReveals])
+  }, [clearReveals, load])
+  function clearPatient() {
+    clearReveals()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('patient')
+    window.history.replaceState({}, '', `${url.pathname}${url.search}`)
+    setSelectedPatientId('')
+  }
   function apply(event) {
     event.preventDefault()
     const exactPhone = phone.trim()
-    clearReveals()
+    clearPatient()
     setAppliedPhone(exactPhone)
-    load(1, exactPhone)
+    load(1, exactPhone, '')
   }
   async function reveal(patient) {
     const epoch = revealEpoch.current
@@ -185,15 +196,13 @@ export function Patients() {
     setSelectedPatientId(id)
   }
   function closePatient() {
-    clearReveals()
-    const url = new URL(window.location.href)
-    url.searchParams.delete('patient')
-    window.history.replaceState({}, '', `${url.pathname}${url.search}`)
-    setSelectedPatientId('')
+    const reload = listedPatient.current.length > 0
+    clearPatient()
+    if (reload) load(1, appliedPhone, '')
   }
   function changePage(number) {
-    closePatient()
-    load(number, appliedPhone)
+    clearPatient()
+    load(number, appliedPhone, '')
   }
   function patientDestroyed(result) {
     setPatients((current) => current.map((patient) => patient.id === result.id ? { ...patient, name: null, phoneMask: null, piiDestroyedAt: result.destroyedAt } : patient))
@@ -225,11 +234,10 @@ export function Patients() {
           const destroyed = Boolean(patient.piiDestroyedAt)
           const phoneValue = revealed[patient.id] || patient.phoneMask
           const history = callHistory[patient.id]
-          return <Fragment key={patient.id}><tr className="border-t border-clay-admin-border align-middle"><td className="px-5 py-4"><span className="block font-semibold text-clay-admin-dark">{name}</span>{destroyed && <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Данные уничтожены</span>}</td><td className="px-5 py-4 font-mono text-clay-text">{phoneValue || '—'}</td><td className="px-5 py-4 text-xs font-semibold text-clay-admin-muted">{patient.externalIdentifierCount ?? 0} карты · {patient.historicalVisitCount ?? 0} визитов · {patient.issueCount ?? 0} проблем<span className="mt-1 block font-normal">Других фамилий: {patient.previousLastNameCount ?? 0}</span></td><td className="px-5 py-4 text-clay-admin-muted">{date(patient.firstSeenAt)}</td><td className="px-5 py-4 text-clay-admin-muted">{date(patient.lastSeenAt)}</td><td className="px-5 py-4"><div className="flex flex-wrap justify-end gap-2"><button type="button" className={SMALL_BUTTON} onClick={() => selectPatient(patient.id)} aria-label={`Открыть карточку ${name}`}><FolderOpen aria-hidden="true" size={16} />Карточка</button><button type="button" className={SMALL_BUTTON} disabled={busy === `calls:${patient.id}`} onClick={() => toggleCalls(patient)} aria-expanded={expandedPatient === patient.id} aria-label={`История звонков ${name}`}><PhoneCall aria-hidden="true" size={16} />Звонки</button>{!destroyed && patient.phoneMask && (revealed[patient.id] ? <button type="button" className={SMALL_BUTTON} onClick={() => hide(patient.id)} aria-label={`Скрыть телефон ${name}`}><EyeOff aria-hidden="true" size={16} />Скрыть</button> : <button type="button" className={SMALL_BUTTON} disabled={busy === `reveal:${patient.id}`} onClick={() => reveal(patient)} aria-label={`Показать телефон ${name}`}><Eye aria-hidden="true" size={16} />Показать</button>)}{!destroyed && <button ref={(node) => { if (node) destroyButtons.current.set(patient.id, node); else destroyButtons.current.delete(patient.id) }} type="button" className={`${SMALL_BUTTON} border-red-200 text-red-700 hover:border-red-400 hover:text-red-800`} onClick={() => setDestroyTarget(patient)} aria-label={`Уничтожить данные ${name}`}><ShieldX aria-hidden="true" size={16} />Уничтожить</button>}</div></td></tr>{expandedPatient === patient.id && <tr className="border-t border-clay-admin-border bg-clay-admin-bg/60"><td colSpan={6} className="px-5 py-5"><div className="flex items-center justify-between gap-4"><div><h2 className="font-serif text-lg text-clay-dark">Звонки пациента</h2><p className="mt-1 text-xs text-clay-admin-muted">Маскированная история, время по Москве</p></div>{history && <span className="text-xs font-semibold text-clay-admin-muted">{history.page.total} звонков</span>}</div>{!history ? <div role="status" className="py-6 text-sm text-clay-admin-muted">Загружаем историю…</div> : history.data.length === 0 ? <p className="py-6 text-sm text-clay-admin-muted">Звонков пока нет</p> : <div className="mt-4 space-y-2">{history.data.map((call) => <div key={call.entryId} className="grid gap-2 rounded-xl border border-clay-admin-border bg-white px-4 py-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"><span className="font-semibold text-clay-admin-dark">{date(call.startedAt)}</span><span className="text-sm text-clay-admin-muted">{CALL_STATUS_LABELS[call.status] || call.status}</span><span className="font-mono text-sm text-clay-admin-dark">{call.callerMask || '—'}</span></div>)}</div>}{history && <div className="mt-4 flex items-center justify-end gap-3"><button type="button" className={SMALL_BUTTON} disabled={history.page.number <= 1 || busy === `calls:${patient.id}`} onClick={() => loadCalls(patient, history.page.number - 1)} aria-label="Предыдущая страница звонков">Назад</button><span className="text-xs text-clay-admin-muted">{history.page.number} из {history.page.pages || 1}</span><button type="button" className={SMALL_BUTTON} disabled={history.page.number >= history.page.pages || busy === `calls:${patient.id}`} onClick={() => loadCalls(patient, history.page.number + 1)} aria-label="Следующая страница звонков">Далее</button></div>}</td></tr>}</Fragment>
+          return <Fragment key={patient.id}><tr className="border-t border-clay-admin-border align-middle"><td className="px-5 py-4"><span className="block font-semibold text-clay-admin-dark">{name}</span>{destroyed && <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Данные уничтожены</span>}</td><td className="px-5 py-4 font-mono text-clay-text">{phoneValue || '—'}</td><td className="px-5 py-4 text-xs font-semibold text-clay-admin-muted">{patient.externalIdentifierCount ?? 0} карты · {patient.historicalVisitCount ?? 0} визитов · {patient.issueCount ?? 0} проблем<span className="mt-1 block font-normal">Других фамилий: {patient.previousLastNameCount ?? 0}</span></td><td className="px-5 py-4 text-clay-admin-muted">{date(patient.firstSeenAt)}</td><td className="px-5 py-4 text-clay-admin-muted">{date(patient.lastSeenAt)}</td><td className="px-5 py-4"><div className="flex flex-wrap justify-end gap-2"><button type="button" className={SMALL_BUTTON} onClick={() => selectPatient(patient.id)} aria-expanded={selectedPatientId === patient.id} aria-label={`Открыть карточку ${name}`}><FolderOpen aria-hidden="true" size={16} />Карточка</button><button type="button" className={SMALL_BUTTON} disabled={busy === `calls:${patient.id}`} onClick={() => toggleCalls(patient)} aria-expanded={expandedPatient === patient.id} aria-label={`История звонков ${name}`}><PhoneCall aria-hidden="true" size={16} />Звонки</button>{!destroyed && patient.phoneMask && (revealed[patient.id] ? <button type="button" className={SMALL_BUTTON} onClick={() => hide(patient.id)} aria-label={`Скрыть телефон ${name}`}><EyeOff aria-hidden="true" size={16} />Скрыть</button> : <button type="button" className={SMALL_BUTTON} disabled={busy === `reveal:${patient.id}`} onClick={() => reveal(patient)} aria-label={`Показать телефон ${name}`}><Eye aria-hidden="true" size={16} />Показать</button>)}{!destroyed && <button ref={(node) => { if (node) destroyButtons.current.set(patient.id, node); else destroyButtons.current.delete(patient.id) }} type="button" className={`${SMALL_BUTTON} border-red-200 text-red-700 hover:border-red-400 hover:text-red-800`} onClick={() => setDestroyTarget(patient)} aria-label={`Уничтожить данные ${name}`}><ShieldX aria-hidden="true" size={16} />Уничтожить</button>}</div></td></tr>{selectedPatientId === patient.id && !loading && <tr className="border-t border-clay-admin-border bg-clay-admin-bg/40"><td colSpan={6} className="p-4 sm:p-5"><PatientDetails key={`${selectedPatientId}:${selectionGeneration}`} patientId={selectedPatientId} onClose={closePatient} onDestroyed={patientDestroyed} /></td></tr>}{expandedPatient === patient.id && <tr className="border-t border-clay-admin-border bg-clay-admin-bg/60"><td colSpan={6} className="px-5 py-5"><div className="flex items-center justify-between gap-4"><div><h2 className="font-serif text-lg text-clay-dark">Звонки пациента</h2><p className="mt-1 text-xs text-clay-admin-muted">Маскированная история, время по Москве</p></div>{history && <span className="text-xs font-semibold text-clay-admin-muted">{history.page.total} звонков</span>}</div>{!history ? <div role="status" className="py-6 text-sm text-clay-admin-muted">Загружаем историю…</div> : history.data.length === 0 ? <p className="py-6 text-sm text-clay-admin-muted">Звонков пока нет</p> : <div className="mt-4 space-y-2">{history.data.map((call) => <div key={call.entryId} className="grid gap-2 rounded-xl border border-clay-admin-border bg-white px-4 py-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"><span className="font-semibold text-clay-admin-dark">{date(call.startedAt)}</span><span className="text-sm text-clay-admin-muted">{CALL_STATUS_LABELS[call.status] || call.status}</span><span className="font-mono text-sm text-clay-admin-dark">{call.callerMask || '—'}</span></div>)}</div>}{history && <div className="mt-4 flex items-center justify-end gap-3"><button type="button" className={SMALL_BUTTON} disabled={history.page.number <= 1 || busy === `calls:${patient.id}`} onClick={() => loadCalls(patient, history.page.number - 1)} aria-label="Предыдущая страница звонков">Назад</button><span className="text-xs text-clay-admin-muted">{history.page.number} из {history.page.pages || 1}</span><button type="button" className={SMALL_BUTTON} disabled={history.page.number >= history.page.pages || busy === `calls:${patient.id}`} onClick={() => loadCalls(patient, history.page.number + 1)} aria-label="Следующая страница звонков">Далее</button></div>}</td></tr>}</Fragment>
         })}</tbody></table></div>}
       </div>}
       {!error && <div className="flex items-center justify-between gap-3"><button type="button" className={SMALL_BUTTON} disabled={page.number <= 1 || loading} onClick={() => changePage(page.number - 1)} aria-label="Предыдущая страница"><ChevronLeft aria-hidden="true" size={17} />Назад</button><span className="text-sm text-clay-admin-muted">Страница {page.number}{page.pages > 0 ? ` из ${page.pages}` : ''}</span><button type="button" className={SMALL_BUTTON} disabled={page.pages === 0 || page.number >= page.pages || loading} onClick={() => changePage(page.number + 1)} aria-label="Следующая страница">Далее<ChevronRight aria-hidden="true" size={17} /></button></div>}
-      {selectedPatientId && !loading && <PatientDetails key={`${selectedPatientId}:${selectionGeneration}`} patientId={selectedPatientId} onClose={closePatient} onDestroyed={patientDestroyed} />}
       <div className="flex justify-end"><button type="button" className={SMALL_BUTTON} aria-expanded={showHistoryIssues} onClick={() => setShowHistoryIssues((current) => !current)} aria-label={showHistoryIssues ? 'Скрыть проблемы сопоставления' : 'Показать проблемы сопоставления'}><AlertTriangle aria-hidden="true" size={17} />{showHistoryIssues ? 'Скрыть проблемы' : 'Проблемы сопоставления'}</button></div>
       {showHistoryIssues && <PatientHistoryIssues />}
       {destroyTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDestroyDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="destroy-patient-title" tabIndex={-1} onKeyDown={(event) => handleDialogKeyDown(event, closeDestroyDialog)} className="clay-card-lg w-full max-w-lg p-6"><ShieldX aria-hidden="true" className="text-red-600" size={28} /><h2 id="destroy-patient-title" className="mt-4 font-serif text-2xl text-clay-dark">Уничтожить персональные данные?</h2><p className="mt-3 text-sm text-clay-muted">ФИО, телефон и отпечаток будут удалены безвозвратно. Обезличенная история записей сохранится.</p><div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button autoFocus type="button" className={SMALL_BUTTON} onClick={closeDestroyDialog}>Отмена</button><button type="button" disabled={busy === `destroy:${destroyTarget.id}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50" onClick={destroy}>Уничтожить безвозвратно</button></div></section></div>}

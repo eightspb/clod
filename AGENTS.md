@@ -127,3 +127,4 @@ When the change scope is unclear, start by identifying the affected area:
 - Do not use inline comments — use JSDoc only for non-obvious "why"
 - Do not add dependencies without first checking if the platform or current stack solves the problem
 - Do not make unsupported legal, or compliance claims in public content
+- Do not use `path` as a zsh variable name — it overwrites the shell command search path

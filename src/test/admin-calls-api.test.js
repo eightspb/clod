@@ -8,12 +8,14 @@ const ENTRY_ID = 'entry:clinic:1'
 const PATIENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
 const ACTOR = `v1:${'a7'.repeat(32)}`
 const CALL = Object.freeze({ entryId: ENTRY_ID, patientId: PATIENT_ID, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
+const ACTIVE_CALL = Object.freeze({ ...CALL, entryId: 'entry:clinic:active', status: 'connected', endedAt: null, disconnectReason: null, finalizedAt: null })
 const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 })
 
 function calls(overrides = {}) {
-  const state = { list: [], get: [], metrics: [], reveal: [], destroy: [] }
+  const state = { list: [], active: [], get: [], metrics: [], reveal: [], destroy: [] }
   const value = {
     list: async (input) => { state.list.push(structuredClone(input)); return overrides.list ?? { items: [CALL], page: input.page, pageSize: input.pageSize, total: 1, pages: 1 } },
+    active: async () => { state.active.push(true); return overrides.active ?? [ACTIVE_CALL] },
     get: async (input) => { state.get.push(structuredClone(input)); if (overrides.getError) throw overrides.getError; return overrides.get ?? CALL },
     metrics: async (input) => { state.metrics.push(structuredClone(input)); return overrides.metrics ?? METRICS },
     reveal: async (input) => { state.reveal.push(structuredClone(input)); if (overrides.revealError) throw overrides.revealError; return overrides.reveal ?? { entryId: ENTRY_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } },
@@ -53,7 +55,13 @@ describe('admin MANGO call API', () => {
     const { GET_INDEX } = await endpoints(fixture)
     const path = '/api/admin/calls?page=1&pageSize=80&status=answered&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'
     const result = await responseValue(await GET_INDEX({ request: request(path) }))
-    expect({ result, calls: fixture.state, leaked: /79215550129|callerCiphertext|callerFingerprint/.test(JSON.stringify(result)) }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: [CALL], page: { number: 1, size: 50, total: 1, pages: 1 }, metrics: METRICS } }, calls: { list: [{ page: 1, pageSize: 50, status: 'answered', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], get: [], metrics: [{ from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], reveal: [], destroy: [] }, leaked: false })
+    expect({ result, calls: fixture.state, leaked: /79215550129|callerCiphertext|callerFingerprint/.test(JSON.stringify(result)) }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: [CALL], page: { number: 1, size: 50, total: 1, pages: 1 }, activeCalls: [ACTIVE_CALL], metrics: METRICS } }, calls: { list: [{ page: 1, pageSize: 50, status: 'answered', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], active: [true], get: [], metrics: [{ from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], reveal: [], destroy: [] }, leaked: false })
+  })
+
+  it('rejects a finalized call from the current-call collection', async () => {
+    const { GET_INDEX } = await endpoints(calls({ active: [CALL] }), { log: () => undefined })
+    const result = await responseValue(await GET_INDEX({ request: request('/api/admin/calls') }))
+    expect(result.status).toBe(503)
   })
 
   it.each([
@@ -235,7 +243,7 @@ describe('admin MANGO call API', () => {
     const guard = async () => new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
     const { GET_INDEX, GET_DETAIL, POST_REVEAL, DELETE_CALLER } = await endpoints(fixture, { guard })
     const responses = await Promise.all([GET_INDEX({ request: request('/api/admin/calls') }), GET_DETAIL({ request: request(`/api/admin/calls/${ENTRY_ID}`), params: { entryId: ENTRY_ID } }), POST_REVEAL({ request: request(`/api/admin/calls/${ENTRY_ID}/reveal`, { method: 'POST' }), params: { entryId: ENTRY_ID } }), DELETE_CALLER({ request: request(`/api/admin/calls/${ENTRY_ID}/caller`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { entryId: ENTRY_ID } })])
-    expect({ statuses: responses.map(({ status }) => status), caches: responses.map((response) => response.headers.get('cache-control')), calls: fixture.state }).toEqual({ statuses: [403, 403, 403, 403], caches: ['no-store', 'no-store', 'no-store', 'no-store'], calls: { list: [], get: [], metrics: [], reveal: [], destroy: [] } })
+    expect({ statuses: responses.map(({ status }) => status), caches: responses.map((response) => response.headers.get('cache-control')), calls: fixture.state }).toEqual({ statuses: [403, 403, 403, 403], caches: ['no-store', 'no-store', 'no-store', 'no-store'], calls: { list: [], active: [], get: [], metrics: [], reveal: [], destroy: [] } })
   })
 
   it('sanitizes unexpected storage failures and logs only a fixed stage', async () => {

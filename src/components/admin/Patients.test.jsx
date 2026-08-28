@@ -75,8 +75,8 @@ describe('Patients admin view', () => {
     window.history.replaceState({}, '', `/admin/patients?patient=${PATIENT_ID}`)
     const calls = transport([json(PAGE), json(DETAIL)])
     render(<Patients />)
-    await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
-    expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/patients?page=1&pageSize=50', `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10&visitsPage=1&visitsPageSize=10&issuesPage=1&issuesPageSize=10`])
+    const detail = await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
+    expect({ urls: calls.map(([url]) => String(url)), inline: detail.closest('tr')?.previousElementSibling?.textContent }).toEqual({ urls: [`/api/admin/patients?page=1&pageSize=50&patient=${PATIENT_ID}`, `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10&visitsPage=1&visitsPageSize=10&issuesPage=1&issuesPageSize=10`], inline: expect.stringContaining(PATIENT.name) })
   })
 
   it('updates the deep link when a patient card is opened and clears it on close', async () => {
@@ -88,6 +88,15 @@ describe('Patients admin view', () => {
     const opened = window.location.search
     fireEvent.click(screen.getByRole('button', { name: 'Закрыть карточку пациента' }))
     expect({ opened, closed: window.location.search, detail: screen.queryByRole('region', { name: `Карточка пациента ${PATIENT.name}` }) }).toEqual({ opened: `?patient=${PATIENT_ID}`, closed: '', detail: null })
+  })
+
+  it('expands the patient card directly below its table row', async () => {
+    transport([json(PAGE), json(DETAIL)])
+    render(<Patients />)
+    const row = (await screen.findByText(PATIENT.name)).closest('tr')
+    fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
+    const detailRow = (await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })).closest('tr')
+    expect(detailRow?.previousElementSibling).toBe(row)
   })
 
   it('loads the unresolved visit queue only when an administrator opens it', async () => {

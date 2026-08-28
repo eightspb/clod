@@ -4,8 +4,9 @@ import { Calls } from './Calls.jsx'
 
 const PATIENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
 const CALL = Object.freeze({ entryId: 'entry:clinic:1', patientId: PATIENT_ID, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
+const ACTIVE_CALL = Object.freeze({ ...CALL, entryId: 'entry:clinic:active', status: 'connected', callerMask: '+7 •••••••• 47', startedAt: '2026-08-26T10:05:00.000Z', forwardedAt: '2026-08-26T10:05:02.000Z', answeredAt: '2026-08-26T10:05:05.000Z', endedAt: null, waitSeconds: 5, talkSeconds: 38, disconnectReason: null, finalizedAt: null, createdAt: '2026-08-26T10:05:00.000Z', updatedAt: '2026-08-26T10:05:43.000Z' })
 const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 })
-const PAGE = Object.freeze({ data: Object.freeze([CALL]), page: Object.freeze({ number: 1, size: 50, total: 1, pages: 2 }), metrics: METRICS })
+const PAGE = Object.freeze({ data: Object.freeze([CALL]), page: Object.freeze({ number: 1, size: 50, total: 1, pages: 2 }), activeCalls: Object.freeze([ACTIVE_CALL]), metrics: METRICS })
 
 function json(body, status = 200) {
   return Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }))
@@ -55,6 +56,17 @@ describe('Calls admin view', () => {
     transport([json({ ...PAGE, data: [{ ...CALL, entryId: 'entry-2', patientId: null, repeatCaller: false }] })])
     render(<Calls />)
     expect(await screen.findByText('Новый звонящий')).toBeVisible()
+  })
+
+  it('keeps every active call visible when the journal is filtered to missed calls', async () => {
+    const second = Object.freeze({ ...ACTIVE_CALL, entryId: 'entry:clinic:queued', patientId: null, status: 'queued', operatorExtension: null })
+    transport([json({ ...PAGE, activeCalls: [ACTIVE_CALL, second] }), json({ ...PAGE, activeCalls: [ACTIVE_CALL, second] })])
+    render(<Calls />)
+    await screen.findByRole('region', { name: 'Текущие звонки' })
+    fireEvent.change(screen.getByLabelText('Статус звонка'), { target: { value: 'missed' } })
+    fireEvent.submit(screen.getByRole('form', { name: 'Фильтры звонков' }))
+    const current = await screen.findByRole('region', { name: 'Текущие звонки' })
+    expect(current.querySelectorAll('article')).toHaveLength(2)
   })
 
   it('applies exact filters and keeps them while advancing pagination', async () => {

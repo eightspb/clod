@@ -6,6 +6,7 @@ const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type'
 const CALL_FIELDS = Object.freeze(['entryId', 'patientId', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const METRIC_FIELDS = Object.freeze(['active', 'incoming', 'answered', 'missed', 'answerRate', 'averageWaitSeconds', 'averageTalkSeconds'])
 const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
+const LIVE_CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const PHONE_MASK_PATTERN = /^\+[1-9] •{5,12} [0-9]{2}$/u
@@ -67,6 +68,13 @@ export function safeCallPage(value) {
   const remaining = number > pages ? 0 : total - ((number - 1) * size)
   if (number > MAX_PAGE_NUMBER || size > MAX_PAGE_SIZE || total > MAX_PAGE_TOTAL || pages > MAX_PAGE_NUMBER || pages !== expectedPages || items.length > Math.min(size, Math.max(0, remaining))) throw new TypeError('Call page is invalid')
   return Object.freeze({ data: Object.freeze(items.map((item) => safeCall(item))), page: Object.freeze({ number, size, total, pages }) })
+}
+
+function safeActiveCalls(value) {
+  const items = denseArray(value, 1_000, 'Active calls')
+  const calls = items.map((item) => safeCall(item))
+  if (calls.some(({ status }) => !LIVE_CALL_STATUSES.includes(status))) throw new TypeError('Active calls response is invalid')
+  return Object.freeze(calls)
 }
 
 function projected(value, fields, scope) {
@@ -186,7 +194,7 @@ function options(input, defaults) {
 
 function repository(configuration) {
   const value = configuration.records()
-  if (value === null || typeof value !== 'object' || !['list', 'get', 'metrics', 'reveal', 'destroy'].every((method) => typeof value[method] === 'function')) throw new TypeError('Call repository is invalid')
+  if (value === null || typeof value !== 'object' || !['list', 'active', 'get', 'metrics', 'reveal', 'destroy'].every((method) => typeof value[method] === 'function')) throw new TypeError('Call repository is invalid')
   return value
 }
 
@@ -240,8 +248,8 @@ export function createCallIndexEndpoint(input) {
     try {
       const query = parseCallQuery(new URL(request.url).searchParams)
       const calls = repository(configuration)
-      const [page, metrics] = await Promise.all([calls.list(query), calls.metrics(metricRange(query, configuration.clock))])
-      return json({ ...safeCallPage(page), metrics: safeMetrics(metrics) }, 200)
+      const [page, activeCalls, metrics] = await Promise.all([calls.list(query), calls.active(), calls.metrics(metricRange(query, configuration.clock))])
+      return json({ ...safeCallPage(page), activeCalls: safeActiveCalls(activeCalls), metrics: safeMetrics(metrics) }, 200)
     } catch (error) {
       return endpointFailure(configuration, 'LIST_FAILED', error)
     }

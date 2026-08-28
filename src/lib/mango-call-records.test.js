@@ -235,6 +235,16 @@ describe('MANGO call records', () => {
     expect({ page: { ...page, items: page.items?.map(({ entryId, status, callerMask }) => ({ entryId, status, callerMask })) }, leaked: JSON.stringify(page).includes(OTHER_PHONE) || JSON.stringify(page).includes('callerCiphertext') || JSON.stringify(page).includes('callerFingerprint') }).toEqual({ page: { items: [{ entryId: 'entry-2', status: 'missed', callerMask: '+7 •••••••• 47' }], page: 1, pageSize: 50, total: 1, pages: 1 }, leaked: false })
   })
 
+  it('lists every active call independently from finalized journal entries', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'apply', summary())
+    await invoke(records, 'apply', live({ entryId: 'entry-2', callId: 'leg-2', eventAt: '2026-08-26T10:03:00.000Z' }))
+    await invoke(records, 'apply', live({ entryId: 'entry-3', callId: 'leg-3', state: 'connected', location: 'abonent', eventAt: '2026-08-26T10:04:00.000Z' }))
+    const active = await invoke(records, 'active')
+    client.close()
+    expect(active.map(({ entryId, status }) => ({ entryId, status }))).toEqual([{ entryId: 'entry-3', status: 'connected' }, { entryId: 'entry-2', status: 'ringing' }])
+  })
+
   it('returns safe detail and aggregate call metrics', async () => {
     const { client, records } = await fixture()
     await invoke(records, 'apply', summary())

@@ -404,6 +404,11 @@ async function list(configuration, raw) {
   return Object.freeze({ items: Object.freeze(items), page: input.page, pageSize: input.pageSize, total, pages: total === 0 ? 0 : Math.ceil(total / input.pageSize) })
 }
 
+async function active(configuration) {
+  const selected = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall WHERE status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') ORDER BY startedAt DESC, entryId`, args: [] })
+  return Object.freeze(readRows(selected).map(publicCall))
+}
+
 async function get(configuration, raw) {
   const input = readRecord(raw, ENTRY_KEYS, ENTRY_KEYS, 'MANGO call detail')
   const entryId = identifier(input.entryId, 'MANGO entry ID')
@@ -476,5 +481,5 @@ async function destroy(configuration, raw) {
  */
 export function createMangoCallRecords(input) {
   const configuration = normalizeFactory(input)
-  return Object.freeze({ apply: (raw) => apply(configuration, raw), list: (raw) => list(configuration, raw), get: (raw) => get(configuration, raw), metrics: (raw) => metrics(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw) })
+  return Object.freeze({ apply: (raw) => apply(configuration, raw), list: (raw) => list(configuration, raw), active: () => active(configuration), get: (raw) => get(configuration, raw), metrics: (raw) => metrics(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw) })
 }

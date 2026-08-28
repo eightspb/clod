@@ -112,6 +112,7 @@ export function LogsViewer() {
         <div>
           <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#64748b', marginBottom: '4px' }}>Тип события</label>
           <select
+            className="admin-select"
             value={filters.type}
             onChange={e => setFilters(f => ({ ...f, type: e.target.value }))}
             style={inputStyle}

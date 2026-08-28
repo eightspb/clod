@@ -3,7 +3,7 @@ import { decryptPatientProfile, encryptContactPhone, encryptPatientProfile, fing
 
 const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'clock', 'uuid'])
 const UPSERT_KEYS = Object.freeze(['profile', 'executor'])
-const LIST_KEYS = Object.freeze(['page', 'pageSize', 'phone'])
+const LIST_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patientId'])
 const ACCESS_KEYS = Object.freeze(['id', 'actor'])
 const ID_KEYS = Object.freeze(['id'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -299,9 +299,11 @@ async function list(configuration, raw) {
   const page = normalizePage(input.page)
   const pageSize = normalizePageSize(input.pageSize)
   const phoneFingerprint = input.phone === undefined ? undefined : fingerprintContactPhone({ phone: input.phone, key: configuration.fingerprintKey })
+  const patientId = input.patientId === undefined ? undefined : normalizeUuid(input.patientId, 'Patient list ID')
+  if (phoneFingerprint !== undefined && patientId !== undefined) throw new TypeError('Patient list filters are mutually exclusive')
   const source = phoneFingerprint === undefined ? 'Patient p' : 'Patient p LEFT JOIN PatientContact c ON c.patientId = p.id AND c.kind = ? AND c.fingerprint = ? AND c.piiDestroyedAt IS NULL'
-  const where = phoneFingerprint === undefined ? '' : ' WHERE p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?)'
-  const args = phoneFingerprint === undefined ? [] : ['phone', phoneFingerprint, phoneFingerprint]
+  const where = patientId !== undefined ? ' WHERE p.id = ?' : phoneFingerprint === undefined ? '' : ' WHERE p.piiDestroyedAt IS NULL AND (c.id IS NOT NULL OR p.phoneFingerprint = ?)'
+  const args = patientId !== undefined ? [patientId] : phoneFingerprint === undefined ? [] : ['phone', phoneFingerprint, phoneFingerprint]
   const count = await configuration.client.execute({ sql: `SELECT COUNT(DISTINCT p.id) AS total FROM ${source}${where}`, args })
   const countRows = readRows(count)
   const total = countRows.length === 1 ? Number(storedValue(countRows[0], 'total')) : Number.NaN

@@ -193,6 +193,15 @@ describe('patient records', () => {
     expect(page.items?.map(({ id, name }) => ({ id, name }))).toEqual([{ id: FIRST_ACCESS_ID, name: 'Кюри Мария Склодовская' }])
   })
 
+  it('finds one patient by its exact deep-link identifier', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'upsert', { profile: FIRST_PROFILE })
+    await invoke(records, 'upsert', { profile: OTHER_PROFILE })
+    const page = await invoke(records, 'list', { page: 1, pageSize: 50, patientId: FIRST_ACCESS_ID })
+    client.close()
+    expect(page.items?.map(({ id }) => id)).toEqual([FIRST_ACCESS_ID])
+  })
+
   it('reveals a phone and writes an audit record in the same transaction', async () => {
     const { client, records } = await fixture()
     await invoke(records, 'upsert', { profile: FIRST_PROFILE })

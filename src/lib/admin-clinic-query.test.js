@@ -29,6 +29,10 @@ describe('admin clinic query', () => {
     expect(parsePatientQuery(new URLSearchParams('phone=8%20921%20555-01-29'))).toEqual({ page: 1, pageSize: 50, phone: '79215550129' })
   })
 
+  it('normalizes an exact patient deep-link identifier', () => {
+    expect(parsePatientQuery(new URLSearchParams('patient=a68f05c5-8528-4e08-86e5-3bd00cc3a79f'))).toEqual({ page: 1, pageSize: 50, patientId: 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f' })
+  })
+
   it('rejects SQL wildcard characters instead of broadening phone search', () => {
     expect(captured(() => parsePatientQuery(new URLSearchParams('phone=%25_')))).toEqual({ threw: true, name: 'AdminClinicQueryError', code: 'INVALID_QUERY' })
   })
