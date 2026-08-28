@@ -3,7 +3,7 @@ import { adminActor, guardAdminPii, guardAdminRead, readAdminJson } from './admi
 import { isMangoCallRecordError } from './mango-call-records.js'
 
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
-const CALL_FIELDS = Object.freeze(['entryId', 'patientId', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
+const CALL_FIELDS = Object.freeze(['entryId', 'patientId', 'patientName', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const METRIC_FIELDS = Object.freeze(['active', 'incoming', 'answered', 'missed', 'answerRate', 'averageWaitSeconds', 'averageTalkSeconds'])
 const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
 const LIVE_CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing'])
@@ -12,6 +12,7 @@ const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const PHONE_MASK_PATTERN = /^\+[1-9] •{5,12} [0-9]{2}$/u
 const PHONE_PATTERN = /^[1-9][0-9]{7,14}$/
 const EXTENSION_PATTERN = /^[0-9]{1,32}$/
+const UNSAFE_NAME_PATTERN = /[\p{Cc}\p{Cf}\p{Cs}\p{N}]/u
 const MAX_PAGE_NUMBER = 1_000_000
 const MAX_PAGE_SIZE = 50
 const MAX_PAGE_TOTAL = MAX_PAGE_NUMBER * MAX_PAGE_SIZE
@@ -37,6 +38,7 @@ export function safeCall(value, expectedEntryId) {
   const input = projected(value, CALL_FIELDS, 'Call')
   const entryId = boundedText(input.entryId, 'Call')
   const patientId = input.patientId === null ? null : safeUuid(input.patientId, 'Call')
+  const patientName = nullablePatientName(input.patientName, 'Call')
   const status = exact(input.status, CALL_STATUSES, 'Call')
   const callerMask = input.callerMask === null ? null : exactPattern(input.callerMask, PHONE_MASK_PATTERN, 'Call')
   const repeatCaller = input.repeatCaller
@@ -53,8 +55,8 @@ export function safeCall(value, expectedEntryId) {
   const createdAt = safeTimestamp(input.createdAt, 'Call')
   const updatedAt = safeTimestamp(input.updatedAt, 'Call')
   const piiDestroyedAt = nullableTimestamp(input.piiDestroyedAt, 'Call')
-  if ((expectedEntryId !== undefined && entryId !== expectedEntryId) || (piiDestroyedAt === null && (callerMask === null || typeof repeatCaller !== 'boolean')) || (piiDestroyedAt !== null && (callerMask !== null || repeatCaller !== null || patientId !== null)) || updatedAt < createdAt || (piiDestroyedAt !== null && (piiDestroyedAt < createdAt || piiDestroyedAt > updatedAt))) throw new TypeError('Call response is invalid')
-  return Object.freeze({ entryId, patientId, status, callerMask, repeatCaller, lineNumber, operatorExtension, startedAt, forwardedAt, answeredAt, endedAt, waitSeconds, talkSeconds, disconnectReason, finalizedAt, createdAt, updatedAt, piiDestroyedAt })
+  if ((expectedEntryId !== undefined && entryId !== expectedEntryId) || (patientId === null && patientName !== null) || (piiDestroyedAt === null && (callerMask === null || typeof repeatCaller !== 'boolean')) || (piiDestroyedAt !== null && (callerMask !== null || repeatCaller !== null || patientId !== null)) || updatedAt < createdAt || (piiDestroyedAt !== null && (piiDestroyedAt < createdAt || piiDestroyedAt > updatedAt))) throw new TypeError('Call response is invalid')
+  return Object.freeze({ entryId, patientId, patientName, status, callerMask, repeatCaller, lineNumber, operatorExtension, startedAt, forwardedAt, answeredAt, endedAt, waitSeconds, talkSeconds, disconnectReason, finalizedAt, createdAt, updatedAt, piiDestroyedAt })
 }
 
 export function safeCallPage(value) {
@@ -108,6 +110,12 @@ function prohibitedTextCharacter(value) {
 
 function boundedText(value, scope) {
   if (typeof value !== 'string' || value.trim() !== value || value.length === 0 || Buffer.byteLength(value, 'utf8') > 128 || [...value].some(prohibitedTextCharacter)) throw new TypeError(`${scope} response is invalid`)
+  return value
+}
+
+function nullablePatientName(value, scope) {
+  if (value === null) return null
+  if (typeof value !== 'string' || value.trim() !== value || value.normalize('NFC') !== value || value.length === 0 || [...value].length > 350 || UNSAFE_NAME_PATTERN.test(value) || !/\p{L}/u.test(value)) throw new TypeError(`${scope} response is invalid`)
   return value
 }
 

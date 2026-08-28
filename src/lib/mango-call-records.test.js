@@ -44,7 +44,7 @@ async function fixture(overrides = {}) {
   const storage = overrides.storage ?? await database()
   const module = await import('./mango-call-records.js').catch(() => Object.freeze({}))
   const factory = typeof module.createMangoCallRecords === 'function' ? module.createMangoCallRecords : () => Object.freeze({})
-  const records = factory({ client: storage.client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: overrides.encryptionKey ?? ENCRYPTION_KEY, clock: overrides.clock ?? (() => NOW), uuid: overrides.uuid ?? sequence([ACCESS_ID, OTHER_ACCESS_ID]) })
+  const records = factory({ client: storage.client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: overrides.encryptionKey ?? ENCRYPTION_KEY, ...(overrides.patientEncryptionKey ? { patientEncryptionKey: overrides.patientEncryptionKey } : {}), clock: overrides.clock ?? (() => NOW), uuid: overrides.uuid ?? sequence([ACCESS_ID, OTHER_ACCESS_ID]) })
   return Object.freeze({ ...storage, records })
 }
 
@@ -120,6 +120,16 @@ describe('MANGO call records', () => {
     const count = await client.execute('SELECT COUNT(*) AS total FROM Patient')
     client.close()
     expect({ calls: calls.rows, patients: Number(count.rows[0]?.total) }).toEqual({ calls: [{ entryId: 'entry-1', patientId: PATIENT_ID }, { entryId: 'entry-2', patientId: null }], patients: 1 })
+  })
+
+  it('returns the linked patient name without exposing the protected profile', async () => {
+    const { client, records } = await fixture({ patientEncryptionKey: ENCRYPTION_KEY })
+    const patients = createPatientRecords({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: () => NOW, uuid: () => PATIENT_ID })
+    await patients.upsert({ profile: PROFILE })
+    await invoke(records, 'apply', live())
+    const page = await invoke(records, 'list', { page: 1, pageSize: 50 })
+    client.close()
+    expect({ name: page.items?.[0]?.patientName, leaked: JSON.stringify(page).includes('profileCiphertext') }).toEqual({ name: 'О’Коннор-Сидорова Лёля Алиевна', leaked: false })
   })
 
   it('links a legacy root-only active patient by its projected phone fingerprint', async () => {

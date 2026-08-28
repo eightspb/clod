@@ -6,8 +6,9 @@ vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }
 
 const ENTRY_ID = 'entry:clinic:1'
 const PATIENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
+const PATIENT_NAME = 'О’Коннор-Сидорова Лёля Алиевна'
 const ACTOR = `v1:${'a7'.repeat(32)}`
-const CALL = Object.freeze({ entryId: ENTRY_ID, patientId: PATIENT_ID, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
+const CALL = Object.freeze({ entryId: ENTRY_ID, patientId: PATIENT_ID, patientName: PATIENT_NAME, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
 const ACTIVE_CALL = Object.freeze({ ...CALL, entryId: 'entry:clinic:active', status: 'connected', endedAt: null, disconnectReason: null, finalizedAt: null })
 const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 })
 
@@ -56,6 +57,10 @@ describe('admin MANGO call API', () => {
     const path = '/api/admin/calls?page=1&pageSize=80&status=answered&lineNumber=%2B7%20812%20748-22-10&operatorExtension=123&from=2026-08-26T00%3A00%3A00.000Z&to=2026-08-27T00%3A00%3A00.000Z'
     const result = await responseValue(await GET_INDEX({ request: request(path) }))
     expect({ result, calls: fixture.state, leaked: /79215550129|callerCiphertext|callerFingerprint/.test(JSON.stringify(result)) }).toEqual({ result: { status: 200, cache: 'no-store', body: { data: [CALL], page: { number: 1, size: 50, total: 1, pages: 1 }, activeCalls: [ACTIVE_CALL], metrics: METRICS } }, calls: { list: [{ page: 1, pageSize: 50, status: 'answered', lineNumber: '78127482210', operatorExtension: '123', from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], active: [true], get: [], metrics: [{ from: '2026-08-26T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z' }], reveal: [], destroy: [] }, leaked: false })
+  })
+
+  it('keeps the linked patient name in the safe call projection', () => {
+    expect(safeCall(CALL).patientName).toBe(PATIENT_NAME)
   })
 
   it('rejects a finalized call from the current-call collection', async () => {

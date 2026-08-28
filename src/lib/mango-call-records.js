@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
-import { decryptContactPhone, encryptContactPhone, fingerprintContactPhone, maskContactPhone, normalizeContactPhone } from './contact-identity.js'
+import { decryptContactPhone, decryptPatientProfile, encryptContactPhone, fingerprintContactPhone, maskContactPhone, normalizeContactPhone } from './contact-identity.js'
 
-const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'clock', 'uuid'])
+const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'patientEncryptionKey', 'clock', 'uuid'])
 const LIVE_KEYS = Object.freeze(['kind', 'entryId', 'callId', 'seq', 'state', 'location', 'eventAt', 'callerPhone', 'lineNumber', 'operatorExtension', 'disconnectReason'])
 const FINAL_KEYS = Object.freeze(['kind', 'entryId', 'status', 'callerPhone', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt'])
 const REMOVE_KEYS = Object.freeze(['kind', 'entryId'])
@@ -71,8 +71,9 @@ function normalizeFactory(input) {
   const options = readRecord(input, FACTORY_KEYS, ['client', 'fingerprintKey', 'encryptionKey'], 'MANGO call record options')
   const clock = options.clock === undefined ? () => new Date() : options.clock
   const uuid = options.uuid === undefined ? randomUUID : options.uuid
-  if (typeof options.fingerprintKey !== 'string' || typeof options.encryptionKey !== 'string' || typeof clock !== 'function' || typeof uuid !== 'function') throw new TypeError('MANGO call security and runtime adapters are invalid')
-  return Object.freeze({ client: normalizeClient(options.client), fingerprintKey: options.fingerprintKey, encryptionKey: options.encryptionKey, clock, uuid })
+  const patientEncryptionKey = options.patientEncryptionKey ?? null
+  if (typeof options.fingerprintKey !== 'string' || typeof options.encryptionKey !== 'string' || (patientEncryptionKey !== null && typeof patientEncryptionKey !== 'string') || typeof clock !== 'function' || typeof uuid !== 'function') throw new TypeError('MANGO call security and runtime adapters are invalid')
+  return Object.freeze({ client: normalizeClient(options.client), fingerprintKey: options.fingerprintKey, encryptionKey: options.encryptionKey, patientEncryptionKey, clock, uuid })
 }
 
 function prohibitedTextCharacter(value) {
@@ -189,6 +190,32 @@ function publicCall(input) {
   const result = { entryId: identifier(input.entryId, 'Stored call ID'), patientId: input.patientId === null ? null : storedUuid(input.patientId), status: input.status, callerMask: input.callerMask, repeatCaller: booleanOrNull(input.repeatCaller), lineNumber: normalizeContactPhone(input.lineNumber), operatorExtension: input.operatorExtension, startedAt: timestamp(input.startedAt, 'Stored call start'), forwardedAt: timestamp(input.forwardedAt, 'Stored call forward', true), answeredAt: timestamp(input.answeredAt, 'Stored call answer', true), endedAt: timestamp(input.endedAt, 'Stored call end', true), waitSeconds: integerOrNull(input.waitSeconds), talkSeconds: integerOrNull(input.talkSeconds), disconnectReason: input.disconnectReason, finalizedAt: timestamp(input.finalizedAt, 'Stored call finalization', true), createdAt: timestamp(input.createdAt, 'Stored call creation'), updatedAt: timestamp(input.updatedAt, 'Stored call update'), piiDestroyedAt: timestamp(input.piiDestroyedAt, 'Stored call PII destruction', true) }
   if (!ALL_STATES.has(result.status) || (result.piiDestroyedAt === null && (typeof result.callerMask !== 'string' || !PHONE_MASK_PATTERN.test(result.callerMask) || result.repeatCaller === null)) || (result.piiDestroyedAt !== null && (result.callerMask !== null || result.repeatCaller !== null))) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   return Object.freeze(result)
+}
+
+function profileName(profile) {
+  return [profile.lastName, profile.firstName, profile.secondName].filter(Boolean).join(' ') || null
+}
+
+async function namedCalls(configuration, calls) {
+  const patientIds = [...new Set(calls.map(({ patientId }) => patientId).filter(Boolean))]
+  if (configuration.patientEncryptionKey === null || patientIds.length === 0) return Object.freeze(calls.map((call) => Object.freeze({ ...call, patientName: null })))
+  const placeholders = patientIds.map(() => '?').join(', ')
+  const selected = await configuration.client.execute({ sql: `SELECT id, profileCiphertext, piiDestroyedAt FROM Patient WHERE id IN (${placeholders}) LIMIT ?`, args: [...patientIds, patientIds.length + 1] })
+  const rows = readRows(selected)
+  if (rows.length !== patientIds.length) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  const names = new Map()
+  try {
+    for (const row of rows) {
+      const id = storedUuid(storedValue(row, 'id'))
+      const profileCiphertext = storedValue(row, 'profileCiphertext')
+      if (typeof profileCiphertext !== 'string' || storedValue(row, 'piiDestroyedAt') !== null || names.has(id)) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+      names.set(id, profileName(decryptPatientProfile({ envelope: profileCiphertext, key: configuration.patientEncryptionKey })))
+    }
+  } catch (error) {
+    if (error instanceof MangoCallRecordError) throw error
+    throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
+  }
+  return Object.freeze(calls.map((call) => Object.freeze({ ...call, patientName: call.patientId === null ? null : names.get(call.patientId) ?? null })))
 }
 
 function transientLock(error) {
@@ -409,20 +436,20 @@ async function list(configuration, raw) {
   const total = Number(countRows[0]?.total)
   if (countRows.length !== 1 || !Number.isSafeInteger(total) || total < 0) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   const selected = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall${where.sql} ORDER BY startedAt DESC, entryId LIMIT ? OFFSET ?`, args: [...where.args, input.pageSize, (input.page - 1) * input.pageSize] })
-  const items = readRows(selected).map(publicCall)
+  const items = await namedCalls(configuration, readRows(selected).map(publicCall))
   return Object.freeze({ items: Object.freeze(items), page: input.page, pageSize: input.pageSize, total, pages: total === 0 ? 0 : Math.ceil(total / input.pageSize) })
 }
 
 async function active(configuration) {
   const selected = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall WHERE status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') ORDER BY startedAt DESC, entryId`, args: [] })
-  return Object.freeze(readRows(selected).map(publicCall))
+  return namedCalls(configuration, readRows(selected).map(publicCall))
 }
 
 async function get(configuration, raw) {
   const input = readRecord(raw, ENTRY_KEYS, ENTRY_KEYS, 'MANGO call detail')
   const entryId = identifier(input.entryId, 'MANGO entry ID')
   const result = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall WHERE entryId = ? LIMIT 2`, args: [entryId] })
-  const rows = readRows(result).map(publicCall)
+  const rows = await namedCalls(configuration, readRows(result).map(publicCall))
   if (rows.length === 0) throw new MangoCallRecordError('CALL_NOT_FOUND')
   if (rows.length !== 1) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   return rows[0]

@@ -21,7 +21,7 @@ function history() {
 }
 
 function calls() {
-  return createMangoCallRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('MANGO_CALL_ENCRYPTION_KEY') })
+  return createMangoCallRecords({ client: db.$client, fingerprintKey: environment('CONTACT_FINGERPRINT_KEY'), encryptionKey: environment('MANGO_CALL_ENCRYPTION_KEY'), patientEncryptionKey: environment('PATIENT_ENCRYPTION_KEY') })
 }
 
 function log(stage) {
