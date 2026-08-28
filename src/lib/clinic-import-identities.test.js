@@ -107,6 +107,15 @@ describe('resolveClinicImportIdentities', () => {
     expect({ patients: result.patients.length, evidence: result.evidenceCounts.sameFioBirthDate }).toEqual({ patients: 1, evidence: 1 })
   })
 
+  it('keeps one primary phone matching the merged patient profile when source cards have different primary phones', () => {
+    const first = row({ sourceRow: 48, ehr: ehr(248), clinicCard: 'К-48', contacts: [contact('phone', '79215550148', true)] })
+    const second = row({ sourceRow: 49, ehr: ehr(249), clinicCard: 'К-48', contacts: [contact('phone', '79215550149', true)] })
+    const result = resolve([first, second])
+    const phones = result.contacts.filter(({ kind }) => kind === 'phone')
+    const primary = phones.filter(({ isPrimary }) => isPrimary)
+    expect({ patients: result.patients.length, phones: phones.length, primary: primary.length, primaryValue: primary[0]?.value, profilePhone: result.patients[0].profile.primaryPhone }).toEqual({ patients: 1, phones: 2, primary: 1, primaryValue: '79215550149', profilePhone: '79215550149' })
+  })
+
   it('keeps equal full names and birthdays on different clinic cards as separate identities', () => {
     const first = row({ sourceRow: 52, ehr: ehr(252), clinicCard: 'РАЗНАЯ-52' })
     const second = row({ sourceRow: 53, ehr: ehr(253), clinicCard: 'РАЗНАЯ-53' })
@@ -126,11 +135,18 @@ describe('resolveClinicImportIdentities', () => {
     expect({ patients: result.patients.length, evidence: result.evidenceCounts[evidenceCode], issues: issueCodes(result) }).toEqual({ patients: 2, evidence: 0, issues: ['INSUFFICIENT_IDENTITY_EVIDENCE'] })
   })
 
-  it('keeps a same-card surname change separate without independent corroboration', () => {
+  it('keeps a chronological same-card surname change separate without independent evidence', () => {
     const first = row({ sourceRow: 57, ehr: ehr(257), clinicCard: 'КАРТА-57', profile: { lastName: 'Прежняя' }, observedAt: '2023-01-01T00:00:00.000Z' })
     const second = row({ sourceRow: 58, ehr: ehr(258), clinicCard: 'КАРТА-57', profile: { lastName: 'Текущая' }, observedAt: '2025-01-01T00:00:00.000Z' })
     const result = resolve([first, second])
     expect({ patients: result.patients.length, evidence: result.evidenceCounts.surnameChange, issues: issueCodes(result) }).toEqual({ patients: 2, evidence: 0, issues: ['INSUFFICIENT_IDENTITY_EVIDENCE'] })
+  })
+
+  it('keeps a same-card surname change with one missing birthday separate without independent evidence', () => {
+    const first = row({ sourceRow: 74, ehr: ehr(274), clinicCard: 'КАРТА-74', profile: { lastName: 'Прежняя' }, observedAt: '2023-01-01T00:00:00.000Z' })
+    const second = row({ sourceRow: 75, ehr: ehr(275), clinicCard: 'КАРТА-74', profile: { lastName: 'Текущая', birthDate: null }, observedAt: '2025-01-01T00:00:00.000Z' })
+    const result = resolve([first, second])
+    expect({ patients: result.patients.length, evidence: result.evidenceCounts.surnameChangeMissingBirthDate, issues: issueCodes(result) }).toEqual({ patients: 2, evidence: 0, issues: ['INSUFFICIENT_IDENTITY_EVIDENCE'] })
   })
 
   it('merges a same-card full-name duplicate when only one birthday is missing', () => {
@@ -171,12 +187,12 @@ describe('resolveClinicImportIdentities', () => {
     expect({ current: result.patients[0].profile.lastName, history: result.nameHistory.map(({ lastName, reason }) => [lastName, reason]) }).toEqual({ current: 'Рощина', history: [['Лунёва', 'surname_change']] })
   })
 
-  it('merges a confirmed surname change when one birthday is missing and a phone matches', () => {
+  it('merges a confirmed surname change with one missing birthday without chronology when a phone matches', () => {
     const shared = contact('phone', '79215550129', true)
-    const first = row({ sourceRow: 8, ehr: ehr(208), clinicCard: '546/1', profile: { lastName: 'Ёлкина', firstName: 'Ася', middleName: 'Тимуровна' }, contacts: [shared] })
-    const second = row({ sourceRow: 9, ehr: ehr(209), clinicCard: '546/1', profile: { lastName: 'Дальняя', firstName: 'Ася', middleName: 'Тимуровна', birthDate: null }, contacts: [shared], observedAt: '2025-02-03T09:00:00.000Z' })
+    const first = row({ sourceRow: 8, ehr: ehr(208), clinicCard: '546/1', profile: { lastName: 'Ёлкина', firstName: 'Ася', middleName: 'Тимуровна' }, contacts: [shared], observedAt: null })
+    const second = row({ sourceRow: 9, ehr: ehr(209), clinicCard: '546/1', profile: { lastName: 'Дальняя', firstName: 'Ася', middleName: 'Тимуровна', birthDate: null }, contacts: [shared], observedAt: null })
     const result = resolve([first, second])
-    expect({ patients: result.patients.length, history: result.nameHistory[0].lastName, birthDate: result.patients[0].profile.birthDate, evidence: result.evidenceCounts.surnameChangeMissingBirthDate }).toEqual({ patients: 1, history: 'Ёлкина', birthDate: '1988-02-29', evidence: 1 })
+    expect({ patients: result.patients.length, history: [result.nameHistory[0].lastName, result.nameHistory[0].reason], birthDate: result.patients[0].profile.birthDate, evidence: result.evidenceCounts.surnameChangeMissingBirthDate }).toEqual({ patients: 1, history: ['Ёлкина', 'identity_alias'], birthDate: '1988-02-29', evidence: 1 })
   })
 
   it('fills each null current field from the highest-priority trusted row before chronology', () => {
@@ -215,12 +231,20 @@ describe('resolveClinicImportIdentities', () => {
     expect(results.map(({ patients }) => ({ lastName: patients[0].profile.lastName, firstSeenAt: patients[0].firstSeenAt, lastSeenAt: patients[0].lastSeenAt }))).toEqual([{ lastName: 'Датированная', firstSeenAt: '2020-01-01T00:00:00.000Z', lastSeenAt: '2020-01-01T00:00:00.000Z' }, { lastName: 'Датированная', firstSeenAt: '2020-01-01T00:00:00.000Z', lastSeenAt: '2020-01-01T00:00:00.000Z' }])
   })
 
-  it('does not infer surname chronology from unknown observation dates', () => {
+  it('merges a corroborated known-birthday surname change without chronology', () => {
     const shared = contact('phone', '79215550171', true)
     const first = row({ sourceRow: 71, ehr: ehr(271), clinicCard: 'КАРТА-71', profile: { lastName: 'Прежняя' }, contacts: [shared], observedAt: null })
     const second = row({ sourceRow: 72, ehr: ehr(272), clinicCard: 'КАРТА-71', profile: { lastName: 'Текущая' }, contacts: [shared], observedAt: null })
     const result = resolve([first, second])
-    expect({ patients: result.patients.length, surnameChanges: result.evidenceCounts.surnameChange }).toEqual({ patients: 2, surnameChanges: 0 })
+    expect({ patients: result.patients.length, surnameChanges: result.evidenceCounts.surnameChange, history: result.nameHistory.map(({ reason }) => reason) }).toEqual({ patients: 1, surnameChanges: 1, history: ['identity_alias'] })
+  })
+
+  it('does not infer surname chronology from equal trusted timestamps', () => {
+    const shared = contact('email', 'equal-chronology@example.test')
+    const first = row({ sourceRow: 76, ehr: ehr(276), clinicCard: 'КАРТА-76', profile: { lastName: 'Вариант-А' }, contacts: [shared], observedAt: '2024-06-01T08:30:00.000Z' })
+    const second = row({ sourceRow: 77, ehr: ehr(277), clinicCard: 'КАРТА-76', profile: { lastName: 'Вариант-Б' }, contacts: [shared], observedAt: '2024-06-01T08:30:00.000Z' })
+    const results = [resolve([first, second]), resolve([second, first])]
+    expect(results.map(({ patients, nameHistory }) => ({ patients: patients.length, current: patients[0].profile.lastName, history: nameHistory.map(({ lastName, reason }) => [lastName, reason]) }))).toEqual([{ patients: 1, current: 'Вариант-Б', history: [['Вариант-А', 'identity_alias']] }, { patients: 1, current: 'Вариант-Б', history: [['Вариант-А', 'identity_alias']] }])
   })
 
   it('merges only the confirmed pair on a mixed three-row clinic card', () => {
@@ -310,6 +334,16 @@ describe('resolveClinicImportIdentities', () => {
     expect({ patients: result.patients.length, issues: issueCodes(result) }).toEqual({ patients: 1, issues: [] })
   })
 
+  it('counts only one persisted issue when several pairwise decisions resolve to the same patient pair', () => {
+    const first = row({ sourceRow: 310, ehr: ehr(310), clinicCard: 'ПАРА-А' })
+    const firstDuplicate = row({ sourceRow: 311, ehr: ehr(310), clinicCard: 'ПАРА-А' })
+    const second = row({ sourceRow: 312, ehr: ehr(312), clinicCard: 'ПАРА-Б' })
+    const secondDuplicate = row({ sourceRow: 313, ehr: ehr(312), clinicCard: 'ПАРА-Б' })
+    const result = resolve([secondDuplicate, first, second, firstDuplicate])
+    const persisted = result.issues.filter(({ code }) => code === 'INSUFFICIENT_IDENTITY_EVIDENCE').length
+    expect({ patients: result.patients.length, persisted, counted: result.evidenceCounts.insufficientEvidence }).toEqual({ patients: 2, persisted: 1, counted: 1 })
+  })
+
   it('normalizes a hostile proxy failure without invoking its prototype trap', () => {
     const secret = 'private-hostile-proxy'
     const hostileError = new Proxy({}, { getPrototypeOf: () => { throw new Error(secret) } })
@@ -347,6 +381,13 @@ describe('resolveClinicImportIdentities', () => {
     const rows = [row({ sourceRow: 30, ehr: ehr(230), privateData: { passport: 'synthetic-digits' }, consents: [consent] }), row({ sourceRow: 31, ehr: ehr(231), clinicCard: 'К-30' })]
     const result = resolve(rows)
     expect({ privateData: result.privateData[0].value, consents: result.consents.map(({ status }) => status), links: result.sourceLinks.map(({ source }) => source.sourceRow).sort((a, b) => a - b) }).toEqual({ privateData: { passport: 'synthetic-digits' }, consents: ['not_granted'], links: [30, 31] })
+  })
+
+  it('deeply preserves older private fields when a newer merged card leaves them empty', () => {
+    const older = row({ sourceRow: 505, ehr: ehr(505), clinicCard: 'ПД-505', observedAt: '2022-01-01T00:00:00.000Z', privateData: { passport: { series: '1111', number: null, issuedBy: 'Синтетический орган' }, address: { locality: null, streetAddress: 'Синтетическая улица' }, tags: ['старая'] } })
+    const newer = row({ sourceRow: 506, ehr: ehr(505), clinicCard: 'ПД-505', observedAt: '2024-01-01T00:00:00.000Z', privateData: { passport: { series: null, number: '222222', issuedBy: null }, address: { locality: 'Синтетический город', streetAddress: null }, tags: ['новая'] } })
+    const result = resolve([newer, older])
+    expect(result.privateData[0].value).toEqual({ passport: { series: '1111', number: '222222', issuedBy: 'Синтетический орган' }, address: { locality: 'Синтетический город', streetAddress: 'Синтетическая улица' }, tags: ['старая', 'новая'] })
   })
 
   it('creates one minimal patient for an unknown visit EHR with exactly one MEDESK row', () => {

@@ -189,7 +189,7 @@ const PatientNameHistory = defineTable({
     sourceName: column.text(),
     sourceIdentifierCiphertext: column.text({ optional: true }),
     observedAt: column.text({ optional: true }),
-    reason: column.text({ enum: ['surname_change', 'source_correction'] }),
+    reason: column.text({ enum: ['surname_change', 'identity_alias', 'source_correction'] }),
     piiDestroyedAt: column.text({ optional: true }),
   },
   indexes: [

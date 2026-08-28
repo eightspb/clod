@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash } from 'node:crypto'
-import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rm, symlink, unlink, writeFile } from 'node:fs/promises'
+import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rm, symlink, truncate, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, onTestFinished } from 'vitest'
@@ -15,7 +15,7 @@ const MANIFEST_HASH = createHash('sha256').update(JSON.stringify({ version: 1, f
 const SECRET_VALUES = Object.freeze(['Скрытая Фамилия', '+79991112233', '0000000000007001', 'Скрытый комментарий', 'Скрытый адрес', 'Скрытая услуга', 'female'])
 const IDENTITY_EVIDENCE = Object.freeze({ exactEhr: 0, sameFioBirthDate: 0, patronymicCorrection: 0, surnameChange: 0, sameFioMissingBirthDate: 0, surnameChangeMissingBirthDate: 0, componentConflicts: 0, conflictingStrongIdentifiers: 0, insufficientEvidence: 0, sharedCardDifferentPeople: 0, supplementalPatients: 0, supplementalEnrichments: 0, supplementalIssues: 0 })
 const VISIT_EVIDENCE = Object.freeze({ total: 1, linked: 1, ambiguous: 0, unmatched: 0, exactEhr: 1, exactClinicCard: 0, leadingZeroClinicCard: 0, phoneCompatibleName: 0, exactFullName: 0, conflictingCommentEvidence: 0, missingDate: 0, emptyStatus: 0, shortRow: 0, invalidStartDate: 0, invalidEndDate: 0, controlCharValue: 0, valueTooLarge: 0 })
-const CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 1, patients: 1, visits: 1, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0 })
+const CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 1, patients: 1, visits: 1, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0, nameHistoryRecords: 1 })
 
 function source(sourceRow) {
   return Object.freeze({ sourceName: SOURCE_NAMES.pd, sourceRow })
@@ -48,9 +48,9 @@ function bundle() {
     visitIssues: Object.freeze([]),
     normalizationIssues: Object.freeze([]),
     sourceRows: Object.freeze([
-      Object.freeze({ id: '00000000-0000-8000-8000-000000000009', sourceRole: 'pd', sourceName: SOURCE_NAMES.pd, sourceRow: 2, patientId, historicalVisitId: null, payload: patientPayload, payloadHash: payloadHash(patientPayload), issueCodes: Object.freeze([]) }),
-      Object.freeze({ id: '00000000-0000-8000-8000-000000000011', sourceRole: 'visits', sourceName: SOURCE_NAMES.visits, sourceRow: 2, patientId, historicalVisitId, payload: visitPayload, payloadHash: payloadHash(visitPayload), issueCodes: Object.freeze([]) }),
-      Object.freeze({ id: '00000000-0000-8000-8000-000000000012', sourceRole: 'invoices', sourceName: SOURCE_NAMES.invoices, sourceRow: 2, patientId: null, historicalVisitId: null, payload: invoicePayload, payloadHash: payloadHash(invoicePayload), issueCodes: Object.freeze([]) })
+      Object.freeze({ id: '00000000-0000-8000-8000-000000000009', sourceRole: 'pd', sourceName: SOURCE_NAMES.pd, sourceRow: 2, patientId, historicalVisitId: null, birthDateValid: true, payload: patientPayload, payloadHash: payloadHash(patientPayload), issueCodes: Object.freeze([]) }),
+      Object.freeze({ id: '00000000-0000-8000-8000-000000000011', sourceRole: 'visits', sourceName: SOURCE_NAMES.visits, sourceRow: 2, patientId, historicalVisitId, birthDateValid: null, payload: visitPayload, payloadHash: payloadHash(visitPayload), issueCodes: Object.freeze([]) }),
+      Object.freeze({ id: '00000000-0000-8000-8000-000000000012', sourceRole: 'invoices', sourceName: SOURCE_NAMES.invoices, sourceRow: 2, patientId: null, historicalVisitId: null, birthDateValid: null, payload: invoicePayload, payloadHash: payloadHash(invoicePayload), issueCodes: Object.freeze([]) })
     ]),
     invoices: Object.freeze([Object.freeze({ id: '00000000-0000-8000-8000-000000000010', sourceName: SOURCE_NAMES.invoices, sourceRow: 2, historicalVisitId, status: 'incomplete_source', payload: invoicePayload, payloadHash: payloadHash(invoicePayload) })]),
     attachments: Object.freeze([]),
@@ -90,7 +90,7 @@ function changedBundle(change) {
 function ambiguousBundle(change = () => {}) {
   return changedBundle((value) => {
     const patientId = '00000000-0000-8000-8000-000000000081'
-    value.patients.push({ ...value.patients[0], id: patientId, isSupplemental: true })
+    value.patients.push({ ...value.patients[0], id: patientId, profile: { ...value.patients[0].profile, primaryPhone: null }, isSupplemental: true })
     value.externalIdentifiers.push({ ...value.externalIdentifiers[0], id: '00000000-0000-8000-8000-000000000082', patientId, value: '0000000000007002', fingerprint: `v1:${'5'.repeat(64)}`, globalFingerprint: `v1:${'6'.repeat(64)}`, identityKey: `v1:${'7'.repeat(64)}` })
     value.privateData.push({ ...value.privateData[0], id: '00000000-0000-8000-8000-000000000083', patientId })
     value.consents.push({ ...value.consents[0], id: '00000000-0000-8000-8000-000000000086', patientId, status: 'not_granted' })
@@ -117,7 +117,7 @@ function ambiguousBundle(change = () => {}) {
     value.visitEvidenceCounts.exactFullName = 1
     value.report.controls.medeskEhrIdentifiers = 2
     value.report.controls.patients = 2
-    value.report.controls.validBirthDates = 2
+    value.report.controls.validBirthDates = 1
     value.report.controls.supplementalPatients = 1
     change(value)
   })
@@ -223,12 +223,22 @@ describe('clinic import encrypted stage', () => {
     ['orphan patient reference', (value) => { value.contacts[0].patientId = '00000000-0000-8000-8000-000000000099' }],
     ['duplicate global identifier fingerprint', (value) => { value.externalIdentifiers.push({ ...value.externalIdentifiers[0], id: '00000000-0000-8000-8000-000000000098' }) }],
     ['source row count drift', (value) => { value.report.sourceRows.total = 4 }],
+    ['birth-date fact count drift', (value) => { value.report.controls.validBirthDates = 0 }],
+    ['missing primary birth-date fact', (value) => { delete value.sourceRows[0].birthDateValid }],
+    ['nullable primary birth-date fact', (value) => { value.sourceRows[0].birthDateValid = null }],
+    ['birth-date fact on a non-primary row', (value) => { value.sourceRows[1].birthDateValid = false }],
     ['source payload hash drift', (value) => { value.sourceRows[0].payloadHash = 'f'.repeat(64) }],
     ['appointment fingerprint drift', (value) => { value.historicalVisits[0].appointmentIdFingerprint = null }],
     ['duplicate patient consent', (value) => { value.consents.push({ ...value.consents[0], id: '00000000-0000-8000-8000-000000000097' }); value.report.patients.consents = 2 }],
     ['missing patient consent', (value) => { value.consents = []; value.report.patients.consents = 0 }],
     ['unsupported patient consent status', (value) => { value.consents[0].status = 'unknown' }],
     ['forged invoice linkage without an appointment id', (value) => { delete value.invoices[0].payload.values.appointment_id; value.invoices[0].payloadHash = payloadHash(value.invoices[0].payload); const sourceRow = value.sourceRows.find(({ sourceRole }) => sourceRole === 'invoices'); sourceRow.payloadHash = payloadHash(sourceRow.payload) }],
+    ['inverted patient observation range', (value) => { value.patients[0].firstSeenAt = '2025-01-01T00:00:00.000Z' }],
+    ['one-sided patient observation range', (value) => { value.patients[0].firstSeenAt = null }],
+    ['inverted contact observation range', (value) => { value.contacts[0].firstSeenAt = '2025-01-01T00:00:00.000Z' }],
+    ['one-sided contact observation range', (value) => { value.contacts[0].lastSeenAt = null }],
+    ['surname change without proven earlier chronology', (value) => { value.nameHistory[0].observedAt = null }],
+    ['surname change simultaneous with current chronology', (value) => { value.nameHistory[0].observedAt = value.patients[0].lastSeenAt }],
     ['timezone-coerced timestamp', (value) => { value.patients[0].firstSeenAt = '2020-01-01T03:00:00+03:00' }],
     ['calendar-invalid timestamp', (value) => { value.patients[0].firstSeenAt = '2024-02-30T00:00:00.000Z' }]
   ])('rejects a relational graph with %s before writing', async (_label, change) => {
@@ -240,6 +250,8 @@ describe('clinic import encrypted stage', () => {
   it.each([
     ['duplicate patient identity key', (value) => { value.externalIdentifiers.push({ ...value.externalIdentifiers[0], id: '00000000-0000-8000-8000-000000000091', system: 'clinic_card', fingerprint: `v1:${'8'.repeat(64)}`, globalFingerprint: null }); value.report.patients.externalIdentifiers = 2 }],
     ['duplicate patient contact fingerprint', (value) => { value.contacts.push({ ...value.contacts[0], id: '00000000-0000-8000-8000-000000000092' }); value.report.patients.contacts = 2 }],
+    ['multiple primary patient phones', (value) => { value.contacts.push({ ...value.contacts[0], id: '00000000-0000-8000-8000-000000000092', value: '+79991112244', fingerprint: `v1:${'5'.repeat(64)}`, mask: '+7 •••••••• 44' }); value.report.patients.contacts = 2 }],
+    ['primary phone different from the patient profile', (value) => { value.contacts[0].value = '+79991112244'; value.contacts[0].fingerprint = `v1:${'5'.repeat(64)}`; value.contacts[0].mask = '+7 •••••••• 44' }],
     ['candidate on a linked visit', (value) => { value.visitCandidates.push({ id: '00000000-0000-8000-8000-000000000093', historicalVisitId: value.historicalVisits[0].id, patientId: value.patients[0].id, evidenceCode: 'EXACT_EHR', score: 100 }) }],
     ['source patient different from its linked visit', (value) => { value.sourceRows.find(({ sourceRole }) => sourceRole === 'visits').patientId = null }],
     ['one issue id reused across collections', (value) => { const id = '00000000-0000-8000-8000-000000000094'; value.identityIssues.push({ id, code: 'INCOMPLETE_PATIENT_NAME', source: source(2), candidatePatientIds: [value.patients[0].id] }); value.normalizationIssues.push({ id, code: 'INVALID_NORMALIZED_VALUE', source: source(2), field: 'name' }); value.report.issues.identity = 1; value.report.issues.normalization = 1 }]
@@ -313,7 +325,7 @@ describe('clinic import encrypted stage', () => {
     expect({ code: result.error?.code, files: await readdir(join(location.root, 'outside')) }).toEqual({ code: 'INVALID_STAGE_INPUT', files: [] })
   })
 
-  it('derives merge evidence aggregates from immutable per-merge records', async () => {
+  it('keeps exact pre-merge birth-date controls when primary rows merge', async () => {
     const location = await paths()
     const input = changedBundle((value) => {
       const duplicate = structuredClone(value.sourceRows[0])
@@ -327,22 +339,50 @@ describe('clinic import encrypted stage', () => {
       value.report.sourceRows.byRole.pd = 2
       value.report.controls.primaryRows = 2
       value.report.controls.primaryMerges = 1
+      value.report.controls.validBirthDates = 2
       value.identityMergeEvidence = [{ ordinal: 1, patientId: value.patients[0].id, reason: 'sameFioBirthDate', sources: [source(2), source(3)] }]
-      value.identityEvidenceCounts.exactEhr = 1
-      value.report.patients.evidenceCounts.exactEhr = 1
+      value.identityEvidenceCounts.sameFioBirthDate = 1
+      value.report.patients.evidenceCounts.sameFioBirthDate = 1
     })
-    const result = await captured(() => writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() }))
-    expect({ code: result.error?.code, files: await readdir(join(location.root, 'outside')) }).toEqual({ code: 'INVALID_STAGE_INPUT', files: [] })
+    const written = await writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    const opened = await readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: written.planHash })
+    expect({ patients: opened.plan.patients.length, primaryRows: opened.plan.report.controls.primaryRows, validBirthDates: opened.plan.report.controls.validBirthDates }).toEqual({ patients: 1, primaryRows: 2, validBirthDates: 2 })
+  })
+
+  it('preserves the identity-alias name-history reason through protection', async () => {
+    const location = await paths()
+    const input = changedBundle((value) => { value.nameHistory[0].reason = 'identity_alias' })
+    const written = await writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    const opened = await readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: written.planHash })
+    expect(opened.plan.nameHistory[0].reason).toBe('identity_alias')
   })
 
   it('rejects an aggregate bundle budget before sealing or materializing all repeated payloads', async () => {
     const location = await paths()
     const input = structuredClone(bundle())
     const row = { ...input.sourceRows[0], payload: { values: { huge: 'Ж'.repeat(20_000) }, structuralIssues: [] } }
-    input.sourceRows = Array(2_000).fill(row)
+    input.sourceRows = Array(14_000).fill(row)
     let randomReads = 0
     const result = await captured(() => writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: (size) => { randomReads += 1; return Buffer.alloc(size, 1) } }))
     expect({ code: result.error?.code, randomReads, files: await readdir(join(location.root, 'outside')) }).toEqual({ code: 'INPUT_TOO_COMPLEX', randomReads: 0, files: [] })
+  })
+
+  it('keeps input-work above the former stage-byte cap available for semantic validation', async () => {
+    const location = await paths()
+    const input = structuredClone(bundle())
+    const row = { ...input.sourceRows[0], payload: { values: { huge: 'Ж'.repeat(20_000) }, structuralIssues: [] } }
+    input.sourceRows = Array(2_000).fill(row)
+    let randomReads = 0
+    const result = await captured(() => writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: (size) => { randomReads += 1; return Buffer.alloc(size, 1) } }))
+    expect({ code: result.error?.code, randomReads, files: await readdir(join(location.root, 'outside')) }).toEqual({ code: 'INVALID_STAGE_INPUT', randomReads: 0, files: [] })
+  })
+
+  it('rejects a sparse artifact above the read boundary before allocating it', async () => {
+    const location = await paths()
+    await writeFile(location.stagePath, '{}')
+    await truncate(location.stagePath, 512 * 1024 * 1024 + 1)
+    const result = await captured(() => readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: MANIFEST_HASH, expectedPlanHash: 'a'.repeat(64) }))
+    expect(result.error?.code).toBe('INPUT_TOO_COMPLEX')
   })
 
   it('snapshots a collection own length descriptor without invoking a proxy length getter', async () => {
@@ -421,6 +461,14 @@ describe('clinic import encrypted stage', () => {
     const location = await paths()
     const written = await writeClinicImportStage({ bundle: bundle(), stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
     const planHash = await authenticatedMutation(location.stagePath, (plan) => { plan.report.visits.linked = 2 })
+    const result = await captured(() => readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: planHash }))
+    expect({ name: result.error?.name, code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ name: 'ClinicImportStageError', code: 'STAGE_INTEGRITY_FAILED', frozen: true })
+  })
+
+  it('rejects an authenticated stage whose primary birth-date fact no longer matches its control', async () => {
+    const location = await paths()
+    const written = await writeClinicImportStage({ bundle: bundle(), stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
+    const planHash = await authenticatedMutation(location.stagePath, (plan) => { plan.sourceRows[0].birthDateValid = false })
     const result = await captured(() => readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: planHash }))
     expect({ name: result.error?.name, code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ name: 'ClinicImportStageError', code: 'STAGE_INTEGRITY_FAILED', frozen: true })
   })
@@ -544,7 +592,7 @@ describe('clinic import encrypted stage', () => {
 
   it('preserves unknown patient, contact, consent and name-history chronology as null', async () => {
     const location = await paths()
-    const input = changedBundle((value) => { value.patients[0].firstSeenAt = null; value.patients[0].lastSeenAt = null; value.contacts[0].firstSeenAt = null; value.contacts[0].lastSeenAt = null; value.consents[0].observedAt = null; value.nameHistory[0].observedAt = null })
+    const input = changedBundle((value) => { value.patients[0].firstSeenAt = null; value.patients[0].lastSeenAt = null; value.contacts[0].firstSeenAt = null; value.contacts[0].lastSeenAt = null; value.consents[0].observedAt = null; value.nameHistory[0].observedAt = null; value.nameHistory[0].reason = 'identity_alias' })
     const written = await writeClinicImportStage({ bundle: input, stagePath: location.stagePath, databasePath: location.databasePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY }, { randomBytes: randomSource() })
     const opened = await readClinicImportStage({ stagePath: location.stagePath, repositoryPath: location.repositoryPath, encryptionKey: ENCRYPTION_KEY, expectedManifestHash: written.manifestHash, expectedPlanHash: written.planHash })
     expect({ patient: [opened.plan.patients[0].firstSeenAt, opened.plan.patients[0].lastSeenAt], contact: [opened.plan.contacts[0].firstSeenAt, opened.plan.contacts[0].lastSeenAt], consent: opened.plan.consents[0].observedAt, name: opened.plan.nameHistory[0].observedAt }).toEqual({ patient: [null, null], contact: [null, null], consent: null, name: null })

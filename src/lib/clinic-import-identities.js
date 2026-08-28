@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto'
 import { maskContactPhone } from './contact-identity.js'
+import { fingerprintClinicImportIdentity } from './clinic-import-fingerprints.js'
 import { normalizeClinicCard, normalizeImportEmail, normalizeImportPhone, normalizeImportText, normalizeMedeskEhr, normalizePassportDigits, normalizeUtcDatePrefix, sourceReference } from './clinic-import-normalization.js'
 
 const VERSION = 'v1'
@@ -13,6 +14,7 @@ const CONSENT_KEYS = Object.freeze(['observedAt', 'status', 'type'])
 const VISIT_KEYS = Object.freeze(['ehr', 'profile', 'source'])
 const VISIT_PROFILE_KEYS = Object.freeze(['birthDate', 'firstName', 'lastName', 'middleName'])
 const ISSUE_CODES = new Set(['COMPONENT_IDENTITY_CONFLICT', 'CONFLICTING_STRONG_IDENTIFIER', 'INCOMPLETE_PATIENT_NAME', 'INSUFFICIENT_IDENTITY_EVIDENCE', 'SHARED_CARD_DIFFERENT_PEOPLE', 'SUPPLEMENTAL_EHR_AMBIGUOUS', 'SUPPLEMENTAL_EHR_NOT_FOUND', 'SUPPLEMENTAL_INSUFFICIENT_EVIDENCE', 'SUPPLEMENTAL_NAME_ONLY_MATCH'])
+const ISSUE_EVIDENCE_KEYS = Object.freeze({ COMPONENT_IDENTITY_CONFLICT: 'componentConflicts', CONFLICTING_STRONG_IDENTIFIER: 'conflictingStrongIdentifiers', INSUFFICIENT_IDENTITY_EVIDENCE: 'insufficientEvidence', SHARED_CARD_DIFFERENT_PEOPLE: 'sharedCardDifferentPeople' })
 const IDENTITY_ERROR_CODES = new Set(['IDENTITY_INVARIANT_FAILED', 'INPUT_TOO_COMPLEX', 'INVALID_IDENTITY_INPUT'])
 const IDENTITY_ERRORS = new WeakSet()
 const PRIVATE_MAGIC_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
@@ -269,10 +271,6 @@ function independentMatch(first, second) {
   return intersects(first.contacts, second.contacts) || ['passport', 'contract'].some((field) => first.identifiers[field] !== null && first.identifiers[field] === second.identifiers[field])
 }
 
-function chronological(first, second) {
-  return first.observedAt !== null && second.observedAt !== null && first.observedAt !== second.observedAt
-}
-
 function sameCard(first, second) {
   return first.clinicCard !== null && first.clinicCard === second.clinicCard
 }
@@ -291,10 +289,10 @@ function mergeEvidence(first, second) {
   if (first.ehr !== null && first.ehr === second.ehr) return Object.freeze({ merge: true, code: null, reason: 'exactEhr' })
   if (sameFullName && sameBirthDate && sameCard(first, second)) return Object.freeze({ merge: true, code: null, reason: 'sameFioBirthDate' })
   if (sameLastName && sameFirstName && patronymicChanged && sameBirthDate && sameCard(first, second) && independentMatch(first, second)) return Object.freeze({ merge: true, code: null, reason: 'patronymicCorrection' })
-  if (surnameChanged && sameBirthDate && sameCard(first, second) && independentMatch(first, second) && chronological(first, second)) return Object.freeze({ merge: true, code: null, reason: 'surnameChange' })
+  if (surnameChanged && sameBirthDate && sameCard(first, second) && independentMatch(first, second)) return Object.freeze({ merge: true, code: null, reason: 'surnameChange' })
   if (sameFullName && oneBirthDateMissing && sameCard(first, second)) return Object.freeze({ merge: true, code: null, reason: 'sameFioMissingBirthDate' })
   if (sameFullName && bothBirthDatesMissing && sameCard(first, second) && independentMatch(first, second)) return Object.freeze({ merge: true, code: null, reason: 'sameFioMissingBirthDate' })
-  if (surnameChanged && oneBirthDateMissing && sameCard(first, second) && independentMatch(first, second) && chronological(first, second)) return Object.freeze({ merge: true, code: null, reason: 'surnameChangeMissingBirthDate' })
+  if (surnameChanged && oneBirthDateMissing && sameCard(first, second) && independentMatch(first, second)) return Object.freeze({ merge: true, code: null, reason: 'surnameChangeMissingBirthDate' })
   if (sameCard(first, second) && (!sameGivenName || (first.profile.birthDate !== null && second.profile.birthDate !== null && !sameBirthDate))) return Object.freeze({ merge: false, code: 'SHARED_CARD_DIFFERENT_PEOPLE', reason: null })
   if (sameFullName || sameGivenName || sameCard(first, second)) return Object.freeze({ merge: false, code: 'INSUFFICIENT_IDENTITY_EVIDENCE', reason: null })
   return Object.freeze({ merge: false, code: null, reason: null })
@@ -432,7 +430,7 @@ function hmac(keyValue, domain, value) {
 }
 
 function fingerprint(keyValue, domain, value) {
-  return `${VERSION}:${hmac(keyValue, domain, value).toString('hex')}`
+  return fingerprintClinicImportIdentity({ key: keyValue, domain, value })
 }
 
 function uuid(keyValue, domain, value) {
@@ -488,9 +486,26 @@ function profileFrom(rows) {
   return Object.freeze({ lastName: field('lastName'), firstName: field('firstName'), middleName: field('middleName'), birthDate: field('birthDate'), gender: field('gender'), primaryPhone: rowPhone(canonical) ?? fallback.map(rowPhone).find((value) => value !== null) ?? null })
 }
 
+function mergedPrivateValue(previous, next) {
+  if (next === null) return previous === undefined ? null : previous
+  if (Array.isArray(next)) {
+    const values = Array.isArray(previous) ? [...previous] : []
+    const known = new Set(values.map(canonical))
+    for (const value of next) if (!known.has(canonical(value))) { values.push(value); known.add(canonical(value)) }
+    return values
+  }
+  if (typeof next === 'object') {
+    const earlier = previous !== null && typeof previous === 'object' && !Array.isArray(previous) ? previous : {}
+    const result = {}
+    for (const key of [...new Set([...Object.keys(earlier), ...Object.keys(next)])].sort()) result[key] = Object.hasOwn(next, key) ? mergedPrivateValue(earlier[key], next[key]) : earlier[key]
+    return result
+  }
+  return next
+}
+
 function mergedPrivateData(rows) {
-  const result = {}
-  for (const row of [...rows].sort((first, second) => newest(second, first))) for (const [field, value] of Object.entries(row.privateData)) result[field] = value
+  let result = {}
+  for (const row of [...rows].sort((first, second) => newest(second, first))) result = mergedPrivateValue(result, row.privateData)
   return privateData(result)
 }
 
@@ -530,19 +545,31 @@ function contactsFrom(component, keyValue) {
   return [...grouped.values()].sort((first, second) => `${first.contact.kind}:${first.contact.value}`.localeCompare(`${second.contact.kind}:${second.contact.value}`)).map(({ contact, rows }) => {
     const valueFingerprint = fingerprint(keyValue, `contact:${contact.kind}`, contact.value)
     const observed = rows.map(({ observedAt }) => observedAt).filter((value) => value !== null).sort()
-    return Object.freeze({ id: uuid(keyValue, 'contact-id', [component.id, contact.kind, valueFingerprint]), patientId: component.id, kind: contact.kind, value: contact.value, fingerprint: valueFingerprint, mask: contactMask(contact), isPrimary: contact.isPrimary || component.patient.profile.primaryPhone === contact.value, source: rows.sort((first, second) => first.token.localeCompare(second.token))[0].source, sources: sourceList(rows), firstSeenAt: observed[0] ?? null, lastSeenAt: observed.at(-1) ?? null })
+    return Object.freeze({ id: uuid(keyValue, 'contact-id', [component.id, contact.kind, valueFingerprint]), patientId: component.id, kind: contact.kind, value: contact.value, fingerprint: valueFingerprint, mask: contactMask(contact), isPrimary: contact.kind === 'phone' ? component.patient.profile.primaryPhone === contact.value : contact.isPrimary, source: rows.sort((first, second) => first.token.localeCompare(second.token))[0].source, sources: sourceList(rows), firstSeenAt: observed[0] ?? null, lastSeenAt: observed.at(-1) ?? null })
   })
+}
+
+function surnameOrder(first, second) {
+  if (first.observedAt === null && second.observedAt !== null) return 1
+  if (first.observedAt !== null && second.observedAt === null) return -1
+  return (first.observedAt ?? '').localeCompare(second.observedAt ?? '') || first.token.localeCompare(second.token)
+}
+
+function surnameReason(row, current) {
+  if (current === undefined || row.observedAt === null || current.observedAt === null || row.observedAt >= current.observedAt) return 'identity_alias'
+  return 'surname_change'
 }
 
 function changedSurnames(component, surnamePairs, keyValue) {
   const current = component.patient.profile.lastName
+  const currentRow = component.rows.filter((row) => key(row.profile.lastName) === key(current)).sort(newest)[0]
   const candidates = new Map()
   for (const pair of surnamePairs) for (const row of pair.rows) {
     const surname = key(row.profile.lastName)
     const existing = candidates.get(surname)
-    if (surname !== null && surname !== key(current) && (existing === undefined || `${row.observedAt}:${row.token}` < `${existing.observedAt}:${existing.token}`)) candidates.set(surname, row)
+    if (surname !== null && surname !== key(current) && (existing === undefined || surnameOrder(row, existing) < 0)) candidates.set(surname, row)
   }
-  return [...candidates.values()].sort((first, second) => first.observedAt.localeCompare(second.observedAt)).map((row) => Object.freeze({ id: uuid(keyValue, 'name-history-id', [component.id, key(row.profile.lastName)]), patientId: component.id, lastName: row.profile.lastName, source: row.source, sourceIdentifier: row.ehr, observedAt: row.observedAt, reason: 'surname_change' }))
+  return [...candidates.values()].sort(surnameOrder).map((row) => Object.freeze({ id: uuid(keyValue, 'name-history-id', [component.id, key(row.profile.lastName)]), patientId: component.id, lastName: row.profile.lastName, source: row.source, sourceIdentifier: row.ehr, observedAt: row.observedAt, reason: surnameReason(row, currentRow) }))
 }
 
 function consentsFrom(component, keyValue) {
@@ -571,6 +598,7 @@ function supplementalEvidence(first, second) {
   const sameBirthDate = first.profile.birthDate !== null && first.profile.birthDate === second.profile.birthDate
   if (sameFullName && sameBirthDate) return Object.freeze({ match: true, reason: 'sameFioBirthDate' })
   const evidence = mergeEvidence(first, second)
+  if (evidence.merge && ['surnameChange', 'surnameChangeMissingBirthDate'].includes(evidence.reason) && !independentMatch(first, second)) return Object.freeze({ match: false, reason: null })
   return Object.freeze({ match: evidence.merge && evidence.reason !== 'exactEhr', reason: evidence.merge ? evidence.reason : null })
 }
 
@@ -726,6 +754,16 @@ function validateGlobalIdentifiers(values) {
   }
 }
 
+function countFinalIssues(counts, issues) {
+  for (const key of Object.values(ISSUE_EVIDENCE_KEYS)) counts[key] = 0
+  counts.supplementalIssues = 0
+  for (const issue of issues) {
+    const evidenceKey = ISSUE_EVIDENCE_KEYS[issue.code]
+    if (evidenceKey !== undefined) counts[evidenceKey] += 1
+    if (issue.code.startsWith('SUPPLEMENTAL_')) counts.supplementalIssues += 1
+  }
+}
+
 function buildResult(input) {
   const counts = { exactEhr: 0, sameFioBirthDate: 0, patronymicCorrection: 0, surnameChange: 0, sameFioMissingBirthDate: 0, surnameChangeMissingBirthDate: 0, componentConflicts: 0, conflictingStrongIdentifiers: 0, insufficientEvidence: 0, sharedCardDifferentPeople: 0, supplementalPatients: 0, supplementalEnrichments: 0, supplementalIssues: 0 }
   const decisions = evaluatedPairs(input.patientRows)
@@ -740,7 +778,6 @@ function buildResult(input) {
   const issueMap = new Map()
   for (const decision of resolved.issues) {
     if (resolved.union.find(decision.firstIndex) === resolved.union.find(decision.secondIndex)) continue
-    counts[decision.code === 'COMPONENT_IDENTITY_CONFLICT' ? 'componentConflicts' : decision.code === 'CONFLICTING_STRONG_IDENTIFIER' ? 'conflictingStrongIdentifiers' : decision.code === 'INSUFFICIENT_IDENTITY_EVIDENCE' ? 'insufficientEvidence' : 'sharedCardDifferentPeople'] += 1
     const candidates = [rowPatients.get(input.patientRows[decision.firstIndex].token), rowPatients.get(input.patientRows[decision.secondIndex].token)].sort()
     const source = [input.patientRows[decision.firstIndex], input.patientRows[decision.secondIndex]].sort((first, second) => first.token.localeCompare(second.token))[0].source
     const dedupe = canonical([decision.code, candidates])
@@ -757,9 +794,10 @@ function buildResult(input) {
   const privateData = components.map((component) => Object.freeze({ id: uuid(input.keyValue, 'private-data-id', component.id), patientId: component.id, value: mergedPrivateData(component.rows), sources: sourceList(component.rows) }))
   const consents = components.flatMap((component) => consentsFrom(component, input.keyValue))
   const sourceLinks = components.flatMap((component) => component.rows.map((row) => Object.freeze({ id: uuid(input.keyValue, 'source-link-id', [component.id, row.token]), patientId: component.id, source: row.source, kind: component.patient.isSupplemental ? 'medesk_supplemental' : 'patient' })))
-  const issues = [...issueMap.values(), ...supplemental.issues]
+  const issues = sortedUnique([...issueMap.values(), ...supplemental.issues])
+  countFinalIssues(counts, issues)
   validateGlobalIdentifiers(externalIdentifiers)
-  return Object.freeze({ patients: sortedUnique(components.map(({ patient }) => patient)), externalIdentifiers: sortedUnique(externalIdentifiers), contacts: sortedUnique(contacts), nameHistory: sortedUnique(nameHistory), privateData: sortedUnique(privateData), consents: sortedUnique(consents), sourceLinks: sortedUnique(sourceLinks), issues: sortedUnique(issues), evidenceCounts: Object.freeze(counts) })
+  return Object.freeze({ patients: sortedUnique(components.map(({ patient }) => patient)), externalIdentifiers: sortedUnique(externalIdentifiers), contacts: sortedUnique(contacts), nameHistory: sortedUnique(nameHistory), privateData: sortedUnique(privateData), consents: sortedUnique(consents), sourceLinks: sortedUnique(sourceLinks), issues, evidenceCounts: Object.freeze(counts) })
 }
 
 /** Resolves normalized clinic rows into deterministic immutable patient identity components. */

@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto'
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { basename, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { CLINIC_IMPORT_PRODUCTION_CONTROLS, createClinicImportBundle } from './clinic-import-bundle.js'
+import { CLINIC_IMPORT_PRODUCTION_CONTROLS, ClinicImportBundleError, createClinicImportBundle } from './clinic-import-bundle.js'
+import { loadClinicImportSources } from './clinic-import-sources.js'
 
 const FINGERPRINT_KEY = 'clinic-import-synthetic-fingerprint-key-2026-bundle-tests'
 const ROLES = Object.freeze(['pd', 'patients', 'visits', 'invoices', 'pdWorkbook', 'medesk', 'legacyPatients'])
@@ -9,7 +13,7 @@ const PARSING_MODES = Object.freeze({ pd: 'strict', patients: 'strict', visits: 
 const PRIMARY_EHR = '0000000000007001'
 const SUPPLEMENTAL_EHR = '0000000000007002'
 const SECRET_VALUES = Object.freeze(['Секретова', 'Тайный комментарий', 'Секретная услуга', 'С-7001'])
-const SYNTHETIC_CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 0, validBirthDates: 2, cardCollisionGroups: 0, invoices: 12, primaryMerges: 0, supplementalPatients: 1 })
+const SYNTHETIC_CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 12, primaryMerges: 0, supplementalPatients: 1, nameHistoryRecords: 0 })
 
 function sourceRow(role, sourceRow, values, structuralIssues = []) {
   return Object.freeze({ sourceRole: role, sourceName: FILENAMES[role], sourceRow, values: Object.freeze(values), structuralIssues: Object.freeze(structuralIssues) })
@@ -34,11 +38,11 @@ function manifestFor(sources) {
 }
 
 function loadedSources() {
-  const pd = source('pd', [sourceRow('pd', 2, { 'Номер карты (MEDESK)': PRIMARY_EHR, 'Номер карты (клиника)': 'С-7001', 'Фамилия': 'Секретова', 'Имя': 'Ия', 'Отчество': 'Тестовна', 'Дата рождения': '', 'Пол': '', 'Почта 1': 'synthetic@example.test', 'Почта 2': '', 'Телефон 1': '9991112233', 'Телефон 2': '', 'Паспорт (серия)': '12 34', 'Паспорт (номер)': '567890', 'Паспорт (кем выдан)': 'Тестовый орган', 'Паспорт (дата выдачи)': '2020-01-01', 'Паспорт (код подразделения)': '000-000', 'ИНН': '1234567890', 'СНИЛС': '123-456-789 00', 'Номер пенсионного удостоверения': '', 'Адрес (индекс)': '000000', 'Адрес (область)': 'Тестовая', 'Адрес (населенный пункт)': 'Тестов', 'Адрес (улица, дом, кв.)': 'Тестовая, 1', 'Представители': '', 'Метки': 'синтетика', 'Кем создан': 'Тест', 'Номер договора': 'Д-1', 'Ответственный сотрудник': 'Тест' })])
+  const pd = source('pd', [sourceRow('pd', 2, { 'Номер карты (MEDESK)': PRIMARY_EHR, 'Номер карты (клиника)': 'С-7001', 'Фамилия': 'Секретова', 'Имя': 'Ия', 'Отчество': 'Тестовна', 'Дата рождения': '', 'Пол': '', 'Представители': '', 'Метки': 'синтетика', 'Почта 1': 'synthetic@example.test', 'Почта 2': '', 'Телефон 1': '9991112233', 'Телефон 2': '', 'Паспорт (серия)': '12 34', 'Паспорт (номер)': '567890', 'Паспорт (кем выдан)': 'Тестовый орган', 'Паспорт (дата выдачи)': '2020-01-01', 'Паспорт (код подразделения)': '000-000', 'Свид. о рождении (серия)': '', 'Свид. о рождении (номер)': '', 'Свид. о рождении (кем выдан)': '', 'Свид. о рождении (дата выдачи)': '', 'ИНН': '1234567890', 'СНИЛС': '123-456-789 00', 'Номер пенсионного удостоверения': '', 'Адрес (индекс)': '000000', 'Адрес (область)': 'Тестовая', 'Адрес (населенный пункт)': 'Тестов', 'Адрес (улица, дом, кв.)': 'Тестовая, 1', 'Кем создан': 'Тест', 'Номер договора': 'Д-1', 'Ответственный сотрудник': 'Тест' })])
   const patients = source('patients', [sourceRow('patients', 2, { ehr: PRIMARY_EHR, customId: 'С-7001', birthday: '1988-02-29T00:00:00.000Z', tags: 'дополнительная' })])
   const visits = source('visits', [sourceRow('visits', 2, visitValues()), sourceRow('visits', 3, visitValues({ appointment_id: 'appointment-supplemental', patient_card: SUPPLEMENTAL_EHR, comment: '' }))])
   const invoices = source('invoices', Array.from({ length: 12 }, (_, index) => sourceRow('invoices', index + 2, invoiceValues(index + 1))))
-  const pdWorkbook = source('pdWorkbook', [sourceRow('pdWorkbook', 2, { 'Номер карты (MEDESK)': PRIMARY_EHR, 'Номер карты (клиника)': 'С-7001', 'Фамилия': 'Секретова', 'Имя': 'Ия', 'Отчество': 'Тестовна', 'Дата рождения': '29.02.1988', 'Пол': '' })])
+  const pdWorkbook = source('pdWorkbook', [sourceRow('pdWorkbook', 2, { 'Номер карты (MEDESK)': PRIMARY_EHR, 'Номер карты (клиника)': 'С-7001', '__unnamed_C': '', 'Фамилия': 'Секретова', 'Имя': 'Ия', 'Отчество': 'Тестовна', 'Дата рождения': '29.02.1988', 'Пол': '', '__unnamed_I': '', 'Представители': '', 'Метки': '', 'Почта 1': '', 'Почта 2': '', 'Телефон 1': '', 'Телефон 2': '', 'Паспорт (серия)': '', 'Паспорт (номер)': '', 'Паспорт (кем выдан)': '', 'Паспорт (дата выдачи)': '', '__unnamed_T': '', 'Паспорт (код подразделения)': '', 'Свид. о рождении (серия)': '', 'Свид. о рождении (номер)': '', 'Свид. о рождении (кем выдан)': '', 'Свид. о рождении (дата выдачи)': '', 'ИНН': '', 'СНИЛС': '', 'Номер пенсионного удостоверения': '', 'Адрес (индекс)': '', 'Адрес (область)': '', 'Адрес (населенный пункт)': '', 'Адрес (улица, дом, кв.)': '', 'Кем создан': '', 'Номер договора': '', 'Ответственный сотрудник': '' })])
   const medesk = source('medesk', [sourceRow('medesk', 2, { '#': '1', 'Карта': SUPPLEMENTAL_EHR, 'Когда добавлен': '2020-01-01T00:00:00.000Z', 'Имя': 'Добавочная Ия Тестовна', 'Пол': 'Женщина', 'День рождения': '01.01.1990', 'Возраст': '', 'Метки': '', 'Адрес': '', 'Телефон': '', 'Почта': '', 'Работа': '' })])
   const legacyPatients = source('legacyPatients', [sourceRow('legacyPatients', 2, { '\uFEFFДата создания': '2021-01-01T00:00:00.000Z', 'Дата изменения': '2024-01-01T00:00:00.000Z', 'Фамилия': 'Секретова', 'Имя': 'Ия', 'Отчество': 'Тестовна', 'Телефон': '', 'Email': '', 'Всего оплачено по счетам': '', 'Дата рождения': '', 'Заметки': 'Только синтетическая заметка', 'Кол-во анкет': '', 'Номер карты': 'С-7001', 'Кол-во приемов': '', 'Полное имя': 'Секретова Ия Тестовна', 'Системный ID': PRIMARY_EHR, 'Согласия на коммуникацию': 'Да' })])
   const sources = Object.freeze({ pd, patients, visits, invoices, pdWorkbook, medesk, legacyPatients })
@@ -47,7 +51,8 @@ function loadedSources() {
 
 function loadedWithSources(loaded, replacements) {
   const sources = Object.freeze({ ...loaded.sources, ...replacements })
-  return Object.freeze({ ...loaded, sources, manifest: manifestFor(sources) })
+  const patientSources = Object.freeze({ primary: sources.pd, leftJoins: Object.freeze([sources.patients, sources.pdWorkbook, sources.medesk, sources.legacyPatients]) })
+  return Object.freeze({ sources, patientSources, visits: sources.visits, invoices: sources.invoices, manifest: manifestFor(sources) })
 }
 
 function input(expectedControls) {
@@ -76,11 +81,52 @@ function captured(operation) {
   return operation().then((value) => ({ value, error: null }), (error) => ({ value: null, error }))
 }
 
+async function loaderFixture() {
+  const loaded = loadedSources()
+  const directory = await mkdtemp(join(tmpdir(), 'clod-bundle-loader-'))
+  const paths = Object.freeze(Object.fromEntries(ROLES.map((role) => [role, join(directory, FILENAMES[role])])))
+  for (const role of ROLES) {
+    const source = loaded.sources[role]
+    if (source.kind === 'xlsx') await writeFile(paths[role], `synthetic-${role}`)
+    else {
+      const delimiter = role === 'medesk' ? ';' : '\t'
+      const records = [source.headers, ...source.rows.map(({ values }) => source.headers.map((header) => values[header]))]
+      await writeFile(paths[role], `${records.map((record) => record.join(delimiter)).join('\n')}\n`)
+    }
+  }
+  const readXlsxImpl = async (filePath) => {
+    const role = ROLES.find((candidate) => FILENAMES[candidate] === basename(filePath))
+    const source = loaded.sources[role]
+    const bytes = await readFile(filePath)
+    const rows = Object.freeze(source.rows.map(({ sourceRow, values }) => Object.freeze({ sourceRow, values })))
+    return Object.freeze({ headers: source.headers, rows, snapshot: Object.freeze({ sha256: createHash('sha256').update(bytes).digest('hex'), byteSize: bytes.byteLength }) })
+  }
+  return Object.freeze({ paths, loadSources: (sourcePaths) => loadClinicImportSources(sourcePaths, { readXlsxImpl }) })
+}
+
 describe('createClinicImportBundle', () => {
+  it.each(['identity_enrichment', 'identity_consents', 'identity_merge_evidence', 'identity_evidence', 'relational_invariants', 'production_controls', 'report'])('retains the value-free bundle subphase %s', (stage) => {
+    const error = new ClinicImportBundleError('BUNDLE_INVARIANT_FAILED', stage)
+    expect({ stage: error.stage, frozen: Object.isFrozen(error), detailCode: error.detailCode }).toEqual({ stage, frozen: true, detailCode: null })
+  })
+
   it('composes identities, visits, consents and all source payloads without losing one row', async () => {
     const loaded = loadedSources()
     const result = await createClinicImportBundle(input(), { loadSources: loader(loaded) })
     expect({ sourceRows: result.sourceRows.length, expectedSourceRows: Object.values(loaded.sources).reduce((count, value) => count + value.rows.length, 0), linkedPatientPayloads: result.sourceRows.filter(({ sourceRole }) => sourceRole !== 'invoices').filter(({ patientId }) => patientId !== null).length, patients: result.patients.length, supplemental: result.patients.filter(({ isSupplemental }) => isSupplemental).length, visits: result.historicalVisits.length, visitDetails: result.visitDetails.length, invoices: result.invoices.length, invoiceStatuses: new Set(result.invoices.map(({ status }) => status)), consents: result.consents.map(({ status }) => status).sort(), attachments: result.attachments, visitTotal: result.report.visits.total, visitParts: result.report.visits.linked + result.report.visits.ambiguous + result.report.visits.unmatched }).toEqual({ sourceRows: 19, expectedSourceRows: 19, linkedPatientPayloads: 7, patients: 2, supplemental: 1, visits: 2, visitDetails: 2, invoices: 12, invoiceStatuses: new Set(['incomplete_source']), consents: ['granted', 'not_granted'], attachments: [], visitTotal: 2, visitParts: 2 })
+  })
+
+  it('records pre-merge birth-date validity only on primary source rows', async () => {
+    const result = await createClinicImportBundle(input(), { loadSources: loader(loadedSources()) })
+    const primary = result.sourceRows.filter(({ sourceRole }) => sourceRole === 'pd').map(({ birthDateValid }) => birthDateValid)
+    const other = new Set(result.sourceRows.filter(({ sourceRole }) => sourceRole !== 'pd').map(({ birthDateValid }) => birthDateValid))
+    expect({ primary, other, control: result.report.controls.validBirthDates }).toEqual({ primary: [true], other: new Set([null]), control: 1 })
+  })
+
+  it('accepts the immutable result shape produced by the real seven-source loader', async () => {
+    const fixture = await loaderFixture()
+    const prepared = await captured(() => createClinicImportBundle(Object.freeze({ ...input(), sourcePaths: fixture.paths }), { loadSources: fixture.loadSources }))
+    expect({ code: prepared.error?.code ?? null, sourceRows: prepared.value?.report.sourceRows.total, patients: prepared.value?.report.patients.total, visits: prepared.value?.report.visits.total, manifestMatches: prepared.value !== null && prepared.value.manifest.sha256 === prepared.value.report.manifestHash }).toEqual({ code: null, sourceRows: 19, patients: 2, visits: 2, manifestMatches: true })
   })
 
   it('adapts prioritized birth, contact, passport and address fields into protected patient structures', async () => {
@@ -100,7 +146,13 @@ describe('createClinicImportBundle', () => {
     const loaded = loadedSources()
     const accepted = await captured(() => createClinicImportBundle(input(SYNTHETIC_CONTROLS), { loadSources: loader(loaded) }))
     const rejected = await captured(() => createClinicImportBundle(input(CLINIC_IMPORT_PRODUCTION_CONTROLS), { loadSources: loader(loaded) }))
-    expect({ acceptedError: accepted.error, controls: accepted.value?.report.controls, rejectedCode: rejected.error?.code }).toEqual({ acceptedError: null, controls: SYNTHETIC_CONTROLS, rejectedCode: 'BUNDLE_INVARIANT_FAILED' })
+    expect({ acceptedError: accepted.error, controls: accepted.value?.report.controls, rejectedCode: rejected.error?.code, rejectedStage: rejected.error?.stage }).toEqual({ acceptedError: null, controls: SYNTHETIC_CONTROLS, rejectedCode: 'BUNDLE_INVARIANT_FAILED', rejectedStage: 'production_controls' })
+  })
+
+  it('treats the exact name-history total as a production control', async () => {
+    const controls = Object.freeze({ ...SYNTHETIC_CONTROLS, nameHistoryRecords: 1 })
+    const result = await captured(() => createClinicImportBundle(input(controls), { loadSources: loader(loadedSources()) }))
+    expect({ code: result.error?.code, stage: result.error?.stage }).toEqual({ code: 'BUNDLE_INVARIANT_FAILED', stage: 'production_controls' })
   })
 
   it('rejects an explicit null control profile instead of disabling reconciliation', async () => {
@@ -114,12 +166,37 @@ describe('createClinicImportBundle', () => {
     expect({ name: result.error?.name, code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ name: 'ClinicImportBundleError', code: 'INVALID_BUNDLE_INPUT', frozen: true })
   })
 
-  it('rejects an aggregate source capture budget before adapting repeated payloads', async () => {
+  it('rejects selected source content above the aggregate capture boundary before adapting payloads', async () => {
     const loaded = loadedSources()
-    const row = sourceRow('medesk', 2, { ...loaded.sources.medesk.rows[0].values, extra: 'Ж'.repeat(20_000) })
-    const oversized = Object.freeze({ ...loaded.sources.medesk, rows: Object.freeze(Array(2_000).fill(row)) })
-    const result = await captured(() => createClinicImportBundle(input(), { loadSources: loader(Object.freeze({ ...loaded, sources: Object.freeze({ ...loaded.sources, medesk: oversized }) })) }))
+    const privateText = 'Ж'.repeat(20_000)
+    const invoices = source('invoices', Array.from({ length: 4_500 }, (_, index) => sourceRow('invoices', index + 2, { ...invoiceValues(index + 1), service_name: privateText })))
+    const result = await captured(() => createClinicImportBundle(input(), { loadSources: loader(loadedWithSources(loaded, { invoices })) }))
     expect({ name: result.error?.name, code: result.error?.code, stage: result.error?.stage }).toEqual({ name: 'ClinicImportBundleError', code: 'INPUT_TOO_COMPLEX', stage: 'sources' })
+  })
+
+  it('accepts selected source content above 192 MiB work but below the measured 512 MiB boundary', async () => {
+    const loaded = loadedSources()
+    const privateText = 'Ж'.repeat(20_000)
+    const invoices = source('invoices', Array.from({ length: 4_000 }, (_, index) => sourceRow('invoices', index + 2, { ...invoiceValues(index + 1), service_name: privateText })))
+    const prepared = await captured(() => createClinicImportBundle(input(), { loadSources: loader(loadedWithSources(loaded, { invoices })) }))
+    expect({ code: prepared.error?.code ?? null, invoices: prepared.value?.report.invoices.total, sourceRows: prepared.value?.report.sourceRows.total }).toEqual({ code: null, invoices: 4_000, sourceRows: 4_007 })
+  })
+
+  it('does not charge the source budget again for redundant loader convenience aliases', async () => {
+    const loaded = loadedSources()
+    const repeatedAlias = Object.freeze(Array(249_000).fill('x'.repeat(128)))
+    const loaderShape = Object.freeze({ sources: loaded.sources, patientSources: Object.freeze({ primary: repeatedAlias, leftJoins: repeatedAlias }), visits: repeatedAlias, invoices: repeatedAlias, manifest: loaded.manifest })
+    const prepared = await captured(() => createClinicImportBundle(input(), { loadSources: loader(loaderShape) }))
+    expect({ code: prepared.error?.code ?? null, patients: prepared.value?.report.patients.total, visits: prepared.value?.report.visits.total, sourceRows: prepared.value?.report.sourceRows.total }).toEqual({ code: null, patients: 2, visits: 2, sourceRows: 19 })
+  })
+
+  it('reads only data descriptors for sources and manifest from the real loader result shape', async () => {
+    const loaded = loadedSources()
+    let redundantReads = 0
+    const loaderShape = { sources: loaded.sources, manifest: loaded.manifest }
+    for (const key of ['patientSources', 'visits', 'invoices']) Object.defineProperty(loaderShape, key, { enumerable: true, get: () => { redundantReads += 1; throw new Error('private redundant alias') } })
+    const prepared = await captured(() => createClinicImportBundle(input(), { loadSources: loader(loaderShape) }))
+    expect({ code: prepared.error?.code ?? null, redundantReads, patients: prepared.value?.report.patients.total, frozen: Object.isFrozen(prepared.value) }).toEqual({ code: null, redundantReads: 0, patients: 2, frozen: true })
   })
 
   it('snapshots an array own length descriptor without invoking a proxy length getter', async () => {
@@ -186,6 +263,19 @@ describe('createClinicImportBundle', () => {
     const primary = result.patients.find(({ isSupplemental }) => !isSupplemental)
     const privateData = result.privateData.find(({ patientId }) => patientId === primary.id)
     expect({ notes: privateData.value.notes, consent: result.consents.find(({ patientId }) => patientId === primary.id)?.status, legacyPatientId: result.sourceRows.find(({ sourceRole }) => sourceRole === 'legacyPatients').patientId }).toEqual({ notes: null, consent: 'not_granted', legacyPatientId: null })
+  })
+
+  it('keeps pre-merge birth-date controls while validating a corroborated surname merge without chronology', async () => {
+    const loaded = loadedSources()
+    const original = loaded.sources.pd.rows[0]
+    const base = { ...original.values, 'Номер карты (клиника)': 'СМЕНА-76', 'Дата рождения': '', 'Почта 1': '', 'Телефон 1': '9991112233', 'Паспорт (серия)': '', 'Паспорт (номер)': '', 'Номер договора': '', 'ИНН': '', 'СНИЛС': '' }
+    const pd = source('pd', [sourceRow('pd', 2, { ...base, 'Фамилия': 'Прежняя' }), sourceRow('pd', 3, { ...base, 'Номер карты (MEDESK)': '0000000000007003', 'Фамилия': 'Текущая' })])
+    const patients = source('patients', [sourceRow('patients', 2, { ehr: PRIMARY_EHR, customId: 'СМЕНА-76', birthday: '1988-02-29T00:00:00.000Z', tags: '' }), sourceRow('patients', 3, { ehr: '0000000000007003', customId: 'СМЕНА-76', birthday: '1988-02-29T00:00:00.000Z', tags: '' })])
+    const medeskOriginal = loaded.sources.medesk.rows[0]
+    const medesk = source('medesk', [sourceRow('medesk', 2, { ...medeskOriginal.values, 'День рождения': '' }), sourceRow('medesk', 3, { ...medeskOriginal.values, '#': '2', 'Карта': PRIMARY_EHR, 'Когда добавлен': '', 'Имя': 'Прежняя Ия Тестовна', 'День рождения': '' }), sourceRow('medesk', 4, { ...medeskOriginal.values, '#': '3', 'Карта': '0000000000007003', 'Когда добавлен': '', 'Имя': 'Текущая Ия Тестовна', 'День рождения': '' })])
+    const legacyPatients = source('legacyPatients', [])
+    const result = await createClinicImportBundle(input(), { loadSources: loader(loadedWithSources(loaded, { pd, patients, medesk, legacyPatients })) })
+    expect({ primaryPatients: result.patients.filter(({ isSupplemental }) => !isSupplemental).length, surnameChanges: result.identityEvidenceCounts.surnameChange, history: result.nameHistory.length, validBirthDates: result.report.controls.validBirthDates }).toEqual({ primaryPatients: 1, surnameChanges: 1, history: 1, validBirthDates: 2 })
   })
 
   it('prefers a known consent observation time over a null observation after merging', async () => {
@@ -269,6 +359,17 @@ describe('createClinicImportBundle', () => {
     const primary = result.patients.find(({ isSupplemental }) => !isSupplemental)
     const privateData = result.privateData.find(({ patientId }) => patientId === primary.id)
     expect({ observedAt: primary.firstSeenAt, createdAt: privateData.value.legacyCreatedAt, updatedAt: privateData.value.legacyUpdatedAt }).toEqual({ observedAt: null, createdAt: null, updatedAt: null })
+  })
+
+  it('normalizes the measured spaced legacy timestamp without local timezone coercion', async () => {
+    const loaded = loadedSources()
+    const legacyOriginal = loaded.sources.legacyPatients.rows[0]
+    const legacy = sourceRow('legacyPatients', 2, { ...legacyOriginal.values, '\uFEFFДата создания': '07.11.2021 13:45', 'Дата изменения': '' })
+    const legacyPatients = source('legacyPatients', [legacy])
+    const result = await createClinicImportBundle(input(), { loadSources: loader(loadedWithSources(loaded, { legacyPatients })) })
+    const primary = result.patients.find(({ isSupplemental }) => !isSupplemental)
+    const privateData = result.privateData.find(({ patientId }) => patientId === primary.id)
+    expect({ observedAt: primary.firstSeenAt, createdAt: privateData.value.legacyCreatedAt }).toEqual({ observedAt: '2021-11-07T13:45:00.000Z', createdAt: '2021-11-07T13:45:00.000Z' })
   })
 
   it('deduplicates repeated normalization failures by stable issue id', async () => {

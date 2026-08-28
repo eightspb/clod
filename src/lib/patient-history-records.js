@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { decryptPatientProfile } from './contact-identity.js'
-import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CANDIDATE_EVIDENCE_CODES as CANDIDATE_EVIDENCE_CODES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
+import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CANDIDATE_EVIDENCE_CODES as CANDIDATE_EVIDENCE_CODES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_NAME_HISTORY_REASONS as NAME_HISTORY_REASONS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
 import { decryptProtectedData } from './protected-patient-data.js'
 
 const FACTORY_KEYS = Object.freeze(['client', 'encryptionKey', 'clock', 'uuid'])
@@ -381,16 +381,27 @@ function storedBoolean(value) {
   invalid()
 }
 
+function observationRange(firstValue, lastValue) {
+  const firstSeenAt = nullableTimestamp(firstValue)
+  const lastSeenAt = nullableTimestamp(lastValue)
+  if ((firstSeenAt === null) !== (lastSeenAt === null) || (firstSeenAt !== null && firstSeenAt > lastSeenAt)) invalid()
+  return Object.freeze({ firstSeenAt, lastSeenAt })
+}
+
 function contactRow(configuration, row) {
   const payload = decrypted(configuration, 'contact', field(row, 'ciphertext'))
   const kind = status(field(row, 'kind'), ['phone', 'email'])
   const value = privateText(payload, 'value')
-  return Object.freeze({ kind, value: kind === 'phone' ? privatePhone(value) : privateEmail(value), mask: text(field(row, 'mask')), isPrimary: storedBoolean(field(row, 'isPrimary')), sourceName: sourceName(field(row, 'sourceName'), CONTACT_SOURCE_NAMES), firstSeenAt: nullableTimestamp(field(row, 'firstSeenAt')), lastSeenAt: nullableTimestamp(field(row, 'lastSeenAt')) })
+  const chronology = observationRange(field(row, 'firstSeenAt'), field(row, 'lastSeenAt'))
+  return Object.freeze({ kind, value: kind === 'phone' ? privatePhone(value) : privateEmail(value), mask: text(field(row, 'mask')), isPrimary: storedBoolean(field(row, 'isPrimary')), sourceName: sourceName(field(row, 'sourceName'), CONTACT_SOURCE_NAMES), ...chronology })
 }
 
-function nameRow(configuration, row) {
+function nameRow(configuration, row, patientLastSeenAt) {
   const payload = decrypted(configuration, 'name_history', field(row, 'lastNameCiphertext'))
-  return Object.freeze({ lastName: privateText(payload, 'lastName'), reason: status(field(row, 'reason'), ['surname_change', 'source_correction']), sourceName: sourceName(field(row, 'sourceName'), IMPORT_SOURCE_NAMES), observedAt: nullableTimestamp(field(row, 'observedAt')) })
+  const reason = status(field(row, 'reason'), NAME_HISTORY_REASONS)
+  const observedAt = nullableTimestamp(field(row, 'observedAt'))
+  if (reason === 'surname_change' && (observedAt === null || patientLastSeenAt === null || observedAt >= patientLastSeenAt)) invalid()
+  return Object.freeze({ lastName: privateText(payload, 'lastName'), reason, sourceName: sourceName(field(row, 'sourceName'), IMPORT_SOURCE_NAMES), observedAt })
 }
 
 function identifierRow(configuration, row) {
@@ -435,10 +446,11 @@ async function reveal(configuration, value) {
   const id = uuid(input.id)
   const accessActor = actor(input.actor)
   return storage(() => inTransaction(configuration, async (transaction) => {
-    const patientRows = await selectedRows(transaction, 'SELECT id, profileCiphertext, piiDestroyedAt FROM Patient WHERE id = ? LIMIT 2', id)
+    const patientRows = await selectedRows(transaction, 'SELECT id, profileCiphertext, firstSeenAt, lastSeenAt, piiDestroyedAt FROM Patient WHERE id = ? LIMIT 2', id)
     if (patientRows.length === 0) invalid('PATIENT_NOT_FOUND')
     if (patientRows.length !== 1 || uuid(field(patientRows[0], 'id')) !== id) invalid()
     if (field(patientRows[0], 'piiDestroyedAt') !== null) invalid('PATIENT_PII_DESTROYED')
+    const patientChronology = observationRange(field(patientRows[0], 'firstSeenAt'), field(patientRows[0], 'lastSeenAt'))
     const profileCiphertext = field(patientRows[0], 'profileCiphertext')
     if (typeof profileCiphertext !== 'string') invalid()
     const profile = decryptPatientProfile({ envelope: profileCiphertext, key: configuration.encryptionKey })
@@ -454,14 +466,14 @@ async function reveal(configuration, value) {
     const attachmentRows = await selectedRevealRows(transaction, 'SELECT id, kind, urlCiphertext, metadataCiphertext, sourceName, createdAt FROM PatientAttachment WHERE patientId = ? AND piiDestroyedAt IS NULL AND deletedAt IS NULL ORDER BY createdAt DESC, id LIMIT 1001', id, revealState)
     const historicalVisitRows = await selectedRevealRows(transaction, 'SELECT id, appointmentIdCiphertext, doctorCiphertext, detailsCiphertext FROM HistoricalVisit WHERE patientId = ? AND piiDestroyedAt IS NULL ORDER BY COALESCE(startsAt, \'\') DESC, sourceName, sourceRow, id LIMIT 1001', id, revealState)
     const contacts = Object.freeze(contactRows.map((row) => contactRow(configuration, row)))
-    const previousLastNames = Object.freeze(nameRows.map((row) => nameRow(configuration, row)))
+    const previousLastNames = Object.freeze(nameRows.map((row) => nameRow(configuration, row, patientChronology.lastSeenAt)))
     const externalIdentifiers = Object.freeze(identifierRows.map((row) => identifierRow(configuration, row)))
     const consents = Object.freeze(consentRows.map(consentRow))
     const protectedAttachments = Object.freeze(attachmentRows.map((row) => revealedAttachment(configuration, row)))
     const historicalVisits = Object.freeze(historicalVisitRows.map((row) => revealedVisit(configuration, row)))
     const revealedAt = currentTime(configuration)
     await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [nextUuid(configuration), id, 'reveal', accessActor, revealedAt] })
-    return Object.freeze({ id, profile, contacts, previousLastNames, externalIdentifiers, privateData, consents, attachments: protectedAttachments, historicalVisits, revealedAt })
+    return Object.freeze({ id, patientLastSeenAt: patientChronology.lastSeenAt, profile, contacts, previousLastNames, externalIdentifiers, privateData, consents, attachments: protectedAttachments, historicalVisits, revealedAt })
   }))
 }
 

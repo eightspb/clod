@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { fingerprintClinicImportVisit } from './clinic-import-fingerprints.js'
 import { normalizeClinicCard, normalizeImportPhone, normalizeImportText, normalizeMedeskEhr, sourceReference } from './clinic-import-normalization.js'
 
 const VERSION = 'v1'
@@ -183,7 +184,7 @@ function hmac(keyValue, domain, value) {
 }
 
 function fingerprint(keyValue, domain, value) {
-  return `${VERSION}:${hmac(keyValue, domain, value).toString('hex')}`
+  return fingerprintClinicImportVisit({ key: keyValue, domain, value })
 }
 
 function uuid(keyValue, domain, value) {

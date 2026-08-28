@@ -1,7 +1,7 @@
 import { isAdminClinicQueryError, parseDestroyPatientBody, parsePatientDetailQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
 import { adminActor, guardAdminPii, guardAdminRead, readAdminJson } from './admin-api.js'
 import { safeCallPage } from './admin-call-api.js'
-import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
+import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_NAME_HISTORY_REASONS as NAME_HISTORY_REASONS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
 import { isPatientHistoryRecordError } from './patient-history-records.js'
 import { isPatientRecordError } from './patient-records.js'
 
@@ -11,7 +11,7 @@ const COUNT_FIELDS = Object.freeze(['externalIdentifierCount', 'clinicCardCount'
 const VISIT_FIELDS = Object.freeze(['id', 'sourceName', 'sourceRow', 'startsAt', 'endsAt', 'sourceStatus', 'linkStatus', 'linkMethod', 'evidenceLevel', 'issueCount', 'candidateCount', 'protectedDetailsAvailable'])
 const ISSUE_FIELDS = Object.freeze(['id', 'sourceName', 'sourceRow', 'code', 'historicalVisitId', 'createdAt', 'resolvedAt'])
 const ATTACHMENT_FIELDS = Object.freeze(['id', 'kind', 'sourceName', 'createdAt', 'deletedAt', 'protectedDataAvailable'])
-const REVEAL_FIELDS = Object.freeze(['id', 'profile', 'contacts', 'previousLastNames', 'externalIdentifiers', 'privateData', 'consents', 'attachments', 'historicalVisits', 'revealedAt'])
+const REVEAL_FIELDS = Object.freeze(['id', 'patientLastSeenAt', 'profile', 'contacts', 'previousLastNames', 'externalIdentifiers', 'privateData', 'consents', 'attachments', 'historicalVisits', 'revealedAt'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -293,13 +293,19 @@ function revealedContact(value) {
   if (typeof input.isPrimary !== 'boolean') throw new TypeError(`${scope} response is invalid`)
   const kind = exact(input.kind, ['phone', 'email'], scope)
   const contactValue = kind === 'phone' ? privatePhone(input.value, scope) : privateEmail(input.value, scope)
-  return Object.freeze({ kind, value: contactValue, mask: privateString(input.mask, scope), isPrimary: input.isPrimary, sourceName: sourceName(input.sourceName, CONTACT_SOURCE_NAMES, scope), firstSeenAt: nullableTimestamp(input.firstSeenAt, scope), lastSeenAt: nullableTimestamp(input.lastSeenAt, scope) })
+  const firstSeenAt = nullableTimestamp(input.firstSeenAt, scope)
+  const lastSeenAt = nullableTimestamp(input.lastSeenAt, scope)
+  if ((firstSeenAt === null) !== (lastSeenAt === null) || (firstSeenAt !== null && firstSeenAt > lastSeenAt)) throw new TypeError(`${scope} response is invalid`)
+  return Object.freeze({ kind, value: contactValue, mask: privateString(input.mask, scope), isPrimary: input.isPrimary, sourceName: sourceName(input.sourceName, CONTACT_SOURCE_NAMES, scope), firstSeenAt, lastSeenAt })
 }
 
-function revealedName(value) {
+function revealedName(value, patientLastSeenAt) {
   const scope = 'Patient name history'
   const input = projected(value, ['lastName', 'reason', 'sourceName', 'observedAt'], scope)
-  return Object.freeze({ lastName: privateString(input.lastName, scope), reason: exact(input.reason, ['surname_change', 'source_correction'], scope), sourceName: sourceName(input.sourceName, IMPORT_SOURCE_NAMES, scope), observedAt: nullableTimestamp(input.observedAt, scope) })
+  const reason = exact(input.reason, NAME_HISTORY_REASONS, scope)
+  const observedAt = nullableTimestamp(input.observedAt, scope)
+  if (reason === 'surname_change' && (observedAt === null || patientLastSeenAt === null || observedAt >= patientLastSeenAt)) throw new TypeError(`${scope} response is invalid`)
+  return Object.freeze({ lastName: privateString(input.lastName, scope), reason, sourceName: sourceName(input.sourceName, IMPORT_SOURCE_NAMES, scope), observedAt })
 }
 
 function revealedIdentifier(value) {
@@ -335,8 +341,9 @@ function expandedReveal(value, expectedId) {
   const input = projected(value, REVEAL_FIELDS, 'Patient reveal')
   const id = safeUuid(input.id, 'Patient reveal')
   if (id !== expectedId) throw new TypeError('Patient reveal is invalid')
+  const patientLastSeenAt = nullableTimestamp(input.patientLastSeenAt, 'Patient reveal')
   consumeRevealWork(state)
-  const result = Object.freeze({ id, profile: revealedProfile(input.profile), contacts: revealArray(input.contacts, revealedContact, 'Patient contact', state), previousLastNames: revealArray(input.previousLastNames, revealedName, 'Patient name history', state), externalIdentifiers: revealArray(input.externalIdentifiers, revealedIdentifier, 'Patient external identifier', state), privateData: plainValue(input.privateData, 0, state), consents: revealArray(input.consents, revealedConsent, 'Patient consent', state), attachments: revealArray(input.attachments, (attachment) => revealedAttachment(attachment, state), 'Patient attachment', state), historicalVisits: revealArray(input.historicalVisits, (visit) => revealedVisit(visit, state), 'Historical visit reveal', state), revealedAt: safeTimestamp(input.revealedAt, 'Patient reveal') })
+  const result = Object.freeze({ id, profile: revealedProfile(input.profile), contacts: revealArray(input.contacts, revealedContact, 'Patient contact', state), previousLastNames: revealArray(input.previousLastNames, (name) => revealedName(name, patientLastSeenAt), 'Patient name history', state), externalIdentifiers: revealArray(input.externalIdentifiers, revealedIdentifier, 'Patient external identifier', state), privateData: plainValue(input.privateData, 0, state), consents: revealArray(input.consents, revealedConsent, 'Patient consent', state), attachments: revealArray(input.attachments, (attachment) => revealedAttachment(attachment, state), 'Patient attachment', state), historicalVisits: revealArray(input.historicalVisits, (visit) => revealedVisit(visit, state), 'Historical visit reveal', state), revealedAt: safeTimestamp(input.revealedAt, 'Patient reveal') })
   if (Buffer.byteLength(JSON.stringify(result), 'utf8') > MAX_REVEAL_JSON_BYTES) throw new TypeError('Patient reveal is invalid')
   return result
 }

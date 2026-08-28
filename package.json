@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "deploy": "sh scripts/deploy.sh",
     "medflex:discover": "bun scripts/medflex-discover.mjs",
+    "clinic:import": "node scripts/import-clinic-history.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",

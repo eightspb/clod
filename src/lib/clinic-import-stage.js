@@ -2,7 +2,8 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes as secureRand
 import { constants } from 'node:fs'
 import { link, lstat, open, realpath, unlink } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, isAbsolute as pathIsAbsolute, join, relative, sep } from 'node:path'
-import { decryptPatientProfile, encryptImportedPatientProfile, normalizeImportedPatientProfile } from './contact-identity.js'
+import { CLINIC_IMPORT_STAGE_LIMITS, clinicImportStageArtifactByteLength } from './clinic-import-stage-limits.js'
+import { decryptPatientProfile, encryptImportedPatientProfile, normalizeContactPhone, normalizeImportedPatientProfile } from './contact-identity.js'
 import { decryptProtectedData, encryptProtectedData } from './protected-patient-data.js'
 
 const VERSION = 1
@@ -13,14 +14,13 @@ const BASE64_KEY_PATTERN = /^[A-Za-z0-9+/]{43}=$/
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 const FINGERPRINT_PATTERN = /^v1:[a-f0-9]{64}$/
-const MAX_STAGE_BYTES = 192 * 1024 * 1024
 const MAX_DATABASE_BYTES = 8 * 1024 * 1024 * 1024
 const READ_CHUNK_BYTES = 1024 * 1024
 const MAX_ARRAY_LENGTH = 500_000
 const MAX_KEYS = 256
 const MAX_DEPTH = 64
 const MAX_NODES = 5_000_000
-const MAX_AGGREGATE_INPUT_WORK = MAX_STAGE_BYTES
+const MAX_AGGREGATE_INPUT_WORK = CLINIC_IMPORT_STAGE_LIMITS.inputWork
 const MAX_CANDIDATES_PER_VISIT = 2_048
 const MAX_TOTAL_CANDIDATES = 20_000
 const ERROR_CODES = new Set(['DATABASE_CHANGED', 'INPUT_TOO_COMPLEX', 'INVALID_STAGE_INPUT', 'INVALID_STAGE_PATH', 'STAGE_CLEANUP_FAILED', 'STAGE_INTEGRITY_FAILED', 'STAGE_WRITE_FAILED'])
@@ -50,7 +50,7 @@ const COLLECTION_KEYS = Object.freeze({
   identityIssues: Object.freeze(['id', 'code', 'source', 'candidatePatientIds']),
   visitIssues: Object.freeze(['id', 'historicalVisitId', 'code', 'field']),
   normalizationIssues: Object.freeze(['id', 'code', 'source', 'field']),
-  sourceRows: Object.freeze(['id', 'sourceRole', 'sourceName', 'sourceRow', 'patientId', 'historicalVisitId', 'payload', 'payloadHash', 'issueCodes']),
+  sourceRows: Object.freeze(['id', 'sourceRole', 'sourceName', 'sourceRow', 'patientId', 'historicalVisitId', 'birthDateValid', 'payload', 'payloadHash', 'issueCodes']),
   invoices: Object.freeze(['id', 'sourceName', 'sourceRow', 'historicalVisitId', 'status', 'payload', 'payloadHash']),
   attachments: Object.freeze([])
 })
@@ -65,7 +65,7 @@ const PATIENT_REPORT_KEYS = Object.freeze(['total', 'supplemental', 'externalIde
 const IDENTITY_EVIDENCE_KEYS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate', 'componentConflicts', 'conflictingStrongIdentifiers', 'insufficientEvidence', 'sharedCardDifferentPeople', 'supplementalPatients', 'supplementalEnrichments', 'supplementalIssues'])
 const IDENTITY_MERGE_REASONS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate'])
 const VISIT_REPORT_KEYS = Object.freeze(['total', 'linked', 'ambiguous', 'unmatched', 'exactEhr', 'exactClinicCard', 'leadingZeroClinicCard', 'phoneCompatibleName', 'exactFullName', 'conflictingCommentEvidence', 'missingDate', 'emptyStatus', 'shortRow', 'invalidStartDate', 'invalidEndDate', 'controlCharValue', 'valueTooLarge'])
-const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients'])
+const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords'])
 const CANDIDATE_EVIDENCE_CODES = new Set(['EXACT_EHR', 'EXACT_CLINIC_CARD', 'LEADING_ZERO_CLINIC_CARD', 'PHONE_COMPATIBLE_NAME', 'EXACT_FULL_NAME', 'CONFLICTING_COMMENT_EVIDENCE'])
 const VISIT_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ code: 'EXACT_EHR', level: 'exact', score: 100 }), exact_clinic_card: Object.freeze({ code: 'EXACT_CLINIC_CARD', level: 'strong', score: 90 }), leading_zero_clinic_card: Object.freeze({ code: 'LEADING_ZERO_CLINIC_CARD', level: 'strong', score: 80 }), phone_compatible_name: Object.freeze({ code: 'PHONE_COMPATIBLE_NAME', level: 'strong', score: 70 }), exact_full_name: Object.freeze({ code: 'EXACT_FULL_NAME', level: 'moderate', score: 60 }), conflicting_comment_evidence: Object.freeze({ code: 'CONFLICTING_COMMENT_EVIDENCE', level: 'moderate', score: 50 }) })
 const IDENTITY_ISSUE_CODES = new Set(['COMPONENT_IDENTITY_CONFLICT', 'CONFLICTING_STRONG_IDENTIFIER', 'INCOMPLETE_PATIENT_NAME', 'INSUFFICIENT_IDENTITY_EVIDENCE', 'SHARED_CARD_DIFFERENT_PEOPLE', 'SUPPLEMENTAL_EHR_AMBIGUOUS', 'SUPPLEMENTAL_EHR_NOT_FOUND', 'SUPPLEMENTAL_INSUFFICIENT_EVIDENCE', 'SUPPLEMENTAL_NAME_ONLY_MATCH'])
@@ -226,10 +226,44 @@ function canonicalized(value) {
   return canonicalValue(value, { nodes: 0, ancestors: new WeakSet() })
 }
 
-function canonicalJson(value) {
-  const json = jsonText(canonicalized(value), true)
-  if (Buffer.byteLength(json, 'utf8') > MAX_STAGE_BYTES) invalid('INPUT_TOO_COMPLEX')
-  return json
+function jsonStringByteLength(value) {
+  let bytes = 2
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index)
+    if (code === 34 || code === 92 || [8, 9, 10, 12, 13].includes(code)) bytes += 2
+    else if (code < 32) bytes += 6
+    else if (code < 128) bytes += 1
+    else if (code < 2_048) bytes += 2
+    else if (code >= 0xd800 && code <= 0xdbff) { bytes += 4; index += 1 }
+    else bytes += 3
+  }
+  return bytes
+}
+
+function jsonByteDebit(state, bytes, code) {
+  state.remaining -= bytes
+  if (state.remaining < 0) invalid(code)
+}
+
+function boundedJsonBytes(value, state, code) {
+  if (value === null) jsonByteDebit(state, 4, code)
+  else if (typeof value === 'string') jsonByteDebit(state, jsonStringByteLength(value), code)
+  else if (typeof value === 'boolean') jsonByteDebit(state, value ? 4 : 5, code)
+  else if (typeof value === 'number') jsonByteDebit(state, String(value).length, code)
+  else if (Array.isArray(value)) {
+    jsonByteDebit(state, value.length === 0 ? 2 : value.length + 1, code)
+    for (const item of value) boundedJsonBytes(item, state, code)
+  } else {
+    const keys = Object.keys(value)
+    jsonByteDebit(state, keys.length === 0 ? 2 : keys.length * 2 + 1, code)
+    for (const key of keys) { jsonByteDebit(state, jsonStringByteLength(key), code); boundedJsonBytes(value[key], state, code) }
+  }
+}
+
+function canonicalJson(value, maximumBytes = CLINIC_IMPORT_STAGE_LIMITS.plaintext, tooLargeCode = 'INPUT_TOO_COMPLEX') {
+  const canonical = canonicalized(value)
+  boundedJsonBytes(canonical, { remaining: maximumBytes }, tooLargeCode)
+  return jsonText(canonical, true)
 }
 
 function jsonText(value, sorted = false) {
@@ -341,13 +375,13 @@ function normalizedPatientProfile(value) {
 function safeCollectionRecord(collection, value) {
   const record = canonicalized(exactRecord(value, COLLECTION_KEYS[collection]))
   if (collection === 'patients') {
-    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if (typeof record.isSupplemental !== 'boolean') invalid(); return Object.freeze({ ...record, profile: normalizedPatientProfile(record.profile) })
+    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if ((record.firstSeenAt === null) !== (record.lastSeenAt === null) || (record.firstSeenAt !== null && record.firstSeenAt > record.lastSeenAt) || typeof record.isSupplemental !== 'boolean') invalid(); return Object.freeze({ ...record, profile: normalizedPatientProfile(record.profile) })
   } else if (collection === 'externalIdentifiers') {
     safeUuid(record.id); safeUuid(record.patientId); if (!['medesk_ehr', 'clinic_card', 'legacy_system'].includes(record.system)) invalid(); safeFingerprint(record.fingerprint); safeFingerprint(record.globalFingerprint, true); safeFingerprint(record.identityKey); if (typeof record.isPrimary !== 'boolean') invalid(); safeSource(record.source); safeSources(record.sources)
   } else if (collection === 'contacts') {
-    safeUuid(record.id); safeUuid(record.patientId); if (!['phone', 'email'].includes(record.kind)) invalid(); safeFingerprint(record.fingerprint); safeMask(record.mask); if (typeof record.isPrimary !== 'boolean') invalid(); safeSource(record.source); safeSources(record.sources); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt)
+    safeUuid(record.id); safeUuid(record.patientId); if (!['phone', 'email'].includes(record.kind)) invalid(); safeFingerprint(record.fingerprint); safeMask(record.mask); if (typeof record.isPrimary !== 'boolean') invalid(); safeSource(record.source); safeSources(record.sources); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if ((record.firstSeenAt === null) !== (record.lastSeenAt === null) || (record.firstSeenAt !== null && record.firstSeenAt > record.lastSeenAt)) invalid()
   } else if (collection === 'nameHistory') {
-    safeUuid(record.id); safeUuid(record.patientId); safeSource(record.source); safeTimestamp(record.observedAt); if (!['surname_change', 'source_correction'].includes(record.reason)) invalid()
+    safeUuid(record.id); safeUuid(record.patientId); safeSource(record.source); safeTimestamp(record.observedAt); if (!['surname_change', 'source_correction', 'identity_alias'].includes(record.reason)) invalid()
   } else if (collection === 'privateData') {
     safeUuid(record.id); safeUuid(record.patientId); safeSources(record.sources)
   } else if (collection === 'consents') {
@@ -367,7 +401,7 @@ function safeCollectionRecord(collection, value) {
   } else if (collection === 'normalizationIssues') {
     safeUuid(record.id); if (!NORMALIZATION_ISSUE_CODES.has(record.code) || !NORMALIZATION_FIELDS.has(record.field)) invalid(); safeSource(record.source)
   } else if (collection === 'sourceRows') {
-    safeUuid(record.id); if (!SOURCE_CONTRACTS.some(({ role, filename }) => role === record.sourceRole && filename === record.sourceName) || !Number.isSafeInteger(record.sourceRow) || record.sourceRow < 1) invalid(); nullableUuid(record.patientId); nullableUuid(record.historicalVisitId); hashValue(record.payloadHash); safeCodes(record.issueCodes, SOURCE_ROW_ISSUE_CODES)
+    safeUuid(record.id); if (!SOURCE_CONTRACTS.some(({ role, filename }) => role === record.sourceRole && filename === record.sourceName) || !Number.isSafeInteger(record.sourceRow) || record.sourceRow < 1 || (record.sourceRole === 'pd' ? typeof record.birthDateValid !== 'boolean' : record.birthDateValid !== null)) invalid(); nullableUuid(record.patientId); nullableUuid(record.historicalVisitId); hashValue(record.payloadHash); safeCodes(record.issueCodes, SOURCE_ROW_ISSUE_CODES)
   } else if (collection === 'invoices') {
     safeUuid(record.id); if (record.sourceName !== SOURCE_CONTRACTS[3].filename || !Number.isSafeInteger(record.sourceRow) || record.sourceRow < 1 || record.status !== 'incomplete_source') invalid(); nullableUuid(record.historicalVisitId); hashValue(record.payloadHash)
   }
@@ -593,6 +627,26 @@ function verifyFingerprints(collections, protectedMode) {
   }
 }
 
+function verifyPrimaryPatientPhones(collections, protectedMode) {
+  const primaryByPatient = new Map()
+  for (const contact of collections.contacts) if (contact.kind === 'phone' && contact.isPrimary) {
+    if (primaryByPatient.has(contact.patientId)) invalid()
+    primaryByPatient.set(contact.patientId, contact)
+  }
+  if (protectedMode) return
+  for (const patient of collections.patients) {
+    const primary = primaryByPatient.get(patient.id) ?? null
+    const expected = patient.profile.primaryPhone
+    if ((expected === null) !== (primary === null)) invalid()
+    if (expected !== null) {
+      let expectedPhone
+      let contactPhone
+      try { expectedPhone = normalizeContactPhone(expected); contactPhone = normalizeContactPhone(primary.value) } catch { invalid() }
+      if (expectedPhone !== contactPhone) invalid()
+    }
+  }
+}
+
 function verifyPayloads(collections, protectedMode) {
   if (protectedMode) return
   for (const row of collections.sourceRows) if (sha256(Buffer.from(jsonText(row.payload), 'utf8')) !== row.payloadHash) invalid()
@@ -720,10 +774,13 @@ function verifyRelations(manifest, report, collections, identityMergeEvidenceVal
   uniqueCollectionIds(collections)
   allUniqueIds(collections)
   const patientIds = new Set(collections.patients.map(({ id }) => id))
+  const patientById = new Map(collections.patients.map((patient) => [patient.id, patient]))
   const supplementalPatientIds = new Set(collections.patients.filter(({ isSupplemental }) => isSupplemental).map(({ id }) => id))
   const visitIds = new Set(collections.historicalVisits.map(({ id }) => id))
   const visitById = new Map(collections.historicalVisits.map((visit) => [visit.id, visit]))
   for (const collection of ['externalIdentifiers', 'contacts', 'nameHistory', 'privateData', 'consents', 'sourceLinks']) for (const row of collections[collection]) knownPatient(patientIds, row.patientId)
+  for (const record of collections.nameHistory) if (record.reason === 'surname_change' && (record.observedAt === null || patientById.get(record.patientId).lastSeenAt === null || record.observedAt >= patientById.get(record.patientId).lastSeenAt)) invalid()
+  verifyPrimaryPatientPhones(collections, protectedMode)
   for (const visit of collections.historicalVisits) {
     if (visit.patientId !== null) knownPatient(patientIds, visit.patientId)
     if ((visit.linkStatus === 'linked') !== (visit.patientId !== null) || (visit.linkStatus === 'unmatched') !== (visit.linkMethod === null)) invalid()
@@ -785,16 +842,15 @@ function verifyRelations(manifest, report, collections, identityMergeEvidenceVal
   const visitEvidence = countRecord(visitEvidenceValue, VISIT_REPORT_KEYS)
   const medesk = collections.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length
   const supplemental = collections.patients.filter(({ isSupplemental }) => isSupplemental).length
-  const validBirthDates = protectedMode ? null : collections.patients.filter(({ profile }) => profile.birthDate !== null).length
-  const controls = Object.freeze({ primaryRows: manifest.files.find(({ role }) => role === 'pd').rowCount, medeskEhrIdentifiers: medesk, patients: collections.patients.length, visits: collections.historicalVisits.length, missingDates: visits.missingDate, validBirthDates, cardCollisionGroups: cardCollisionGroups(collections), invoices: collections.invoices.length, primaryMerges: manifest.files.find(({ role }) => role === 'pd').rowCount - (collections.patients.length - supplemental), supplementalPatients: supplemental })
+  const validBirthDates = collections.sourceRows.filter(({ sourceRole, birthDateValid }) => sourceRole === 'pd' && birthDateValid).length
+  const controls = Object.freeze({ primaryRows: manifest.files.find(({ role }) => role === 'pd').rowCount, medeskEhrIdentifiers: medesk, patients: collections.patients.length, visits: collections.historicalVisits.length, missingDates: visits.missingDate, validBirthDates, cardCollisionGroups: cardCollisionGroups(collections), invoices: collections.invoices.length, primaryMerges: manifest.files.find(({ role }) => role === 'pd').rowCount - (collections.patients.length - supplemental), supplementalPatients: supplemental, nameHistoryRecords: collections.nameHistory.length })
   equalCounts(report.sourceRows.byRole, byRole, SOURCE_CONTRACTS.map(({ role }) => role))
   equalCounts(report.visits, visits, VISIT_REPORT_KEYS)
   if (!equalRecord(report.patients.evidenceCounts, identityEvidence, IDENTITY_EVIDENCE_KEYS) || !equalRecord(report.visits, visitEvidence, VISIT_REPORT_KEYS)) invalid()
-  equalCounts(report.controls, controls, protectedMode ? CONTROL_KEYS.filter((key) => key !== 'validBirthDates') : CONTROL_KEYS)
+  equalCounts(report.controls, controls, CONTROL_KEYS)
   if (report.manifestHash !== manifest.sha256 || report.sourceRows.total !== collections.sourceRows.length || report.patients.total !== collections.patients.length || report.patients.supplemental !== supplemental || report.patients.externalIdentifiers !== collections.externalIdentifiers.length || report.patients.medeskEhrIdentifiers !== medesk || report.patients.contacts !== collections.contacts.length || report.patients.nameHistory !== collections.nameHistory.length || report.patients.consents !== collections.consents.length || report.invoices.total !== collections.invoices.length || report.invoices.incomplete !== collections.invoices.length || report.attachments.total !== collections.attachments.length || report.issues.normalization !== collections.normalizationIssues.length || report.issues.identity !== collections.identityIssues.length || report.issues.visits !== collections.visitIssues.length) invalid()
   const mergeKeys = ['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate']
   if (mergeKeys.reduce((total, key) => total + report.patients.evidenceCounts[key], 0) !== report.controls.primaryMerges || report.patients.evidenceCounts.supplementalPatients !== supplemental) invalid()
-  if (!protectedMode && report.controls.validBirthDates !== validBirthDates) invalid()
   verifyFingerprints(collections, protectedMode)
   verifyPayloads(collections, protectedMode)
   verifyAppointments(collections, protectedMode)
@@ -865,7 +921,7 @@ function protectedRecord(collection, value) {
   if (!['consents', 'sourceLinks', 'historicalVisits', 'visitCandidates', 'identityIssues', 'visitIssues', 'normalizationIssues', 'attachments'].includes(collection)) safeEnvelope(record[collection === 'patients' ? 'profileEnvelope' : ['sourceRows', 'invoices'].includes(collection) ? 'payloadEnvelope' : 'valueEnvelope'], collection === 'patients' ? 4_096 : 87_425)
   if (collection === 'patients') safeEnvelope(record.profileDataEnvelope, 4_096)
   if (collection === 'patients') {
-    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if (typeof record.isSupplemental !== 'boolean') invalid(); return record
+    safeUuid(record.id); safeTimestamp(record.firstSeenAt); safeTimestamp(record.lastSeenAt); if ((record.firstSeenAt === null) !== (record.lastSeenAt === null) || (record.firstSeenAt !== null && record.firstSeenAt > record.lastSeenAt) || typeof record.isSupplemental !== 'boolean') invalid(); return record
   }
   const raw = Object.create(null)
   for (const key of COLLECTION_KEYS[collection]) if (Object.hasOwn(record, key)) raw[key] = record[key]
@@ -935,6 +991,7 @@ function stageAad(manifestHash, planHash) {
 
 function encryptedArtifact(plan, manifestHash, planHash, keyValue, randomBytes) {
   const plaintext = Buffer.from(canonicalJson(plan), 'utf8')
+  if (clinicImportStageArtifactByteLength(plaintext.byteLength) > CLINIC_IMPORT_STAGE_LIMITS.artifact) invalid('INPUT_TOO_COMPLEX')
   hashValue(planHash)
   const iv = randomPart(randomBytes, 12)
   const cipher = createCipheriv(ALGORITHM, encryptionKey(keyValue), iv)
@@ -942,7 +999,7 @@ function encryptedArtifact(plan, manifestHash, planHash, keyValue, randomBytes) 
   const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()])
   const artifact = Object.freeze({ version: VERSION, algorithm: ALGORITHM, manifestHash, planHash, iv: iv.toString('base64url'), ciphertext: ciphertext.toString('base64url'), tag: cipher.getAuthTag().toString('base64url') })
   const bytes = Buffer.from(jsonText(artifact), 'utf8')
-  if (bytes.byteLength > MAX_STAGE_BYTES) invalid('INPUT_TOO_COMPLEX')
+  if (bytes.byteLength > CLINIC_IMPORT_STAGE_LIMITS.artifact) invalid('INPUT_TOO_COMPLEX')
   return Object.freeze({ artifact, bytes, planHash })
 }
 
@@ -994,7 +1051,7 @@ async function regularSnapshot(filePath, tooLargeCode, prohibitedRoot = null, fi
     if (prohibitedRoot !== null && inside(prohibitedRoot, canonicalPath)) invalid('INVALID_STAGE_PATH')
     handle = await fileSystem.open(canonicalPath, constants.O_RDONLY | constants.O_NOFOLLOW)
     const metadata = await handle.stat()
-    if (!metadata.isFile() || !Number.isSafeInteger(metadata.size) || metadata.size < 0 || metadata.size > MAX_STAGE_BYTES) invalid(tooLargeCode)
+    if (!metadata.isFile() || !Number.isSafeInteger(metadata.size) || metadata.size < 0 || metadata.size > CLINIC_IMPORT_STAGE_LIMITS.artifact) invalid(tooLargeCode)
     const bytes = Buffer.alloc(metadata.size)
     let offset = 0
     while (offset < bytes.byteLength) {
@@ -1181,7 +1238,7 @@ function artifactPart(value, expectedBytes = null) {
 }
 
 function parsedArtifact(bytes, expectedManifestHash, expectedPlanHash) {
-  if (bytes.byteLength > MAX_STAGE_BYTES) invalid('INPUT_TOO_COMPLEX')
+  if (bytes.byteLength > CLINIC_IMPORT_STAGE_LIMITS.artifact) invalid('INPUT_TOO_COMPLEX')
   let parsed
   try {
     parsed = JSON.parse(bytes.toString('utf8'))
@@ -1190,6 +1247,7 @@ function parsedArtifact(bytes, expectedManifestHash, expectedPlanHash) {
   }
   const artifact = exactRecord(parsed, ['algorithm', 'ciphertext', 'iv', 'manifestHash', 'planHash', 'tag', 'version'])
   if (artifact.version !== VERSION || artifact.algorithm !== ALGORITHM || hashValue(artifact.manifestHash, 'STAGE_INTEGRITY_FAILED') !== expectedManifestHash || hashValue(artifact.planHash, 'STAGE_INTEGRITY_FAILED') !== expectedPlanHash) invalid('STAGE_INTEGRITY_FAILED')
+  if (typeof artifact.ciphertext !== 'string' || artifact.ciphertext.length > Math.ceil(CLINIC_IMPORT_STAGE_LIMITS.plaintext / 3) * 4) invalid('STAGE_INTEGRITY_FAILED')
   return Object.freeze({ artifact, iv: artifactPart(artifact.iv, 12), ciphertext: artifactPart(artifact.ciphertext), tag: artifactPart(artifact.tag, 16) })
 }
 
@@ -1204,7 +1262,7 @@ function openedPlan(parts, keyValue) {
     if (error instanceof ClinicImportStageError) throw error
     invalid('STAGE_INTEGRITY_FAILED')
   }
-  if (plaintext.byteLength > MAX_STAGE_BYTES) invalid('STAGE_INTEGRITY_FAILED')
+  if (plaintext.byteLength > CLINIC_IMPORT_STAGE_LIMITS.plaintext) invalid('STAGE_INTEGRITY_FAILED')
   let parsed
   try {
     parsed = JSON.parse(plaintext.toString('utf8'))
@@ -1212,7 +1270,7 @@ function openedPlan(parts, keyValue) {
     invalid('STAGE_INTEGRITY_FAILED')
   }
   const canonical = canonicalized(parsed)
-  if (Buffer.from(canonicalJson(canonical), 'utf8').compare(plaintext) !== 0) invalid('STAGE_INTEGRITY_FAILED')
+  if (Buffer.from(canonicalJson(canonical, CLINIC_IMPORT_STAGE_LIMITS.plaintext, 'STAGE_INTEGRITY_FAILED'), 'utf8').compare(plaintext) !== 0) invalid('STAGE_INTEGRITY_FAILED')
   const opened = protectedInput(canonical, keyValue)
   if (opened.plan.manifestHash !== parts.artifact.manifestHash || opened.planHash !== parts.artifact.planHash) invalid('STAGE_INTEGRITY_FAILED')
   return canonicalized(opened.plan)

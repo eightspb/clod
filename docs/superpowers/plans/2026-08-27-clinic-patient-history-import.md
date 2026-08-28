@@ -238,7 +238,7 @@ All tasks ─> Task 12 docs, real dry-run, isolated apply, full verification
 
 - [ ] **Step 3: Implement evidence and component rules**
 
-  Keep evidence evaluation separate from union-find/component construction. Return immutable `patients`, `externalIdentifiers`, `contacts`, `nameHistory`, `privateData`, `consents`, `sourceLinks`, `issues`, and aggregate evidence counts. Choose the current row by trusted chronology and field priority, never by arbitrary input order.
+  Keep evidence evaluation separate from union-find/component construction. Return immutable `patients`, `externalIdentifiers`, `contacts`, `nameHistory`, `privateData`, `consents`, `sourceLinks`, `issues`, and aggregate evidence counts. Choose the current row by trusted chronology and field priority, with a deterministic fallback when chronology is unknown. Emit `surname_change` only for a strictly older trusted observation; preserve null/equal-date alternatives as `identity_alias` without claiming an order.
 
 - [ ] **Step 4: Add supplemental medesk-only identity tests**
 
@@ -530,7 +530,7 @@ All tasks ─> Task 12 docs, real dry-run, isolated apply, full verification
 
 - [ ] **Step 4: Apply to an isolated database copy**
 
-  Create a temporary SQLite database and a separate consistent backup through SQLite backup semantics, run `scripts/init-db.mjs`, then run the importer with `--apply`, the verified stage, exact dry-run manifest, and backup path. Run it a second time to prove idempotency. Query all control totals and scan protected columns for known synthetic/source plaintext only through a local verification process that does not print values.
+  Create a temporary SQLite database and a separate exact byte-for-byte backup while it is quiescent and has no WAL/SHM sidecars, run `scripts/init-db.mjs`, then run the importer with `--apply`, the verified stage, exact dry-run manifest, and backup path. Run it a second time to prove idempotency. Query all control totals and scan protected columns for known synthetic/source plaintext only through a local verification process that does not print values.
 
 - [ ] **Step 5: Run broad verification**
 

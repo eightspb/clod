@@ -19,6 +19,7 @@ const VISIT_ID = '72000000-0000-4000-8000-000000000002'
 const CANDIDATE_VISIT_ID = '72000000-0000-4000-8000-000000000012'
 const BATCH_ID = '73000000-0000-4000-8000-000000000003'
 const NOW = '2026-08-27T12:00:00.000Z'
+const BEFORE_NOW = '2026-08-26T12:00:00.000Z'
 const ACTOR = `v1:${'c7'.repeat(32)}`
 const PD_SOURCE = '544663c3807aab090001bad8PD.csv'
 const VISIT_SOURCE = '544663c3807aab090001bad8_visits.csv'
@@ -60,7 +61,7 @@ async function protectedRows(client) {
   await client.execute({ sql: 'UPDATE Patient SET profileCiphertext = ?, phoneMask = ?, phoneFingerprint = ? WHERE id = ?', args: [profileCiphertext, maskContactPhone('79215554173'), phoneFingerprint, PATIENT_ID] })
   await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['75000000-0000-4000-8000-000000000015', PATIENT_ID, 'medesk_ehr', sealed('external_identifier', { value: '0000000000007149' }), 'v1:ehr', 'v1:global-ehr', 'medesk_ehr:v1:ehr', PD_SOURCE, 17, true, NOW, NOW] })
   await client.execute({ sql: 'INSERT INTO PatientContact VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['76000000-0000-4000-8000-000000000016', PATIENT_ID, 'email', sealed('contact', { value: 'synthetic.history@example.test' }), 'v1:email', 's••••••••@example.test', false, PD_SOURCE, NOW, NOW, null] })
-  await client.execute({ sql: 'INSERT INTO PatientNameHistory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['77000000-0000-4000-8000-000000000017', PATIENT_ID, sealed('name_history', { lastName: 'Прежняя-Синтетическая' }), 'v1:name', PD_SOURCE, sealed('external_identifier', { value: '0000000000007001' }), NOW, 'surname_change', null] })
+  await client.execute({ sql: 'INSERT INTO PatientNameHistory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['77000000-0000-4000-8000-000000000017', PATIENT_ID, sealed('name_history', { lastName: 'Прежняя-Синтетическая' }), 'v1:name', PD_SOURCE, sealed('external_identifier', { value: '0000000000007001' }), BEFORE_NOW, 'surname_change', null] })
   await client.execute({ sql: 'INSERT INTO PatientPrivateData VALUES (?, ?, ?, ?, ?, ?)', args: ['79000000-0000-4000-8000-000000000019', PATIENT_ID, sealed('private_profile', { passport: { series: '4012', number: '000149' }, address: { city: 'Синтетический город', street: 'Тестовая 7' }, contract: 'Договор-149', notes: 'Синтетическая заметка' }), NOW, NOW, null] })
   await client.execute({ sql: 'INSERT INTO PatientConsent VALUES (?, ?, ?, ?, ?, ?, ?, ?)', args: ['7a000000-0000-4000-8000-000000000020', PATIENT_ID, 'sms_notifications', 'granted', 'Vse pacienty.xlsx', NOW, NOW, NOW] })
 }
@@ -288,18 +289,42 @@ describe('patient history records', () => {
     const revealed = await records.reveal({ id: PATIENT_ID, actor: ACTOR })
     const audit = await client.execute({ sql: 'SELECT action, actor FROM PatientAccess WHERE patientId = ?', args: [PATIENT_ID] })
     client.close()
-    expect({ revealed, audit: audit.rows }).toEqual({ revealed: { id: PATIENT_ID, profile: { firstName: 'Лёля', lastName: 'Рубежная', secondName: 'Ильинична', phone: '79215554173', birthday: '1987-11-09' }, contacts: [{ kind: 'email', value: 'synthetic.history@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: PD_SOURCE, firstSeenAt: NOW, lastSeenAt: NOW }], previousLastNames: [{ lastName: 'Прежняя-Синтетическая', reason: 'surname_change', sourceName: PD_SOURCE, observedAt: NOW }], externalIdentifiers: [{ system: 'medesk_ehr', value: '0000000000007149', isPrimary: true, sourceName: PD_SOURCE, sourceRow: 17 }], privateData: { passport: { series: '4012', number: '000149' }, address: { city: 'Синтетический город', street: 'Тестовая 7' }, contract: 'Договор-149', notes: 'Синтетическая заметка' }, consents: [{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: NOW }], attachments: [], historicalVisits: [{ id: VISIT_ID, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: { services: ['Приём'], cabinet: '7', comment: 'Позвонить вечером' } }], revealedAt: NOW }, audit: [{ action: 'reveal', actor: ACTOR }] })
+    expect({ revealed, audit: audit.rows }).toEqual({ revealed: { id: PATIENT_ID, patientLastSeenAt: NOW, profile: { firstName: 'Лёля', lastName: 'Рубежная', secondName: 'Ильинична', phone: '79215554173', birthday: '1987-11-09' }, contacts: [{ kind: 'email', value: 'synthetic.history@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: PD_SOURCE, firstSeenAt: NOW, lastSeenAt: NOW }], previousLastNames: [{ lastName: 'Прежняя-Синтетическая', reason: 'surname_change', sourceName: PD_SOURCE, observedAt: BEFORE_NOW }], externalIdentifiers: [{ system: 'medesk_ehr', value: '0000000000007149', isPrimary: true, sourceName: PD_SOURCE, sourceRow: 17 }], privateData: { passport: { series: '4012', number: '000149' }, address: { city: 'Синтетический город', street: 'Тестовая 7' }, contract: 'Договор-149', notes: 'Синтетическая заметка' }, consents: [{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: NOW }], attachments: [], historicalVisits: [{ id: VISIT_ID, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: { services: ['Приём'], cabinet: '7', comment: 'Позвонить вечером' } }], revealedAt: NOW }, audit: [{ action: 'reveal', actor: ACTOR }] })
   })
 
   it('reveals unknown observation dates as null without fabricating chronology', async () => {
     const { client, records } = await fixture()
     await protectedRows(client)
     await client.execute({ sql: 'UPDATE PatientContact SET firstSeenAt = NULL, lastSeenAt = NULL WHERE patientId = ?', args: [PATIENT_ID] })
-    await client.execute({ sql: 'UPDATE PatientNameHistory SET observedAt = NULL WHERE patientId = ?', args: [PATIENT_ID] })
+    await client.execute({ sql: 'UPDATE PatientNameHistory SET observedAt = NULL, reason = ? WHERE patientId = ?', args: ['identity_alias', PATIENT_ID] })
     await client.execute({ sql: 'UPDATE PatientConsent SET observedAt = NULL WHERE patientId = ?', args: [PATIENT_ID] })
     const revealed = await records.reveal({ id: PATIENT_ID, actor: ACTOR })
     client.close()
     expect({ contact: [revealed.contacts[0]?.firstSeenAt, revealed.contacts[0]?.lastSeenAt], name: revealed.previousLastNames[0]?.observedAt, consent: revealed.consents[0]?.observedAt }).toEqual({ contact: [null, null], name: null, consent: null })
+  })
+
+  it('reveals an identity alias without presenting it as chronological history', async () => {
+    const { client, records } = await fixture()
+    await protectedRows(client)
+    await client.execute({ sql: 'UPDATE PatientNameHistory SET reason = ?, observedAt = NULL WHERE patientId = ?', args: ['identity_alias', PATIENT_ID] })
+    const revealed = await records.reveal({ id: PATIENT_ID, actor: ACTOR })
+    client.close()
+    expect(revealed.previousLastNames.map(({ reason, observedAt }) => [reason, observedAt])).toEqual([['identity_alias', null]])
+  })
+
+  it.each([
+    ['one-sided contact chronology', 'UPDATE PatientContact SET firstSeenAt = NULL WHERE patientId = ?'],
+    ['inverted contact chronology', "UPDATE PatientContact SET firstSeenAt = '2026-08-28T12:00:00.000Z' WHERE patientId = ?"],
+    ['surname change without chronology', 'UPDATE PatientNameHistory SET observedAt = NULL WHERE patientId = ?'],
+    ['surname change after the current observation', "UPDATE PatientNameHistory SET observedAt = '2026-08-28T12:00:00.000Z' WHERE patientId = ?"],
+  ])('rejects %s before writing an audit', async (_label, sql) => {
+    const { client, records } = await fixture()
+    await protectedRows(client)
+    await client.execute({ sql, args: [PATIENT_ID] })
+    const failure = await captured(() => records.reveal({ id: PATIENT_ID, actor: ACTOR }))
+    const audit = await client.execute('SELECT COUNT(*) AS total FROM PatientAccess')
+    client.close()
+    expect({ code: failure.code, audits: Number(audit.rows[0]?.total) }).toEqual({ code: 'PATIENT_HISTORY_STORAGE_INVARIANT', audits: 0 })
   })
 
   it('returns one frozen value-free error and no audit for a corrupted child envelope', async () => {

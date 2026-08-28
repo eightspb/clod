@@ -16,23 +16,23 @@ const MAX_ISSUES = 250_000
 const MAX_KEYS = 128
 const MAX_DEPTH = 16
 const MAX_NODES = 20_000
-const MAX_AGGREGATE_INPUT_WORK = 192 * 1024 * 1024
+const MAX_AGGREGATE_INPUT_WORK = 512 * 1024 * 1024
 const MAX_CANDIDATES_PER_VISIT = 2_048
 const MAX_TOTAL_CANDIDATES = 20_000
 const MAX_IDENTITY_EVIDENCE_BUCKET = 256
 const MAX_IDENTITY_EVIDENCE_PAIRS = 250_000
 const MAGIC_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
-const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients'])
+const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords'])
 const IDENTITY_EVIDENCE_KEYS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate', 'componentConflicts', 'conflictingStrongIdentifiers', 'insufficientEvidence', 'sharedCardDifferentPeople', 'supplementalPatients', 'supplementalEnrichments', 'supplementalIssues'])
 const VISIT_EVIDENCE_KEYS = Object.freeze(['total', 'linked', 'ambiguous', 'unmatched', 'exactEhr', 'exactClinicCard', 'leadingZeroClinicCard', 'phoneCompatibleName', 'exactFullName', 'conflictingCommentEvidence', 'missingDate', 'emptyStatus', 'shortRow', 'invalidStartDate', 'invalidEndDate', 'controlCharValue', 'valueTooLarge'])
 const VISIT_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ code: 'EXACT_EHR', level: 'exact', score: 100 }), exact_clinic_card: Object.freeze({ code: 'EXACT_CLINIC_CARD', level: 'strong', score: 90 }), leading_zero_clinic_card: Object.freeze({ code: 'LEADING_ZERO_CLINIC_CARD', level: 'strong', score: 80 }), phone_compatible_name: Object.freeze({ code: 'PHONE_COMPATIBLE_NAME', level: 'strong', score: 70 }), exact_full_name: Object.freeze({ code: 'EXACT_FULL_NAME', level: 'moderate', score: 60 }), conflicting_comment_evidence: Object.freeze({ code: 'CONFLICTING_COMMENT_EVIDENCE', level: 'moderate', score: 50 }) })
 const ERROR_CODES = new Set(['BUNDLE_INVARIANT_FAILED', 'INPUT_TOO_COMPLEX', 'INVALID_BUNDLE_INPUT'])
-const ERROR_STAGES = new Set(['adapter', 'identity', 'invariants', 'source_capture', 'sources', 'visits'])
+const ERROR_STAGES = new Set(['adapter', 'identity', 'identity_consents', 'identity_enrichment', 'identity_evidence', 'identity_merge_evidence', 'invariants', 'production_controls', 'relational_invariants', 'report', 'source_capture', 'sources', 'visits'])
 const DETAIL_CODES = new Set(['IDENTITY_INVARIANT_FAILED', 'INPUT_TOO_COMPLEX', 'INVALID_IDENTITY_INPUT', 'INVALID_VISIT_INPUT', 'VISIT_INVARIANT_FAILED'])
 const SAFE_FIELD_CODES = new Set(['birth_date', 'clinic_card', 'consent', 'email', 'ehr', 'gender', 'inn', 'legacy_join', 'name', 'observed_at', 'passport', 'phone', 'private_data', 'snils'])
 const SAFE_ERRORS = new WeakSet()
 
-export const CLINIC_IMPORT_PRODUCTION_CONTROLS = Object.freeze({ primaryRows: 16_187, medeskEhrIdentifiers: 16_189, patients: 16_173, visits: 49_768, missingDates: 2_105, validBirthDates: 14_097, cardCollisionGroups: 74, invoices: 12, primaryMerges: 16, supplementalPatients: 2 })
+export const CLINIC_IMPORT_PRODUCTION_CONTROLS = Object.freeze({ primaryRows: 16_187, medeskEhrIdentifiers: 16_189, patients: 16_173, visits: 49_768, missingDates: 2_105, validBirthDates: 14_097, cardCollisionGroups: 74, invoices: 12, primaryMerges: 16, supplementalPatients: 2, nameHistoryRecords: 4 })
 
 /** Represents a value-free clinic import bundle failure. */
 export class ClinicImportBundleError extends Error {
@@ -65,7 +65,7 @@ function phase(stage, operation) {
   try {
     return operation()
   } catch (error) {
-    if (SAFE_ERRORS.has(error)) throw error
+    if (SAFE_ERRORS.has(error)) throw new ClinicImportBundleError(error.code, stage, error.detailCode)
     const detailCode = safeErrorCode(error)
     throw new ClinicImportBundleError(detailCode === 'INPUT_TOO_COMPLEX' ? 'INPUT_TOO_COMPLEX' : 'BUNDLE_INVARIANT_FAILED', stage, detailCode)
   }
@@ -162,8 +162,20 @@ function aggregateSnapshotValue(value, state, depth = 0) {
   }
 }
 
-function aggregateSnapshot(value) {
-  return aggregateSnapshotValue(value, { remaining: MAX_AGGREGATE_INPUT_WORK, ancestors: new WeakSet() })
+function loadedSnapshot(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) invalid()
+  const prototype = Object.getPrototypeOf(value)
+  const keys = Reflect.ownKeys(value)
+  if ((prototype !== Object.prototype && prototype !== null) || keys.length > MAX_KEYS || keys.some((key) => typeof key !== 'string' || MAGIC_KEYS.has(key)) || !['sources', 'manifest'].every((key) => keys.includes(key))) invalid()
+  const state = { remaining: MAX_AGGREGATE_INPUT_WORK, ancestors: new WeakSet() }
+  const output = Object.create(null)
+  for (const key of ['sources', 'manifest']) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)
+    if (!descriptor?.enumerable || !Object.hasOwn(descriptor, 'value')) invalid()
+    aggregateDebit(state, key.length * 6 + 8)
+    output[key] = aggregateSnapshotValue(descriptor.value, state, 1)
+  }
+  return Object.freeze(output)
 }
 
 function validUnicode(value) {
@@ -288,8 +300,7 @@ function manifestFrom(value, sources) {
 }
 
 function loadedResult(value) {
-  const loaded = plainRecord(aggregateSnapshot(value))
-  for (const key of ['sources', 'manifest']) if (!Object.hasOwn(loaded, key)) invalid()
+  const loaded = loadedSnapshot(value)
   const rawSources = plainRecord(loaded.sources)
   const keys = Object.keys(rawSources)
   if (keys.length !== SOURCE_ROLES.length || SOURCE_ROLES.some((role) => !Object.hasOwn(rawSources, role)) || keys.some((role) => !SOURCE_ROLES.includes(role) || MEDICAL_ROLE_PATTERN.test(role))) invalid('BUNDLE_INVARIANT_FAILED')
@@ -376,7 +387,7 @@ function timestamp(value) {
   if (typeof value !== 'string' || value.length === 0) return null
   const iso = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/.exec(value)
   const date = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value)
-  const compact = /^(\d{2})\.(\d{2})\.(\d{4})(\d{2}):(\d{2})$/.exec(value)
+  const compact = /^(\d{2})\.(\d{2})\.(\d{4}) ?(\d{2}):(\d{2})$/.exec(value)
   const parts = iso === null ? date ?? compact : iso
   if (parts === null) return null
   const year = Number(iso === null ? parts[3] : parts[1])
@@ -605,11 +616,12 @@ function inferredSourcePatient(row, ehrOwners) {
   return null
 }
 
-function sourceRowsFrom(sources, identities, visits, legacyAssociations, key) {
+function sourceRowsFrom(sources, identities, visits, legacyAssociations, primaryRows, key) {
   const patientLinks = new Map(identities.sourceLinks.map((link) => [`${link.source.sourceName}\0${link.source.sourceRow}`, link.patientId]))
   const visitLinks = new Map(visits.historicalVisits.map((visit) => [`${visit.sourceName}\0${visit.sourceRow}`, visit.id]))
   const visitPatients = new Map(visits.historicalVisits.map((visit) => [visit.id, visit.patientId]))
   const ehrOwners = identifierOwners(identities, 'medesk_ehr')
+  const birthDates = new Map(primaryRows.map(({ source, profile }) => [`${source.sourceName}\0${source.sourceRow}`, profile.birthDate !== null]))
   const legacyOwners = new Map()
   for (const association of legacyAssociations) {
     const patientId = patientLinks.get(`${association.primary.sourceName}\0${association.primary.sourceRow}`)
@@ -623,7 +635,9 @@ function sourceRowsFrom(sources, identities, visits, legacyAssociations, key) {
     const token = `${row.sourceName}\0${row.sourceRow}`
     const historicalVisitId = visitLinks.get(token) ?? null
     const payload = boundedPayload(Object.freeze({ values: row.values, structuralIssues: row.structuralIssues }))
-    return Object.freeze({ id: uuid(key, 'source-row', [role, row.sourceName, row.sourceRow]), sourceRole: role, sourceName: row.sourceName, sourceRow: row.sourceRow, patientId: patientLinks.get(token) ?? visitPatients.get(historicalVisitId) ?? uniqueOwner(legacyOwners, token) ?? inferredSourcePatient(row, ehrOwners), historicalVisitId, payload, payloadHash: sha256(Buffer.from(jsonText(payload), 'utf8')), issueCodes: Object.freeze(row.structuralIssues.map(({ code }) => code).filter((code) => typeof code === 'string')) })
+    const birthDateValid = role === 'pd' ? birthDates.get(token) : null
+    if (birthDateValid === undefined) invalid('BUNDLE_INVARIANT_FAILED')
+    return Object.freeze({ id: uuid(key, 'source-row', [role, row.sourceName, row.sourceRow]), sourceRole: role, sourceName: row.sourceName, sourceRow: row.sourceRow, patientId: patientLinks.get(token) ?? visitPatients.get(historicalVisitId) ?? uniqueOwner(legacyOwners, token) ?? inferredSourcePatient(row, ehrOwners), historicalVisitId, birthDateValid, payload, payloadHash: sha256(Buffer.from(jsonText(payload), 'utf8')), issueCodes: Object.freeze(row.structuralIssues.map(({ code }) => code).filter((code) => typeof code === 'string')) })
   })))
 }
 
@@ -714,14 +728,13 @@ function identityMergeReason(first, second) {
   const independentMatch = identityIndependentMatch(first, second)
   const surnameChanged = sameGivenName && first.profile.lastName !== null && second.profile.lastName !== null && identityNameKey(first.profile.lastName) !== identityNameKey(second.profile.lastName)
   const patronymicChanged = first.profile.middleName !== null && second.profile.middleName !== null && identityNameKey(first.profile.middleName) !== identityNameKey(second.profile.middleName)
-  const chronological = first.observedAt !== null && second.observedAt !== null && first.observedAt !== second.observedAt
   if (first.ehr !== null && first.ehr === second.ehr) return 'exactEhr'
   if (sameFullName && sameBirthDate && sameCard) return 'sameFioBirthDate'
   if (sameLastName && sameFirstName && patronymicChanged && sameBirthDate && sameCard && independentMatch) return 'patronymicCorrection'
-  if (surnameChanged && sameBirthDate && sameCard && independentMatch && chronological) return 'surnameChange'
+  if (surnameChanged && sameBirthDate && sameCard && independentMatch) return 'surnameChange'
   if (sameFullName && oneBirthDateMissing && sameCard) return 'sameFioMissingBirthDate'
   if (sameFullName && bothBirthDatesMissing && sameCard && independentMatch) return 'sameFioMissingBirthDate'
-  if (surnameChanged && oneBirthDateMissing && sameCard && independentMatch && chronological) return 'surnameChangeMissingBirthDate'
+  if (surnameChanged && oneBirthDateMissing && sameCard && independentMatch) return 'surnameChangeMissingBirthDate'
   return null
 }
 
@@ -824,8 +837,10 @@ function validateBundleParts(manifest, identities, consents, visits, normalizati
   if (sourceRows.length !== expectedRows || visits.historicalVisits.length !== visits.visitDetails.length || visits.evidenceCounts.total !== visits.historicalVisits.length || visits.evidenceCounts.linked + visits.evidenceCounts.ambiguous + visits.evidenceCounts.unmatched !== visits.evidenceCounts.total || invoices.length !== manifest.files.find(({ role }) => role === 'invoices').rowCount || attachments.length !== 0) invalid('BUNDLE_INVARIANT_FAILED')
   const patientIds = new Set(identities.patients.map(({ id }) => id))
   const supplementalPatientIds = new Set(identities.patients.filter(({ isSupplemental }) => isSupplemental).map(({ id }) => id))
+  const privateDataPatientIds = new Set(identities.privateData.map(({ patientId }) => patientId))
+  const externalIdentifierPatientIds = new Set(identities.externalIdentifiers.map(({ patientId }) => patientId))
   if (patientIds.size !== identities.patients.length) invalid('BUNDLE_INVARIANT_FAILED')
-  for (const patientId of patientIds) if (!identities.privateData.some((value) => value.patientId === patientId) || !identities.externalIdentifiers.some((value) => value.patientId === patientId)) invalid('BUNDLE_INVARIANT_FAILED')
+  for (const patientId of patientIds) if (!privateDataPatientIds.has(patientId) || !externalIdentifierPatientIds.has(patientId)) invalid('BUNDLE_INVARIANT_FAILED')
   if (consents.length !== patientIds.size || new Set(consents.map(({ patientId, type }) => `${patientId}\0${type}`)).size !== patientIds.size) invalid('BUNDLE_INVARIANT_FAILED')
   for (const consent of consents) if (!patientIds.has(consent.patientId) || consent.type !== 'sms_notifications' || !['granted', 'not_granted'].includes(consent.status) || (supplementalPatientIds.has(consent.patientId) && consent.status !== 'not_granted')) invalid('BUNDLE_INVARIANT_FAILED')
   const allIds = [identities.patients, identities.externalIdentifiers, identities.contacts, identities.nameHistory, identities.privateData, consents, identities.sourceLinks, visits.historicalVisits, visits.visitDetails, visits.candidates, identities.issues, visits.issues, normalizationIssues, sourceRows, invoices, attachments].flat().map(({ id }) => id)
@@ -886,10 +901,10 @@ function cardCollisionGroups(identities) {
   return [...rows.values()].filter((values) => values.size > 1).length
 }
 
-function controlsFrom(manifest, identities, visits, invoices) {
+function controlsFrom(manifest, identities, visits, invoices, patientRows) {
   const primaryRows = manifest.files.find(({ role }) => role === 'pd').rowCount
   const primaryPatients = identities.patients.filter(({ isSupplemental }) => !isSupplemental).length
-  return Object.freeze({ primaryRows, medeskEhrIdentifiers: identities.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length, patients: identities.patients.length, visits: visits.historicalVisits.length, missingDates: visits.evidenceCounts.missingDate, validBirthDates: identities.patients.filter(({ profile }) => profile.birthDate !== null).length, cardCollisionGroups: cardCollisionGroups(identities), invoices: invoices.length, primaryMerges: primaryRows - primaryPatients, supplementalPatients: identities.patients.length - primaryPatients })
+  return Object.freeze({ primaryRows, medeskEhrIdentifiers: identities.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length, patients: identities.patients.length, visits: visits.historicalVisits.length, missingDates: visits.evidenceCounts.missingDate, validBirthDates: patientRows.filter(({ profile }) => profile.birthDate !== null).length, cardCollisionGroups: cardCollisionGroups(identities), invoices: invoices.length, primaryMerges: primaryRows - primaryPatients, supplementalPatients: identities.patients.length - primaryPatients, nameHistoryRecords: identities.nameHistory.length })
 }
 
 function expectedControlsFrom(value) {
@@ -915,19 +930,20 @@ function composedBundle(loaded, key, expectedControls) {
     return Object.freeze({ patientRows: primary.rows, legacyAssociations: primary.legacyAssociations, medeskRows: medeskPatientRows(loaded.sources.medesk, issues), fullMedeskRows: medeskPatientRows(loaded.sources.medesk, issues, true), references: visitReferences(loaded.sources.visits) })
   })
   const resolvedIdentities = phase('identity', () => resolveClinicImportIdentities({ patientRows: adapted.patientRows, medeskRows: adapted.medeskRows, visitReferences: adapted.references, fingerprintKey: key }))
-  const identities = phase('identity', () => enrichedSupplementalIdentities(resolvedIdentities, adapted.fullMedeskRows, key))
+  const identities = phase('identity_enrichment', () => enrichedSupplementalIdentities(resolvedIdentities, adapted.fullMedeskRows, key))
   const visits = phase('visits', () => resolveClinicImportVisits({ identities: identitiesForVisits(identities), visitRows: loaded.sources.visits.rows, fingerprintKey: key }))
-  const consents = consolidatedConsents(identities.consents)
-  const sourceRows = phase('source_capture', () => sourceRowsFrom(loaded.sources, identities, visits, adapted.legacyAssociations, key))
+  const consents = phase('identity_consents', () => consolidatedConsents(identities.consents))
+  const sourceRows = phase('source_capture', () => sourceRowsFrom(loaded.sources, identities, visits, adapted.legacyAssociations, adapted.patientRows, key))
   const invoices = phase('source_capture', () => invoicesFrom(loaded.sources.invoices, visits, key))
   const attachments = Object.freeze([])
-  const normalizationIssues = issues.values()
-  const mergeEvidence = identityMergeEvidence(adapted.patientRows, identities)
-  const identityEvidenceCounts = validateIdentityEvidence(identities, mergeEvidence)
-  phase('invariants', () => validateBundleParts(loaded.manifest, identities, consents, visits, normalizationIssues, sourceRows, invoices, attachments))
-  const controls = controlsFrom(loaded.manifest, identities, visits, invoices)
-  phase('invariants', () => verifyControls(expectedControls, controls))
-  return Object.freeze({ version: VERSION, manifest: loaded.manifest, patients: identities.patients, externalIdentifiers: identities.externalIdentifiers, contacts: identities.contacts, nameHistory: identities.nameHistory, privateData: identities.privateData, consents, sourceLinks: identities.sourceLinks, historicalVisits: visits.historicalVisits, visitDetails: visits.visitDetails, visitCandidates: visits.candidates, identityIssues: identities.issues, visitIssues: visits.issues, normalizationIssues, sourceRows, invoices, attachments, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts: visits.evidenceCounts, report: safeReport(loaded.manifest, identities, identityEvidenceCounts, consents, visits, sourceRows, invoices, normalizationIssues, controls) })
+  const normalizationIssues = phase('adapter', () => issues.values())
+  const mergeEvidence = phase('identity_merge_evidence', () => identityMergeEvidence(adapted.patientRows, identities))
+  const identityEvidenceCounts = phase('identity_evidence', () => validateIdentityEvidence(identities, mergeEvidence))
+  phase('relational_invariants', () => validateBundleParts(loaded.manifest, identities, consents, visits, normalizationIssues, sourceRows, invoices, attachments))
+  const controls = phase('production_controls', () => controlsFrom(loaded.manifest, identities, visits, invoices, adapted.patientRows))
+  phase('production_controls', () => verifyControls(expectedControls, controls))
+  const report = phase('report', () => safeReport(loaded.manifest, identities, identityEvidenceCounts, consents, visits, sourceRows, invoices, normalizationIssues, controls))
+  return Object.freeze({ version: VERSION, manifest: loaded.manifest, patients: identities.patients, externalIdentifiers: identities.externalIdentifiers, contacts: identities.contacts, nameHistory: identities.nameHistory, privateData: identities.privateData, consents, sourceLinks: identities.sourceLinks, historicalVisits: visits.historicalVisits, visitDetails: visits.visitDetails, visitCandidates: visits.candidates, identityIssues: identities.issues, visitIssues: visits.issues, normalizationIssues, sourceRows, invoices, attachments, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts: visits.evidenceCounts, report })
 }
 
 function dependenciesFrom(value) {

@@ -186,7 +186,7 @@ describe('Patients admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
     await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
-    await screen.findByText('Нет подтверждённых прежних фамилий')
+    await screen.findByText('Нет других фамилий')
     fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
     await waitFor(() => expect(screen.queryByText(REVEALED.profile.phone)).toBeNull())
   })

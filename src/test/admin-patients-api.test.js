@@ -15,7 +15,8 @@ const COUNTS = Object.freeze({ patientId: PATIENT_ID, externalIdentifierCount: 2
 const SAFE_COUNTS = Object.freeze(Object.fromEntries(Object.entries(COUNTS).filter(([key]) => key !== 'patientId')))
 const VISIT_PAGE = Object.freeze({ items: Object.freeze([{ id: '72000000-0000-4000-8000-000000000002', sourceName: VISIT_SOURCE, sourceRow: 29, startsAt: null, endsAt: null, sourceStatus: 'unknown', linkStatus: 'linked', linkMethod: 'exact_ehr', evidenceLevel: 'exact', issueCount: 1, candidateCount: 0, protectedDetailsAvailable: true }]), page: 2, pageSize: 7, total: 8, pages: 2 })
 const ISSUE_PAGE = Object.freeze({ items: Object.freeze([{ id: '78000000-0000-4000-8000-000000000008', sourceName: VISIT_SOURCE, sourceRow: 29, code: 'INVALID_START_DATE', historicalVisitId: VISIT_PAGE.items[0].id, createdAt: '2026-08-27T10:00:00.000Z', resolvedAt: null }]), page: 3, pageSize: 6, total: 13, pages: 3 })
-const REVEALED = Object.freeze({ id: PATIENT_ID, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: PD_SOURCE, firstSeenAt: '2026-08-26T10:00:00.000Z', lastSeenAt: '2026-08-27T10:00:00.000Z' }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: PD_SOURCE, observedAt: '2026-08-26T10:00:00.000Z' }]), externalIdentifiers: Object.freeze([{ system: 'medesk_ehr', value: '0000000000007109', isPrimary: true, sourceName: PD_SOURCE, sourceRow: 17 }]), privateData: Object.freeze({ passport: Object.freeze({ series: '4012', number: '000149' }), address: Object.freeze({ city: 'Синтетический город' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: '2026-08-26T10:00:00.000Z' }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_PAGE.items[0].id, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const REVEALED = Object.freeze({ id: PATIENT_ID, patientLastSeenAt: PATIENT.lastSeenAt, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: PD_SOURCE, firstSeenAt: '2026-08-26T10:00:00.000Z', lastSeenAt: '2026-08-27T10:00:00.000Z' }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: PD_SOURCE, observedAt: '2026-08-26T10:00:00.000Z' }]), externalIdentifiers: Object.freeze([{ system: 'medesk_ehr', value: '0000000000007109', isPrimary: true, sourceName: PD_SOURCE, sourceRow: 17 }]), privateData: Object.freeze({ passport: Object.freeze({ series: '4012', number: '000149' }), address: Object.freeze({ city: 'Синтетический город' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: '2026-08-26T10:00:00.000Z' }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_PAGE.items[0].id, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const PUBLIC_REVEALED = Object.freeze(Object.fromEntries(Object.entries(REVEALED).filter(([key]) => key !== 'patientLastSeenAt')))
 
 function records(overrides = {}) {
   const state = { list: [], get: [], reveal: [], destroy: [] }
@@ -421,7 +422,15 @@ describe('admin patient API', () => {
     const history = historyRecords()
     const { POST_REVEAL } = await endpoints(fixture, { history })
     const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
-    expect({ result, historyCalls: history.state.reveal, legacyCalls: fixture.state.reveal }).toEqual({ result: { status: 200, body: { data: REVEALED } }, historyCalls: [{ id: PATIENT_ID, actor: ACTOR }], legacyCalls: [] })
+    expect({ result, historyCalls: history.state.reveal, legacyCalls: fixture.state.reveal }).toEqual({ result: { status: 200, body: { data: PUBLIC_REVEALED } }, historyCalls: [{ id: PATIENT_ID, actor: ACTOR }], legacyCalls: [] })
+  })
+
+  it('returns a bounded identity alias in the expanded reveal', async () => {
+    const alias = Object.freeze({ ...REVEALED.previousLastNames[0], reason: 'identity_alias', observedAt: null })
+    const history = historyRecords({ reveal: { ...REVEALED, previousLastNames: [alias] } })
+    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    expect({ status: result.status, history: result.body.data?.previousLastNames }).toEqual({ status: 200, history: [{ ...alias }] })
   })
 
   it('rejects a formatted phone in an expanded patient profile', async () => {
@@ -528,6 +537,26 @@ describe('admin patient API', () => {
     const { POST_REVEAL } = await endpoints(fixture, { history, log: () => undefined })
     const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, chronology: result.body.data.contacts[0] }).toMatchObject({ status: 200, chronology: { firstSeenAt: null, lastSeenAt: null } })
+  })
+
+  it('accepts the internal patient chronology needed to validate surname history without exposing it', async () => {
+    const history = historyRecords({ reveal: { ...REVEALED, patientLastSeenAt: PATIENT.lastSeenAt } })
+    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    expect({ status: result.status, exposed: Object.hasOwn(result.body.data ?? {}, 'patientLastSeenAt') }).toEqual({ status: 200, exposed: false })
+  })
+
+  it.each([
+    ['one-sided contact chronology', { contacts: [{ ...REVEALED.contacts[0], firstSeenAt: null }] }],
+    ['inverted contact chronology', { contacts: [{ ...REVEALED.contacts[0], firstSeenAt: '2026-08-28T10:00:00.000Z' }] }],
+    ['surname change without chronology', { previousLastNames: [{ ...REVEALED.previousLastNames[0], observedAt: null }] }],
+    ['surname change simultaneous with the current observation', { previousLastNames: [{ ...REVEALED.previousLastNames[0], observedAt: REVEALED.patientLastSeenAt }] }],
+    ['surname change after the current observation', { previousLastNames: [{ ...REVEALED.previousLastNames[0], observedAt: '2026-08-28T10:00:00.000Z' }] }],
+  ])('rejects %s returned by the reveal repository', async (_label, override) => {
+    const history = historyRecords({ reveal: { ...REVEALED, ...override } })
+    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    expect(result.status).toBe(503)
   })
 
   it('maps corrupted expanded reveal storage to a value-free 503', async () => {

@@ -8,7 +8,8 @@ const PATIENT = Object.freeze({ id: PATIENT_ID, name: 'О’Коннор-Сид�
 const VISIT = Object.freeze({ id: VISIT_ID, sourceName: '544663c3807aab090001bad8_visits.csv', sourceRow: 29, startsAt: null, endsAt: null, sourceStatus: 'completed', linkStatus: 'linked', linkMethod: 'exact_ehr', evidenceLevel: 'exact', issueCount: 1, candidateCount: 0, protectedDetailsAvailable: true })
 const ISSUE = Object.freeze({ id: '78000000-0000-4000-8000-000000000008', sourceName: VISIT.sourceName, sourceRow: 29, code: 'INVALID_START_DATE', historicalVisitId: VISIT_ID, createdAt: '2026-08-27T10:00:00.000Z', resolvedAt: null })
 const DETAIL = Object.freeze({ data: PATIENT, history: Object.freeze({ visits: Object.freeze({ data: Object.freeze([VISIT]), page: Object.freeze({ number: 1, size: 10, total: 7, pages: 2 }) }), issues: Object.freeze({ data: Object.freeze([ISSUE]), page: Object.freeze({ number: 1, size: 10, total: 2, pages: 1 }) }), attachments: Object.freeze([]) }) })
-const REVEALED = Object.freeze({ id: PATIENT_ID, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: '544663c3807aab090001bad8PD.csv', firstSeenAt: null, lastSeenAt: null }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: '544663c3807aab090001bad8PD.csv', observedAt: null }]), externalIdentifiers: Object.freeze([{ system: 'clinic_card', value: '64-2', isPrimary: true, sourceName: '544663c3807aab090001bad8PD.csv', sourceRow: 17 }]), privateData: Object.freeze({ passport: Object.freeze({ series: '4012', number: '000149' }), address: Object.freeze({ city: 'Синтетический город', street: 'Тестовая 7' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: null }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_ID, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const REVEALED = Object.freeze({ id: PATIENT_ID, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: '544663c3807aab090001bad8PD.csv', firstSeenAt: null, lastSeenAt: null }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: '544663c3807aab090001bad8PD.csv', observedAt: '2024-01-01T08:30:00.000Z' }, { lastName: 'Вариантная', reason: 'identity_alias', sourceName: '544663c3807aab090001bad8PD.csv', observedAt: null }]), externalIdentifiers: Object.freeze([{ system: 'clinic_card', value: '64-2', isPrimary: true, sourceName: '544663c3807aab090001bad8PD.csv', sourceRow: 17 }]), privateData: Object.freeze({ passport: Object.freeze({ series: '4012', number: '000149' }), address: Object.freeze({ city: 'Синтетический город', street: 'Тестовая 7' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: null }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_ID, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const CONFIRMED_SURNAME_TEXT = `${REVEALED.previousLastNames[0].lastName} · Подтверждённая прежняя фамилия`
 
 function json(body, status = 200) {
   return Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }))
@@ -56,12 +57,12 @@ describe('PatientDetails', () => {
     render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
     await screen.findByText('Дата не указана')
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
-    await screen.findByText(REVEALED.previousLastNames[0].lastName)
+    await screen.findByText(CONFIRMED_SURNAME_TEXT)
     fireEvent.change(screen.getByLabelText('Статус связи визитов'), { target: { value: 'linked' } })
     await waitFor(() => expect(calls.length).toBe(3))
     fireEvent.click(screen.getByRole('button', { name: 'Следующая страница визитов' }))
     await waitFor(() => expect(calls.length).toBe(4))
-    expect({ hidden: screen.queryByText(REVEALED.previousLastNames[0].lastName), url: String(calls[3][0]) }).toEqual({ hidden: null, url: `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10&visitsPage=2&visitsPageSize=10&visitsStatus=linked&issuesPage=1&issuesPageSize=10` })
+    expect({ hidden: screen.queryByText(CONFIRMED_SURNAME_TEXT), url: String(calls[3][0]) }).toEqual({ hidden: null, url: `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10&visitsPage=2&visitsPageSize=10&visitsStatus=linked&issuesPage=1&issuesPageSize=10` })
   })
 
   it('reveals all protected sections and discards them after thirty seconds', async () => {
@@ -77,6 +78,15 @@ describe('PatientDetails', () => {
     expect({ exposed, hidden: screen.queryByText(REVEALED.profile.phone), method: request.method, credentials: request.credentials }).toEqual({ exposed: true, hidden: null, method: 'POST', credentials: 'same-origin' })
   })
 
+  it('labels confirmed and unordered surname variants without inventing chronology', async () => {
+    transport([json(DETAIL), json({ data: REVEALED })])
+    render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
+    await screen.findByText('Дата не указана')
+    fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
+    const disclosure = await screen.findByLabelText('Раскрытые персональные данные')
+    expect(disclosure.textContent).toContain('Другие фамилии и картыПрежняя · Подтверждённая прежняя фамилияВариантная · Вариант фамилии с неизвестным порядком')
+  })
+
   it('clears protected state when the browser tab becomes hidden', async () => {
     let state = 'visible'
     vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => state)
@@ -84,10 +94,10 @@ describe('PatientDetails', () => {
     render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
     await screen.findByText('Дата не указана')
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
-    await screen.findByText(REVEALED.previousLastNames[0].lastName)
+    await screen.findByText(CONFIRMED_SURNAME_TEXT)
     state = 'hidden'
     fireEvent(document, new Event('visibilitychange'))
-    expect(screen.queryByText(REVEALED.previousLastNames[0].lastName)).toBeNull()
+    expect(screen.queryByText(CONFIRMED_SURNAME_TEXT)).toBeNull()
   })
 
   it('does not restore a pending reveal after the browser tab becomes hidden', async () => {
@@ -101,7 +111,7 @@ describe('PatientDetails', () => {
     state = 'hidden'
     fireEvent(document, new Event('visibilitychange'))
     await act(async () => { pending.resolve(await json({ data: REVEALED })) })
-    expect(screen.queryByText(REVEALED.previousLastNames[0].lastName)).toBeNull()
+    expect(screen.queryByText(CONFIRMED_SURNAME_TEXT)).toBeNull()
   })
 
   it('keeps the newest visit-filter response when an older request finishes last', async () => {
@@ -150,7 +160,7 @@ describe('PatientDetails', () => {
     await act(async () => undefined)
     view.unmount()
     act(() => vi.advanceTimersByTime(30_000))
-    expect(screen.queryByText(REVEALED.previousLastNames[0].lastName)).toBeNull()
+    expect(screen.queryByText(CONFIRMED_SURNAME_TEXT)).toBeNull()
   })
 
   it('requires explicit destruction confirmation and restores focus after cancelling', async () => {
