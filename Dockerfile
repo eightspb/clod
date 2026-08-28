@@ -17,7 +17,10 @@ RUN bun run astro build --remote
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-RUN mkdir -p /data && \
+RUN apt-get update && \
+    apt-get install --yes --no-install-recommends unzip && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /data && \
     groupadd --system app && \
     useradd --system --gid app --home /app app
 
@@ -29,7 +32,8 @@ COPY scripts ./scripts
 COPY src/lib ./src/lib
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN node -e "import('/app/scripts/import-clinic-history.mjs').then(() => process.exit(0)).catch(() => process.exit(1))"
+RUN test -x /usr/bin/unzip && \
+    node -e "import('/app/scripts/import-clinic-history.mjs').then(() => process.exit(0)).catch(() => process.exit(1))"
 
 RUN chmod +x /app/docker-entrypoint.sh && \
     chown -R app:app /app /data
