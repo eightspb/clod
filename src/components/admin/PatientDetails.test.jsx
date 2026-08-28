@@ -9,6 +9,8 @@ const VISIT = Object.freeze({ id: VISIT_ID, sourceName: '544663c3807aab090001bad
 const ISSUE = Object.freeze({ id: '78000000-0000-4000-8000-000000000008', sourceName: VISIT.sourceName, sourceRow: 29, code: 'INVALID_START_DATE', historicalVisitId: VISIT_ID, createdAt: '2026-08-27T10:00:00.000Z', resolvedAt: null })
 const DETAIL = Object.freeze({ data: PATIENT, history: Object.freeze({ visits: Object.freeze({ data: Object.freeze([VISIT]), page: Object.freeze({ number: 1, size: 10, total: 7, pages: 2 }) }), issues: Object.freeze({ data: Object.freeze([ISSUE]), page: Object.freeze({ number: 1, size: 10, total: 2, pages: 1 }) }), attachments: Object.freeze([]) }) })
 const REVEALED = Object.freeze({ id: PATIENT_ID, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: '544663c3807aab090001bad8PD.csv', firstSeenAt: null, lastSeenAt: null }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: '544663c3807aab090001bad8PD.csv', observedAt: '2024-01-01T08:30:00.000Z' }, { lastName: 'Вариантная', reason: 'identity_alias', sourceName: '544663c3807aab090001bad8PD.csv', observedAt: null }]), externalIdentifiers: Object.freeze([{ system: 'clinic_card', value: '64-2', isPrimary: true, sourceName: '544663c3807aab090001bad8PD.csv', sourceRow: 17 }]), privateData: Object.freeze({ gender: 'female', genderSource: 'patronymic', genderInferred: true, passport: Object.freeze({ series: '4012', number: '000149', issuedBy: 'Тестовый орган', issuedAt: '2010-04-22T00:00:00.000Z', departmentCode: '780-088' }), address: Object.freeze({ postalCode: '190000', region: null, locality: 'Синтетический город', streetAddress: 'Тестовая 7' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: null }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_ID, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const RAW_VISIT_DETAILS = Object.freeze({ appointment_begin: '2023-04-26T15:20:00.000Z', appointment_end: '2023-04-26T15:40:00.000Z', appointment_id: '642ad00f2d63ba070739c6f1', cabinet: '12', comment: 'Повторный приём', doctor: 'Врач Защищённый', doctor_role: 'Маммолог', invoice_ids: 'invoice-29', patient_card: '4675', service_names: 'УЗИ молочных желёз', status: 'completed', structuralIssues: Object.freeze([]) })
+const RAW_REVEALED = Object.freeze({ ...REVEALED, historicalVisits: Object.freeze([{ ...REVEALED.historicalVisits[0], details: RAW_VISIT_DETAILS }]) })
 const CONFIRMED_SURNAME_TEXT = `${REVEALED.previousLastNames[0].lastName} · Подтверждённая прежняя фамилия`
 const PRIVATE_DATA_TEXT = Object.freeze(['Серия: 4012', 'Номер: 000149', 'Адрес: 190000, Синтетический город, Тестовая 7', 'Пол: Женский', 'Источник данных о поле: отчество', 'Договор: Договор-149', 'Заметки: Синтетическая заметка'])
 
@@ -86,6 +88,15 @@ describe('PatientDetails', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
     const section = (await screen.findByRole('heading', { name: 'Паспорт, адрес и прочие данные' })).closest('section')
     expect({ readable: PRIVATE_DATA_TEXT.every((value) => section.textContent.includes(value)), issuedAt: screen.queryByText('22.04.2010') !== null, json: /[{}"]/.test(section.textContent) }).toEqual({ readable: true, issuedAt: true, json: false })
+  })
+
+  it('renders imported visit details as labelled text instead of JSON', async () => {
+    transport([json(DETAIL), json({ data: RAW_REVEALED })])
+    render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
+    await screen.findByText('Дата не указана')
+    fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
+    const visits = await screen.findByRole('tabpanel', { name: 'Исторические визиты' })
+    expect({ text: visits.textContent, json: /[{}"]|appointment_begin/.test(visits.textContent) }).toEqual({ text: expect.stringContaining('Специальность врача: МаммологУслуги: УЗИ молочных желёзКабинет: 12Комментарий: Повторный приём'), json: false })
   })
 
   it('labels confirmed and unordered surname variants without inventing chronology', async () => {
