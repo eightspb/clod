@@ -41,4 +41,12 @@ describe('Dashboard clinic counters', () => {
     expect(screen.getByRole('link', { name: 'Средний разговор: 1 мин 23 с' })).toHaveAttribute('href', '/admin/calls')
     expect(screen.queryByText('79215550129')).toBeNull()
   })
+
+  it('rounds average call durations to whole seconds', async () => {
+    const calls = { ...STATS.calls, averageWaitSeconds: 11.4, averageTalkSeconds: 88.20000000000003 }
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ ...STATS, calls }) })))
+    render(<Dashboard />)
+    await screen.findByRole('heading', { name: 'Звонки MANGO' })
+    expect(['Среднее ожидание: 11 с', 'Средний разговор: 1 мин 28 с'].map((name) => screen.getByRole('link', { name }).textContent)).toHaveLength(2)
+  })
 })

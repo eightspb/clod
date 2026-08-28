@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 const PATIENT = {
-  id: 'patient-e2e',
+  id: 'b780de13-a61f-49fc-a56a-861de5cb145d',
   name: 'Анна Петрова',
   phoneMask: '+7 (***) ***-12-34',
   firstSeenAt: '2026-08-26T07:00:00.000Z',
@@ -19,6 +19,7 @@ const APPOINTMENT = {
   status: 'confirmed',
   priceKopecks: 350000,
 }
+const DETAIL = { data: PATIENT, history: { visits: { data: [], page: { number: 1, size: 10, total: 0, pages: 0 } }, issues: { data: [], page: { number: 1, size: 10, total: 0, pages: 0 } }, attachments: [] } }
 
 async function authenticate(page, baseURL) {
   const response = await page.request.post('/api/auth/login', {
@@ -37,6 +38,7 @@ test('authenticated administrator navigates masked clinic journals', async ({ ba
     contentType: 'application/json',
     json: { data: [APPOINTMENT], page: { number: 1, size: 50, total: 1, pages: 1 } },
   }))
+  await page.route(`**/api/admin/patients/${PATIENT.id}?**`, (route) => route.fulfill({ contentType: 'application/json', json: DETAIL }))
   await authenticate(page, baseURL)
   await page.goto('/admin/patients')
   await expect(page.getByRole('heading', { name: 'Пациенты клиники' })).toBeVisible()
@@ -47,4 +49,7 @@ test('authenticated administrator navigates masked clinic journals', async ({ ba
   await expect(page.getByRole('heading', { name: 'Записи на приём' })).toBeVisible()
   await expect(page.getByRole('table').getByText('С сайта')).toBeVisible()
   await expect(page.getByRole('table').getByText('Подтверждена')).toBeVisible()
+  await page.getByRole('link', { name: `Открыть карточку ${PATIENT.name}` }).click()
+  await expect(page).toHaveURL(new RegExp(`/admin/patients\\?patient=${PATIENT.id}$`))
+  await expect(page.getByRole('region', { name: `Карточка пациента ${PATIENT.name}` })).toBeVisible()
 })

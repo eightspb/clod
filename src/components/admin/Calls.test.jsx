@@ -52,6 +52,22 @@ describe('Calls admin view', () => {
     expect(screen.getByRole('link', { name: 'Открыть пациента' })).toHaveAttribute('href', `/admin/patients?patient=${PATIENT_ID}`)
   })
 
+  it('links patient caller identities in the live and completed call views', async () => {
+    transport([json(PAGE)])
+    render(<Calls />)
+    const current = await screen.findByRole('region', { name: 'Текущие звонки' })
+    const links = [screen.getByRole('table').querySelector(`a[href="/admin/patients?patient=${PATIENT_ID}"]`), current.querySelector(`a[href="/admin/patients?patient=${PATIENT_ID}"]`)]
+    expect(links.map((link) => link?.textContent)).toEqual([CALL.callerMask, ACTIVE_CALL.callerMask])
+  })
+
+  it('rounds average call durations to whole seconds', async () => {
+    const metrics = { ...METRICS, averageWaitSeconds: 11.4, averageTalkSeconds: 88.20000000000003 }
+    transport([json({ ...PAGE, metrics })])
+    render(<Calls />)
+    await screen.findByRole('heading', { name: 'Журнал звонков' })
+    expect(['Среднее ожидание', 'Средний разговор'].map((label) => screen.getByText(label).parentElement.textContent)).toEqual(['Среднее ожидание11 с', 'Средний разговор1 мин 28 с'])
+  })
+
   it('shows an unknown-caller label when no patient is linked', async () => {
     transport([json({ ...PAGE, data: [{ ...CALL, entryId: 'entry-2', patientId: null, repeatCaller: false }] })])
     render(<Calls />)

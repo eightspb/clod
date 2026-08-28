@@ -44,6 +44,13 @@ describe('Appointments admin view', () => {
     expect({ source: table.getByText('Внесена из МИС').textContent, status: table.getByText('Подтверждена').textContent, time: table.getByText(/27\.08\.2026, 10:20/).textContent }).toEqual({ source: 'Внесена из МИС', status: 'Подтверждена', time: expect.stringContaining('27.08.2026, 10:20') })
   })
 
+  it('links the patient identity to the patient card', async () => {
+    transport([json(page())])
+    render(<Appointments />)
+    const link = await screen.findByRole('link', { name: `Открыть карточку ${PATIENT.name}` })
+    expect(link).toHaveAttribute('href', `/admin/patients?patient=${PATIENT.id}`)
+  })
+
   it('applies source and status filters and advances pagination', async () => {
     const calls = transport([json(page()), json(page()), json(page())])
     render(<Appointments />)

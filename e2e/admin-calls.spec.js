@@ -14,7 +14,7 @@ async function authenticate(page, baseURL) {
 test('administrator monitors a masked call and opens the linked patient journal', async ({ baseURL, page }) => {
   await page.route('**/api/admin/calls?**', (route) => route.fulfill({ contentType: 'application/json', json: { data: [CALL], page: { number: 1, size: 50, total: 1, pages: 1 }, metrics: METRICS } }))
   await page.route(`**/api/admin/calls/${CALL.entryId}/reveal`, (route) => route.fulfill({ contentType: 'application/json', json: { data: { entryId: CALL.entryId, phone: '79215550129', revealedAt: '2026-08-26T10:03:00.000Z' } } }))
-  await page.route('**/api/admin/patients?**', (route) => route.fulfill({ contentType: 'application/json', json: { data: [], page: { number: 1, size: 50, total: 0, pages: 0 } } }))
+  await page.route('**/api/admin/patients?**', (route) => route.fulfill({ contentType: 'application/json', json: { data: [PATIENT], page: { number: 1, size: 50, total: 1, pages: 1 } } }))
   await page.route(`**/api/admin/patients/${PATIENT_ID}?**`, (route) => route.fulfill({ contentType: 'application/json', json: DETAIL }))
   await authenticate(page, baseURL)
   await page.goto('/admin/calls')
@@ -23,7 +23,7 @@ test('administrator monitors a masked call and opens the linked patient journal'
   await expect(page.getByText('79215550129')).toHaveCount(0)
   await page.getByRole('button', { name: `Показать номер ${CALL.callerMask}` }).click()
   await expect(page.getByText('79215550129')).toBeVisible()
-  await page.getByRole('link', { name: 'Открыть пациента' }).click()
+  await page.getByRole('table').getByRole('link', { name: '79215550129' }).click()
   await expect(page).toHaveURL(new RegExp(`/admin/patients\\?patient=${PATIENT_ID}$`))
   await expect(page.getByRole('region', { name: `Карточка пациента ${PATIENT.name}` })).toBeVisible()
 })

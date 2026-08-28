@@ -54,6 +54,14 @@ describe('Patients admin view', () => {
     expect({ mask: screen.getByText(PATIENT.phoneMask).textContent, leaked: screen.queryByText('79215550129') }).toEqual({ mask: PATIENT.phoneMask, leaked: null })
   })
 
+  it('links the patient name and masked phone to the patient card', async () => {
+    transport([json(PAGE)])
+    render(<Patients />)
+    await screen.findByText(PATIENT.name)
+    const href = `/admin/patients?patient=${PATIENT_ID}`
+    expect(screen.getAllByRole('link').filter((link) => link.getAttribute('href') === href).map((link) => link.textContent)).toEqual([PATIENT.name, PATIENT.phoneMask])
+  })
+
   it('keeps detail access without offering phone reveal when an active patient has no phone', async () => {
     transport([json(NO_PHONE_PAGE), json({ ...DETAIL, data: NO_PHONE_PATIENT })])
     render(<Patients />)
