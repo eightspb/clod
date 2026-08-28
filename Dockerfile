@@ -26,7 +26,10 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/bun.lock ./
 RUN bun install --frozen-lockfile --omit=dev
 COPY scripts ./scripts
+COPY src/lib ./src/lib
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
+
+RUN node -e "import('/app/scripts/import-clinic-history.mjs').then(() => process.exit(0)).catch(() => process.exit(1))"
 
 RUN chmod +x /app/docker-entrypoint.sh && \
     chown -R app:app /app /data
