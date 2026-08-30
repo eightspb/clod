@@ -4,7 +4,7 @@
 
 **Goal:** Replace every multi-doctor mobile hero rotation and horizontal doctor-card strip with the existing home-page doctor carousel while preserving single-doctor and desktop presentations.
 
-**Architecture:** Add one responsive hero adapter and one responsive collection adapter around the existing `MobileDoctorCarousel`, `HeroDoctorCard`, and `DoctorCard`. Keep carousel state and interaction in `MobileDoctorCarousel`; the adapters only select mobile versus desktop presentation, preserve page-specific wrapper classes, and avoid carousel controls for zero- or one-doctor collections. Hydrate the five currently server-only specialty page components so their new mobile carousels are interactive.
+**Architecture:** Add one responsive hero adapter and one responsive collection adapter around the existing `MobileDoctorCarousel`, `HeroDoctorCard`, and `DoctorCard`. Keep carousel state and interaction in `MobileDoctorCarousel`; the adapters only select mobile versus desktop presentation, preserve page-specific wrapper classes, and avoid carousel controls for zero- or one-doctor collections. Hydrate the four previously server-only multi-doctor specialty page components so their new mobile carousels are interactive; keep the single-doctor endocrinology page server-rendered.
 
 **Tech Stack:** Astro 4, React 18, JavaScript, Tailwind/CSS variables, Vitest, Testing Library, Playwright, Bun.
 
@@ -20,7 +20,7 @@
 - Modify `src/components/HeroDoctorCard.test.jsx`: verify the optional portrait media contract and unchanged default contract.
 - Create `e2e/sitewide-mobile-doctor-carousel.spec.js`: route inventory, hydration, mobile interaction, desktop preservation, and `scrollY = 0` layout checks.
 - Modify the 14 page components listed in Tasks 4 and 5: replace hero and mobile doctor-strip duplication with the responsive adapters.
-- Modify `src/pages/mammology.astro`, `src/pages/gynecology.astro`, `src/pages/endocrinology.astro`, `src/pages/nutrition.astro`, and `src/pages/vab.astro`: hydrate the page React component with `client:idle`.
+- Modify `src/pages/mammology.astro`, `src/pages/gynecology.astro`, `src/pages/nutrition.astro`, and `src/pages/vab.astro`: hydrate the page React component with `client:idle`. Keep the already interactive `src/pages/second-opinion.astro` and the single-doctor static `src/pages/endocrinology.astro` unchanged.
 - Modify `README.md`: document the responsive doctor adapters and specialty-page hydration.
 
 ### Task 1: Specify the responsive component contracts
@@ -100,7 +100,7 @@ Commit the two new component files, their two tests, and the `HeroDoctorCard` im
 
 - [ ] **Step 1: Add the mobile route inventory contract**
 
-At `393x852`, enumerate all 14 scoped routes and assert the visible carousel count. Expect two on `/mammology`, `/gynecology`, `/vab`, `/adenomioz`, `/endometrioz`, `/eroziya-sheyki-matki`, `/fibroadenoma`, `/kista-molochnoy-zhelezy`, and `/mastopatiya`; one on `/nutrition` and `/second-opinion`; and zero on `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`. Wait for each React island to hydrate before measuring.
+At `393x852`, enumerate all 14 scoped routes and assert the visible carousel count. Expect two on `/mammology`, `/gynecology`, `/vab`, `/adenomioz`, `/endometrioz`, `/eroziya-sheyki-matki`, `/fibroadenoma`, `/kista-molochnoy-zhelezy`, and `/mastopatiya`; one on `/nutrition` and `/second-opinion`; and zero on `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`. On positive multi-doctor routes, wait for every expected carousel island to hydrate before measuring. On the three zero-carousel single-doctor routes, inspect the server-rendered presentation without waiting for hydration.
 
 - [ ] **Step 2: Add the representative interaction contract**
 
@@ -118,7 +118,7 @@ On `/endocrinology`, `/gipotireoz`, and `/tireoidit-khashimoto`, assert that no 
 
 Run: `bun run test:e2e -- e2e/sitewide-mobile-doctor-carousel.spec.js --project=chromium --reporter=line --workers=1`
 
-Expected: FAIL because specialty heroes still render `HeroDoctorCard`, lower sections still use snap strips, and five page components are not hydrated.
+Expected: FAIL because specialty heroes still render `HeroDoctorCard`, lower sections still use snap strips, and four previously static multi-doctor specialty components are not hydrated.
 
 - [ ] **Step 6: Commit the red browser contract**
 
@@ -136,7 +136,6 @@ Commit the new E2E file with message: `test: require sitewide mobile doctor caro
 - Modify: `src/components/pages/Vab.jsx`
 - Modify: `src/pages/mammology.astro`
 - Modify: `src/pages/gynecology.astro`
-- Modify: `src/pages/endocrinology.astro`
 - Modify: `src/pages/nutrition.astro`
 - Modify: `src/pages/vab.astro`
 
@@ -148,9 +147,11 @@ Use `ResponsiveDoctorHero` with route-specific accessible labels. Preserve each 
 
 Use `ResponsiveDoctorCollection` in Mammology, Gynecology, Endocrinology, and Vab. Preserve section copy, doctor order, desktop column counts, and the existing `pt-6` or `pt-10` spacing through adapter props. Remove obsolete `DoctorCard` imports and all four hand-built `overflow-x-auto` snap strips.
 
-- [ ] **Step 3: Hydrate five previously server-only page components**
+- [ ] **Step 3: Hydrate four previously server-only multi-doctor page components**
 
-Add `client:idle` to Mammology, Gynecology, Endocrinology, Nutrition, and Vab in their Astro routes. Do not change prerender flags, metadata, canonical data, JSON-LD, breadcrumbs, or service-data props. Keep the existing `SecondOpinion client:idle` directive unchanged.
+Add `client:idle` to Mammology, Gynecology, Nutrition, and Vab in their Astro routes. Do not change prerender flags, metadata, canonical data, JSON-LD, breadcrumbs, or service-data props. Keep the existing `SecondOpinion client:idle` directive unchanged. Keep the single-doctor Endocrinology route static without a client directive.
+
+> **Accepted Astro-first refinement:** implementation adds `client:idle` only to the four previously static multi-doctor routes `/mammology`, `/gynecology`, `/nutrition`, and `/vab`. `/second-opinion` was already hydrated. `/endocrinology` has one doctor and remains static because it needs no carousel state. All disease routes were already hydrated, so their Astro files remain unchanged.
 
 - [ ] **Step 4: Run focused component tests**
 
@@ -166,7 +167,7 @@ Expected: the six migrated routes pass; route inventory cases for unmigrated con
 
 - [ ] **Step 6: Commit the specialty migration**
 
-Commit only the six page components and five Astro routes with message: `feat: use mobile doctor carousel on specialty pages`.
+Commit only the six page components and four Astro routes with message: `feat: use mobile doctor carousel on specialty pages`.
 
 ### Task 5: Migrate disease pages
 
@@ -243,7 +244,7 @@ Confirm no page metadata, JSON-LD, API, booking flow, doctor data, global carous
 
 - [ ] **Step 1: Update the component map and responsive behaviour documentation**
 
-Add `ResponsiveDoctorHero.jsx` and `ResponsiveDoctorCollection.jsx` to the component tree. Document that all multi-doctor public mobile heroes and doctor sections reuse `MobileDoctorCarousel`, single-doctor collections remain cards, desktop remains unchanged, and five main specialty page components now hydrate with `client:idle`.
+Add `ResponsiveDoctorHero.jsx` and `ResponsiveDoctorCollection.jsx` to the component tree. Document that all multi-doctor public mobile heroes and doctor sections reuse `MobileDoctorCarousel`, single-doctor collections remain cards, desktop remains unchanged, and four previously static multi-doctor specialty page components now hydrate with `client:idle`. Record that `/second-opinion` was already hydrated, `/endocrinology` remains static, and disease route files were already hydrated.
 
 - [ ] **Step 2: Run all unit tests**
 
@@ -271,4 +272,4 @@ Expected: no whitespace errors. Re-read the approved design and confirm every ac
 
 - [ ] **Step 6: Commit documentation and final verification state**
 
-Commit `README.md` and any final test-only adjustments with message: `docs: document sitewide mobile doctor carousels`.
+Commit the documentation changes with message: `docs: document responsive doctor presentations`.

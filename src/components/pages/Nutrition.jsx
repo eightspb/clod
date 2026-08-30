@@ -2,9 +2,9 @@ import { ArrowRight, Apple, Target, BookOpen, CheckCircle, MessageCircle, Zap, U
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
-import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
+import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
 
 export const NUTRITION_FAQ = [
   {
@@ -143,7 +143,7 @@ export function Nutrition() {
                 </a>
               </div>
             </div>
-            <HeroDoctorCard doctors={NUTRITION_DOCTORS} />
+            <ResponsiveDoctorHero doctors={NUTRITION_DOCTORS} label="Карусель нутрициологов в начале страницы" ctaHref="/second-opinion" />
           </div>
         </div>
       </section>

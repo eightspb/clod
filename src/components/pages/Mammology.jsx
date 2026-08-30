@@ -2,10 +2,10 @@ import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, MessageCi
 import { TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
-import { DoctorCard } from '../DoctorCard.jsx'
-import { HeroDoctorCard } from '../HeroDoctorCard.jsx'
 import { FaqSection } from '../FaqSection.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
+import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
+import { ResponsiveDoctorCollection } from '../ResponsiveDoctorCollection.jsx'
 
 export const MAMMOLOGY_FAQ = [
   {
@@ -137,7 +137,7 @@ export function Mammology() {
                 </button>
               </div>
             </div>
-            <HeroDoctorCard doctors={SPECIALTY_DOCTORS} />
+            <ResponsiveDoctorHero doctors={SPECIALTY_DOCTORS} label="Карусель маммологов в начале страницы" ctaHref="/second-opinion" />
           </div>
         </div>
       </section>
@@ -263,18 +263,12 @@ export function Mammology() {
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Доктора-маммологи клиники</h2>
               <p className="text-clay-muted">Специалисты, которые проведут консультацию и процедуру</p>
             </div>
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-              {SPECIALTY_DOCTORS.map((doc) => (
-                <DoctorCard key={doc.slug} doctor={doc} />
-              ))}
-            </div>
-            <div className="sm:hidden flex gap-4 pt-6 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4 pb-4">
-              {SPECIALTY_DOCTORS.map((doc) => (
-                <div key={doc.slug} className="snap-start flex-shrink-0 w-[80vw]">
-                  <DoctorCard doctor={doc} />
-                </div>
-              ))}
-            </div>
+            <ResponsiveDoctorCollection
+              doctors={SPECIALTY_DOCTORS}
+              label="Карусель маммологов клиники"
+              mobileClassName="md:hidden pt-6"
+              desktopClassName="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6"
+            />
           </div>
         </section>
       </FadeInSection>

@@ -41,5 +41,5 @@ const faqSchema = generateFaqSchema(NUTRITION_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(specialtySchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Нутрициология' }]} />
-  <Nutrition />
+  <Nutrition client:idle />
 </Layout>
