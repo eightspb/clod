@@ -56,6 +56,7 @@ export default [
       'playwright-report/**',
       '.astro/**',
       'graphify-out/**',
+      '.worktrees/**',
       '.superpowers/**',
       'seomachine-workspace/**',
       '.claude/design-systems/**',
