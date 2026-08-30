@@ -7,7 +7,6 @@ import { createClient } from '@libsql/client'
 import { describe, expect, it, vi } from 'vitest'
 import { createAppointmentBooking } from './appointment-booking.js'
 import { createAppointmentRecords } from './appointment-records.js'
-import { createMedflexClient } from './medflex-client.js'
 
 const executeFile = promisify(execFile)
 const PROJECT_ROOT = resolve(import.meta.dirname, '../..')
@@ -72,8 +71,10 @@ function recordAdapter(state = {}) {
       state.events.push(`project:${input.status}`)
       state.projects.push(structuredClone(input))
       if (state.projectFailures > 0) { state.projectFailures -= 1; throw new Error('local projection failed') }
+      state.current = Object.freeze({ id: input.id, status: input.status === 'uncertain' ? 'needs_review' : input.status, medflexClaimId: input.claimId ?? null })
       return Object.freeze({ id: input.id, status: input.status })
     },
+    get: async () => state.current,
   })
 }
 
@@ -95,14 +96,6 @@ function faultClient(client, fault) {
       return client.execute(statement)
     },
   })
-}
-
-function historyClient(calls) {
-  const fetchImpl = async (url) => {
-    calls.push(String(url))
-    return new Response(JSON.stringify({ data: [], count: 0, num_pages: 0 }), { status: 200, headers: { 'Content-Type': 'application/json' } })
-  }
-  return createMedflexClient({ fetchImpl, token: 'history-token-privacy', timeoutMs: 1_003 })
 }
 
 async function database() {
@@ -166,18 +159,29 @@ describe('appointment booking workflow', () => {
     expect({ first: first.status, replay: replay.status, claim: first.body.data?.claimId, creates: creates.length }).toEqual({ first: 200, replay: 200, claim: CLAIM_ID, creates: 1 })
   })
 
-  it('keeps the patient phone out of the bounded upstream history URL and safe surfaces', async () => {
+  it('replays an uncertain paid outcome without any Medflex call or second dispatch', async () => {
     const client = await database()
-    const source = payload()
-    const raw = { ...source, patient: { ...source.patient, phone: '+7 (999) 123-45-67' } }
-    const stages = []
-    const records = recordAdapter()
-    await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => upstream(async () => ({ claim_id: 'malformed-claim' })), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: (stage) => stages.push(stage) }).submit(raw)
-    const calls = []
-    const replay = await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => historyClient(calls), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: (stage) => stages.push(stage) }).submit(raw)
+    const state = {}
+    const creates = []
+    const records = recordAdapter(state)
+    const first = await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => upstream(async () => { creates.push(true); return { claim_id: 'malformed-claim' } }), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined }).submit(payload())
+    let replayMedflexCalls = 0
+    const replay = await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => { replayMedflexCalls += 1; throw new Error('Medflex must not be called') }, clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined }).submit(payload())
     client.close()
-    const surfaces = JSON.stringify({ calls, stages, replay })
-    expect({ status: replay.status, query: new URL(calls[0]).searchParams.toString(), leaked: [raw.patient.phone, '79991234567'].some((phone) => surfaces.includes(phone)) }).toEqual({ status: 202, query: 'date_start=2091-09-04&date_end=2091-09-04&lpu_id=34871&page=1&size=50', leaked: false })
+    expect({ first: first.status, replay: replay.status, creates: creates.length, replayMedflexCalls, local: state.current.status }).toEqual({ first: 202, replay: 202, creates: 1, replayMedflexCalls: 0, local: 'needs_review' })
+  })
+
+  it('confirms an uncertain intent only from a locally verified Claim ID without Medflex redispatch', async () => {
+    const client = await clinicDatabase()
+    const creates = []
+    const records = createAppointmentRecords({ client, fingerprintKey: FINGERPRINT_KEY, encryptionKey: ENCRYPTION_KEY, clock: () => new Date('2088-01-01T00:00:00.000Z'), uuid: () => PATIENT_ID })
+    await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => upstream(async () => { creates.push(true); return { claim_id: 'malformed-claim' } }), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined }).submit(payload())
+    await records.project({ id: payload().intentId, status: 'confirmed', claimId: CLAIM_ID })
+    let replayMedflexCalls = 0
+    const replay = await createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: records, medflex: () => { replayMedflexCalls += 1; throw new Error('Medflex must not be called') }, clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined }).submit(payload())
+    const stored = await client.execute({ sql: 'SELECT status, medflexClaimId FROM BookingIntent WHERE id = ?', args: [payload().intentId] })
+    client.close()
+    expect({ replay: replay.status, claim: replay.body.data?.claimId, creates: creates.length, replayMedflexCalls, stored: stored.rows[0] }).toEqual({ replay: 200, claim: CLAIM_ID, creates: 1, replayMedflexCalls: 0, stored: { status: 'confirmed', medflexClaimId: CLAIM_ID } })
   })
 
   it('does not dispatch Medflex when local appointment preparation fails', async () => {

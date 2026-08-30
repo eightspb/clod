@@ -1,4 +1,3 @@
-import { findAppointmentHistory } from './appointment-history.js'
 import { createBookingIntentRepository } from './appointment-intents.js'
 import { verifyAppointmentSlot } from './appointment-schedule.js'
 import { validateBookingPayload } from './appointment-validation.js'
@@ -114,14 +113,16 @@ function localTimestamp(timestamp) {
 
 async function reconcile(configuration, booking, outcome) {
   try {
-    const slot = await configuration.repository.reconciliationScope({ capability: outcome.capability })
-    const date = slot.dtStart.slice(0, 10)
-    const client = configuration.medflex()
-    const history = await findAppointmentHistory({ loadPage: (page) => client.getAppointmentHistory({ dateStart: date, dateEnd: date, lpuId: slot.lpuId, page, size: 50 }), booking, slot })
-    const transition = await configuration.repository.reconcile({ capability: outcome.capability, history })
+    const appointment = await configuration.appointmentRecords.get({ id: booking.intentId })
+    const claimId = appointment && appointment.status === 'confirmed' && typeof appointment.medflexClaimId === 'string' && UUID_PATTERN.test(appointment.medflexClaimId) ? appointment.medflexClaimId : ''
+    if (claimId === '') {
+      await projectLocal(configuration, booking, outcome.public)
+      return uncertain()
+    }
+    const transition = await configuration.repository.reconcile({ capability: outcome.capability, history: { found: true, claimId } })
     return projectedResult(configuration, booking, transition, 200)
   } catch {
-    safeLog(configuration, 'HISTORY_RECONCILIATION_FAILED')
+    safeLog(configuration, 'LOCAL_RECONCILIATION_FAILED')
     await projectLocal(configuration, booking, outcome.public)
     return uncertain()
   }
@@ -317,7 +318,7 @@ function readConfiguration(input) {
   const source = input.source === undefined ? 'website' : input.source
   const appointmentRecords = input.appointmentRecords
   if (typeof medflex !== 'function' || typeof clock !== 'function' || typeof log !== 'function') throw new TypeError('Appointment booking adapters must be functions')
-  if (appointmentRecords === null || typeof appointmentRecords !== 'object' || typeof appointmentRecords.prepare !== 'function' || typeof appointmentRecords.project !== 'function') throw new TypeError('Appointment booking record adapter is invalid')
+  if (appointmentRecords === null || typeof appointmentRecords !== 'object' || typeof appointmentRecords.prepare !== 'function' || typeof appointmentRecords.project !== 'function' || typeof appointmentRecords.get !== 'function') throw new TypeError('Appointment booking record adapter is invalid')
   if (!['website', 'admin_medflex'].includes(source)) throw new TypeError('Appointment booking source is invalid')
   const configuration = { intentClient: input.intentClient, appointmentRecords, source, medflex, clock, log }
   if (Object.hasOwn(input, 'intentSecret')) configuration.intentSecret = input.intentSecret
@@ -325,7 +326,7 @@ function readConfiguration(input) {
 }
 
 /**
- * Creates a booking workflow that owns validation, intent safety, Medflex dispatch, and reconciliation.
+ * Creates a booking workflow that owns validation, intent safety, Medflex dispatch, and local recovery.
  */
 export function createAppointmentBooking(input) {
   const configuration = readConfiguration(input)
