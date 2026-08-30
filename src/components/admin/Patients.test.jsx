@@ -298,4 +298,15 @@ describe('Patients admin view', () => {
     await waitFor(() => expect(calls.length).toBe(3))
     expect(calls.map(([url]) => String(url))).toEqual(['/api/admin/patients?page=1&pageSize=50', `/api/admin/patients/${PATIENT_ID}?callsPage=1&callsPageSize=10`, `/api/admin/patients/${PATIENT_ID}?callsPage=2&callsPageSize=10`])
   })
+
+  it('shows call history before an already-open patient card', async () => {
+    transport([json(PAGE), json(DETAIL), json({ data: PATIENT, calls: { data: [], page: { number: 1, size: 10, total: 0, pages: 0 } } })])
+    render(<Patients />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
+    const card = await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
+    fireEvent.click(screen.getByRole('button', { name: `История звонков ${PATIENT.name}` }))
+    const calls = (await screen.findByText('Звонки пациента')).closest('tr')
+    expect(calls.compareDocumentPosition(card.closest('tr'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
 })
