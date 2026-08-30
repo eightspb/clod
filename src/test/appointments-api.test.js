@@ -60,8 +60,8 @@ function upstreamFixture() {
 }
 
 function appointmentRecordFixture() {
-  const state = { prepares: [], projects: [] }
-  const records = Object.freeze({ prepare: async (input) => { state.prepares.push(structuredClone(input)); return Object.freeze({ id: input.id, status: 'pending' }) }, project: async (input) => { state.projects.push(structuredClone(input)); return Object.freeze({ id: input.id, status: input.status }) } })
+  const state = { prepares: [], projects: [], current: undefined, getError: undefined }
+  const records = Object.freeze({ prepare: async (input) => { state.prepares.push(structuredClone(input)); state.current = Object.freeze({ id: input.id, status: 'pending', medflexClaimId: null }); return state.current }, project: async (input) => { state.projects.push(structuredClone(input)); state.current = Object.freeze({ id: input.id, status: input.status === 'uncertain' ? 'needs_review' : input.status, medflexClaimId: input.claimId ?? null }); return state.current }, get: async () => { if (state.getError) throw state.getError; return state.current } })
   return Object.freeze({ state, records })
 }
 
@@ -223,7 +223,7 @@ async function loadBook(upstream, intentClient, endpoint = {}) {
   if (!upstream) return module
   const record = appointmentRecordFixture()
   const workflow = () => createAppointmentBooking({ intentClient, intentSecret: SECRET, appointmentRecords: record.records, medflex: upstream.medflex, log: upstream.log })
-  return { ...module, POST: module.createBookEndpoint(workflow, { fingerprintKey: SECRET, contactLimit: endpoint.contactLimit ?? (() => Object.freeze({ allowed: true })) }) }
+  return { ...module, POST: module.createBookEndpoint(workflow, { fingerprintKey: SECRET, contactLimit: endpoint.contactLimit ?? (() => Object.freeze({ allowed: true })) }), appointmentState: record.state }
 }
 
 function medflexError(code, input = {}) {
@@ -502,12 +502,12 @@ describe('POST /api/appointments/book intent flow', () => {
       const { POST } = await loadBook(upstream, fixture.client)
       const first = await responseValue(await POST({ request: bookRequest({ realIp: '203.0.113.94' }) }))
       const replay = await responseValue(await POST({ request: bookRequest({ realIp: '203.0.113.95' }) }))
-      return { first, replay, creates: upstream.state.createCalls, histories: upstream.state.historyCalls }
+      return { first, replay, creates: upstream.state.createCalls, factories: upstream.state.factoryCalls, histories: upstream.state.historyCalls }
     })
-    expect(result).toMatchObject({ first: { status: 202, body: { data: { status: 'uncertain', canRetry: false } } }, replay: { status: 202, body: { data: { status: 'uncertain', canRetry: false } } }, creates: 1, histories: 1 })
+    expect(result).toMatchObject({ first: { status: 202, body: { data: { status: 'uncertain', canRetry: false } } }, replay: { status: 202, body: { data: { status: 'uncertain', canRetry: false } } }, creates: 1, factories: 1, histories: 0 })
   })
 
-  it('reconciles exact uncertain history before consulting a disappeared slot', async () => {
+  it('ignores unsupported history even when it would match an uncertain booking', async () => {
     const upstream = upstreamFixture()
     upstream.state.createError = medflexError('MEDFLEX_NETWORK', { outcomeUncertain: true })
     const result = await withDatabase(async (fixture) => {
@@ -516,37 +516,35 @@ describe('POST /api/appointments/book intent flow', () => {
       upstream.state.schedulePage = schedulePage([])
       upstream.state.historyPages = [historyPage([historyRow()])]
       const replay = await responseValue(await POST({ request: bookRequest({ realIp: '203.0.113.97' }) }))
-      return { replay, creates: upstream.state.createCalls, schedules: upstream.state.scheduleCalls, histories: upstream.state.historyCalls }
+      return { replay, creates: upstream.state.createCalls, factories: upstream.state.factoryCalls, schedules: upstream.state.scheduleCalls, histories: upstream.state.historyCalls }
     })
-    expect(result).toMatchObject({ replay: { status: 200, body: { data: { status: 'confirmed', claimId: CLAIM_ID } } }, creates: 1, schedules: 1, histories: 1 })
+    expect(result).toMatchObject({ replay: { status: 202, body: { data: { status: 'uncertain' } } }, creates: 1, factories: 1, schedules: 1, histories: 0 })
   })
 
-  it('reconciles against persisted trusted scope when the current mapping has changed', async () => {
+  it('keeps a persisted uncertain intent fail-closed when its local appointment is absent', async () => {
     const upstream = upstreamFixture()
     const persisted = slot({ doctorId: 80120, lpuId: 44871, specialityId: 155, price: 6_250 })
-    upstream.state.historyPages = [historyPage([historyRow(booking({}), persisted)])]
     const result = await withDatabase(async (fixture) => {
       await seed(fixture, booking({}), persisted, 'uncertain')
       const { POST } = await loadBook(upstream, fixture.client)
       const response = await responseValue(await POST({ request: bookRequest({ realIp: '203.0.113.101' }) }))
-      return { response, history: upstream.state.historyInputs[0], schedules: upstream.state.scheduleCalls }
+      return { response, factories: upstream.state.factoryCalls, schedules: upstream.state.scheduleCalls, histories: upstream.state.historyCalls }
     })
-    const serialized = JSON.stringify(result.response.body)
-    expect({ status: result.response.status, claim: result.response.body.data.claimId, lpuId: result.history.lpuId, schedules: result.schedules, leaked: /80120|44871|155/.test(serialized) }).toEqual({ status: 200, claim: CLAIM_ID, lpuId: persisted.lpuId, schedules: 0, leaked: false })
+    expect({ status: result.response.status, state: result.response.body.data.status, factories: result.factories, schedules: result.schedules, histories: result.histories }).toEqual({ status: 202, state: 'uncertain', factories: 0, schedules: 0, histories: 0 })
   })
 
-  it('keeps malformed or unavailable history uncertain and sanitized', async () => {
+  it('keeps a local recovery failure uncertain and sanitized', async () => {
     const upstream = upstreamFixture()
     const raw = 'patient 79215550129 token-secret-raw'
     upstream.state.createError = medflexError('MEDFLEX_TIMEOUT', { outcomeUncertain: true })
     const result = await withDatabase(async (fixture) => {
-      const { POST } = await loadBook(upstream, fixture.client)
+      const { POST, appointmentState } = await loadBook(upstream, fixture.client)
       await POST({ request: bookRequest({ realIp: '203.0.113.98' }) })
-      upstream.state.historyError = new Error(raw)
+      appointmentState.getError = new Error(raw)
       const replay = await responseValue(await POST({ request: bookRequest({ realIp: '203.0.113.99' }) }))
-      return { replay, serialized: JSON.stringify(replay.body), creates: upstream.state.createCalls, schedules: upstream.state.scheduleCalls }
+      return { replay, serialized: JSON.stringify(replay.body), creates: upstream.state.createCalls, factories: upstream.state.factoryCalls }
     })
-    expect({ status: result.replay.status, code: result.replay.body.data.status, leaked: result.serialized.includes(raw), creates: result.creates, schedules: result.schedules }).toEqual({ status: 202, code: 'uncertain', leaked: false, creates: 1, schedules: 1 })
+    expect({ status: result.replay.status, code: result.replay.body.data.status, leaked: result.serialized.includes(raw), creates: result.creates, factories: result.factories }).toEqual({ status: 202, code: 'uncertain', leaked: false, creates: 1, factories: 1 })
   })
 
   it('uses a returned claim immediately when confirmation races into reconciliation', async () => {
@@ -600,17 +598,16 @@ describe('POST /api/appointments/book after slot start', () => {
     expect({ status: result.status, claim: result.body.data.claimId, schedules: upstream.state.scheduleCalls, creates: upstream.state.createCalls }).toEqual({ status: 200, claim: CLAIM_ID, schedules: 0, creates: 0 })
   })
 
-  it('reconciles an exact uncertain booking after its start without a live schedule', async () => {
+  it('keeps an exact uncertain booking after its start without Medflex access', async () => {
     const upstream = upstreamFixture()
     const past = booking({ dtStart: '2020-08-24T10:10:00+03:00', dtEnd: '2020-08-24T10:50:00+03:00' })
     const pastSlot = slot({ dtStart: '2020-08-24 10:10', dtEnd: '2020-08-24 10:50' })
-    upstream.state.historyPages = [historyPage([historyRow(past, pastSlot)])]
     const result = await withDatabase(async (fixture) => {
       await seed(fixture, past, pastSlot, 'uncertain')
       const { POST } = await loadBook(upstream, fixture.client)
       return responseValue(await POST({ request: bookRequest({ body: past, realIp: '203.0.113.112' }) }))
     })
-    expect({ status: result.status, claim: result.body.data.claimId, schedules: upstream.state.scheduleCalls, histories: upstream.state.historyCalls }).toEqual({ status: 200, claim: CLAIM_ID, schedules: 0, histories: 1 })
+    expect({ status: result.status, state: result.body.data.status, factories: upstream.state.factoryCalls, schedules: upstream.state.scheduleCalls, histories: upstream.state.historyCalls }).toEqual({ status: 202, state: 'uncertain', factories: 0, schedules: 0, histories: 0 })
   })
 
   it.each([
