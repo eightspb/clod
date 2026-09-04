@@ -18,7 +18,7 @@ FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install --yes --no-install-recommends unzip && \
+    apt-get install --yes --no-install-recommends unzip sqlite3 && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /data && \
     groupadd --system app && \

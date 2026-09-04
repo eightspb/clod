@@ -354,6 +354,17 @@ describe('clinic history import CLI', () => {
     expect({ code: result.error?.code, dryMode: result.value?.dry.mode, appliedMode: result.value?.applied.mode, status: result.value?.applied.status, hashLength: result.value?.dry.manifestHash.length, hashesBound: result.value?.dry.manifestHash === result.value?.applied.manifestHash, counts: result.value?.counts }).toEqual({ code: undefined, dryMode: 'dry-run', appliedMode: 'apply', status: 'completed', hashLength: 64, hashesBound: true, counts: [{ batches: 1, patients: 1, visits: 1, invoices: 1 }] })
   })
 
+  it('fails with a distinct code when the target database is not intact after apply', async () => {
+    const value = await fixture()
+    let checks = 0
+    const runtime = dependencies({ createDatabaseClient: (options) => {
+      const client = createClient(options)
+      return Object.freeze({ execute: async (...args) => { if (args[0] === 'PRAGMA integrity_check' && ++checks === 2) return { rows: [{ integrity_check: '*** in database main *** Page 7: corrupted' }] }; return client.execute(...args) }, transaction: (...args) => client.transaction(...args), close: () => client.close() })
+    } })
+    const result = await captured(() => runClinicImportCommand(applyArguments(value), environment(), runtime.values))
+    expect({ code: result.error?.code, output: runtime.output }).toEqual({ code: 'TARGET_INTEGRITY_FAILED', output: [] })
+  })
+
   it('rejects a store result that is not bound to the requested manifest and plan before stdout', async () => {
     const value = await fixture()
     const runtime = dependencies({ applyStage: async () => Object.freeze({ batchId: '00000000-0000-8000-8000-000000000001', manifestHash: 'c'.repeat(64), planHash: PLAN_HASH, status: 'completed', applied: true, controls: Object.freeze({ patients: 2 }), summary: Object.freeze({ patients: 2 }) }) })

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily clinic backup at 03:30 Moscow time
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Europe/Moscow
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
