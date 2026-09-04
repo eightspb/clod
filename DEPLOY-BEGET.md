@@ -208,10 +208,11 @@ URL запросов и access logs не должны содержать тел�
 
 Если домен пока не подключаете, сайт можно поднять по IP: **только HTTP** (без HTTPS и без Certbot).
 
-В репозитории **`nginx.conf` по умолчанию уже без SSL** (только порт 80, прокси на приложение). Отдельно ничего копировать не нужно — после `git clone` и настройки `.env` достаточно:
+Рабочий `nginx.conf` не хранится в git — его генерирует `scripts/render-nginx.sh` из шаблона. Для режима «только HTTP» после `git clone` и настройки `.env` достаточно:
 
 ```bash
 cd /srv/clod
+sh scripts/render-nginx.sh http
 docker compose up -d --build
 ```
 
@@ -219,9 +220,9 @@ docker compose up -d --build
 
 **Открыть в браузере:** `http://ВАШ_IP` (подставьте IP вашего VPS).
 
-**Позже, когда появится домен:** настройте DNS (3.2), затем часть 4: `nginx.bootstrap.conf` → Certbot → **`cp nginx.https.conf nginx.conf`** (с правками домена в файле) и `docker compose up -d --build`.
+**Позже, когда появится домен:** настройте DNS (3.2), затем часть 4: `render-nginx.sh bootstrap` → Certbot → `render-nginx.sh https` и `docker compose up -d --build`.
 
-> Если на сервере остался старый `nginx.conf` с HTTPS и несуществующими путями к сертификатам, nginx уходил в `restarting`. После `git pull` придёт актуальный HTTP-`nginx.conf`, либо вручную скопируйте его из репозитория.
+> Если nginx уходит в `restarting`, проверьте, какой шаблон был отрендерен: HTTPS-шаблон без сертификатов в `/etc/letsencrypt/live/${SITE_DOMAIN}/` не стартует. `docker compose run --rm --no-deps nginx nginx -t` покажет причину.
 
 ---
 
@@ -231,16 +232,11 @@ docker compose up -d --build
 
 ### 4.1. Включить bootstrap-конфиг Nginx
 
+Укажите домен в `.env` (`SITE_DOMAIN=new.odintsovclinic.ru`; production сейчас живёт именно на поддомене `new.`, а `odintsovclinic.ru` — отдельный сайт на Tilda) и отрендерите bootstrap-конфиг:
+
 ```bash
 cd /srv/clod
-cp nginx.bootstrap.conf nginx.conf
-```
-
-Если домен другой - отредактируйте `nginx.conf` и замените `server_name` на ваш домен:
-
-```bash
-nano nginx.conf
-# server_name ваш-домен.ru www.ваш-домен.ru;
+sh scripts/render-nginx.sh bootstrap
 ```
 
 ### 4.2. Запустить только Nginx (без приложения)
@@ -258,24 +254,24 @@ docker compose up -d nginx
 ```bash
 docker compose run --rm certbot certonly \
   --webroot -w /var/www/certbot \
-  -d odintsovclinic.ru -d www.odintsovclinic.ru \
+  -d "${SITE_DOMAIN}" \
   --email admin@odintsovclinic.ru \
   --agree-tos --no-eff-email
 ```
 
-При успехе появится сообщение о сохранении сертификата в `/etc/letsencrypt/live/odintsovclinic.ru/`.
+При успехе появится сообщение о сохранении сертификата в `/etc/letsencrypt/live/${SITE_DOMAIN}/`.
 
 ### 4.4. Переключиться на финальный Nginx с HTTPS
 
-Файл **`nginx.https.conf`** в репозитории — готовый конфиг с редиректом HTTP→HTTPS и SSL. Скопируйте его в рабочий `nginx.conf` (bootstrap вы перезаписали `nginx.conf`, поэтому `git checkout nginx.conf` не подойдёт):
+Шаблон **`nginx.https.conf`** содержит редирект HTTP→HTTPS, SSL, security headers и лимиты. Отрендерите его и проверьте вместе с реальными сертификатами:
 
 ```bash
 cd /srv/clod
-cp nginx.https.conf nginx.conf
-nano nginx.conf
+sh scripts/render-nginx.sh https
+docker compose run --rm --no-deps nginx nginx -t
 ```
 
-Замените все вхождения `odintsovclinic.ru` на ваш домен (в `server_name` и в путях `ssl_certificate` / `ssl_certificate_key` — каталог в `/etc/letsencrypt/live/` совпадает с основным именем сертификата).
+Домен и пути к сертификатам подставляются из `SITE_DOMAIN`; ничего редактировать вручную не нужно.
 
 ### 4.5. Запустить весь стек (приложение + Nginx + Certbot)
 
@@ -308,7 +304,7 @@ docker compose logs app -f
 bun run deploy
 ```
 
-Скрипт подключится к серверу по `ssh clod`, выполнит `git pull`, `docker compose up -d --build` и перезагрузку Nginx (`nginx -s reload`) для сброса кэша. Либо запустите напрямую:
+Скрипт подключится к серверу по `ssh clod`, проверит свободное место, выполнит `git pull`, отрендерит и проверит `nginx.conf`, затем `docker compose up -d --build` и перезагрузку Nginx (`nginx -s reload`). Либо запустите напрямую:
 
 ```bash
 sh scripts/deploy.sh
@@ -377,9 +373,9 @@ docker compose down -v
 
 Если деплоите на другой домен:
 
-1. В `nginx.bootstrap.conf` замените `odintsovclinic.ru` и `www.odintsovclinic.ru` на ваш домен (для этапа получения сертификата).
-2. После Certbot в **`nginx.https.conf`** (или в скопированном `nginx.conf`) замените домен в `server_name` и в путях `ssl_certificate` / `ssl_certificate_key`.
-3. В команде `certbot certonly` укажите ваш домен и `www.ваш-домен`.
+1. Укажите новый домен в `.env` как `SITE_DOMAIN` и заново выполните `sh scripts/render-nginx.sh bootstrap`.
+2. После Certbot выполните `sh scripts/render-nginx.sh https` — домен и пути к сертификатам подставятся автоматически.
+3. В команде `certbot certonly` укажите тот же домен.
 4. В `astro.config.mjs` при необходимости измените `site: 'https://...'` на ваш домен (для sitemap и canonical).
 
 ---

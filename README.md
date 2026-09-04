@@ -515,8 +515,8 @@ clod/
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
 ├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
-├── nginx.conf                     # Nginx: по умолчанию HTTP (IP / до SSL)
-├── nginx.https.conf               # Nginx: HTTPS после Let's Encrypt
+├── nginx.https.conf               # Nginx: production-шаблон HTTPS (рендерится в nginx.conf)
+├── nginx.http.conf                # Nginx: шаблон только HTTP (IP / до SSL)
 ├── nginx.bootstrap.conf           # Nginx: HTTP для первичного ACME (Certbot)
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
@@ -913,9 +913,11 @@ integrations: [
 | `Dockerfile` | Multi-stage сборка: builder (bun install + build) → runner (slim, node entry.mjs) |
 | `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
 | `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
-| `nginx.conf` | Рабочий конфиг по умолчанию: только HTTP (без путей к сертификатам — подходит для IP) |
-| `nginx.https.conf` | Шаблон с HTTPS; после Certbot копируют в `nginx.conf` (см. DEPLOY-BEGET.md) |
+| `nginx.conf` | Рабочий конфиг, генерируется `scripts/render-nginx.sh` и не хранится в git |
+| `nginx.https.conf` | Production-шаблон HTTPS: security headers, catch-all для чужого Host, лимиты, allowlist MANGO |
+| `nginx.http.conf` | Шаблон только HTTP (доступ по IP или до выпуска сертификата) |
 | `nginx.bootstrap.conf` | Временная конфигурация HTTP для первичного выпуска сертификата Let's Encrypt |
+| `scripts/render-nginx.sh` | Подстановка `SITE_DOMAIN`/`NOINDEX` из `.env` в выбранный шаблон |
 | `.env.example` | Шаблон переменных окружения для production |
 
 ### Переменные окружения (`.env` на сервере)
@@ -933,6 +935,7 @@ integrations: [
 | `MANGO_CALL_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ номеров; генерировать `openssl rand -base64 32` |
 | `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую |
 | `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу: `file:/data/db.sqlite` |
+| `SITE_DOMAIN` | Домен для генерации `nginx.conf` и путей сертификата, сейчас `new.odintsovclinic.ru` |
 
 ### Первый деплой (Bootstrap HTTPS)
 
@@ -948,33 +951,37 @@ git clone <repo> /srv/clod && cd /srv/clod
 # 3. Создать .env из шаблона и заполнить
 cp .env.example .env
 
-# 4. Запустить Nginx в bootstrap-режиме (только HTTP)
-cp nginx.bootstrap.conf nginx.conf
+# 4. Указать домен в .env и запустить Nginx в bootstrap-режиме (только HTTP)
+#    SITE_DOMAIN=new.odintsovclinic.ru в .env
+sh scripts/render-nginx.sh bootstrap
 docker compose up -d nginx
 
 # 5. Получить SSL-сертификат
 docker compose run --rm certbot certonly \
   --webroot -w /var/www/certbot \
-  -d odintsovclinic.ru -d www.odintsovclinic.ru \
+  -d new.odintsovclinic.ru \
   --email admin@odintsovclinic.ru --agree-tos --no-eff-email
 
-# 6. Переключить на HTTPS: скопировать шаблон в nginx.conf, править домен, поднять стек
-cp nginx.https.conf nginx.conf
-# отредактировать nginx.conf: server_name и пути /etc/letsencrypt/live/ВАШ_ДОМЕН/
+# 6. Сгенерировать HTTPS-конфиг из шаблона и поднять стек
+sh scripts/render-nginx.sh https
+docker compose run --rm --no-deps nginx nginx -t
 docker compose up -d --build
 ```
 
-Перед reload проверьте именно фактически смонтированный рабочий конфиг. После `cp nginx.https.conf nginx.conf` на production эта же команда проверяет HTTPS-шаблон вместе с реальными сертификатами:
+Рабочий `nginx.conf` не хранится в git: `scripts/render-nginx.sh [https|http|bootstrap]` генерирует его из соответствующего шаблона, подставляя `SITE_DOMAIN` и `NOINDEX` из `.env`. Редактируйте шаблоны `nginx.https.conf`, `nginx.http.conf`, `nginx.bootstrap.conf`; `bun run deploy` перерисовывает и проверяет `nginx.conf` на сервере при каждом деплое, поэтому `git pull` больше не конфликтует с локальными правками.
+
+Шаблон HTTPS добавляет security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) ко всем ответам, включая prerendered-статику, и скрывает их SSR-дубликаты через `proxy_hide_header`. Запросы с чужим `Host` получают `444`/отказ TLS-рукопожатия, приложение всегда видит `Host` равным `SITE_DOMAIN` и пустой `X-Forwarded-Host`, а `X-Forwarded-For` содержит только адрес клиента. Отдельные лимиты: `limit_req` 6 запросов в минуту и 8 КБ тела на `/api/auth/login`, 32 КБ на `/api/analytics/`, 26 МБ на `/api/second-opinion`, 64 КБ и IP-allowlist API Realtime на всём префиксе `/api/integrations/mango/` (включая пути со слэшем на конце).
+
+Проверить фактически смонтированный конфиг вместе с реальными сертификатами:
 
 ```bash
-docker compose config --quiet
 docker compose run --rm --no-deps nginx nginx -t
 ```
 
-Если локальный `nginx` не установлен, рабочий HTTP-конфиг можно проверить тем же production-образом без запуска стека и чтения `.env`:
+Если локальный `nginx` не установлен, HTTP-шаблон можно проверить production-образом без запуска стека и чтения `.env`:
 
 ```bash
-docker run --rm --add-host app:127.0.0.1 \
+SITE_DOMAIN=example.test sh scripts/render-nginx.sh http && docker run --rm --add-host app:127.0.0.1 \
   -v "$PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
   nginx:alpine nginx -t
 ```
@@ -987,7 +994,7 @@ docker run --rm --add-host app:127.0.0.1 \
 bun run deploy
 ```
 
-Скрипт `scripts/deploy.sh` выполняет: git pull → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
+Скрипт `scripts/deploy.sh` выполняет: проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
 
 Или вручную на сервере:
 
@@ -1011,7 +1018,7 @@ Certbot-контейнер проверяет сертификат каждые 
 ### Tech debt, accessibility и оптимизация (апрель 2026)
 
 - **WCAG 2.1 AA аудит**: ThemeSwitcher focus trap, LoginForm aria-describedby, carousel ARIA pattern, prefers-reduced-motion, touch targets 44px, alt-текст, контрасты
-- **NOINDEX для staging**: `X-Robots-Tag: noindex` через nginx + middleware для `new.odintsovclinic.ru`
+- **NOINDEX для staging**: `X-Robots-Tag: noindex` через шаблон nginx (`NOINDEX=true` в `.env`) + middleware для `new.odintsovclinic.ru`
 - **Rate limiting**: единая утилита `rate-limit.js` с namespace-изоляцией, admin-api guards (60 read / 20 write req/min), lazy eviction
 - **Дедупликация кода**: `useAdminFetch` хук (4 admin-компонента), `file-constraints.js` (upload-константы), `theme-config.js` (пресеты + palette generation)
 - **Home.jsx split**: 1009→84 строк, 9 модульных компонентов в `src/components/home/`

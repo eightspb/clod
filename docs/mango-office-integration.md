@@ -25,10 +25,11 @@ MANGO_INBOUND_LINES=+78127482210
 
 ## 2. Настройка API-коннектора
 
-1. Укажите адрес внешней системы `https://odintsovclinic.ru/api/integrations/mango`.
+1. Укажите адрес внешней системы `https://new.odintsovclinic.ru/api/integrations/mango`. Домен `odintsovclinic.ru` без префикса `new.` — отдельный сайт на Tilda, callback туда отправлять нельзя: он не проверяет подпись и не принадлежит этому приложению.
+   Перед сохранением коннектора убедитесь, что `curl -s -o /dev/null -w '%{http_code}' https://new.odintsovclinic.ru/api/integrations/mango` возвращает `200`.
 2. Проверьте итоговые callback URL:
-   - `https://odintsovclinic.ru/api/integrations/mango/events/call`;
-   - `https://odintsovclinic.ru/api/integrations/mango/events/summary`.
+   - `https://new.odintsovclinic.ru/api/integrations/mango/events/call`;
+   - `https://new.odintsovclinic.ru/api/integrations/mango/events/summary`.
 3. Выберите версию событий `1`.
 4. Включите отправку событий по звонкам и оставьте разрешёнными промежуточные `events/call` и итоговые `events/summary`.
 5. Отключите DTMF, SMS, адресную книгу, статусы пользователей, `events/recording`, `events/record/added`, `events/record/tagged`, распознавание, роботов и кампании. Опцию доступа к записям разговоров не включайте.
@@ -65,7 +66,7 @@ docker compose run --rm --no-deps nginx nginx -t
 Сначала проверьте data-free маршрут извне:
 
 ```bash
-curl --fail --silent --show-error https://odintsovclinic.ru/api/integrations/mango
+curl --fail --silent --show-error https://new.odintsovclinic.ru/api/integrations/mango
 ```
 
 Для проверки подписи и сохранения используйте только вымышленный номер `+7 900 000-00-00`. Запускайте тест из контейнера `app`, чтобы не ослаблять публичный IP-allowlist. Команда ниже отправляет live-событие и сразу финальный missed-summary с тем же `entry_id`; она выводит только тип события, HTTP-статус и безопасный outcome:
