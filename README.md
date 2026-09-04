@@ -54,6 +54,8 @@ bun run build    # production-сборка в dist/
 bun run preview  # превью собранного билда
 ```
 
+После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
+
 `bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux). Dev-launcher явно загружает корневой `.env` до старта Astro, поэтому после изменения server-only переменных окружения dev-сервер нужно полностью перезапустить.
 
 ---

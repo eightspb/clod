@@ -1,0 +1,12 @@
+#!/bin/sh
+# Rejects commits that stage secrets, SQLite databases, import staging artifacts or patient data exports.
+set -eu
+
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)\.env(\.|$)|\.sqlite(-wal|-shm)?$|\.stage$|\.backup-|(^|/)backups/|PD\.csv$|_(patients|visits|invoices)\.csv$|(^|/)medesk\.csv$|\.xlsx$|\.key$|\.pem$' | grep -vE '(^|/)\.env\.example$' || true)
+
+if [ -n "${blocked}" ]; then
+  echo "pre-commit: refusing to commit files that may contain secrets or personal data:" >&2
+  echo "${blocked}" | sed 's/^/  /' >&2
+  echo "Remove them from the index with: git restore --staged <file>" >&2
+  exit 1
+fi
