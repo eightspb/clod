@@ -5,7 +5,7 @@
 Каждая строка ниже — осознанное решение с обоснованием и условием снятия.
 
 Состояние на 4 сентября 2026 (после `bun update`, `nodemailer@10`, `vitest@3`, `drizzle-orm@0.45.2` и
-`overrides` для `postcss`, `devalue`, `ws`, `sharp`, `minimatch`, `brace-expansion`, `browserslist`,
+`overrides` для `postcss`, `devalue`, `ws`, `sharp`, `minimatch`, `brace-expansion`, `browserslist`, (без `js-yaml`: astro 4 требует 3.x, а 3.15.2 уже исправлена)
 `form-data`, `flatted`, `nanoid`, `picomatch`, `rollup`, `undici`, `yaml`, `postcss-selector-parser`):
 28 advisories остаются, все — в ветке Astro 4 / Vite 5 и dev-инструментах. Было 89.
 
