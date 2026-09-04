@@ -65,3 +65,14 @@ describe('admin API security', () => {
     expect(parsed).toEqual({ valid: true, tooLarge: false, value: { confirmation: 'УНИЧТОЖИТЬ' } })
   })
 })
+
+describe('admin API client identity', () => {
+  it('keeps rate limiting on the proxy real IP while the forwarded chain rotates', async () => {
+    const statuses = []
+    for (let index = 0; index < 21; index += 1) {
+      const headers = new Headers({ 'x-real-ip': '203.0.113.77', 'x-forwarded-for': `198.51.100.${index + 1}` })
+      statuses.push((await guardAdminWrite(new Request('https://odintsovclinic.ru/api/admin/patients', { method: 'POST', headers })))?.status)
+    }
+    expect(statuses.at(-1)).toBe(429)
+  })
+})

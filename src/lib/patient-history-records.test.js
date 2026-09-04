@@ -454,4 +454,39 @@ describe('patient history records', () => {
     client.close()
     expect(snapshot.rows[0]).toEqual({ visits: 1, candidates: 1, cleared: 4 })
   })
+
+  it('destroys caller data of every linked MANGO call together with the patient', async () => {
+    const { client } = await fixture()
+    let counter = 0
+    const records = createPatientHistoryRecords({ client, encryptionKey: ENCRYPTION_KEY, clock: () => new Date(NOW), uuid: () => `74000000-0000-4000-8000-0000000000${String(40 + counter++).padStart(2, '0')}` })
+    await protectedRows(client)
+    for (const entryId of ['entry-linked-1', 'entry-linked-2']) await client.execute({ sql: 'INSERT INTO MangoCall VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [entryId, PATIENT_ID, 'answered', 'sealed-caller', '+7 •••••••• 73', 'v1:caller-history', 1, '78127482210', null, NOW, null, NOW, NOW, 5, 60, null, NOW, NOW, NOW, null] })
+    await records.destroy({ id: PATIENT_ID, actor: ACTOR })
+    const snapshot = await client.execute("SELECT (SELECT COUNT(*) FROM MangoCall WHERE piiDestroyedAt IS NOT NULL AND callerCiphertext IS NULL AND callerMask IS NULL AND callerFingerprint IS NULL AND repeatCaller IS NULL AND patientId IS NULL) AS purged, (SELECT COUNT(*) FROM MangoCallAccess WHERE action = 'destroy') AS audits")
+    client.close()
+    expect(snapshot.rows[0]).toEqual({ purged: 2, audits: 2 })
+  })
+
+  it('destroys an unlinked MANGO call whose caller matches only the destroyed patient', async () => {
+    const { client, records } = await fixture()
+    await protectedRows(client)
+    const fingerprint = fingerprintContactPhone({ phone: PROFILE.phone, key: 'history-fingerprint-key-with-entropy-2026' })
+    await client.execute({ sql: 'INSERT INTO MangoCall VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['entry-unlinked', null, 'missed', 'sealed-caller', '+7 •••••••• 73', fingerprint, 0, '78127482210', null, NOW, null, null, NOW, 30, 0, null, NOW, NOW, NOW, null] })
+    await records.destroy({ id: PATIENT_ID, actor: ACTOR })
+    const row = await client.execute('SELECT callerFingerprint, piiDestroyedAt FROM MangoCall WHERE entryId = ?', ['entry-unlinked'])
+    client.close()
+    expect(row.rows[0]).toEqual({ callerFingerprint: null, piiDestroyedAt: NOW })
+  })
+
+  it('relinks a shared-phone MANGO call to the remaining patient instead of destroying it', async () => {
+    const { client, records } = await fixture()
+    await protectedRows(client)
+    const fingerprint = fingerprintContactPhone({ phone: PROFILE.phone, key: 'history-fingerprint-key-with-entropy-2026' })
+    await client.execute({ sql: 'UPDATE Patient SET phoneFingerprint = ? WHERE id = ?', args: [fingerprint, SECOND_PATIENT_ID] })
+    await client.execute({ sql: 'INSERT INTO MangoCall VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['entry-shared', null, 'missed', 'sealed-caller', '+7 •••••••• 73', fingerprint, 0, '78127482210', null, NOW, null, null, NOW, 30, 0, null, NOW, NOW, NOW, null] })
+    await records.destroy({ id: PATIENT_ID, actor: ACTOR })
+    const row = await client.execute('SELECT patientId, callerFingerprint, piiDestroyedAt FROM MangoCall WHERE entryId = ?', ['entry-shared'])
+    client.close()
+    expect(row.rows[0]).toEqual({ patientId: SECOND_PATIENT_ID, callerFingerprint: fingerprint, piiDestroyedAt: null })
+  })
 })

@@ -63,11 +63,13 @@ describe('Home hero slider', () => {
     }
 
     Object.defineProperty(window, 'ResizeObserver', {
+      configurable: true,
       writable: true,
       value: ResizeObserverMock,
     })
 
     Object.defineProperty(window, 'requestAnimationFrame', {
+      configurable: true,
       writable: true,
       value: (callback) => {
         callback(0)
@@ -76,6 +78,7 @@ describe('Home hero slider', () => {
     })
 
     Object.defineProperty(window, 'cancelAnimationFrame', {
+      configurable: true,
       writable: true,
       value: () => {},
     })
@@ -112,14 +115,17 @@ describe('Home hero slider', () => {
       value: originalMatchMedia,
     })
     Object.defineProperty(window, 'ResizeObserver', {
+      configurable: true,
       writable: true,
       value: originalResizeObserver,
     })
     Object.defineProperty(window, 'requestAnimationFrame', {
+      configurable: true,
       writable: true,
       value: originalRequestAnimationFrame,
     })
     Object.defineProperty(window, 'cancelAnimationFrame', {
+      configurable: true,
       writable: true,
       value: originalCancelAnimationFrame,
     })

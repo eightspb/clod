@@ -1,0 +1,10 @@
+[Unit]
+Description=Clinic Odintsova database and volume backup
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /srv/clod/scripts/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

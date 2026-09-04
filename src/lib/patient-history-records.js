@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { decryptPatientProfile } from './contact-identity.js'
 import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CANDIDATE_EVIDENCE_CODES as CANDIDATE_EVIDENCE_CODES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_NAME_HISTORY_REASONS as NAME_HISTORY_REASONS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
 import { decryptProtectedData } from './protected-patient-data.js'
+import { purgeMangoCalls } from './mango-call-purge.js'
 
 const FACTORY_KEYS = Object.freeze(['client', 'encryptionKey', 'clock', 'uuid'])
 const SUMMARY_KEYS = Object.freeze(['ids'])
@@ -488,7 +489,12 @@ async function clearPatientHistory(transaction, id, destroyedAt) {
   await transaction.execute({ sql: `UPDATE ImportIssue SET candidatesCiphertext = NULL, detailsCiphertext = NULL WHERE patientId = ? OR historicalVisitId IN (${visitIds})`, args: [id, id, id] })
   await transaction.execute({ sql: `UPDATE HistoricalInvoice SET payloadCiphertext = NULL, piiDestroyedAt = COALESCE(piiDestroyedAt, ?) WHERE historicalVisitId IN (${visitIds})`, args: [destroyedAt, id, id] })
   await transaction.execute({ sql: `UPDATE HistoricalVisit SET appointmentIdCiphertext = NULL, appointmentIdFingerprint = NULL, doctorCiphertext = NULL, detailsCiphertext = NULL, piiDestroyedAt = COALESCE(piiDestroyedAt, ?) WHERE id IN (${visitIds})`, args: [destroyedAt, id, id] })
-  await transaction.execute({ sql: 'UPDATE MangoCall SET patientId = NULL WHERE patientId = ?', args: [id] })
+}
+
+async function phoneFingerprints(transaction, id) {
+  const patientRows = await selectedRows(transaction, 'SELECT phoneFingerprint FROM Patient WHERE id = ? AND phoneFingerprint IS NOT NULL LIMIT 1', id)
+  const contactRows = await selectedRows(transaction, "SELECT fingerprint FROM PatientContact WHERE patientId = ? AND kind = 'phone' AND fingerprint IS NOT NULL AND piiDestroyedAt IS NULL", id)
+  return [...patientRows.map((row) => field(row, 'phoneFingerprint')), ...contactRows.map((row) => field(row, 'fingerprint'))].filter((value) => typeof value === 'string')
 }
 
 async function destroy(configuration, value) {
@@ -501,11 +507,13 @@ async function destroy(configuration, value) {
     if (patientRows.length !== 1 || uuid(field(patientRows[0], 'id')) !== id) invalid()
     const previous = field(patientRows[0], 'piiDestroyedAt')
     const destroyedAt = previous === null ? currentTime(configuration) : timestamp(previous)
+    const fingerprints = await phoneFingerprints(transaction, id)
     if (previous === null) {
       const updated = rows(await transaction.execute({ sql: 'UPDATE Patient SET profileCiphertext = NULL, phoneMask = NULL, phoneFingerprint = NULL, piiDestroyedAt = ?, updatedAt = max(updatedAt, ?) WHERE id = ? AND piiDestroyedAt IS NULL RETURNING id', args: [destroyedAt, destroyedAt, id] }))
       if (updated.length !== 1 || uuid(field(updated[0], 'id')) !== id) invalid()
     }
     await clearPatientHistory(transaction, id, destroyedAt)
+    await purgeMangoCalls(transaction, { patientId: id, fingerprints, destroyedAt, actor: accessActor, nextUuid: () => nextUuid(configuration) })
     if (previous === null) await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [nextUuid(configuration), id, 'destroy', accessActor, destroyedAt] })
     return Object.freeze({ id, destroyedAt, alreadyDestroyed: previous !== null })
   }))

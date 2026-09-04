@@ -17,7 +17,7 @@ const SOURCE_FLAGS = Object.freeze({ '--pd': 'pd', '--patients': 'patients', '--
 const VALUE_FLAGS = new Set([...Object.keys(SOURCE_FLAGS), '--database', '--stage', '--manifest', '--backup', '--confirm-production'])
 const BOOLEAN_FLAGS = new Set(['--apply', '--dry-run'])
 const SAFE_ERRORS = new WeakSet()
-const ERROR_CODES = new Set(['BACKUP_INVALID', 'CLI_FAILED', 'CLI_FILE_INVALID', 'CLI_INPUT_INVALID', 'MANIFEST_MISMATCH', 'PRODUCTION_CONFIRMATION_REQUIRED'])
+const ERROR_CODES = new Set(['BACKUP_INVALID', 'CLI_FAILED', 'CLI_FILE_INVALID', 'CLI_INPUT_INVALID', 'MANIFEST_MISMATCH', 'PRODUCTION_CONFIRMATION_REQUIRED', 'TARGET_INTEGRITY_FAILED'])
 const DEFAULT_FILE_SYSTEM = Object.freeze({ open })
 
 /** Represents a value-free clinic import command failure. */
@@ -441,6 +441,8 @@ async function applied(argumentsValue, environment, dependencies) {
       await rejectSqliteSidecars(backupIdentity.canonicalPath, 'BACKUP_INVALID')
     }
     result = await dependencies.applyStage({ client: guardedClient(client, verify), stagePath: stageIdentity.canonicalPath, repositoryPath: dependencies.repositoryPath, encryptionKey: environment.encryptionKey, fingerprintKey: environment.fingerprintKey, expectedManifestHash, expectedPlanHash: metadata.planHash })
+    const integrity = await client.execute('PRAGMA integrity_check')
+    if (!Array.isArray(integrity.rows) || integrity.rows.length !== 1 || integrity.rows[0].integrity_check !== 'ok') invalid('TARGET_INTEGRITY_FAILED')
   } catch (error) {
     failure = SAFE_ERRORS.has(error) ? error : new ClinicImportCliError('CLI_FAILED')
   }

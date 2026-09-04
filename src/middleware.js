@@ -36,61 +36,47 @@ const SECURITY_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
-  'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 }
 
-export const onRequest = defineMiddleware(async (context, next) => {
-  const path = context.url.pathname
-  // Determine adminui vs admin api access
-  const isAdminRoute = path.startsWith('/admin') && path !== '/admin/login'
-  const isAdminApi = path.startsWith('/api/admin')
-
-  // Auth check: protect admin UI routes and admin API endpoints
-  if (isAdminRoute || isAdminApi) {
-    const authed = await isAuthenticated(context.request)
-    if (!authed) {
-      if (isAdminApi) {
-        // For API calls, do not redirect - return 401
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      }
-      // For UI navigation, redirect to login page
-      return context.redirect('/admin/login')
-    }
-  }
-
-  const response = await next()
-
-  const isProduction = import.meta.env.MODE === 'production'
-
+/**
+ * Applies the security and cache headers to every response, including the early
+ * 401/302 answers produced before the route runs; prerendered static files bypass
+ * this middleware entirely and get the same headers from nginx.
+ */
+function secured(response, path) {
   Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
     response.headers.set(key, value)
   })
-
-  if (isProduction) {
+  if (import.meta.env.MODE === 'production') {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
   }
-
-  // Долгое кэширование статики (Lighthouse — «выбирайте эффективный период хранения кеша»)
   if (path.startsWith('/_astro/') || path.startsWith('/fonts/') || path.startsWith('/images/')) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
   }
-
-  // Запрет кэширования API-ответов — предотвращает утечку данных через прокси и браузерный кэш
-  if (path.startsWith('/api/')) {
-    response.headers.set('Cache-Control', 'no-store')
+  if (path.startsWith('/api/') || path.startsWith('/admin')) {
+    response.headers.set('Cache-Control', 'no-store, must-revalidate')
   }
-
-  // Запрет индексации для staging/preview-поддоменов (NOINDEX=true в .env на сервере).
-  // process.env читается в runtime — работает с @astrojs/node адаптером.
-  // Другие адаптеры (Vercel, Cloudflare) могут требовать import.meta.env или env binding
   if (process.env.NOINDEX === 'true') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
   }
-
   return response
+}
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const path = context.url.pathname
+  const isAdminRoute = path.startsWith('/admin') && path !== '/admin/login'
+  const isAdminApi = path.startsWith('/api/admin')
+  if (isAdminRoute || isAdminApi) {
+    const authed = await isAuthenticated(context.request)
+    if (!authed && isAdminApi) {
+      return secured(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } }), path)
+    }
+    if (!authed) {
+      const redirect = context.redirect('/admin/login')
+      return secured(new Response(null, { status: redirect.status, headers: new Headers(redirect.headers) }), path)
+    }
+  }
+  return secured(await next(), path)
 })

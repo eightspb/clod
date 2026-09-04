@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { STYLE_PREFIX, PROMPTS, AVAILABLE_MODELS } from '../../lib/blog-prompts.js'
 
 const POLL_MS = 3000
 
 async function applyImages(slugs) {
-  const res = await fetch('/api/generate-image', {
+  const res = await fetch('/api/admin/generate-image', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ slugs }),
@@ -174,7 +174,7 @@ export function BlogImageGenerator({ articles }) {
   const prevJobsRef = useRef({})
   const fetchState = useCallback(async () => {
     try {
-      const res = await fetch('/api/generate-image')
+      const res = await fetch('/api/admin/generate-image')
       const data = await res.json()
       const newJobs = data.jobs || {}
       const prev = prevJobsRef.current
@@ -208,7 +208,7 @@ export function BlogImageGenerator({ articles }) {
   const handleSubmit = useCallback(async (slug, prompt, model) => {
     setJobs(prev => ({ ...prev, [slug]: { status: 'pending', prompt, model, createdAt: new Date().toISOString() } }))
     try {
-      const res = await fetch('/api/generate-image', {
+      const res = await fetch('/api/admin/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, prompt, model }),
@@ -228,6 +228,19 @@ export function BlogImageGenerator({ articles }) {
   const handleApplied = useCallback((slug) => {
     setApplied(prev => ({ ...prev, [slug]: true }))
   }, [])
+  const filteredArticles = useMemo(() => articles.filter(article => {
+    if (filter === 'generated') return !!images[article.slug]
+    if (filter === 'unsplash') return !images[article.slug]
+    if (filter === 'pending') return jobs[article.slug]?.status === 'pending'
+    if (filter === 'failed') return jobs[article.slug]?.status === 'failed'
+    if (filter === 'unapplied') return images[article.slug] && !applied[article.slug]
+    if (filter !== 'all') return article.category === filter
+    return true
+  }).filter(article => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return article.title.toLowerCase().includes(q) || article.slug.includes(q)
+  }), [articles, filter, search, images, jobs, applied])
   const handleBulk = useCallback(async () => {
     const pending = filteredArticles.filter(a => !images[a.slug])
     if (pending.length === 0) { setBulkProgress('Все уже сгенерированы'); return }
@@ -270,19 +283,6 @@ export function BlogImageGenerator({ articles }) {
     }
   }, [images, applied])
   const categories = ['all', ...new Set(articles.map(a => a.category))]
-  const filteredArticles = articles.filter(article => {
-    if (filter === 'generated') return !!images[article.slug]
-    if (filter === 'unsplash') return !images[article.slug]
-    if (filter === 'pending') return jobs[article.slug]?.status === 'pending'
-    if (filter === 'failed') return jobs[article.slug]?.status === 'failed'
-    if (filter === 'unapplied') return images[article.slug] && !applied[article.slug]
-    if (filter !== 'all') return article.category === filter
-    return true
-  }).filter(article => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return article.title.toLowerCase().includes(q) || article.slug.includes(q)
-  })
   const totalImages = Object.keys(images).length
   const totalApplied = Object.keys(applied).length
   const totalPending = Object.values(jobs).filter(j => j.status === 'pending').length

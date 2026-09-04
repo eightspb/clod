@@ -11,7 +11,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? 'bun run build && bun run preview' : 'bun run dev',
+    command: process.env.CI ? `bun run build && bun run preview -- --port ${port}` : 'bun run dev',
     env: {
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
       PORT: port,

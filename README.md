@@ -49,10 +49,13 @@
 ## Запуск проекта
 
 ```bash
-bun run dev      # dev-сервер на localhost:4321
-bun run build    # production-сборка в dist/
-bun run preview  # превью собранного билда
+bun run dev            # dev-сервер на localhost:4321
+bun run build          # production-сборка в dist/ + индекс Pagefind в dist/client/pagefind
+bun run build:remote   # то же с --remote для Docker-образа (Dockerfile вызывает именно этот скрипт)
+bun run preview        # превью собранного билда
 ```
+
+После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
 
 `bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux). Dev-launcher явно загружает корневой `.env` до старта Astro, поэтому после изменения server-only переменных окружения dev-сервер нужно полностью перезапустить.
 
@@ -78,6 +81,8 @@ bun run preview  # превью собранного билда
 - **E2E-тесты (Playwright)**: главная, навигация, blog detail, базовая security-проверка админки и полностью замокированный first-party booking flow, включая девять doctor contexts, mobile, keyboard и recovery states
 
 ### GitHub Actions CI
+
+Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version`. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения (только Astro 4 / Vite 5 и dev-инструменты) перечислены в `docs/dependency-exposure.ignore` с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
 
 При push/PR в `main` или `develop` выполняются:
 
@@ -136,13 +141,15 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ### Безопасность
 
-- **Security headers** - добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
+- **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`)
+- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается собирать образ при заполнении диска выше 80 %
 - **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
+- **Лимиты тела запроса** - JSON читается через `readBoundedJson`: 4 КиБ для login и admin JSON, 32 КиБ для analytics; публичные формы ограничивают имена 120 и комментарий 2000 символами; контейнер `app` ограничен `mem_limit: 700m` и `pids_limit: 256`
 - **Разделение секретов** - `TOKEN_SECRET` обязателен для HMAC-подписи админ-сессий и больше не падает обратно на `ADMIN_PASSWORD`; в production для cookies выставляется `Secure`
 - **Analytics ingestion** - `event` и `heartbeat` используют одинаковую модель origin-check, rate limit и machine-readable ошибок
-- **Публичная форма “Второе мнение”** - endpoint работает fail-fast по SMTP-конфигу, валидирует origin/files и не использует placeholder credentials
+- **Публичные формы “Второе мнение” и “Налоговая справка”** - endpoint работает fail-fast по SMTP-конфигу и отвечает `503` с телефоном клиники, валидирует origin/files и не использует placeholder credentials; получатели налоговой формы задаются только через `TAX_FORM_TO_EMAIL` в домене клиники
 
 ### Переменные окружения (`.env`)
 
@@ -165,12 +172,13 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `SMTP_SECURE` | Флаг secure-подключения к SMTP (`true`/`false`) |
 | `FROM_EMAIL` | Необязательный адрес отправителя для писем формы “Второе мнение” |
 | `TO_EMAIL` | Обязательный адрес клиники для получения заявок |
+| `TAX_FORM_TO_EMAIL` | Получатели заявок на налоговую справку через запятую; допускаются только адреса `@odintsovclinic.ru`, иначе форма отвечает `503` |
 
 ### Инфраструктура безопасной онлайн-записи
 
 Серверный слой онлайн-записи использует отдельные `MEDFLEX_CLINIC_TOKEN` и `BOOKING_INTENT_SECRET`. Они задаются только в untracked `.env` среды исполнения и не передаются в клиентский JavaScript. `BOOKING_INTENT_SECRET` не является токеном Medflex или `TOKEN_SECRET`: он должен оставаться отдельным и неизменным между перезапусками и деплоями, иначе существующие попытки нельзя будет безопасно сопоставить. Таблица `BookingIntent` хранит только HMAC-идентичность запроса, доверенный слот и минимальное состояние согласования; ФИО, телефон, дата рождения, комментарий, IP, User-Agent и сырые ответы Medflex в ней не сохраняются.
 
-Контейнер при каждом запуске выполняет `scripts/init-db.mjs`. Миграция аддитивна и идемпотентна: существующие данные SQLite сохраняются, таблица и индексы `BookingIntent` добавляются при отсутствии, а несовместимая схема останавливает запуск. Публичный first-party интерфейс уже подключён: один `BookingFlow` в `Layout.astro` обслуживает CTA в шапке, футере, sticky-панели, общих секциях и карточках врачей. Внешний iframe/widget runtime `booking.medflex.ru`, его preconnect и idle-загрузчик не используются.
+Контейнер при каждом запуске сначала выполняет `scripts/check-required-env.mjs`: без `ADMIN_PASSWORD`, `TOKEN_SECRET`, `ASTRO_DB_REMOTE_URL`, `BOOKING_INTENT_SECRET`, `CONTACT_FINGERPRINT_KEY` или `PATIENT_ENCRYPTION_KEY` контейнер не стартует, а отсутствие SMTP, `TAX_FORM_TO_EMAIL`, токена Medflex или ключей MANGO печатает предупреждение с названием отключённой функции. Затем контейнер выполняет `scripts/init-db.mjs`. Миграция аддитивна и идемпотентна: существующие данные SQLite сохраняются, таблица и индексы `BookingIntent` добавляются при отсутствии, а несовместимая схема останавливает запуск. Публичный first-party интерфейс уже подключён: один `BookingFlow` в `Layout.astro` обслуживает CTA в шапке, футере, sticky-панели, общих секциях и карточках врачей. Внешний iframe/widget runtime `booking.medflex.ru`, его preconnect и idle-загрузчик не используются.
 
 Общие CTA без контекста сначала показывают выбор врача. CTA на карточке или странице врача передаёт только публичный slug и сразу загружает расписание этого врача; внутренние Medflex ID, токен и секреты не входят в props или HTML. Allowlist охватывает ровно девять профилей: `odintsov`, `prikhodko`, `macuchov`, `skurihin`, `egorova`, `vlasenko`, `zaharova`, `nevzorova` и `kalinina`.
 
@@ -195,11 +203,11 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 `CONTACT_FINGERPRINT_KEY` и `PATIENT_ENCRYPTION_KEY` не должны совпадать с `TOKEN_SECRET`, `BOOKING_INTENT_SECRET` или токеном Medflex. Первый ключ обеспечивает стабильный HMAC-отпечаток телефона и поиск совпадений; его нельзя менять без заранее подготовленной миграции всех отпечатков. Второй ключ должен быть результатом `openssl rand -base64 32`; его потеря делает сохранённые профили невосстановимыми. Плановая ротация AES-ключа требует сначала расшифровать и повторно зашифровать данные контролируемой offline-миграцией. Оба ключа остаются только в server-side `.env` и системе резервного хранения секретов.
 
-Обычные списки и детали показывают имя и маску телефона. Полные ПДн выдаёт только отдельный административный reveal-запрос: действие журналируется в `PatientAccess`, ограничивается отдельным rate limit и автоматически скрывается в UI через 30 секунд. Уничтожение ПДн необратимо очищает основной профиль, контакты, паспорт, адрес, другие фамилии и защищённые поля импортированной истории, а также снимает связь со звонками MANGO. Обезличенные UUID, временные метки, статусы визитов, проблемы качества и аудит остаются. Этот журнал предназначен для операционного учёта обращений и записей; он не является электронной медицинской картой и не должен хранить диагнозы, результаты исследований или врачебные назначения.
+Обычные списки и детали показывают имя и маску телефона. Полные ПДн выдаёт только отдельный административный reveal-запрос: действие журналируется в `PatientAccess`, ограничивается отдельным rate limit и автоматически скрывается в UI через 30 секунд. Уничтожение ПДн необратимо очищает основной профиль, контакты, паспорт, адрес, другие фамилии и защищённые поля импортированной истории. Связанные звонки MANGO и звонки с тем же отпечатком телефона теряют зашифрованный номер, маску и отпечаток, каждый такой звонок получает запись `destroy` в `MangoCallAccess`; звонок с телефоном, общим с другим активным пациентом, перепривязывается к нему вместо уничтожения. Обезличенные UUID, временные метки, статусы визитов, проблемы качества и аудит остаются. Этот журнал предназначен для операционного учёта обращений и записей; он не является электронной медицинской картой и не должен хранить диагнозы, результаты исследований или врачебные назначения.
 
 Администратор может внести уже существующую запись как `admin_existing`: она сохраняется только локально. Её отмена также локальна и не отменяет приём в Medflex/МИС. Для Medflex-записей отмена выполняется сначала во внешней системе; локальный статус меняется только после однозначного успеха или ответа «уже отсутствует». При timeout/5xx локальный статус не меняется. `needs_review` разрешается вручную только после проверки фактической записи в Medflex и ввода её Claim ID.
 
-SQLite-файл `/data/db.sqlite` теперь содержит корневой `Patient`, операционные `Appointment`, защищённую импортированную историю и журнал доступа. Backup volume `db-data` должен выполняться вместе с защищённой резервной копией ключей, но храниться отдельно от неё. Перед восстановлением остановите запись в приложение, восстановите согласованные версии базы и секретов, запустите контейнер для строгой проверки схемы и только затем откройте трафик. Копия базы без исходного `PATIENT_ENCRYPTION_KEY` сохраняет обезличенную историю, но не позволяет восстановить профили.
+SQLite-файл `/data/db.sqlite` теперь содержит корневой `Patient`, операционные `Appointment`, защищённую импортированную историю и журнал доступа. Ежедневный бэкап выполняет `scripts/backup.sh` через systemd-таймер `clod-backup.timer` (03:30 МСК): согласованный снимок `sqlite3 .backup`, `PRAGMA integrity_check`, архивы volume `uploads` и `certbot-certs`, ретеншен 7 daily + 4 weekly, шифрование `age` и off-host копия `rclone` при заданных `BACKUP_AGE_RECIPIENT` и `BACKUP_REMOTE` в `/etc/clod-backup.env`. Процедура восстановления, проверка `scripts/restore-check.sh` и журнал учений — в [`docs/runbooks/backup-restore.md`](./docs/runbooks/backup-restore.md). Ключи шифрования хранятся отдельно от архивов. Перед восстановлением остановите запись в приложение, восстановите согласованные версии базы и секретов, запустите контейнер для строгой проверки схемы и только затем откройте трафик. Копия базы без исходного `PATIENT_ENCRYPTION_KEY` сохраняет обезличенную историю, но не позволяет восстановить профили.
 
 ### Импорт исторической базы пациентов
 
@@ -267,7 +275,7 @@ bun run clinic:import -- \
 
 Dry-run проверяет структуру и SHA-256 всех файлов, нормализует значения, строит связи, сверяет инварианты и выводит только безопасный JSON с агрегатами, `manifestHash` и `planHash`. Персональные данные и исходные значения не должны попадать в stdout, Git или обычные отчёты. На входе bundle повторно фиксируются только семь обязательных источников и manifest, без дублирующих convenience-ссылок loader. Для этой копии действует отдельный bundle aggregate-work лимит 512 MiB: он выбран с ограниченным запасом относительно измеренных 421 993 848 единиц работы для 105 495 117 байт текущей выгрузки. Staging отдельно ограничивает структурную обработку 1,5 GiB, канонический открытый план 384 MiB и зашифрованный артефакт 512 MiB; текущий полный прогон занял соответственно 1 162 788 712 единиц работы, 315 351 394 байта открытого плана и 420 468 796 байт артефакта. Исходные лимиты файлов, таблиц и отдельных строк не изменены.
 
-Apply не перечитывает источники и не принимает их флаги. Он использует только уже проверенный staging-файл и требует явный gate: `--apply`, точный `--manifest`, отдельный `--backup` и совпадающие `manifestHash`/`planHash`. Весь staging проверяется и расшифровывается до транзакции; пакет записывается одной транзакцией, при ошибке откатывается, а повтор того же manifest не создаёт дубликаты.
+Apply не перечитывает источники и не принимает их флаги. Он использует только уже проверенный staging-файл и требует явный gate: `--apply`, точный `--manifest`, отдельный `--backup` и совпадающие `manifestHash`/`planHash`. Весь staging проверяется и расшифровывается до транзакции; пакет записывается одной транзакцией, при ошибке откатывается, а повтор того же manifest не создаёт дубликаты. После транзакции CLI выполняет `PRAGMA integrity_check` целевой базы и завершается кодом `TARGET_INTEGRITY_FAILED`, если база повреждена.
 
 ```bash
 bun run clinic:import -- \
@@ -327,6 +335,7 @@ Server-side интеграция принимает подписанные вх�
 | Записи | `/admin/appointments` | Сворачиваемые фильтры по статусу, источнику, врачу Medflex и периоду, отмена и ручная проверка записи |
 | Звонки | `/admin/calls` | Live-журнал MANGO, сворачиваемые фильтры по статусу, периоду, линии, добавочному, повтору и связи с пациентом, метрики, reveal и уничтожение номера |
 | Доктора | `/admin/doctors` | Автозаполнение пустого каталога из Medflex, ручная синхронизация и редактирование данных докторов без перезаписи ручных полей |
+| Постеры блога | `/admin/blog-images` | Генерация AI-постеров для статей; slug проверяется по allowlist промптов, исходящие запросы ограничены по времени и размеру |
 
 ---
 
@@ -470,7 +479,6 @@ clod/
 │   │   ├── privacy-policy.astro   # /privacy-policy
 │   │   ├── licenses.astro         # /licenses - лицензии и сертификаты клиники
 │   │   ├── 404.astro              # Кастомная страница 404
-│   │   ├── blog-images.astro      # /blog-images - внутренний генератор постеров для блога (SSR)
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin - дашборд
 │   │   │   ├── login.astro        # /admin/login
@@ -508,8 +516,8 @@ clod/
 │   └── seed.ts                    # Скрипт наполнения (демо-данные)
 ├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
-├── nginx.conf                     # Nginx: по умолчанию HTTP (IP / до SSL)
-├── nginx.https.conf               # Nginx: HTTPS после Let's Encrypt
+├── nginx.https.conf               # Nginx: production-шаблон HTTPS (рендерится в nginx.conf)
+├── nginx.http.conf                # Nginx: шаблон только HTTP (IP / до SSL)
 ├── nginx.bootstrap.conf           # Nginx: HTTP для первичного ACME (Certbot)
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
@@ -600,6 +608,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 | Файл | Экспорты | Используется в |
 |---|---|---|
+| `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs` |
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
@@ -614,13 +623,16 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `appointment-records.js` | Локальная подготовка, проекция, фильтры и переходы статусов записей | Публичная запись и admin API |
 | `patient-records.js` | Зашифрованные профили, маскированные выборки, reveal/destruction audit | Публичная запись и admin API |
 | `contact-identity.js` | Нормализация телефона, HMAC-отпечатки и AES-GCM envelope | Пациенты и записи |
+| `mango-call-purge.js` | Очистка номера звонящего и аудит при уничтожении ПДн пациента; перепривязка общего телефона | `patient-records.js`, `patient-history-records.js` |
 | `clinic-time.js` | UTC-границы календарного дня `Europe/Moscow` | Дашборд и фильтры записей |
 | `appointment-schedule.js` | Browser-safe нормализация расписания и повторная серверная проверка слота | API онлайн-записи |
 | `medflex-client.js` | Фиксированный server-only клиент официального API | API онлайн-записи и discovery |
 | `medflex-doctors.js` | Явный allowlist девяти врачей и локальных типов приёма | API онлайн-записи |
 | `doctor-records.js` | Атомарное сохранение локальных карточек и связей Medflex без удаления ручных данных | Admin-каталог врачей |
 | `admin-doctor-sync.js` | Оркестрация безопасного discovery и синхронизации врачей | `api/admin/doctors/sync` и CLI |
-| `admin-api.js` | `guardAdminRead`, `guardAdminWrite` | Все `api/admin/*` endpoints |
+| `admin-api.js` | `guardAdminRead`, `guardAdminWrite`, `readAdminJson` | Все `api/admin/*` endpoints |
+| `bounded-json.js` | `readBoundedJson(request, limitBytes)` — JSON-ридер со строгим media type, declared length и потоковым лимитом | login (4 КиБ), analytics (32 КиБ), admin JSON (4 КиБ) |
+| `client-ip.js` | `getClientIp` — единственный источник адреса клиента для rate limit (X-Real-IP, затем ближайший хоп X-Forwarded-For) | Все rate-limited endpoints |
 | `file-constraints.js` | `MAX_FILES`, `MAX_FILE_SIZE_BYTES`, `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES` | `SecondOpinionForm`, `api/second-opinion` |
 | `useAdminFetch.js` | `useAdminFetch` | `Dashboard`, `DoctorList`, `SessionsViewer`, `LogsViewer` |
 | `useHeroFit.js` | `useHeroFit` | Все 17 страниц с hero-блоком (auto-fit font size) |
@@ -902,9 +914,11 @@ integrations: [
 | `Dockerfile` | Multi-stage сборка: builder (bun install + build) → runner (slim, node entry.mjs) |
 | `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
 | `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
-| `nginx.conf` | Рабочий конфиг по умолчанию: только HTTP (без путей к сертификатам — подходит для IP) |
-| `nginx.https.conf` | Шаблон с HTTPS; после Certbot копируют в `nginx.conf` (см. DEPLOY-BEGET.md) |
+| `nginx.conf` | Рабочий конфиг, генерируется `scripts/render-nginx.sh` и не хранится в git |
+| `nginx.https.conf` | Production-шаблон HTTPS: security headers, catch-all для чужого Host, лимиты, allowlist MANGO |
+| `nginx.http.conf` | Шаблон только HTTP (доступ по IP или до выпуска сертификата) |
 | `nginx.bootstrap.conf` | Временная конфигурация HTTP для первичного выпуска сертификата Let's Encrypt |
+| `scripts/render-nginx.sh` | Подстановка `SITE_DOMAIN`/`NOINDEX` из `.env` в выбранный шаблон |
 | `.env.example` | Шаблон переменных окружения для production |
 
 ### Переменные окружения (`.env` на сервере)
@@ -922,6 +936,7 @@ integrations: [
 | `MANGO_CALL_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ номеров; генерировать `openssl rand -base64 32` |
 | `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую |
 | `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу: `file:/data/db.sqlite` |
+| `SITE_DOMAIN` | Домен для генерации `nginx.conf` и путей сертификата, сейчас `new.odintsovclinic.ru` |
 
 ### Первый деплой (Bootstrap HTTPS)
 
@@ -937,33 +952,37 @@ git clone <repo> /srv/clod && cd /srv/clod
 # 3. Создать .env из шаблона и заполнить
 cp .env.example .env
 
-# 4. Запустить Nginx в bootstrap-режиме (только HTTP)
-cp nginx.bootstrap.conf nginx.conf
+# 4. Указать домен в .env и запустить Nginx в bootstrap-режиме (только HTTP)
+#    SITE_DOMAIN=new.odintsovclinic.ru в .env
+sh scripts/render-nginx.sh bootstrap
 docker compose up -d nginx
 
 # 5. Получить SSL-сертификат
 docker compose run --rm certbot certonly \
   --webroot -w /var/www/certbot \
-  -d odintsovclinic.ru -d www.odintsovclinic.ru \
+  -d new.odintsovclinic.ru \
   --email admin@odintsovclinic.ru --agree-tos --no-eff-email
 
-# 6. Переключить на HTTPS: скопировать шаблон в nginx.conf, править домен, поднять стек
-cp nginx.https.conf nginx.conf
-# отредактировать nginx.conf: server_name и пути /etc/letsencrypt/live/ВАШ_ДОМЕН/
+# 6. Сгенерировать HTTPS-конфиг из шаблона и поднять стек
+sh scripts/render-nginx.sh https
+docker compose run --rm --no-deps nginx nginx -t
 docker compose up -d --build
 ```
 
-Перед reload проверьте именно фактически смонтированный рабочий конфиг. После `cp nginx.https.conf nginx.conf` на production эта же команда проверяет HTTPS-шаблон вместе с реальными сертификатами:
+Рабочий `nginx.conf` не хранится в git: `scripts/render-nginx.sh [https|http|bootstrap]` генерирует его из соответствующего шаблона, подставляя `SITE_DOMAIN` и `NOINDEX` из `.env`. Редактируйте шаблоны `nginx.https.conf`, `nginx.http.conf`, `nginx.bootstrap.conf`; `bun run deploy` перерисовывает и проверяет `nginx.conf` на сервере при каждом деплое, поэтому `git pull` больше не конфликтует с локальными правками.
+
+Шаблон HTTPS добавляет security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) ко всем ответам, включая prerendered-статику, и скрывает их SSR-дубликаты через `proxy_hide_header`. Запросы с чужим `Host` получают `444`/отказ TLS-рукопожатия, приложение всегда видит `Host` равным `SITE_DOMAIN` и пустой `X-Forwarded-Host`, а `X-Forwarded-For` содержит только адрес клиента. Отдельные лимиты: `limit_req` 6 запросов в минуту и 8 КБ тела на `/api/auth/login`, 32 КБ на `/api/analytics/`, 26 МБ на `/api/second-opinion`, 64 КБ и IP-allowlist API Realtime на всём префиксе `/api/integrations/mango/` (включая пути со слэшем на конце).
+
+Проверить фактически смонтированный конфиг вместе с реальными сертификатами:
 
 ```bash
-docker compose config --quiet
 docker compose run --rm --no-deps nginx nginx -t
 ```
 
-Если локальный `nginx` не установлен, рабочий HTTP-конфиг можно проверить тем же production-образом без запуска стека и чтения `.env`:
+Если локальный `nginx` не установлен, HTTP-шаблон можно проверить production-образом без запуска стека и чтения `.env`:
 
 ```bash
-docker run --rm --add-host app:127.0.0.1 \
+SITE_DOMAIN=example.test sh scripts/render-nginx.sh http && docker run --rm --add-host app:127.0.0.1 \
   -v "$PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
   nginx:alpine nginx -t
 ```
@@ -976,7 +995,7 @@ docker run --rm --add-host app:127.0.0.1 \
 bun run deploy
 ```
 
-Скрипт `scripts/deploy.sh` выполняет: git pull → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
+Скрипт `scripts/deploy.sh` выполняет: проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
 
 Или вручную на сервере:
 
@@ -1000,7 +1019,7 @@ Certbot-контейнер проверяет сертификат каждые 
 ### Tech debt, accessibility и оптимизация (апрель 2026)
 
 - **WCAG 2.1 AA аудит**: ThemeSwitcher focus trap, LoginForm aria-describedby, carousel ARIA pattern, prefers-reduced-motion, touch targets 44px, alt-текст, контрасты
-- **NOINDEX для staging**: `X-Robots-Tag: noindex` через nginx + middleware для `new.odintsovclinic.ru`
+- **NOINDEX для staging**: `X-Robots-Tag: noindex` через шаблон nginx (`NOINDEX=true` в `.env`) + middleware для `new.odintsovclinic.ru`
 - **Rate limiting**: единая утилита `rate-limit.js` с namespace-изоляцией, admin-api guards (60 read / 20 write req/min), lazy eviction
 - **Дедупликация кода**: `useAdminFetch` хук (4 admin-компонента), `file-constraints.js` (upload-константы), `theme-config.js` (пресеты + palette generation)
 - **Home.jsx split**: 1009→84 строк, 9 модульных компонентов в `src/components/home/`
@@ -1018,7 +1037,7 @@ Certbot-контейнер проверяет сертификат каждые 
 
 - **8 condition-лендингов**: `/fibroadenoma`, `/mastopatiya`, `/kista-molochnoy-zhelezy`, `/eroziya-sheyki-matki`, `/gipotireoz`, `/adenomioz`, `/endometrioz`, `/tireoidit-khashimoto` — каждая с Hero, симптомами, диагностикой, лечением, timeline, FAQ (JSON-LD), CTA, перелинковкой
 - **Mega-menu навигация**: `Header.jsx` переписан с поддержкой 3-уровневой вложенности, колонки по специализациям, condition-ссылки, ВАБ CTA; mobile: аккордеоны
-- **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту (49 страниц), лупа в header, mobile search
+- **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту, лупа в header, mobile search; индекс строится в `postbuild` в `dist/client/pagefind`, бандл грузится обычным динамическим импортом (без `new Function`, совместимо с CSP), а запрос, набранный до загрузки индекса, выполняется после его готовности
 - **Новые страницы**: `/dlya-inogorodnikh` (для иногородних), `/nashi-rezultaty` (count-up анимации, статистика), `/media` (агрегация TV-выступлений)
 - **ПроДокторов интеграция**: `StarRating.jsx`, рейтинги в `DoctorCard.jsx` и `DoctorPage.jsx`, данные в `doctors-data.js`
 - **Коллекция врачей**: на `/doctors` после route chrome и desktop-breadcrumbs коллекция начинается с `h1` «Ваши доктора» и фильтров только по специальностям; повторное нажатие активной специальности возвращает всех врачей без отдельной кнопки «Все доктора». Затем mobile показывает круговой многослойный coverflow прозрачных `*-mobile.webp` с общей объёмной плашкой, а desktop — сетку карточек; редакционный блок `h2` «Врачи клиники Одинцова» следует после коллекции. Карусель сохраняет прямую проекцию без светлого ореола, непрозрачный тонально высветленный ближний слой, мягкий дальний слой, фиксированные две строки ФИО, стабильные действия и feedback только при реальном переключении.
@@ -1049,7 +1068,7 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Онлайн-запись**: внешний виджет заменён единым first-party `BookingFlow`; все CTA работают через same-origin API, а страницы и карточки девяти врачей передают только публичный slug.
 - **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
 - **Производительность (Lighthouse)**: загрузка `tracker.js` с `defer` не блокирует отрисовку; уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в middleware — `Cache-Control: public, max-age=31536000, immutable` для `/_astro/`, `/fonts/`, `/images/`; в nginx включено gzip для текстовых ответов.
-- **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; блокирующий CSS страницы «О клинике» сделан неблокирующим (post-build скрипт `scripts/async-about-css.mjs`: `media="print"` + `onload="this.media='all'"`).
+- **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; бывший post-build скрипт `async-about-css.mjs` удалён — после переноса CSS в общий чанк он ни разу не срабатывал.
 
 ### Редизайн и тематизация (март–апрель 2026)
 
@@ -1058,7 +1077,7 @@ Certbot-контейнер проверяет сертификат каждые 
 - **ThemeSwitcher**: плавающая кнопка с панелью настроек — 20 цветовых пресетов + hue-strip, 3 шрифтовых селектора (заголовки, меню, текст); автоматический расчёт палитры через `buildFullPalette()`; localStorage-персистенция; FOUC-предотвращение через inline-скрипт в Layout.astro
 - **Шрифт навигации** (`--font-nav`): отдельная CSS-переменная для хедера и футера, настраивается через ThemeSwitcher (11 вариантов: «Как текст» + 10 серифных шрифтов)
 - **3 новых condition-лендинга**: `/adenomioz` (Аденомиоз), `/endometrioz` (Эндометриоз), `/tireoidit-khashimoto` (Тиреоидит Хашимото) — MedicalCondition JSON-LD, полный контент
-- **Blog Image Generator**: внутренний инструмент `/blog-images` (SSR) для генерации AI-постеров к статьям блога
+- **Blog Image Generator**: внутренний инструмент `/admin/blog-images` и API `/api/admin/generate-image` (только после входа в админку) для генерации AI-постеров к статьям блога
 - **Блог расширен**: с 16 до 40 статей
 
 ---

@@ -67,22 +67,30 @@ echo "════════════════════════�
 echo "  Deploy → ${remote_host}:${remote_dir}"
 echo "═══════════════════════════════════════════════════════════"
 
-step_begin 1 5 "git pull (обновление кода с GitHub)"
+step_begin 1 7 "проверка свободного места на диске сервера"
+run_remote "used=\$(df --output=pcent / | tail -1 | tr -dc '0-9'); echo \"    диск / занят на \${used}%\"; [ \"\${used}\" -le 80 ] || { echo 'Диск заполнен более чем на 80%: сборка образа рядом с базой небезопасна, освободите место' >&2; exit 1; }"
+step_end_ok
+
+step_begin 2 7 "git pull (обновление кода с GitHub)"
 run_remote "cd ${remote_dir} && git pull"
 step_end_ok
 
-step_begin 2 5 "docker system prune (очистка неиспользуемых образов и кэша)"
+step_begin 3 7 "рендер nginx.conf из шаблона и проверка конфига"
+run_remote "cd ${remote_dir} && sh scripts/render-nginx.sh https && docker compose run --rm --no-deps -T nginx nginx -t"
+step_end_ok
+
+step_begin 4 7 "docker system prune (очистка неиспользуемых образов и кэша)"
 run_remote "docker system prune -af --filter 'until=24h' 2>/dev/null || true"
 step_end_ok
 
-step_begin 3 5 "docker compose up -d --build (сборка и перезапуск — может занять несколько минут)"
+step_begin 5 7 "docker compose up -d --build (сборка и перезапуск — может занять несколько минут)"
 run_remote "cd ${remote_dir} && docker compose up -d --build"
 step_end_ok
 
-step_begin 4 5 "nginx -s reload (сброс кэша прокси; ждём готовности контейнера)"
+step_begin 6 7 "nginx -s reload (сброс кэша прокси; ждём готовности контейнера)"
 reload_nginx_with_retry
 step_end_ok
 
-step_begin 5 5 "готово"
+step_begin 7 7 "готово"
 echo "    Сайт обновлён. Если в браузере видна старая версия — жёсткое обновление (Ctrl+F5 или Cmd+Shift+R)."
 echo ""

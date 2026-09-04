@@ -10,6 +10,8 @@ import { MedflexError } from '../lib/medflex-client.js'
 
 vi.mock('astro:db', () => ({ db: Object.freeze({ $client: undefined }) }))
 
+const CLAIM_ID = '872bb8e7-fdc5-4886-8c54-2be1fe31d7fb'
+
 function upstreamFixture() {
   const state = {
     factoryCalls: 0,
@@ -69,7 +71,6 @@ const SECRET = '807d53fb6db10feee627348937439500e68d766c63e9a18a1d27b74dff81ef30
 const INTENT_ID = '3335ac38-8090-42f1-8e05-f6c29bc73a9c'
 const OTHER_INTENT_ID = '3027f8bc-9637-4d3d-8b8c-0b0b58e93b3a'
 const FENCE_ID = '4664829a-aa5d-40d3-bb26-69b3968f7b4e'
-const CLAIM_ID = '872bb8e7-fdc5-4886-8c54-2be1fe31d7fb'
 const SLOT_DATE = '2091-09-04'
 const START_LOCAL = `${SLOT_DATE} 10:10`
 const END_LOCAL = `${SLOT_DATE} 10:50`

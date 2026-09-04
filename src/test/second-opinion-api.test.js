@@ -109,6 +109,18 @@ describe('POST /api/second-opinion', () => {
     }
   })
 
+  it('rejects a comment longer than two thousand characters', async () => {
+    const { POST } = await loadHandler()
+    const response = await POST({ request: await makeRequest({ fields: { comment: 'ё'.repeat(2001) } }) })
+    expect({ status: response.status, sent: sendMailMock.mock.calls.length }).toEqual({ status: 400, sent: 0 })
+  })
+
+  it('rejects a name longer than one hundred twenty characters', async () => {
+    const { POST } = await loadHandler()
+    const response = await POST({ request: await makeRequest({ fields: { firstName: 'Ё'.repeat(121) } }) })
+    expect(response.status).toBe(400)
+  })
+
   it('fails fast when smtp config is missing', async () => {
     setSmtpEnv()
     const { POST } = await loadHandler()
@@ -116,12 +128,12 @@ describe('POST /api/second-opinion', () => {
     const response = await POST({ request: await makeRequest() })
     const body = await parseJson(response)
 
-    expect(response.status).toBe(500)
+    expect(response.status).toBe(503)
     expect(body).toEqual({
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Сервис временно недоступен. Попробуйте позже',
+        message: 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()

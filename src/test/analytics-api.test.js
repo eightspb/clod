@@ -88,16 +88,17 @@ function makeJsonRequest({
   origin = 'https://odintsovclinic.ru',
   ip = '127.0.0.1',
   body = {},
+  raw,
 } = {}) {
-  return {
-    url: 'https://odintsovclinic.ru/api/analytics/test',
-    headers: new Headers({
+  return new Request('https://odintsovclinic.ru/api/analytics/test', {
+    method: 'POST',
+    headers: {
       'content-type': 'application/json',
       origin,
       'x-forwarded-for': ip,
-    }),
-    json: async () => body,
-  }
+    },
+    body: raw ?? JSON.stringify(body),
+  })
 }
 
 async function loadEventHandler() {
@@ -147,6 +148,12 @@ describe('analytics API hardening', () => {
         message: 'Недопустимый источник запроса',
       },
     })
+  })
+
+  it('rejects an analytics event body above 32 KiB before side effects', async () => {
+    const { POST } = await loadEventHandler()
+    const response = await POST({ request: makeJsonRequest({ raw: JSON.stringify({ type: 'page_enter', data: { page: 'ё'.repeat(20_000) } }) }) })
+    expect({ status: response.status, inserts: insertCalls.length }).toEqual({ status: 413, inserts: 0 })
   })
 
   it('rejects malformed analytics event payloads before side effects', async () => {

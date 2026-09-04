@@ -213,6 +213,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
               type="text"
               id="lastName"
               name="lastName"
+              maxLength={120}
               required
               disabled={isSubmitting}
               className="w-full px-3.5 py-2 rounded-xl border border-clay-border bg-clay-bg focus:bg-white focus:outline-none focus:ring-2 focus:ring-clay-mint/30 focus:border-clay-mint transition-all text-sm"
@@ -227,6 +228,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
               type="text"
               id="firstName"
               name="firstName"
+              maxLength={120}
               required
               disabled={isSubmitting}
               className="w-full px-3.5 py-2 rounded-xl border border-clay-border bg-clay-bg focus:bg-white focus:outline-none focus:ring-2 focus:ring-clay-mint/30 focus:border-clay-mint transition-all text-sm"
@@ -244,6 +246,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
               type="text"
               id="middleName"
               name="middleName"
+              maxLength={120}
               disabled={isSubmitting}
               className="w-full px-3.5 py-2 rounded-xl border border-clay-border bg-clay-bg focus:bg-white focus:outline-none focus:ring-2 focus:ring-clay-mint/30 focus:border-clay-mint transition-all text-sm"
               placeholder="Ивановна"
@@ -301,6 +304,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
           <textarea
             id="comment"
             name="comment"
+            maxLength={2000}
             rows="2"
             disabled={isSubmitting}
             className="w-full px-3.5 py-2 rounded-xl border border-clay-border bg-clay-bg focus:bg-white focus:outline-none focus:ring-2 focus:ring-clay-mint/30 focus:border-clay-mint transition-all resize-none text-sm"

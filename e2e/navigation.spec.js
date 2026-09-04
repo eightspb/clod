@@ -32,4 +32,12 @@ test.describe('Навигация', () => {
     await page.goto('/blog')
     await expect(page.getByRole('heading', { level: 1, name: /блог/i })).toBeVisible()
   })
+
+  test('поиск по сайту находит статью о фиброаденоме в собранной версии', async ({ page }) => {
+    test.skip(!process.env.CI, 'Индекс Pagefind существует только после bun run build')
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Поиск по сайту' }).first().click()
+    await page.getByPlaceholder('Поиск по сайту...').fill('фиброаденома')
+    await expect(page.getByRole('dialog', { name: 'Поиск по сайту' }).getByRole('link').first()).toBeVisible()
+  })
 })
