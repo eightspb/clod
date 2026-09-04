@@ -3,6 +3,7 @@ export const prerender = false
 import nodemailer from 'nodemailer'
 import { validateOrigin } from '../../lib/auth.js'
 import { checkRateLimit } from '../../lib/rate-limit.js'
+import { getClientIp } from '../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const CLINIC_EMAIL_DOMAIN = '@odintsovclinic.ru'
@@ -39,13 +40,6 @@ function getEnvValue(name) {
   return import.meta.env[name] || process.env[name] || ''
 }
 
-function getClientIp(request) {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 /**
  * Tax deduction requests carry INN and medical-service facts, so every recipient

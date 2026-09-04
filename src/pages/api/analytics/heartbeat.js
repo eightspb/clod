@@ -3,6 +3,7 @@ export const prerender = false
 import { db as analyticsDb, AnalyticsSession, eq } from 'astro:db'
 import { validateOrigin } from '../../../lib/auth.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
+import { getClientIp } from '../../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const RATE_LIMIT_OPTS = { namespace: 'analytics-heartbeat', maxRequests: 120, windowMs: 60_000 }
@@ -35,13 +36,6 @@ function errorResponse(status, code, message, details, headers) {
   return jsonResponse(payload, status, headers)
 }
 
-function getClientIp(request) {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 function normalizeString(value, maxLength) {
   if (typeof value !== 'string') return ''

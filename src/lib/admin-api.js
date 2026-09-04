@@ -5,6 +5,7 @@
 import { createHmac } from 'node:crypto'
 import { getTokenFromCookie, getTokenSecret, isAuthenticated, validateOrigin } from './auth.js'
 import { checkRateLimit } from './rate-limit.js'
+import { getClientIp } from './client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const ADMIN_READ_LIMIT = { namespace: 'admin-read', maxRequests: 60, windowMs: 60_000 }
@@ -14,13 +15,6 @@ const ACTOR_DOMAIN = 'clod.admin-actor\0v1\0'
 const JSON_MEDIA_TYPE = /^application\/(?:[a-z0-9!#$&^_.+-]+\+)?json(?:\s*;|$)/i
 const ADMIN_JSON_LIMIT = 4 * 1024
 
-function getClientIp(request) {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 /**
  * Guard for admin GET endpoints: rate limit (by IP) + auth.

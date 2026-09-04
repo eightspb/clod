@@ -10,6 +10,7 @@ import {
   ALLOWED_EXTENSIONS,
   ALLOWED_MIME_TYPES,
 } from '../../lib/file-constraints.js'
+import { getClientIp } from '../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
@@ -44,13 +45,6 @@ function getEnvValue(name) {
   return import.meta.env[name] || process.env[name] || ''
 }
 
-function getClientIp(request) {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 const RATE_LIMIT_OPTS = { namespace: 'second-opinion', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 

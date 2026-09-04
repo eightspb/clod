@@ -29,10 +29,21 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='get'] > Literal[value=/^x-(forwarded-for|real-ip)$/i]",
+          message: 'Read the client address only through getClientIp from src/lib/client-ip.js',
+        },
+      ],
     },
     settings: {
       react: { version: 'detect' },
     },
+  },
+  {
+    files: ['src/lib/client-ip.js'],
+    rules: { 'no-restricted-syntax': 'off' },
   },
   {
     ignores: [

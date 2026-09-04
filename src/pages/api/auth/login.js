@@ -9,16 +9,10 @@ import {
   validateOrigin,
 } from '../../../lib/auth.js'
 import { checkRateLimit, resetRateLimit } from '../../../lib/rate-limit.js'
+import { getClientIp } from '../../../lib/client-ip.js'
 
 const RATE_LIMIT_OPTS = { namespace: 'login', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
-function getClientIp(request) {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 export async function POST({ request }) {
   if (!validateOrigin(request)) {
