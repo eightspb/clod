@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { decryptPatientProfile, encryptContactPhone, encryptPatientProfile, fingerprintContactPhone, maskContactPhone, normalizePatientProfile } from './contact-identity.js'
+import { purgeMangoCalls } from './mango-call-purge.js'
 
 const FACTORY_KEYS = Object.freeze(['client', 'fingerprintKey', 'encryptionKey', 'clock', 'uuid'])
 const UPSERT_KEYS = Object.freeze(['profile', 'executor'])
@@ -388,7 +389,7 @@ async function destroy(configuration, raw) {
     const updated = await transaction.execute({ sql: 'UPDATE Patient SET profileCiphertext = ?, phoneMask = ?, phoneFingerprint = ?, piiDestroyedAt = ?, updatedAt = max(updatedAt, ?) WHERE id = ? AND piiDestroyedAt IS NULL RETURNING id', args: [null, null, null, destroyedAt, destroyedAt, id] })
     if (readRows(updated).length !== 1) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
     await transaction.execute({ sql: 'UPDATE PatientContact SET ciphertext = ?, fingerprint = ?, mask = ?, isPrimary = ?, piiDestroyedAt = ?, lastSeenAt = max(lastSeenAt, ?) WHERE patientId = ? AND piiDestroyedAt IS NULL', args: [null, null, null, 0, destroyedAt, destroyedAt, id] })
-    for (const fingerprint of new Set(fingerprints)) await synchronizeMango(transaction, fingerprint, destroyedAt)
+    await purgeMangoCalls(transaction, { patientId: id, fingerprints, destroyedAt, actor, nextUuid: () => nextUuid(configuration, 'MANGO call access ID') })
     const accessId = nextUuid(configuration, 'Patient access ID')
     await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [accessId, id, 'destroy', actor, destroyedAt] })
     return Object.freeze({ id, destroyedAt, alreadyDestroyed: false })
