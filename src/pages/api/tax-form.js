@@ -284,7 +284,7 @@ export async function POST({ request }) {
 
     return jsonResponse({ success: true }, 200)
   } catch (error) {
-    console.error('[tax-form] submit failed', error)
+    console.error('[tax-form] submit failed', error?.code ?? error?.name ?? 'UNKNOWN')
     return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже')
   }
 }

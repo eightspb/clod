@@ -72,7 +72,7 @@ export async function POST({ request }) {
       },
     })
   } catch (err) {
-    console.error('[auth/login]', err)
+    console.error('[auth/login]', err?.code ?? err?.name ?? 'UNKNOWN')
     return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -104,7 +104,7 @@ export async function POST({ request }) {
           try {
             await db.delete(Media).where(eq(Media.id, ctx.mediaId))
           } catch (cleanupError) {
-            console.error('[upload/certificates] media rollback failed', cleanupError)
+            console.error('[upload/certificates] media rollback failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
           }
         }
 
@@ -112,18 +112,18 @@ export async function POST({ request }) {
           try {
             await deleteFileIfExists(ctx.filePath)
           } catch (cleanupError) {
-            console.error('[upload/certificates] file rollback failed', cleanupError)
+            console.error('[upload/certificates] file rollback failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
           }
         }
 
-        console.error('[upload/certificates] file error', fileErr)
+        console.error('[upload/certificates] file error', fileErr?.code ?? fileErr?.name ?? 'UNKNOWN')
         errors.push({ name: file.name, error: 'Ошибка при сохранении файла' })
       }
     }
 
     return jsonResponse({ ok: true, uploaded, errors }, 200)
   } catch (err) {
-    console.error('[upload/certificates]', err)
+    console.error('[upload/certificates]', err?.code ?? err?.name ?? 'UNKNOWN')
     return jsonResponse({ error: 'Ошибка загрузки файлов' }, 500)
   }
 }

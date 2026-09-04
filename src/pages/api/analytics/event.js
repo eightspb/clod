@@ -388,7 +388,7 @@ export async function POST({ request }) {
 
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
-    console.error('[analytics/event]', error)
+    console.error('[analytics/event]', error?.code ?? error?.name ?? 'UNKNOWN')
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось сохранить событие')
   }
 }

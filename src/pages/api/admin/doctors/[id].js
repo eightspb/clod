@@ -82,7 +82,7 @@ export async function PUT({ request, params }) {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
-    console.error('[admin/doctors/[id]]', err)
+    console.error('[admin/doctors/[id]]', err?.code ?? err?.name ?? 'UNKNOWN')
     return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -35,7 +35,7 @@ export async function GET({ request, params }) {
 
     return jsonResponse({ certificates }, 200)
   } catch (err) {
-    console.error('[doctors/[id]/certificates GET]', err)
+    console.error('[doctors/[id]/certificates GET]', err?.code ?? err?.name ?? 'UNKNOWN')
     return jsonResponse({ error: 'Internal error' }, 500)
   }
 }
@@ -75,21 +75,21 @@ export async function DELETE({ request, params }) {
       try {
         await db.delete(Media).where(eq(Media.id, media.id))
       } catch (cleanupError) {
-        console.error('[doctors/[id]/certificates DELETE] media delete failed', cleanupError)
+        console.error('[doctors/[id]/certificates DELETE] media delete failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
       }
 
       if (media.url) {
         try {
           await deleteFileIfExists(mediaUrlToFilePath(media.url))
         } catch (cleanupError) {
-          console.error('[doctors/[id]/certificates DELETE] file delete failed', cleanupError)
+          console.error('[doctors/[id]/certificates DELETE] file delete failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
         }
       }
     }
 
     return jsonResponse({ ok: true }, 200)
   } catch (err) {
-    console.error('[doctors/[id]/certificates DELETE]', err)
+    console.error('[doctors/[id]/certificates DELETE]', err?.code ?? err?.name ?? 'UNKNOWN')
     return jsonResponse({ error: 'Internal error' }, 500)
   }
 }

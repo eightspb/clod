@@ -118,7 +118,7 @@ export async function POST({ request }) {
 
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
-    console.error('[analytics/heartbeat]', error)
+    console.error('[analytics/heartbeat]', error?.code ?? error?.name ?? 'UNKNOWN')
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось обновить heartbeat')
   }
 }

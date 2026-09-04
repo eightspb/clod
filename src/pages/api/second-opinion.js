@@ -235,7 +235,7 @@ async function sendAutoReply(transporter, config, fields) {
     })
     return true
   } catch (error) {
-    console.error('[second-opinion] auto-reply failed', error)
+    console.error('[second-opinion] auto-reply failed', error?.code ?? error?.name ?? 'UNKNOWN')
     return false
   }
 }
@@ -327,7 +327,7 @@ export async function POST({ request }) {
       200
     )
   } catch (error) {
-    console.error('[second-opinion] submit failed', error)
+    console.error('[second-opinion] submit failed', error?.code ?? error?.name ?? 'UNKNOWN')
     return errorResponse(502, 'EMAIL_SEND_FAILED', 'Не удалось отправить заявку. Попробуйте позже')
   }
 }

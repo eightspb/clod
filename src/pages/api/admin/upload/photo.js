@@ -96,7 +96,7 @@ export async function POST({ request }) {
           await deleteFileIfExists(mediaUrlToFilePath(previousMedia.url))
         }
       } catch (cleanupError) {
-        console.error('[upload/photo] previous photo cleanup failed', cleanupError)
+        console.error('[upload/photo] previous photo cleanup failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
       }
     }
 
@@ -106,7 +106,7 @@ export async function POST({ request }) {
       try {
         await db.delete(Media).where(eq(Media.id, ctx.mediaId))
       } catch (cleanupError) {
-        console.error('[upload/photo] media rollback failed', cleanupError)
+        console.error('[upload/photo] media rollback failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
       }
     }
 
@@ -114,11 +114,11 @@ export async function POST({ request }) {
       try {
         await deleteFileIfExists(ctx.filePath)
       } catch (cleanupError) {
-        console.error('[upload/photo] file rollback failed', cleanupError)
+        console.error('[upload/photo] file rollback failed', cleanupError?.code ?? cleanupError?.name ?? 'UNKNOWN')
       }
     }
 
-    console.error('[upload/photo]', err)
+    console.error('[upload/photo]', err?.code ?? err?.name ?? 'UNKNOWN')
     return jsonResponse({ error: 'Ошибка загрузки файла' }, 500)
   }
 }

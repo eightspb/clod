@@ -138,7 +138,8 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ### Безопасность
 
-- **Security headers** - добавлены через `src/middleware.js` (X-Frame-Options, X-Content-Type-Options, HSTS в production и т.д.)
+- **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`)
+- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается собирать образ при заполнении диска выше 80 %
 - **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)

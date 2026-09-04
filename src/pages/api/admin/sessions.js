@@ -64,7 +64,7 @@ export async function GET({ request }) {
       })),
     }, 200)
   } catch (error) {
-    console.error('[admin/sessions]', error)
+    console.error('[admin/sessions]', error?.code ?? error?.name ?? 'UNKNOWN')
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось загрузить сессии.')
   }
 }

@@ -6,6 +6,11 @@ services:
         ASTRO_DB_REMOTE_URL: ${ASTRO_DB_REMOTE_URL}
         ASTRO_DB_APP_TOKEN: ${ASTRO_DB_APP_TOKEN}
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     mem_limit: 700m
     pids_limit: 256
     env_file:
@@ -22,6 +27,11 @@ services:
   nginx:
     image: nginx:alpine
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       - "80:80"
       - "443:443"
@@ -34,6 +44,12 @@ services:
 
   certbot:
     image: certbot/certbot
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     volumes:
       - certbot-certs:/etc/letsencrypt
       - certbot-www:/var/www/certbot
