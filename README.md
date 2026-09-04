@@ -144,7 +144,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
 - **Разделение секретов** - `TOKEN_SECRET` обязателен для HMAC-подписи админ-сессий и больше не падает обратно на `ADMIN_PASSWORD`; в production для cookies выставляется `Secure`
 - **Analytics ingestion** - `event` и `heartbeat` используют одинаковую модель origin-check, rate limit и machine-readable ошибок
-- **Публичная форма “Второе мнение”** - endpoint работает fail-fast по SMTP-конфигу, валидирует origin/files и не использует placeholder credentials
+- **Публичные формы “Второе мнение” и “Налоговая справка”** - endpoint работает fail-fast по SMTP-конфигу и отвечает `503` с телефоном клиники, валидирует origin/files и не использует placeholder credentials; получатели налоговой формы задаются только через `TAX_FORM_TO_EMAIL` в домене клиники
 
 ### Переменные окружения (`.env`)
 
@@ -167,6 +167,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `SMTP_SECURE` | Флаг secure-подключения к SMTP (`true`/`false`) |
 | `FROM_EMAIL` | Необязательный адрес отправителя для писем формы “Второе мнение” |
 | `TO_EMAIL` | Обязательный адрес клиники для получения заявок |
+| `TAX_FORM_TO_EMAIL` | Получатели заявок на налоговую справку через запятую; допускаются только адреса `@odintsovclinic.ru`, иначе форма отвечает `503` |
 
 ### Инфраструктура безопасной онлайн-записи
 

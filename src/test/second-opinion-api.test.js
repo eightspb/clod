@@ -116,12 +116,12 @@ describe('POST /api/second-opinion', () => {
     const response = await POST({ request: await makeRequest() })
     const body = await parseJson(response)
 
-    expect(response.status).toBe(500)
+    expect(response.status).toBe(503)
     expect(body).toEqual({
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Сервис временно недоступен. Попробуйте позже',
+        message: 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()

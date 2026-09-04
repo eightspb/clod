@@ -14,6 +14,7 @@ vi.mock('nodemailer', () => ({
 }))
 
 const SMTP_ENV_KEYS = [
+  'TAX_FORM_TO_EMAIL',
   'SMTP_HOST',
   'SMTP_PORT',
   'SMTP_USER',
@@ -77,6 +78,7 @@ describe('POST /api/tax-form', () => {
     sendMailMock.mockReset()
     createTransportMock.mockClear()
     setSmtpEnv({
+      TAX_FORM_TO_EMAIL: 'info@odintsovclinic.ru',
       SMTP_HOST: 'smtp.example.com',
       SMTP_PORT: '465',
       SMTP_USER: 'mailer@example.com',
@@ -90,6 +92,34 @@ describe('POST /api/tax-form', () => {
     }
   })
 
+  it('rejects a recipient outside the clinic domain', async () => {
+    setSmtpEnv({
+      TAX_FORM_TO_EMAIL: 'info@odintsovclinic.ru, кто-то@gmail.com',
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_USER: 'mailer@example.com',
+      SMTP_PASS: 'secret-pass',
+    })
+    const { POST } = await loadHandler()
+
+    const response = await POST({ request: await makeRequest() })
+
+    expect(response.status).toBe(503)
+  })
+
+  it('does not send mail when the recipient is outside the clinic domain', async () => {
+    setSmtpEnv({
+      TAX_FORM_TO_EMAIL: 'кто-то@gmail.com',
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_USER: 'mailer@example.com',
+      SMTP_PASS: 'secret-pass',
+    })
+    const { POST } = await loadHandler()
+
+    await POST({ request: await makeRequest() })
+
+    expect(sendMailMock).not.toHaveBeenCalled()
+  })
+
   it('fails fast when smtp config is missing', async () => {
     setSmtpEnv()
     const { POST } = await loadHandler()
@@ -97,12 +127,12 @@ describe('POST /api/tax-form', () => {
     const response = await POST({ request: await makeRequest() })
     const body = await parseJson(response)
 
-    expect(response.status).toBe(500)
+    expect(response.status).toBe(503)
     expect(body).toEqual({
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Сервис временно недоступен. Попробуйте позже',
+        message: 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()
@@ -196,9 +226,7 @@ describe('POST /api/tax-form', () => {
       success: true,
     })
     expect(sendMailMock).toHaveBeenCalledTimes(1)
-    expect(sendMailMock.mock.calls[0][0].to).toBe(
-      'info@odintsovclinic.ru, vbazarbaev@gmail.com'
-    )
+    expect(sendMailMock.mock.calls[0][0].to).toBe('info@odintsovclinic.ru')
     expect(sendMailMock.mock.calls[0][0].html).toContain('Иванова &lt;Мария&gt;')
     expect(sendMailMock.mock.calls[0][0].html).toContain('Иванов Сергей&lt;script&gt;')
     expect(sendMailMock.mock.calls[0][0].html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')

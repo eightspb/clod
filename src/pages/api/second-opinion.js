@@ -12,6 +12,7 @@ import {
 } from '../../lib/file-constraints.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
+const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
 
 function jsonResponse(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -262,8 +263,8 @@ export async function POST({ request }) {
   try {
     config = getSmtpConfig()
   } catch (error) {
-    console.error('[second-opinion] missing SMTP configuration', error)
-    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже')
+    console.error('[second-opinion] mail configuration rejected:', error.message)
+    return errorResponse(503, 'CONFIG_ERROR', UNAVAILABLE_MESSAGE)
   }
 
   try {

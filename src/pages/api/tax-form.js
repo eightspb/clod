@@ -5,7 +5,8 @@ import { validateOrigin } from '../../lib/auth.js'
 import { checkRateLimit } from '../../lib/rate-limit.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
-const TAX_FORM_TO_EMAIL = 'info@odintsovclinic.ru, vbazarbaev@gmail.com'
+const CLINIC_EMAIL_DOMAIN = '@odintsovclinic.ru'
+const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
 const RATE_LIMIT_OPTS = { namespace: 'tax-form', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 function jsonResponse(payload, status, headers = {}) {
@@ -46,12 +47,25 @@ function getClientIp(request) {
   )
 }
 
+/**
+ * Tax deduction requests carry INN and medical-service facts, so every recipient
+ * must be a clinic mailbox; a personal address anywhere in the list is a config error.
+ */
+function getRecipients() {
+  const recipients = getEnvValue('TAX_FORM_TO_EMAIL').split(',').map((value) => value.trim()).filter(Boolean)
+  if (recipients.length === 0) throw new Error('TAX_FORM_TO_EMAIL is not configured')
+  const outside = recipients.filter((address) => !address.toLowerCase().endsWith(CLINIC_EMAIL_DOMAIN))
+  if (outside.length > 0) throw new Error(`TAX_FORM_TO_EMAIL contains ${outside.length} recipient(s) outside ${CLINIC_EMAIL_DOMAIN}`)
+  return recipients.join(', ')
+}
+
 function getSmtpConfig() {
   const host = getEnvValue('SMTP_HOST').trim()
   const user = getEnvValue('SMTP_USER').trim()
   const pass = getEnvValue('SMTP_PASS')
   const rawPort = getEnvValue('SMTP_PORT').trim()
   const port = rawPort ? Number.parseInt(rawPort, 10) : 465
+  const to = getRecipients()
 
   if (!host || !user || !pass || Number.isNaN(port)) {
     throw new Error('SMTP configuration is incomplete')
@@ -68,6 +82,7 @@ function getSmtpConfig() {
     user,
     pass,
     from,
+    to,
   }
 }
 
@@ -210,8 +225,8 @@ export async function POST({ request }) {
   try {
     config = getSmtpConfig()
   } catch (error) {
-    console.error('[tax-form] missing SMTP configuration', error)
-    return errorResponse(500, 'CONFIG_ERROR', 'Сервис временно недоступен. Попробуйте позже')
+    console.error('[tax-form] mail configuration rejected:', error.message)
+    return errorResponse(503, 'CONFIG_ERROR', UNAVAILABLE_MESSAGE)
   }
 
   try {
@@ -246,7 +261,7 @@ export async function POST({ request }) {
 
     await transporter.sendMail({
       from: config.from,
-      to: TAX_FORM_TO_EMAIL,
+      to: config.to,
       replyTo: fields.email || undefined,
       subject: `Налоговая справка: ${patientName}`,
       html: `
