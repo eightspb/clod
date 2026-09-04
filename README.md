@@ -81,6 +81,8 @@ bun run preview  # превью собранного билда
 
 ### GitHub Actions CI
 
+Workflow работает с `permissions: contents: read`; `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
+
 При push/PR в `main` или `develop` выполняются:
 
 1. **Lint** - ESLint
@@ -175,7 +177,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 Серверный слой онлайн-записи использует отдельные `MEDFLEX_CLINIC_TOKEN` и `BOOKING_INTENT_SECRET`. Они задаются только в untracked `.env` среды исполнения и не передаются в клиентский JavaScript. `BOOKING_INTENT_SECRET` не является токеном Medflex или `TOKEN_SECRET`: он должен оставаться отдельным и неизменным между перезапусками и деплоями, иначе существующие попытки нельзя будет безопасно сопоставить. Таблица `BookingIntent` хранит только HMAC-идентичность запроса, доверенный слот и минимальное состояние согласования; ФИО, телефон, дата рождения, комментарий, IP, User-Agent и сырые ответы Medflex в ней не сохраняются.
 
-Контейнер при каждом запуске выполняет `scripts/init-db.mjs`. Миграция аддитивна и идемпотентна: существующие данные SQLite сохраняются, таблица и индексы `BookingIntent` добавляются при отсутствии, а несовместимая схема останавливает запуск. Публичный first-party интерфейс уже подключён: один `BookingFlow` в `Layout.astro` обслуживает CTA в шапке, футере, sticky-панели, общих секциях и карточках врачей. Внешний iframe/widget runtime `booking.medflex.ru`, его preconnect и idle-загрузчик не используются.
+Контейнер при каждом запуске сначала выполняет `scripts/check-required-env.mjs`: без `ADMIN_PASSWORD`, `TOKEN_SECRET`, `ASTRO_DB_REMOTE_URL`, `BOOKING_INTENT_SECRET`, `CONTACT_FINGERPRINT_KEY` или `PATIENT_ENCRYPTION_KEY` контейнер не стартует, а отсутствие SMTP, `TAX_FORM_TO_EMAIL`, токена Medflex или ключей MANGO печатает предупреждение с названием отключённой функции. Затем контейнер выполняет `scripts/init-db.mjs`. Миграция аддитивна и идемпотентна: существующие данные SQLite сохраняются, таблица и индексы `BookingIntent` добавляются при отсутствии, а несовместимая схема останавливает запуск. Публичный first-party интерфейс уже подключён: один `BookingFlow` в `Layout.astro` обслуживает CTA в шапке, футере, sticky-панели, общих секциях и карточках врачей. Внешний iframe/widget runtime `booking.medflex.ru`, его preconnect и idle-загрузчик не используются.
 
 Общие CTA без контекста сначала показывают выбор врача. CTA на карточке или странице врача передаёт только публичный slug и сразу загружает расписание этого врача; внутренние Medflex ID, токен и секреты не входят в props или HTML. Allowlist охватывает ровно девять профилей: `odintsov`, `prikhodko`, `macuchov`, `skurihin`, `egorova`, `vlasenko`, `zaharova`, `nevzorova` и `kalinina`.
 
@@ -605,6 +607,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 | Файл | Экспорты | Используется в |
 |---|---|---|
+| `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs` |
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
