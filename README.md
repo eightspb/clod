@@ -81,7 +81,7 @@ bun run preview  # превью собранного билда
 
 ### GitHub Actions CI
 
-Workflow работает с `permissions: contents: read`; `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
+Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version`. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения (только Astro 4 / Vite 5 и dev-инструменты) перечислены в `docs/dependency-exposure.ignore` с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
 
 При push/PR в `main` или `develop` выполняются:
 
