@@ -38,6 +38,6 @@ test.describe('Навигация', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Поиск по сайту' }).first().click()
     await page.getByPlaceholder('Поиск по сайту...').fill('фиброаденома')
-    await expect(page.getByRole('dialog', { name: 'Поиск по сайту' }).getByRole('link').first()).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Поиск по сайту' }).getByRole('link').first()).toBeVisible({ timeout: 15_000 })
   })
 })

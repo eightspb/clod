@@ -23,7 +23,7 @@ test('administrator monitors a masked call and opens the linked patient journal'
   await expect(page.getByText('79215550129')).toHaveCount(0)
   await page.getByRole('button', { name: `Показать номер ${CALL.callerMask}` }).click()
   await expect(page.getByText('79215550129')).toBeVisible()
-  await page.getByRole('table').getByRole('link', { name: '79215550129' }).click()
+  await page.getByRole('table').getByRole('link', { name: 'Карточка пациента' }).click()
   await expect(page).toHaveURL(new RegExp(`/admin/patients\\?patient=${PATIENT_ID}$`))
   await expect(page.getByRole('region', { name: `Карточка пациента ${PATIENT.name}` })).toBeVisible()
 })
