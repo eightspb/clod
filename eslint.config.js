@@ -29,6 +29,7 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'no-use-before-define': ['error', { functions: false, classes: false, variables: true }],
       'no-restricted-syntax': [
         'error',
         {

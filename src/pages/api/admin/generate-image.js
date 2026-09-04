@@ -1,12 +1,16 @@
 export const prerender = false
 
-import { writeFile, mkdir, readFile } from 'node:fs/promises'
-import { existsSync, readdirSync } from 'node:fs'
+import { writeFile, mkdir, readFile, readdir } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { buildPrompt, AVAILABLE_MODELS } from '../../lib/blog-prompts.js'
+import { buildPrompt, AVAILABLE_MODELS, PROMPTS } from '../../../lib/blog-prompts.js'
+import { guardAdminRead, guardAdminWrite } from '../../../lib/admin-api.js'
 
 const API_KEY = import.meta.env.IMAGE_API_KEY
 const POLZA_URL = 'https://polza.ai/api/v1/media'
+const SLUG_PATTERN = /^[a-z0-9-]{1,80}$/
+const FETCH_TIMEOUT_MS = 20_000
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 const BLOG_DIR = join(process.cwd(), 'public', 'images', 'blog')
 const CONTENT_DIR = join(process.cwd(), 'src', 'content', 'blog')
 const JOBS_FILE = join(BLOG_DIR, '.jobs.json')
@@ -37,13 +41,18 @@ async function writeJobs(jobs) {
   await writeFile(JOBS_FILE, JSON.stringify(jobs, null, 2))
 }
 
-function existingImages() {
+async function existingImages() {
   if (!existsSync(BLOG_DIR)) return {}
   const out = {}
-  for (const f of readdirSync(BLOG_DIR)) {
+  for (const f of await readdir(BLOG_DIR)) {
     if (f.endsWith('.webp')) out[f.replace('.webp', '')] = `/images/blog/${f}`
   }
   return out
+}
+
+/** Only slugs with a known prompt may name files under the blog image and content directories. */
+function isKnownSlug(slug) {
+  return typeof slug === 'string' && SLUG_PATTERN.test(slug) && Object.hasOwn(PROMPTS, slug)
 }
 
 const MODEL_PARAMS = {
@@ -88,14 +97,11 @@ async function submitToPolza(prompt, model) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) {
-    const text = await res.text()
-    console.error('[gen] polza submit error:', res.status, text)
-    let parsed
-    try { parsed = JSON.parse(text) } catch { parsed = null }
-    const msg = parsed?.error?.message || `Polza API ${res.status}`
-    throw new Error(msg)
+    console.error('[gen] polza submit error:', res.status)
+    throw new Error('GENERATION_REJECTED')
   }
   return res.json()
 }
@@ -103,15 +109,19 @@ async function submitToPolza(prompt, model) {
 async function checkPolzaStatus(mediaId) {
   const res = await fetch(`${POLZA_URL}/${mediaId}`, {
     headers: { 'Authorization': `Bearer ${API_KEY}` },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) return null
   return res.json()
 }
 
 async function downloadAndSave(url, slug) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+  const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+  if (!res.ok) throw new Error('DOWNLOAD_FAILED')
+  if (!(res.headers.get('content-type') || '').startsWith('image/')) throw new Error('DOWNLOAD_NOT_IMAGE')
+  if (Number(res.headers.get('content-length') || 0) > MAX_IMAGE_BYTES) throw new Error('DOWNLOAD_TOO_LARGE')
   const buf = Buffer.from(await res.arrayBuffer())
+  if (buf.length > MAX_IMAGE_BYTES) throw new Error('DOWNLOAD_TOO_LARGE')
   await ensureDir()
   await writeFile(join(BLOG_DIR, `${slug}.webp`), buf)
   return buf.length
@@ -129,14 +139,15 @@ function extractImageUrl(data) {
 }
 
 export async function POST({ request }) {
-  if (!API_KEY) return json({ error: 'IMAGE_API_KEY not configured' }, 500)
+  const blocked = await guardAdminWrite(request)
+  if (blocked) return blocked
   let body
   try { body = await request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
   const { slug, prompt, model = 'black-forest-labs/flux.2-pro' } = body
-  if (!slug) return json({ error: 'slug required' }, 400)
+  if (!isKnownSlug(slug)) return json({ error: 'UNKNOWN_SLUG' }, 400)
+  if (!AVAILABLE_MODELS.find(m => m.id === model)) return json({ error: 'UNKNOWN_MODEL' }, 400)
+  if (!API_KEY) return json({ error: 'IMAGE_API_KEY not configured' }, 500)
   const finalPrompt = prompt || buildPrompt(slug)
-  if (!finalPrompt) return json({ error: `No prompt for: ${slug}` }, 400)
-  if (!AVAILABLE_MODELS.find(m => m.id === model)) return json({ error: `Unknown model: ${model}` }, 400)
   const jobs = await readJobs()
   if (jobs[slug]?.status === 'pending') {
     return json({ message: 'Already generating', job: jobs[slug] })
@@ -206,11 +217,13 @@ async function applyImageToArticle(slug) {
 }
 
 export async function PATCH({ request }) {
+  const blocked = await guardAdminWrite(request)
+  if (blocked) return blocked
   let body
   try { body = await request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
   const { slugs } = body
-  if (!slugs || !Array.isArray(slugs) || slugs.length === 0) {
-    return json({ error: 'slugs array required' }, 400)
+  if (!Array.isArray(slugs) || slugs.length === 0 || !slugs.every(isKnownSlug)) {
+    return json({ error: 'UNKNOWN_SLUG' }, 400)
   }
   const results = {}
   for (const slug of slugs) {
@@ -226,9 +239,11 @@ export async function PATCH({ request }) {
 
 let polling = false
 
-export async function GET() {
+export async function GET({ request }) {
+  const blocked = await guardAdminRead(request)
+  if (blocked) return blocked
   const jobs = await readJobs()
-  const images = existingImages()
+  const images = await existingImages()
   const pendingSlugs = Object.entries(jobs)
     .filter(([, j]) => j.status === 'pending' && j.mediaId)
     .map(([slug]) => slug)
