@@ -228,6 +228,7 @@ export function TaxFormRequestForm() {
               type="text"
               id="patientFullName"
               name="patientFullName"
+              maxLength={120}
               required
               disabled={isSubmitting}
               className={FIELD_CLASS_NAME}
@@ -285,6 +286,7 @@ export function TaxFormRequestForm() {
               type="text"
               id="taxpayerFullName"
               name="taxpayerFullName"
+              maxLength={120}
               required
               disabled={isSubmitting}
               className={FIELD_CLASS_NAME}
@@ -374,6 +376,7 @@ export function TaxFormRequestForm() {
             <textarea
               id="comment"
               name="comment"
+              maxLength={2000}
               rows="3"
               disabled={isSubmitting}
               className={`${FIELD_CLASS_NAME} resize-none`}

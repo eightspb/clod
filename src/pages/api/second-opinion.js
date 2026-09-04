@@ -13,6 +13,8 @@ import {
 import { getClientIp } from '../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
+const MAX_NAME_LENGTH = 120
+const MAX_COMMENT_LENGTH = 2000
 const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
 
 function jsonResponse(payload, status, headers = {}) {
@@ -137,6 +139,10 @@ function validateSubmission(fields, files) {
 
   if (!fields.firstName) errors.push({ field: 'firstName', message: 'Заполните имя' })
   if (!fields.lastName) errors.push({ field: 'lastName', message: 'Заполните фамилию' })
+  for (const field of ['firstName', 'lastName', 'middleName']) {
+    if (fields[field].length > MAX_NAME_LENGTH) errors.push({ field, message: `Не более ${MAX_NAME_LENGTH} символов` })
+  }
+  if (fields.comment.length > MAX_COMMENT_LENGTH) errors.push({ field: 'comment', message: `Комментарий не более ${MAX_COMMENT_LENGTH} символов` })
   if (!fields.birthDate) errors.push({ field: 'birthDate', message: 'Укажите дату рождения' })
   if (!fields.phone) errors.push({ field: 'phone', message: 'Заполните телефон' })
 

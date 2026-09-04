@@ -120,6 +120,18 @@ describe('POST /api/tax-form', () => {
     expect(sendMailMock).not.toHaveBeenCalled()
   })
 
+  it('rejects a comment longer than two thousand characters', async () => {
+    const { POST } = await loadHandler()
+    const response = await POST({ request: await makeRequest({ fields: { comment: 'ё'.repeat(2001) } }) })
+    expect({ status: response.status, sent: sendMailMock.mock.calls.length }).toEqual({ status: 400, sent: 0 })
+  })
+
+  it('rejects a name longer than one hundred twenty characters', async () => {
+    const { POST } = await loadHandler()
+    const response = await POST({ request: await makeRequest({ fields: { patientFullName: 'Ё'.repeat(121) } }) })
+    expect(response.status).toBe(400)
+  })
+
   it('fails fast when smtp config is missing', async () => {
     setSmtpEnv()
     const { POST } = await loadHandler()

@@ -4,9 +4,11 @@ import { db as analyticsDb, AnalyticsSession, eq } from 'astro:db'
 import { validateOrigin } from '../../../lib/auth.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
+import { readBoundedJson } from '../../../lib/bounded-json.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const RATE_LIMIT_OPTS = { namespace: 'analytics-heartbeat', maxRequests: 120, windowMs: 60_000 }
+const ANALYTICS_JSON_LIMIT = 32 * 1024
 const MAX_ID_LENGTH = 128
 const MAX_PAGE_LENGTH = 200
 
@@ -90,13 +92,14 @@ export async function POST({ request }) {
     )
   }
 
-  let body
+  const parsed = await readBoundedJson(request, ANALYTICS_JSON_LIMIT)
 
-  try {
-    body = await request.json()
-  } catch {
+  if (!parsed.valid) {
+    if (parsed.tooLarge) return errorResponse(413, 'BODY_TOO_LARGE', 'Тело запроса превышает допустимый размер')
     return errorResponse(400, 'INVALID_JSON', 'Передайте корректный JSON')
   }
+
+  const body = parsed.value
 
   const { details, normalized } = validateHeartbeatPayload(body)
 

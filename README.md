@@ -142,6 +142,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 - **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
+- **Лимиты тела запроса** - JSON читается через `readBoundedJson`: 4 КиБ для login и admin JSON, 32 КиБ для analytics; публичные формы ограничивают имена 120 и комментарий 2000 символами; контейнер `app` ограничен `mem_limit: 700m` и `pids_limit: 256`
 - **Разделение секретов** - `TOKEN_SECRET` обязателен для HMAC-подписи админ-сессий и больше не падает обратно на `ADMIN_PASSWORD`; в production для cookies выставляется `Secure`
 - **Analytics ingestion** - `event` и `heartbeat` используют одинаковую модель origin-check, rate limit и machine-readable ошибок
 - **Публичные формы “Второе мнение” и “Налоговая справка”** - endpoint работает fail-fast по SMTP-конфигу и отвечает `503` с телефоном клиники, валидирует origin/files и не использует placeholder credentials; получатели налоговой формы задаются только через `TAX_FORM_TO_EMAIL` в домене клиники
@@ -624,7 +625,9 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `medflex-doctors.js` | Явный allowlist девяти врачей и локальных типов приёма | API онлайн-записи |
 | `doctor-records.js` | Атомарное сохранение локальных карточек и связей Medflex без удаления ручных данных | Admin-каталог врачей |
 | `admin-doctor-sync.js` | Оркестрация безопасного discovery и синхронизации врачей | `api/admin/doctors/sync` и CLI |
-| `admin-api.js` | `guardAdminRead`, `guardAdminWrite` | Все `api/admin/*` endpoints |
+| `admin-api.js` | `guardAdminRead`, `guardAdminWrite`, `readAdminJson` | Все `api/admin/*` endpoints |
+| `bounded-json.js` | `readBoundedJson(request, limitBytes)` — JSON-ридер со строгим media type, declared length и потоковым лимитом | login (4 КиБ), analytics (32 КиБ), admin JSON (4 КиБ) |
+| `client-ip.js` | `getClientIp` — единственный источник адреса клиента для rate limit (X-Real-IP, затем ближайший хоп X-Forwarded-For) | Все rate-limited endpoints |
 | `file-constraints.js` | `MAX_FILES`, `MAX_FILE_SIZE_BYTES`, `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES` | `SecondOpinionForm`, `api/second-opinion` |
 | `useAdminFetch.js` | `useAdminFetch` | `Dashboard`, `DoctorList`, `SessionsViewer`, `LogsViewer` |
 | `useHeroFit.js` | `useHeroFit` | Все 17 страниц с hero-блоком (auto-fit font size) |

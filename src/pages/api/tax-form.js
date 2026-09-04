@@ -7,6 +7,8 @@ import { getClientIp } from '../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const CLINIC_EMAIL_DOMAIN = '@odintsovclinic.ru'
+const MAX_NAME_LENGTH = 120
+const MAX_COMMENT_LENGTH = 2000
 const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
 const RATE_LIMIT_OPTS = { namespace: 'tax-form', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
@@ -137,6 +139,14 @@ function sanitizeHeaderValue(value, fallback = '') {
 
 function validateSubmission(fields) {
   const errors = []
+
+  for (const field of ['patientFullName', 'taxpayerFullName']) {
+    if (fields[field].length > MAX_NAME_LENGTH) errors.push({ field, message: `Не более ${MAX_NAME_LENGTH} символов` })
+  }
+
+  if (fields.comment.length > MAX_COMMENT_LENGTH) {
+    errors.push({ field: 'comment', message: `Комментарий не более ${MAX_COMMENT_LENGTH} символов` })
+  }
 
   if (!fields.patientFullName) {
     errors.push({ field: 'patientFullName', message: 'Укажите ФИО пациента' })

@@ -2,15 +2,21 @@ export const prerender = false
 
 import { db, Doctor } from 'astro:db'
 import { eq } from 'astro:db'
-import { guardAdminWrite } from '../../../../lib/admin-api.js'
+import { guardAdminWrite, readAdminJson } from '../../../../lib/admin-api.js'
 
 export async function PUT({ request, params }) {
   const blocked = await guardAdminWrite(request)
   if (blocked) return blocked
   try {
     const { id } = params
-    const body = await request.json()
-    const { name, specialization, experienceYears, bio, slug, photoMediaId } = body
+    const parsed = await readAdminJson(request)
+    if (!parsed.valid) {
+      return new Response(JSON.stringify({ error: parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON' }), {
+        status: parsed.tooLarge ? 413 : 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const { name, specialization, experienceYears, bio, slug, photoMediaId } = parsed.value ?? {}
     const updates = {}
     if (name !== undefined) {
       const trimmed = String(name).trim()

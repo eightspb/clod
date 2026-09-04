@@ -6,6 +6,8 @@ services:
         ASTRO_DB_REMOTE_URL: ${ASTRO_DB_REMOTE_URL}
         ASTRO_DB_APP_TOKEN: ${ASTRO_DB_APP_TOKEN}
     restart: unless-stopped
+    mem_limit: 700m
+    pids_limit: 256
     env_file:
       - .env
     environment:

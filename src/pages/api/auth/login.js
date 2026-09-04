@@ -10,8 +10,10 @@ import {
 } from '../../../lib/auth.js'
 import { checkRateLimit, resetRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
+import { readBoundedJson } from '../../../lib/bounded-json.js'
 
 const RATE_LIMIT_OPTS = { namespace: 'login', maxRequests: 5, windowMs: 15 * 60 * 1000 }
+const LOGIN_JSON_LIMIT = 4 * 1024
 
 
 export async function POST({ request }) {
@@ -38,11 +40,18 @@ export async function POST({ request }) {
     )
   }
 
+  const parsed = await readBoundedJson(request, LOGIN_JSON_LIMIT)
+  if (!parsed.valid) {
+    return new Response(JSON.stringify({ error: parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON' }), {
+      status: parsed.tooLarge ? 413 : 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   try {
     assertAuthConfiguration()
 
-    const body = await request.json()
-    const { password } = body
+    const { password } = parsed.value ?? {}
     const adminPassword = getAdminPassword()
 
     if (!timingSafeEqualText(password || '', adminPassword)) {

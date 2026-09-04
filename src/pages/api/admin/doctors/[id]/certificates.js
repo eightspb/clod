@@ -2,7 +2,7 @@ export const prerender = false
 
 import { db, DoctorCertificate, Media } from 'astro:db'
 import { and, eq } from 'astro:db'
-import { guardAdminRead, guardAdminWrite } from '../../../../../lib/admin-api.js'
+import { guardAdminRead, guardAdminWrite, readAdminJson } from '../../../../../lib/admin-api.js'
 import { deleteFileIfExists, mediaUrlToFilePath } from '../../../../../lib/upload-utils.js'
 
 function jsonResponse(payload, status) {
@@ -46,8 +46,11 @@ export async function DELETE({ request, params }) {
 
   try {
     const { id: doctorId } = params
-    const body = await request.json()
-    const { certId } = body
+    const parsed = await readAdminJson(request)
+    if (!parsed.valid) {
+      return jsonResponse({ error: parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON' }, parsed.tooLarge ? 413 : 400)
+    }
+    const { certId } = parsed.value ?? {}
 
     if (!certId) {
       return jsonResponse({ error: 'certId не передан' }, 400)

@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const ORIGINAL_ENV = { ADMIN_PASSWORD: process.env.ADMIN_PASSWORD, TOKEN_SECRET: process.env.TOKEN_SECRET }
 
-function loginRequest({ realIp, forwardedFor }) {
+function loginRequest({ realIp, forwardedFor, body = JSON.stringify({ password: 'неверный-пароль' }) }) {
   const headers = new Headers({ 'content-type': 'application/json', origin: 'https://odintsovclinic.ru' })
   if (realIp !== undefined) headers.set('x-real-ip', realIp)
   if (forwardedFor !== undefined) headers.set('x-forwarded-for', forwardedFor)
-  return new Request('https://odintsovclinic.ru/api/auth/login', { method: 'POST', headers, body: JSON.stringify({ password: 'неверный-пароль' }) })
+  return new Request('https://odintsovclinic.ru/api/auth/login', { method: 'POST', headers, body })
 }
 
 async function loadHandler() {
@@ -32,5 +32,11 @@ describe('POST /api/auth/login', () => {
     const statuses = []
     for (let index = 0; index < 6; index += 1) statuses.push((await POST({ request: loginRequest({ realIp: '203.0.113.90', forwardedFor: `10.0.0.${index + 1}` }) })).status)
     expect(statuses).toEqual([401, 401, 401, 401, 401, 429])
+  })
+
+  it('rejects a login body larger than four KiB before comparing passwords', async () => {
+    const { POST } = await loadHandler()
+    const response = await POST({ request: loginRequest({ realIp: '203.0.113.91', body: JSON.stringify({ password: 'п'.repeat(4096) }) }) })
+    expect(response.status).toBe(413)
   })
 })
