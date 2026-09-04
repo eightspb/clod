@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "sh scripts/dev.sh",
-    "build": "astro build && node scripts/async-about-css.mjs",
-    "postbuild": "pagefind --site dist",
+    "build": "astro build",
+    "postbuild": "pagefind --site dist/client",
     "preview": "astro preview",
     "deploy": "sh scripts/deploy.sh",
     "medflex:discover": "bun scripts/medflex-discover.mjs",
@@ -16,7 +16,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "build:remote": "astro build --remote && pagefind --site dist/client"
   },
   "dependencies": {
     "@astrojs/db": "^0.19.0",

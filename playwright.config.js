@@ -23,7 +23,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? 'bun run build && bun run preview' : 'bun run dev',
+    command: process.env.CI ? `bun run build && bun run preview -- --port ${port}` : 'bun run dev',
     env: {
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
       PORT: port,

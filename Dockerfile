@@ -12,7 +12,7 @@ ARG ASTRO_DB_APP_TOKEN
 RUN echo "ASTRO_DB_REMOTE_URL=${ASTRO_DB_REMOTE_URL}" >> .env \
  && echo "ASTRO_DB_APP_TOKEN=${ASTRO_DB_APP_TOKEN}" >> .env
 
-RUN bun run astro build --remote
+RUN bun run build:remote
 
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
@@ -25,6 +25,7 @@ RUN apt-get update && \
     useradd --system --gid app --home /app app
 
 COPY --from=builder /app/dist ./dist
+RUN test -f /app/dist/client/pagefind/pagefind-entry.json
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/bun.lock ./
 RUN bun install --frozen-lockfile --omit=dev

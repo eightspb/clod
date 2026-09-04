@@ -27,7 +27,20 @@ function SearchResult({ result, onClose }) {
   )
 }
 
-export function SearchModal({ isOpen, onClose }) {
+/**
+ * Loads the Pagefind bundle generated at build time. A plain dynamic import keeps the page
+ * within the production CSP, which has no 'unsafe-eval' for a Function constructor.
+ */
+async function loadPagefindModule() {
+  const pagefindUrl = '/pagefind/pagefind.js'
+  const probe = await fetch(pagefindUrl, { method: 'HEAD' })
+  if (!probe.ok) throw new Error('Pagefind index is unavailable')
+  const pf = await import(/* @vite-ignore */ pagefindUrl)
+  await pf.init()
+  return pf
+}
+
+export function SearchModal({ isOpen, onClose, loadPagefind = loadPagefindModule }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -35,6 +48,7 @@ export function SearchModal({ isOpen, onClose }) {
   const [initError, setInitError] = useState(false)
   const inputRef = useRef(null)
   const debounceRef = useRef(null)
+  const queryRef = useRef('')
 
   useEffect(() => {
     if (!isOpen) {
@@ -60,23 +74,10 @@ export function SearchModal({ isOpen, onClose }) {
     if (!isOpen || pagefind || initError) {
       return
     }
-    const pagefindUrl = '/pagefind/pagefind.js'
-    async function loadPagefind() {
-      try {
-        const probe = await fetch(pagefindUrl, { method: 'HEAD' })
-        if (!probe.ok) {
-          setInitError(true)
-          return
-        }
-        const pf = await new Function('url', 'return import(url)')(pagefindUrl)
-        await pf.init()
-        setPagefind(pf)
-      } catch {
-        setInitError(true)
-      }
-    }
-    loadPagefind()
-  }, [isOpen, pagefind, initError])
+    let cancelled = false
+    loadPagefind().then((pf) => { if (!cancelled) setPagefind(pf) }).catch(() => { if (!cancelled) setInitError(true) })
+    return () => { cancelled = true }
+  }, [isOpen, pagefind, initError, loadPagefind])
 
   const runSearch = useCallback(async (value, pf) => {
     if (!value.trim() || !pf) {
@@ -98,8 +99,13 @@ export function SearchModal({ isOpen, onClose }) {
     }
   }, [])
 
+  useEffect(() => {
+    if (pagefind && queryRef.current.trim()) runSearch(queryRef.current, pagefind)
+  }, [pagefind, runSearch])
+
   function handleQueryChange(event) {
     const value = event.target.value
+    queryRef.current = value
     setQuery(value)
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)

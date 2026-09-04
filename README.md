@@ -49,9 +49,10 @@
 ## Запуск проекта
 
 ```bash
-bun run dev      # dev-сервер на localhost:4321
-bun run build    # production-сборка в dist/
-bun run preview  # превью собранного билда
+bun run dev            # dev-сервер на localhost:4321
+bun run build          # production-сборка в dist/ + индекс Pagefind в dist/client/pagefind
+bun run build:remote   # то же с --remote для Docker-образа (Dockerfile вызывает именно этот скрипт)
+bun run preview        # превью собранного билда
 ```
 
 После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
@@ -1036,7 +1037,7 @@ Certbot-контейнер проверяет сертификат каждые 
 
 - **8 condition-лендингов**: `/fibroadenoma`, `/mastopatiya`, `/kista-molochnoy-zhelezy`, `/eroziya-sheyki-matki`, `/gipotireoz`, `/adenomioz`, `/endometrioz`, `/tireoidit-khashimoto` — каждая с Hero, симптомами, диагностикой, лечением, timeline, FAQ (JSON-LD), CTA, перелинковкой
 - **Mega-menu навигация**: `Header.jsx` переписан с поддержкой 3-уровневой вложенности, колонки по специализациям, condition-ссылки, ВАБ CTA; mobile: аккордеоны
-- **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту (49 страниц), лупа в header, mobile search
+- **Pagefind поиск**: `SearchModal.jsx` — модальный поиск по всему сайту, лупа в header, mobile search; индекс строится в `postbuild` в `dist/client/pagefind`, бандл грузится обычным динамическим импортом (без `new Function`, совместимо с CSP), а запрос, набранный до загрузки индекса, выполняется после его готовности
 - **Новые страницы**: `/dlya-inogorodnikh` (для иногородних), `/nashi-rezultaty` (count-up анимации, статистика), `/media` (агрегация TV-выступлений)
 - **ПроДокторов интеграция**: `StarRating.jsx`, рейтинги в `DoctorCard.jsx` и `DoctorPage.jsx`, данные в `doctors-data.js`
 - **Коллекция врачей**: на `/doctors` после route chrome и desktop-breadcrumbs коллекция начинается с `h1` «Ваши доктора» и фильтров только по специальностям; повторное нажатие активной специальности возвращает всех врачей без отдельной кнопки «Все доктора». Затем mobile показывает круговой многослойный coverflow прозрачных `*-mobile.webp` с общей объёмной плашкой, а desktop — сетку карточек; редакционный блок `h2` «Врачи клиники Одинцова» следует после коллекции. Карусель сохраняет прямую проекцию без светлого ореола, непрозрачный тонально высветленный ближний слой, мягкий дальний слой, фиксированные две строки ФИО, стабильные действия и feedback только при реальном переключении.
@@ -1067,7 +1068,7 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Онлайн-запись**: внешний виджет заменён единым first-party `BookingFlow`; все CTA работают через same-origin API, а страницы и карточки девяти врачей передают только публичный slug.
 - **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
 - **Производительность (Lighthouse)**: загрузка `tracker.js` с `defer` не блокирует отрисовку; уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в middleware — `Cache-Control: public, max-age=31536000, immutable` для `/_astro/`, `/fonts/`, `/images/`; в nginx включено gzip для текстовых ответов.
-- **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; блокирующий CSS страницы «О клинике» сделан неблокирующим (post-build скрипт `scripts/async-about-css.mjs`: `media="print"` + `onload="this.media='all'"`).
+- **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; бывший post-build скрипт `async-about-css.mjs` удалён — после переноса CSS в общий чанк он ни разу не срабатывал.
 
 ### Редизайн и тематизация (март–апрель 2026)
 

@@ -116,3 +116,17 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image
+        run: docker build --build-arg ASTRO_DB_REMOTE_URL=file:/tmp/ci-build.sqlite --build-arg ASTRO_DB_APP_TOKEN=ci-build-token -t clod:ci .
+      - name: Verify search index and environment gate inside the image
+        run: |
+          docker run --rm --entrypoint sh clod:ci -c 'test -f /app/dist/client/pagefind/pagefind-entry.json && test -f /app/dist/client/pagefind/pagefind.js'
+          if docker run --rm --entrypoint node clod:ci /app/scripts/check-required-env.mjs; then echo 'env gate must fail without secrets' >&2; exit 1; fi
