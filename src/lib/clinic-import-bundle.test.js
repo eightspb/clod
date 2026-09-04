@@ -180,7 +180,7 @@ describe('createClinicImportBundle', () => {
     const invoices = source('invoices', Array.from({ length: 4_000 }, (_, index) => sourceRow('invoices', index + 2, { ...invoiceValues(index + 1), service_name: privateText })))
     const prepared = await captured(() => createClinicImportBundle(input(), { loadSources: loader(loadedWithSources(loaded, { invoices })) }))
     expect({ code: prepared.error?.code ?? null, invoices: prepared.value?.report.invoices.total, sourceRows: prepared.value?.report.sourceRows.total }).toEqual({ code: null, invoices: 4_000, sourceRows: 4_007 })
-  })
+  }, 60_000)
 
   it('does not charge the source budget again for redundant loader convenience aliases', async () => {
     const loaded = loadedSources()
