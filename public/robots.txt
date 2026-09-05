@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-Sitemap: https://odintsovclinic.ru/sitemap.xml
+Sitemap: https://odintsovclinic.ru/sitemap-index.xml

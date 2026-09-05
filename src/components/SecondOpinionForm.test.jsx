@@ -75,4 +75,19 @@ describe('SecondOpinionForm', () => {
 
     expect(await screen.findByText('Файл слишком большой.')).toBeInTheDocument()
   })
+
+  it('keeps the file input reachable for keyboard users', () => {
+    render(<SecondOpinionForm />)
+    expect(document.getElementById('file-upload')).toHaveClass('sr-only')
+  })
+
+  it('announces the successful submission in a status region', async () => {
+    global.fetch.mockResolvedValue({ ok: true, json: async () => ({}) })
+    render(<SecondOpinionForm />)
+    fillRequiredFields()
+    fireEvent.change(document.getElementById('file-upload'), { target: { files: [new File(['снимок'], 'узи.png', { type: 'image/png' })] } })
+    fireEvent.submit(screen.getByRole('button', { name: /отправить/i }).closest('form'))
+    fireEvent.click(await screen.findByRole('button', { name: /подтвердить/i }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Заявка успешно отправлена')
+  })
 })

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 const EVENT_TYPES = ['', 'click', 'navigation', 'page_enter', 'page_leave', 'form_submit', 'heartbeat']
+const EMPTY_FILTERS = Object.freeze({ type: '', filterPage: '', date: '' })
 
 const TYPE_COLORS = {
   click: { bg: '#dbeafe', text: '#1d4ed8' },
@@ -59,10 +60,11 @@ export function LogsViewer() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
-  const [filters, setFilters] = useState({ type: '', filterPage: '', date: '' })
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS)
   const [expanded, setExpanded] = useState(null)
 
-  const loadLogs = useCallback(async (p = page, f = filters) => {
+  const loadLogs = useCallback(async (p, f) => {
     const params = new URLSearchParams({
       page: String(p),
       perPage: '50',
@@ -76,20 +78,19 @@ export function LogsViewer() {
       setTotal(result.total || 0)
       setTotalPages(result.totalPages || 1)
     }
-  }, [page, filters, fetchData])
+  }, [fetchData])
 
-  useEffect(() => { loadLogs(page, filters) }, [page])
+  useEffect(() => { loadLogs(page, appliedFilters) }, [page, appliedFilters, loadLogs])
 
   function applyFilters() {
+    setAppliedFilters(filters)
     setPage(1)
-    loadLogs(1, filters)
   }
 
   function resetFilters() {
-    const f = { type: '', filterPage: '', date: '' }
-    setFilters(f)
+    setFilters(EMPTY_FILTERS)
+    setAppliedFilters(EMPTY_FILTERS)
     setPage(1)
-    loadLogs(1, f)
   }
 
   function handlePage(p) {
@@ -182,7 +183,7 @@ export function LogsViewer() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log, i) => (
+              {logs.map((log) => (
                 <>
                   <tr
                     key={log.id}

@@ -8,7 +8,7 @@ import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Stethoscope, Tags } from 'lucide-react'
 
 function normalizeImageUrl(image) {
-  if (!image) return '/images/og-default.jpg'
+  if (!image) return '/images/og/blog.webp'
   if (image.startsWith('http://') || image.startsWith('https://')) return image
   if (image.startsWith('/')) return image
   const normalizedImage = image.replace(/^\/?/, '')

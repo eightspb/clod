@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 function StatCard({ title, value, sub, color }) {
@@ -96,15 +96,15 @@ function EventTypeBadge({ type }) {
 export function Dashboard() {
   const { data: stats, loading, error, fetchData } = useAdminFetch()
 
-  async function loadStats() {
+  const loadStats = useCallback(async () => {
     await fetchData('/api/admin/stats', { errorMessage: 'Не удалось загрузить статистику' })
-  }
+  }, [fetchData])
 
   useEffect(() => {
     loadStats()
     const interval = setInterval(loadStats, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [loadStats])
 
   if (loading) return <div style={{ color: '#64748b', padding: '40px', textAlign: 'center' }}>Загрузка...</div>
   if (error) return <div style={{ color: '#dc2626', padding: '20px' }}>{error}</div>

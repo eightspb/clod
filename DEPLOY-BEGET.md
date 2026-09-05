@@ -338,7 +338,7 @@ crontab -e
 Добавьте строку (перезагрузка Nginx раз в сутки):
 
 ```
-0 3 * * * docker compose -f /srv/clod/docker-compose.yml exec nginx nginx -s reload
+0 3 * * * docker compose -f /srv/clod/docker-compose.yml exec -T nginx nginx -s reload
 ```
 
 Либо после ручного обновления сертификатов выполните на сервере:

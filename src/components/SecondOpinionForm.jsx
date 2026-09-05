@@ -158,14 +158,14 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
 
   if (isSuccess) {
     return (
-      <div className="clay clay-card-mint p-6 relative overflow-hidden text-center">
+      <div className="clay clay-card-mint p-6 relative overflow-hidden text-center" role="status">
         <div className="flex justify-center mb-4">
           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
             <CheckCircle className="text-clay-mint" size={24} />
           </div>
         </div>
-        <h3 className="font-extrabold text-white text-xl mb-2">Заявка успешно отправлена!</h3>
-        <p className="text-white/90 text-xs leading-relaxed mb-6">
+        <h3 className="font-extrabold text-clay-dark text-xl mb-2">Заявка успешно отправлена!</h3>
+        <p className="text-clay-text text-xs leading-relaxed mb-6">
           Мы получили ваши данные и снимки. Наш специалист свяжется с вами в течение рабочего дня (пн-пт 9:00-20:00).
         </p>
         <button
@@ -317,15 +317,16 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
             Прикрепить документы (до {MAX_FILES} файлов) <span className="text-clay-peach">*</span>
           </label>
           
-          <div className="clay clay-card-soft-mint border border-dashed border-clay-mint/30 p-3 rounded-xl bg-white/50">
+          <div className="file-upload-field clay clay-card-soft-mint border border-dashed border-clay-mint/30 p-3 rounded-xl bg-white/50">
             <input
               type="file"
               id="file-upload"
               multiple
               onChange={handleFileChange}
               disabled={isSubmitting || files.length >= MAX_FILES}
-              className="hidden"
+              className="sr-only"
               accept=".pdf,.jpg,.jpeg,.png"
+              aria-describedby="file-upload-hint"
             />
             <label
               htmlFor="file-upload"
@@ -360,7 +361,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
               </div>
             )}
             
-            <p className="text-xs text-clay-muted mt-2 text-center">
+            <p id="file-upload-hint" className="text-xs text-clay-muted mt-2 text-center">
               PDF, JPG, JPEG, PNG. До 10 МБ на файл, суммарно до 25 МБ.
             </p>
           </div>

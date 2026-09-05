@@ -4,6 +4,8 @@ import { getContainerRenderer } from '@astrojs/react'
 import { load } from 'cheerio'
 import { loadRenderers } from 'astro:container'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import DoctorRoute from '../pages/doctors/[slug].astro'
 import Layout from './Layout.astro'
@@ -55,5 +57,16 @@ describe('Layout booking flow', () => {
     const props = deserializeProps($('astro-island[component-export="BookingFlow"]').attr('props'))
     const general = $('astro-island[component-export="Header"] [data-booking-btn], astro-island[component-export="StickyCTA"] [data-booking-btn]')
     expect({ pageDoctorSlug: props.pageDoctorSlug, generalCount: general.length, explicitDoctors: general.map((_index, trigger) => $(trigger).attr('data-booking-doctor')).get() }).toEqual({ pageDoctorSlug: 'egorova', generalCount: 2, explicitDoctors: [] })
+  })
+})
+
+describe('Layout structured data', () => {
+  it('publishes MedicalBusiness without a self-declared rating and with assets that exist', async () => {
+    const html = await renderLayout('')
+    const $ = load(html)
+    const business = $('script[type="application/ld+json"]').map((_index, node) => JSON.parse($(node).html())).get().find((node) => node['@type'] === 'MedicalBusiness')
+    const ogImage = $('meta[property="og:image"]').attr('content')
+    const localPath = (url) => join(process.cwd(), 'public', new URL(url).pathname)
+    expect({ rating: business.aggregateRating, logo: existsSync(localPath(business.logo)), image: existsSync(localPath(business.image)), ogImage: existsSync(localPath(ogImage)) }).toEqual({ rating: undefined, logo: true, image: true, ogImage: true })
   })
 })

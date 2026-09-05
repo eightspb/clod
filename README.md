@@ -71,7 +71,7 @@ bun run preview        # превью собранного билда
 | `bun run test:coverage` | Тесты с отчётом покрытия |
 | `bun run test:e2e` | E2E-тесты (Playwright) |
 | `bun run test:e2e -- e2e/booking.spec.js --project=chromium --workers=1` | Изолированный booking E2E с локальными route mocks и без реального Medflex POST |
-| `bun run lint` | Проверка кода ESLint |
+| `bun run lint` | Проверка кода ESLint; охватывает `src/components/admin/**` и `src/middleware.js` |
 | `bun run lint:fix` | Автоисправление ESLint |
 
 ### Покрытие тестами
@@ -327,7 +327,7 @@ Server-side интеграция принимает подписанные вх�
 
 ### Админ-панель
 
-Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
+Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`. Кнопка «Выйти» остаётся видимой на мобильной ширине (контракт в `e2e/admin-security.spec.js` для 375×812) и показывает `role="alert"`, если `POST /api/auth/logout` не ответил `2xx`, вместо слепого перехода на страницу входа.
 
 | Раздел | URL | Описание |
 |---|---|---|
@@ -355,8 +355,7 @@ clod/
 │   └── navigation.spec.js        # Навигация
 ├── public/                        # Статические ассеты
 │   ├── tracker.js                 # Клиентский трекер аналитики
-│   ├── robots.txt                 # Директивы для поисковых роботов
-│   ├── sitemap.xml                # Карта сайта для SEO
+│   ├── robots.txt                 # Ссылается на автогенерируемый sitemap-index.xml
 │   └── uploads/                   # Медиафайлы (разбиты по папкам: doctors и т.д.)
 ├── src/
 │   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
@@ -369,7 +368,7 @@ clod/
 │   │   │   ├── SecondOpinionSection.jsx  # Баннер второго мнения
 │   │   │   ├── VabSection.jsx     # Блок ВАБ
 │   │   │   ├── DirectContactSection.jsx  # Прямая связь
-│   │   │   ├── ReviewsSection.jsx # Отзывы пациентов
+│   │   │   ├── ReviewsSection.jsx # Отзывы с ПроДокторов из doctors-data.js со ссылкой на источник
 │   │   │   └── AppointmentFormSection.jsx # CTA входа в общий first-party BookingFlow
 │   │   ├── booking/               # Диалог записи: врачи, тип приёма, расписание, пациент, результат
 │   │   ├── pages/                 # React-компоненты страниц
@@ -666,7 +665,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `WhyUsSection.jsx` | 74 | «Почему выбирают» + статистика |
 | `DoctorsSection.jsx` | — | Фильтры + полноэкранная mobile-карусель / desktop-карточки врачей |
 | `DirectContactSection.jsx` | 61 | «Прямая связь» + телефон/Telegram |
-| `ReviewsSection.jsx` | 78 | Отзывы пациентов |
+| `ReviewsSection.jsx` | — | Четыре отзыва из `doctors-data.js` с автором, врачом и ссылкой на профиль ПроДокторов |
 | `AppointmentFormSection.jsx` | — | First-party CTA; данные пациента вводятся только внутри общего `BookingFlow` |
 
 ### Hero-слайдер
@@ -837,7 +836,7 @@ integrations: [
 | A1 - Sitemap | ✅ | `@astrojs/sitemap` автогенерация, удалён хардкодный `public/sitemap.xml` |
 | A2 - GEO-метатеги | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
 | A3 - Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
-| A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `aggregateRating`, `sameAs`, полный `PostalAddress` |
+| A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `sameAs`, полный `PostalAddress`; `aggregateRating` у клиники убран как неподтверждаемый, `logo` ведёт на `/images/logo.png`, `image` и og:image по умолчанию — на `/images/og/index.webp` |
 | A5 - BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
 | A6 - Самохостинг шрифтов | ✅ | Inter woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">` |
 | B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
@@ -850,7 +849,7 @@ integrations: [
 | C3 - OG расширенные теги | ✅ | `og:image:width` (1200), `og:image:height` (630), `og:image:alt` добавлены в `Layout.astro` |
 | C4 - addressRegion в Physician schema | ✅ | `"addressRegion": "Санкт-Петербург"` добавлен в `worksFor.address` JSON-LD врачей |
 | E19 - Онлайн-запись на главной | ✅ | `AppointmentFormSection` открывает общий first-party `BookingFlow`; данные пациента не дублируются в секции главной |
-| E20 - Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 карточки с именем, звёздами, текстом и датой |
+| E20 - Блок отзывов на главной | ✅ | `ReviewsSection` в `Home.jsx`: 4 реальных отзыва из `doctors-data.js` с автором, врачом и ссылкой на ПроДокторов; выдуманные карточки и звёзды без источника убраны |
 | E22 - Страница О клинике | ✅ | `/about` - миссия (приветствие главврача), руководство (3 человека), документы (лицензия, СОУТ, реквизиты), преимущества (6 пунктов), оборудование (4 пункта), CTA |
 | E24 - Способы оплаты на /prices | ✅ | Секция "Способы оплаты" в `Prices.jsx`: наличные/карты, ДМС, рассрочка |
 | E25 - Sticky CTA на мобильных | ✅ | `StickyCTA.jsx` в `Layout.astro`: "Позвонить" + "Записаться", `md:hidden` |
@@ -1011,12 +1010,20 @@ Certbot-контейнер проверяет сертификат каждые 
 Для применения обновлённого сертификата добавьте cron на хосте:
 
 ```
-0 3 * * * docker compose -f /srv/clod/docker-compose.yml exec nginx nginx -s reload
+0 3 * * * docker compose -f /srv/clod/docker-compose.yml exec -T nginx nginx -s reload
 ```
 
 ---
 
 ## Последние изменения (сентябрь 2026)
+
+### Быстрые победы аудита (5 сентября 2026)
+
+- **Форма «Второе мнение»**: файловое поле скрыто через `sr-only`, а не `display:none`, поэтому доступно с клавиатуры; обёртка `.file-upload-field` подсвечивает label при `input:focus-visible`; подтверждение отправки использует токены `text-clay-dark`/`text-clay-text` и `role="status"`
+- **JSON-LD и OG**: убран непроверяемый `aggregateRating` 4.9/200 из `Layout.astro` и `/contacts`; несуществующий `/images/og-default.jpg` заменён на `logo.png` и `og/index.webp`, в блоге fallback — `og/blog.webp`; `robots.txt` указывает на `sitemap-index.xml`
+- **Отзывы на главной**: `ReviewsSection` берёт отзывы из `doctors-data.js` и ссылается на профиль ПроДокторов
+- **Админка**: `SessionsViewer` больше не вызывает несуществующий `setLoading`; фильтры `LogsViewer` запрашивают журнал только после «Применить»; кнопка «Выйти» видна на mobile и проверяет ответ API; ESLint снова проверяет `src/components/admin/**` и `src/middleware.js`
+- **Документация**: cron перезагрузки nginx использует `exec -T`
 
 ### Апгрейд на Astro 7
 
