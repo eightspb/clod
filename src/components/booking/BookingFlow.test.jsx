@@ -213,11 +213,11 @@ describe('BookingFlow delegated opening', () => {
 })
 
 describe('BookingFlow schedule selection', () => {
-  it('shows multiple live appointment types with current price and age', async () => {
+  it('shows multiple live appointment types with current price only', async () => {
     renderFlow({ explicitDoctor: 'odintsov', responses: [json(availableSchedule({ appointmentTypes: MULTIPLE_TYPES }))] })
     await screen.findByRole('heading', { name: 'Выберите тип приёма' })
     const options = screen.getAllByRole('button', { name: /Маммолог|Врач УЗИ/ }).map((button) => button.textContent)
-    expect(options).toEqual(['Маммолог4 900 ₽18–65 лет', 'Врач УЗИ0 ₽Без возрастных ограничений'])
+    expect(options).toEqual(['Маммолог4\u00a0900 ₽', 'Врач УЗИ0 ₽'])
   })
 
   it('shows only sparse available dates and switches their grouped times', async () => {
