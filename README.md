@@ -124,6 +124,10 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 Контракт действует на профильных страницах маммологии, гинекологии, эндокринологии, нутрициологии, второго мнения и ВАБ, а также на страницах аденомиоза, эндометриоза, эрозии шейки матки, фиброаденомы, гипотиреоза, кисты молочной железы, мастопатии и тиреоидита Хашимото. Каждая карусель получает контекстную accessibility-метку; кнопка записи и ссылка на профиль всегда относятся к активному врачу.
 
+С сентября 2026 года hero-блок с несколькими врачами на desktop тоже показывает эту карусель (`MobileDoctorCarousel` с `variant="desktop"` и `portraitMedia` из `desktopMedia`) вместо прежней случайной ротации `HeroDoctorCard`; та остаётся только для одного врача. Desktop-вариант ограничен колонкой (`max-width: 24rem`, `height: 36rem`), а общие coverflow-правила вынесены из mobile media query и параметризованы переменными `--mobile-doctor-slide-width`, `--mobile-doctor-near-offset`, `--mobile-doctor-far-offset` и `--mobile-doctor-name-size`. Автопрокрутки нет ни на mobile, ни на desktop: врач меняется стрелками, клавиатурой, перетаскиванием мышью или свайпом.
+
+Свайп пальцем обрабатывается нативными `touchstart`/`touchmove` слушателями (`passive: false`) через `src/lib/swipe-gesture.js`: ось жеста фиксируется после первых 10 px, горизонтальный жест вызывает `preventDefault` и переключает врача уже во время движения после 48 px. Это нужно для iOS Safari, который при `touch-action: pan-y` шлёт `pointercancel` на любой горизонтальный свайп с вертикальным дрейфом, поэтому решение по `pointerup` на реальном iPhone не срабатывало. Pointer-события с `pointerType: 'touch'` игнорируются, чтобы жест не обрабатывался дважды; мышь и стилус по-прежнему идут через pointer-события.
+
 В соответствии с Astro-first подходом `client:idle` добавлен только на ранее статические multi-doctor routes `/mammology`, `/gynecology`, `/nutrition` и `/vab`. `/second-opinion` уже был интерактивным, `/endocrinology` остаётся статическим из-за одного врача, а disease routes уже использовали hydration, поэтому их Astro-файлы не менялись.
 
 ### Аналитика и трекинг
@@ -346,6 +350,7 @@ clod/
 │   └── ci.yml                    # GitHub Actions: lint, test, build, e2e
 ├── e2e/                          # E2E-тесты (Playwright)
 │   ├── booking.spec.js           # First-party запись с полностью перехваченными GET/POST без Medflex network
+│   ├── doctor-profile-hero.spec.js # Hero-карточка врача целиком помещается в desktop viewport 1440x800 и 1280x800
 │   ├── home.spec.js              # Главная страница
 │   └── navigation.spec.js        # Навигация
 ├── public/                        # Статические ассеты
@@ -598,7 +603,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `publications[]` | `{title, year, type, note?}[]` | Научные публикации и диссертации (только у Одинцова) |
 | `tvLinks[]` | `{title, channel, url, year}[]` | Ссылки на TV-выступления (только у Одинцова) |
 
-`DoctorPage.jsx` отображает секции «Научные публикации и патенты» и «Выступления в СМИ» при наличии соответствующих данных.
+`DoctorPage.jsx` отображает секции «Научные публикации и патенты» и «Выступления в СМИ» при наличии соответствующих данных. Hero-карточка врача на desktop должна целиком помещаться в viewport без прокрутки (контракт в `e2e/doctor-profile-hero.spec.js` для 1440x800 и 1280x800): заголовок ограничен `sm:text-4xl`, портрет абсолютно позиционирован и растягивается по высоте текстовой колонки вместо фиксированных 630 px, а рейтинг ПроДокторов показан внутри плитки «Отзывы» без отдельной строки под кнопками. Портреты врачей в desktop mega-menu «Доктора» имеют размер 45 px.
 
 ### Централизованные данные и утилиты (`src/lib/`)
 
@@ -606,6 +611,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 |---|---|---|
 | `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs` |
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
+| `swipe-gesture.js` | `createSwipeGesture` — фиксация оси жеста и один шаг за свайп для touch и pointer | `MobileDoctorCarousel` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
 | `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `ServicesSection`, `WhyUsSection` |
