@@ -10,21 +10,28 @@ function createDoctors() {
 }
 
 describe('ResponsiveDoctorHero', () => {
-  it('presents two doctors as a carousel with its exact accessible label', () => {
+  it('presents two doctors as carousels with their exact accessible label', () => {
     const doctors = createDoctors()
     const label = 'Карусель эндокринологов'
     render(<ResponsiveDoctorHero doctors={doctors} label={label} ctaHref="/second-opinion" desktopClassName="md:block" desktopMedia="(min-width: 768px)" />)
-    expect(screen.getByRole('region', { name: label })).toHaveAttribute('aria-roledescription', 'carousel')
+    expect(screen.getAllByRole('region', { name: label }).map((region) => region.getAttribute('aria-roledescription'))).toEqual(['carousel', 'carousel'])
   })
 
-  it('keeps the desktop hero branch in its supplied wrapper with CTA and portrait media', () => {
+  it('presents the desktop hero branch as the same carousel gated to the desktop media', () => {
     const doctors = createDoctors()
     const desktopClassName = 'hidden lg:block specialty-hero-desktop'
     const desktopMedia = '(min-width: 1024px)'
     const { container } = render(<ResponsiveDoctorHero doctors={doctors} label="Карусель маммологов" ctaHref="/consultation" desktopClassName={desktopClassName} desktopMedia={desktopMedia} />)
     const wrapper = container.querySelector('.specialty-hero-desktop')
-    const portrait = within(wrapper).getByRole('img', { name: doctors[0].name })
-    expect({ heading: within(wrapper).getByRole('heading', { name: doctors[0].name }).textContent, cta: within(wrapper).getByRole('link', { name: /записаться к анне/i }).getAttribute('href'), media: portrait.closest('picture')?.querySelector('source')?.getAttribute('media') }).toEqual({ heading: doctors[0].name, cta: '/consultation', media: desktopMedia })
+    const region = within(wrapper).getByRole('region', { name: 'Карусель маммологов' })
+    expect({ variant: region.dataset.variant, controls: within(region).getAllByRole('button', { name: /предыдущий врач|следующий врач/i }).length, media: region.querySelector('source')?.getAttribute('media'), booking: region.querySelector('[data-booking-doctor]')?.getAttribute('data-booking-doctor') }).toEqual({ variant: 'desktop', controls: 2, media: desktopMedia, booking: doctors[0].slug })
+  })
+
+  it('keeps the mobile carousel hidden on desktop next to the desktop variant', () => {
+    const doctors = createDoctors()
+    render(<ResponsiveDoctorHero doctors={doctors} label="Карусель гинекологов" ctaHref="/second-opinion" />)
+    const regions = screen.getAllByRole('region', { name: 'Карусель гинекологов' })
+    expect(regions.map((region) => ({ variant: region.dataset.variant, mobileOnly: region.classList.contains('md:hidden') }))).toEqual([{ variant: 'mobile', mobileOnly: true }, { variant: 'desktop', mobileOnly: false }])
   })
 
   it('keeps one doctor as a non-carousel hero fallback', () => {

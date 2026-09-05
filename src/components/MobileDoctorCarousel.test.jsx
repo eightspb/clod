@@ -86,10 +86,29 @@ function installSelectionFeedbackFakes({ state = 'running' } = {}) {
   return calls
 }
 
-function pointerEvent(type, { x, y, pointerId = 7, isPrimary = true }) {
+function pointerEvent(type, { x, y, pointerId = 7, isPrimary = true, pointerType = 'mouse' }) {
   const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y })
-  Object.defineProperties(event, { isPrimary: { value: isPrimary }, pointerId: { value: pointerId } })
+  Object.defineProperties(event, { isPrimary: { value: isPrimary }, pointerId: { value: pointerId }, pointerType: { value: pointerType } })
   return event
+}
+
+function touchEvent(type, point) {
+  const event = new Event(type, { bubbles: true, cancelable: true })
+  const touches = point ? [{ clientX: point.x, clientY: point.y, identifier: 1 }] : []
+  Object.defineProperties(event, { touches: { value: touches }, changedTouches: { value: touches } })
+  return event
+}
+
+function fingerSwipe(stage, points) {
+  const [first, ...rest] = points
+  fireEvent(stage, touchEvent('touchstart', first))
+  const moves = rest.map((point) => {
+    const event = touchEvent('touchmove', point)
+    fireEvent(stage, event)
+    return event
+  })
+  fireEvent(stage, touchEvent('touchend'))
+  return moves
 }
 
 afterEach(() => vi.unstubAllGlobals())
@@ -249,6 +268,73 @@ describe('MobileDoctorCarousel', () => {
     fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140, isPrimary: false }))
     fireEvent(stage, pointerEvent('pointerup', { x: 160, y: 145, isPrimary: false }))
     expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('ignores pointer events that mirror a touch gesture', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Дублирующий touch-указатель" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fireEvent(stage, pointerEvent('pointerdown', { x: 260, y: 140, pointerType: 'touch' }))
+    fireEvent(stage, pointerEvent('pointerup', { x: 160, y: 145, pointerType: 'touch' }))
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('moves to the next doctor while a finger swipes left', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Свайп пальцем" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fingerSwipe(stage, [{ x: 260, y: 140 }, { x: 230, y: 143 }, { x: 190, y: 147 }])
+    expect(screen.getByRole('group', { name: /Каримов Руслан Фаридович/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('moves to the previous doctor while a finger swipes right', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Свайп пальцем вправо" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fingerSwipe(stage, [{ x: 100, y: 140 }, { x: 130, y: 142 }, { x: 170, y: 146 }])
+    expect(screen.getByRole('group', { name: /Акопян Лусине Арменовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('blocks native scrolling once a finger swipe is horizontal', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Горизонтальный жест" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    const moves = fingerSwipe(stage, [{ x: 260, y: 140 }, { x: 240, y: 142 }, { x: 236, y: 170 }])
+    expect(moves.map((event) => event.defaultPrevented)).toEqual([true, true])
+  })
+
+  it('leaves native vertical scrolling untouched from the portrait track', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Вертикальная прокрутка" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    const moves = fingerSwipe(stage, [{ x: 260, y: 140 }, { x: 262, y: 165 }, { x: 200, y: 200 }])
+    expect(moves.map((event) => event.defaultPrevented)).toEqual([false, false])
+  })
+
+  it('changes exactly one doctor per finger swipe', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Один шаг за жест" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fingerSwipe(stage, [{ x: 300, y: 140 }, { x: 200, y: 143 }, { x: 60, y: 147 }])
+    expect(screen.getByRole('group', { name: /Каримов Руслан Фаридович/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('ignores a finger swipe shorter than 48 pixels', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Короткий свайп" />)
+    const stage = screen.getByRole('group', { name: 'Листать врачей' })
+    fingerSwipe(stage, [{ x: 260, y: 140 }, { x: 240, y: 142 }, { x: 225, y: 143 }])
+    expect(screen.getByRole('group', { name: /Белова Эльвира Рашидовна/ })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('hides the default carousel on desktop viewports', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Мобильная карусель" />)
+    expect(screen.getByRole('region', { name: 'Мобильная карусель' })).toHaveClass('md:hidden')
+  })
+
+  it('renders the desktop variant without the mobile-only hiding class', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Карусель в hero" variant="desktop" portraitMedia="(min-width: 768px)" />)
+    const region = screen.getByRole('region', { name: 'Карусель в hero' })
+    expect({ variant: region.dataset.variant, hidden: region.classList.contains('md:hidden') }).toEqual({ variant: 'desktop', hidden: false })
+  })
+
+  it('media-gates desktop portraits to the supplied query', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Карусель в hero" variant="desktop" portraitMedia="(min-width: 1024px)" />)
+    const media = Array.from(container.querySelectorAll('source'), (source) => source.getAttribute('media'))
+    expect(new Set(media)).toEqual(new Set(['(min-width: 1024px)']))
   })
 
   it('supports ArrowLeft, ArrowRight, Home, and End keys', () => {

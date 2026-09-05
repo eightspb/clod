@@ -135,7 +135,7 @@ export function Fibroadenoma() {
               doctors={SPECIALTY_DOCTORS}
               label="Карусель маммологов на странице о фиброаденоме"
               ctaHref="/second-opinion"
-              desktopClassName="hidden lg:block [&_.hero-doctor-card-inner]:overflow-hidden [&_.hero-doctor-photo-link]:max-h-[260px] [&_.hero-doctor-photo-link]:overflow-hidden [&_.hero-doctor-photo]:max-h-[260px] [&_.hero-doctor-photo]:object-contain [&_.hero-doctor-info]:p-4"
+              desktopClassName="hidden lg:block"
               desktopMedia="(min-width: 1024px)"
             />
           </div>

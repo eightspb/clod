@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { StarRating } from './StarRating.jsx'
 import { createSelectionFeedback } from '../lib/selection-feedback.js'
+import { createSwipeGesture } from '../lib/swipe-gesture.js'
 
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+const MOBILE_PORTRAIT_MEDIA = '(max-width: 767px)'
 
 function coverflowPosition(index, activeIndex, length) {
   if (index === activeIndex) return 'current'
@@ -22,10 +24,44 @@ function portraitSource(doctor) {
 
 function doctorNameLines(name) {
   const [surname = '', givenName = '', ...patronymic] = name.trim().split(/\s+/)
-  return [`${surname} ${givenName}`.trim(), patronymic.join(' ') || '\u00a0']
+  return [`${surname} ${givenName}`.trim(), patronymic.join(' ') || ' ']
 }
 
-function DoctorPortraitSlide({ doctor, index, count, position, visualClone = false }) {
+function touchPoint(event) {
+  return { x: event.touches[0].clientX, y: event.touches[0].clientY }
+}
+
+/**
+ * Binds native touch listeners because React registers touchmove passively;
+ * a horizontal swipe must call preventDefault or iOS Safari cancels it as a scroll.
+ */
+function useFingerSwipe(trackRef, gesture, onStep) {
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return undefined
+    const stop = () => gesture.end()
+    const begin = (event) => (event.touches.length === 1 ? gesture.begin(touchPoint(event)) : gesture.end())
+    const move = (event) => {
+      if (event.touches.length !== 1) return
+      const { horizontal, step } = gesture.track(touchPoint(event))
+      if (!horizontal) return
+      if (event.cancelable) event.preventDefault()
+      if (step !== 0) onStep(step)
+    }
+    track.addEventListener('touchstart', begin, { passive: true })
+    track.addEventListener('touchmove', move, { passive: false })
+    track.addEventListener('touchend', stop)
+    track.addEventListener('touchcancel', stop)
+    return () => {
+      track.removeEventListener('touchstart', begin)
+      track.removeEventListener('touchmove', move)
+      track.removeEventListener('touchend', stop)
+      track.removeEventListener('touchcancel', stop)
+    }
+  })
+}
+
+function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia, visualClone = false }) {
   const isActive = position === 'current'
   const shouldLoadPortrait = position !== 'hidden'
   const specialty = doctor.specialization.split(',')[0].trim()
@@ -45,7 +81,7 @@ function DoctorPortraitSlide({ doctor, index, count, position, visualClone = fal
       <div className="mobile-doctor-portrait-wrap">
         {shouldLoadPortrait ? (
           <picture className="mobile-doctor-picture">
-            <source media="(max-width: 767px)" srcSet={portraitSource(doctor)} />
+            <source media={portraitMedia} srcSet={portraitSource(doctor)} />
             <img
               src={TRANSPARENT_PIXEL}
               alt={`${specialty.toLowerCase()} ${doctor.name}, клиника Одинцова, СПб`}
@@ -65,23 +101,24 @@ function DoctorPortraitSlide({ doctor, index, count, position, visualClone = fal
 }
 
 /**
- * Presents doctors as an accessible circular coverflow on mobile viewports.
+ * Presents doctors as an accessible circular coverflow; the mobile variant is
+ * full-bleed and hidden on desktop, the desktop variant fits a hero column.
  */
-export function MobileDoctorCarousel({ doctors, label }) {
+export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portraitMedia = MOBILE_PORTRAIT_MEDIA }) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const pointerStartRef = useRef(null)
+  const trackRef = useRef(null)
+  const pointerIdRef = useRef(undefined)
+  const gestureRef = useRef(undefined)
   const selectionFeedbackRef = useRef(null)
   const doctorKey = useMemo(() => doctors.map((doctor) => doctor.slug).join('|'), [doctors])
+  gestureRef.current ||= createSwipeGesture()
+  const gesture = gestureRef.current
   useEffect(() => {
     setActiveIndex(0)
-    pointerStartRef.current = null
-  }, [doctorKey])
+    gesture.end()
+  }, [doctorKey, gesture])
   useEffect(() => () => selectionFeedbackRef.current?.close(), [])
-  if (!doctors.length) return null
   const currentIndex = activeIndex < doctors.length ? activeIndex : 0
-  const activeDoctor = doctors[currentIndex]
-  const activeSpecialty = activeDoctor.specialization.split(',')[0].trim()
-  const activeNameLines = doctorNameLines(activeDoctor.name)
   function moveTo(index) {
     const nextIndex = (index + doctors.length) % doctors.length
     if (nextIndex === currentIndex) return
@@ -89,6 +126,11 @@ export function MobileDoctorCarousel({ doctors, label }) {
     selectionFeedbackRef.current.play()
     setActiveIndex(nextIndex)
   }
+  useFingerSwipe(trackRef, gesture, (step) => moveTo(currentIndex + step))
+  if (!doctors.length) return null
+  const activeDoctor = doctors[currentIndex]
+  const activeSpecialty = activeDoctor.specialization.split(',')[0].trim()
+  const activeNameLines = doctorNameLines(activeDoctor.name)
   function handleKeyDown(event) {
     const destinations = {
       ArrowLeft: currentIndex - 1,
@@ -101,29 +143,30 @@ export function MobileDoctorCarousel({ doctors, label }) {
     moveTo(destinations[event.key])
   }
   function handlePointerDown(event) {
-    if (event.isPrimary === false) return
-    pointerStartRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+    if (event.isPrimary === false || event.pointerType === 'touch') return
+    pointerIdRef.current = event.pointerId
+    gesture.begin({ x: event.clientX, y: event.clientY })
     if (typeof event.currentTarget.setPointerCapture === 'function') event.currentTarget.setPointerCapture(event.pointerId)
   }
   function handlePointerUp(event) {
-    const start = pointerStartRef.current
-    pointerStartRef.current = null
-    if (!start || start.pointerId !== event.pointerId) return
-    const horizontal = event.clientX - start.x
-    const vertical = event.clientY - start.y
-    if (Math.abs(horizontal) < 48 || Math.abs(horizontal) <= Math.abs(vertical)) return
-    moveTo(currentIndex + (horizontal < 0 ? 1 : -1))
+    if (pointerIdRef.current !== event.pointerId) return
+    pointerIdRef.current = undefined
+    const { step } = gesture.track({ x: event.clientX, y: event.clientY })
+    gesture.end()
+    if (step !== 0) moveTo(currentIndex + step)
   }
   function handlePointerCancel() {
-    pointerStartRef.current = null
+    pointerIdRef.current = undefined
+    gesture.end()
   }
   return (
     <section
-      className="mobile-doctor-carousel md:hidden"
+      className={variant === 'mobile' ? 'mobile-doctor-carousel md:hidden' : 'mobile-doctor-carousel'}
       role="region"
       aria-roledescription="carousel"
       aria-label={label}
       data-mobile-doctor-carousel
+      data-variant={variant}
     >
       <div className="mobile-doctor-carousel-controls">
         <button type="button" onClick={() => moveTo(currentIndex - 1)} aria-label="Предыдущий врач">
@@ -137,6 +180,7 @@ export function MobileDoctorCarousel({ doctors, label }) {
         </button>
       </div>
       <div
+        ref={trackRef}
         className="mobile-doctor-carousel-track"
         role="group"
         aria-label="Листать врачей"
@@ -155,6 +199,7 @@ export function MobileDoctorCarousel({ doctors, label }) {
               index={index}
               count={doctors.length}
               position={position}
+              portraitMedia={portraitMedia}
             />
           )
         })}
@@ -165,6 +210,7 @@ export function MobileDoctorCarousel({ doctors, label }) {
             index={(currentIndex + 1) % 2}
             count={doctors.length}
             position="previous"
+            portraitMedia={portraitMedia}
             visualClone
           />
         )}

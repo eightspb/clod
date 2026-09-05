@@ -125,7 +125,12 @@ async function mobileHeroLayout(page) {
 
 async function mammologyDesktopState(page) {
   const { hero, lower } = mammologySections(page)
-  return { mobileCarousels: await page.locator(`${CAROUSEL_SELECTOR}:visible`).count(), heroCards: await hero.locator('.hero-doctor-card:visible').count(), doctorCards: await lower.locator('.doctor-card:visible').count() }
+  const heroCarouselInsideColumn = await hero.locator(`${CAROUSEL_SELECTOR}[data-variant="desktop"]`).evaluate((carousel) => {
+    const column = carousel.parentElement.getBoundingClientRect()
+    const box = carousel.getBoundingClientRect()
+    return box.width > 0 && box.left >= column.left - 1 && box.right <= column.right + 1
+  })
+  return { mobileCarousels: await page.locator(`${CAROUSEL_SELECTOR}:visible`).count(), desktopVariants: await page.locator(`${CAROUSEL_SELECTOR}[data-variant="desktop"]:visible`).count(), heroCards: await hero.locator('.hero-doctor-card:visible').count(), doctorCards: await lower.locator('.doctor-card:visible').count(), heroCarouselInsideColumn }
 }
 
 async function singleDoctorState(page, sectionHeading) {
@@ -187,10 +192,10 @@ test('keeps the /mammology mobile hero below the header and copy without page ov
   expect(layout).toEqual({ scrollY: 0, headerDoesNotOverlap: true, pageFitsViewport: true, copyBeforeCarousel: true, heroLegacyCards: 0, lowerCarousels: 1, lowerLegacyCards: 0 })
 })
 
-test('keeps the /mammology desktop hero and doctor grid while hiding mobile carousels', async ({ page }) => {
+test('shows the /mammology desktop hero carousel and doctor grid while hiding the mobile carousel', async ({ page }) => {
   await visitCarouselRoute(page, '/mammology', DESKTOP_VIEWPORT)
   const state = await mammologyDesktopState(page)
-  expect(state).toEqual({ mobileCarousels: 0, heroCards: 1, doctorCards: 5 })
+  expect(state).toEqual({ mobileCarousels: 1, desktopVariants: 1, heroCards: 0, doctorCards: 5, heroCarouselInsideColumn: true })
 })
 
 for (const { route, sectionHeading, heroDoctor } of SINGLE_DOCTOR_ROUTES) {

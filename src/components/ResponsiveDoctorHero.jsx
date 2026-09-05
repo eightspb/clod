@@ -14,7 +14,7 @@ export function ResponsiveDoctorHero({ doctors = [], label = 'Карусель �
     <>
       <MobileDoctorCarousel doctors={doctors} label={label} />
       <div className={desktopClassName}>
-        <HeroDoctorCard doctors={doctors} ctaHref={ctaHref} portraitMedia={desktopMedia} />
+        <MobileDoctorCarousel doctors={doctors} label={label} variant="desktop" portraitMedia={desktopMedia} />
       </div>
     </>
   )

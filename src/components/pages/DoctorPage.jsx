@@ -12,6 +12,37 @@ function paragraphs(value) {
   return safeText(value).split('\n').filter(Boolean)
 }
 
+function ReviewsStat({ doctor }) {
+  const title = <p className="text-xs font-semibold text-clay-muted">Отзывы</p>
+  if (doctor.proDoctorovRating) {
+    return (
+      <div className="clay clay-card-soft-peach p-4">
+        {title}
+        <div className="mt-1 text-sm font-bold leading-snug text-clay-dark">
+          <StarRating score={doctor.proDoctorovRating.score} reviewCount={doctor.proDoctorovRating.reviewCount} url={doctor.proDoctorovUrl} size={14} variant="compact" />
+        </div>
+      </div>
+    )
+  }
+  if (doctor.proDoctorovUrl) {
+    return (
+      <div className="clay clay-card-soft-peach p-4">
+        {title}
+        <a href={doctor.proDoctorovUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold leading-snug text-clay-dark transition-colors hover:text-clay-mint">
+          ПроДокторов
+          <ExternalLink size={12} aria-hidden="true" />
+        </a>
+      </div>
+    )
+  }
+  return (
+    <div className="clay clay-card-soft-peach p-4">
+      {title}
+      <p className="mt-1 text-sm font-bold leading-snug text-clay-dark">Профиль врача</p>
+    </div>
+  )
+}
+
 export function DoctorPage({ doctor }) {
   if (!doctor) return null
   const alignRight = doctor.photoAlign === 'right'
@@ -22,31 +53,31 @@ export function DoctorPage({ doctor }) {
   return (
     <ErrorBoundary>
     <div className="grain-overlay">
-      <section className="relative overflow-hidden pt-6 pb-10">
+      <section className="relative overflow-hidden pt-4 pb-10">
         <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
         <div className="container-clay relative z-10">
           <a
             href="/doctors"
-            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-clay-muted transition-colors hover:text-clay-mint"
+            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-clay-muted transition-colors hover:text-clay-mint"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             Все доктора
           </a>
           <div className="clay clay-card-lg overflow-hidden">
             <div className={`grid grid-cols-1 gap-0 ${heroGridColumns}`}>
-              <div className={`relative order-2 p-5 sm:p-8 lg:p-10 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
+              <div className={`relative order-2 p-5 sm:p-8 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
                 <div className="mb-4 inline-flex max-w-full rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 shadow-[var(--shadow-xs)]">
                   <p className="truncate text-sm font-semibold text-clay-dark">{safeText(doctor.specialization)}</p>
                 </div>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl heading-display text-clay-dark leading-tight mb-4">
+                <h1 className="text-3xl sm:text-4xl heading-display text-clay-dark leading-tight mb-3">
                   {safeText(doctor.name)}
                 </h1>
                 {doctor.tagline && (
-                  <p className="text-base md:text-lg text-clay-muted leading-relaxed mb-6 max-w-2xl">
+                  <p className="text-base text-clay-muted leading-relaxed mb-4 max-w-2xl">
                     {safeText(doctor.tagline)}
                   </p>
                 )}
-                <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="clay clay-card-soft-mint p-4">
                     <p className="text-xs font-semibold text-clay-muted">Стаж работы</p>
                     <p className="mt-1 font-serif text-3xl font-light leading-none text-clay-dark">{doctor.experienceYears} лет</p>
@@ -55,10 +86,7 @@ export function DoctorPage({ doctor }) {
                     <p className="text-xs font-semibold text-clay-muted">Направление</p>
                     <p className="mt-1 text-sm font-bold leading-snug text-clay-dark">{safeText(doctor.specialization.split(',')[0])}</p>
                   </div>
-                  <div className="clay clay-card-soft-peach p-4">
-                    <p className="text-xs font-semibold text-clay-muted">Отзывы</p>
-                    <p className="mt-1 text-sm font-bold leading-snug text-clay-dark">{doctor.proDoctorovRating ? 'ПроДокторов' : 'Профиль врача'}</p>
-                  </div>
+                  <ReviewsStat doctor={doctor} />
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <button type="button" data-booking-btn="true" data-booking-doctor={doctor.slug} className="clay btn-clay-primary gap-2">
@@ -69,41 +97,9 @@ export function DoctorPage({ doctor }) {
                     {PHONE_DISPLAY}
                   </a>
                 </div>
-                {doctor.proDoctorovRating && (
-                  <div className="mt-4 inline-flex flex-wrap items-center gap-3 rounded-[18px] border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-3 shadow-[var(--shadow-xs)]">
-                    <StarRating
-                      score={doctor.proDoctorovRating.score}
-                      reviewCount={doctor.proDoctorovRating.reviewCount}
-                      url={doctor.proDoctorovUrl}
-                      size={16}
-                      variant="full"
-                    />
-                    <a
-                      href={doctor.proDoctorovUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-semibold text-clay-mint transition-colors hover:underline"
-                    >
-                      Читать отзывы на ПроДокторов
-                    </a>
-                  </div>
-                )}
-                {!doctor.proDoctorovRating && doctor.proDoctorovUrl && (
-                  <div className="mt-4">
-                    <a
-                      href={doctor.proDoctorovUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-clay-muted transition-colors hover:text-clay-mint"
-                    >
-                      <ExternalLink size={12} aria-hidden="true" />
-                      Профиль на ПроДокторов
-                    </a>
-                  </div>
-                )}
               </div>
               {doctorPhoto && (
-                <div className={`relative order-1 flex min-h-[300px] items-end justify-center overflow-hidden bg-[color:var(--surface-accent)] px-6 pt-8 ${alignRight ? 'lg:order-2' : 'lg:order-1'}`}>
+                <div className={`relative order-1 flex min-h-[300px] items-end justify-center overflow-hidden bg-[color:var(--surface-accent)] px-6 pt-8 lg:min-h-0 ${alignRight ? 'lg:order-2' : 'lg:order-1'}`}>
                   <div className="absolute left-6 top-6 rounded-[18px] bg-white/80 px-4 py-2 shadow-[var(--shadow-xs)]">
                     <div className="flex items-center gap-2 text-sm font-bold text-clay-dark">
                       <Award size={16} className="text-clay-mint" aria-hidden="true" />
@@ -113,7 +109,7 @@ export function DoctorPage({ doctor }) {
                   <img
                     src={doctorPhoto}
                     alt={doctorAlt}
-                    className="max-h-[420px] w-auto object-contain object-bottom doctor-photo-shadow lg:h-[630px] lg:max-h-none lg:max-w-none"
+                    className="max-h-[420px] w-auto object-contain object-bottom doctor-photo-shadow lg:absolute lg:inset-x-6 lg:top-8 lg:h-[calc(100%-2rem)] lg:max-h-none lg:w-[calc(100%-3rem)]"
                     loading="lazy"
                   />
                 </div>

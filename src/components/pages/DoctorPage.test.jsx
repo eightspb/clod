@@ -35,10 +35,26 @@ describe('DoctorPage', () => {
     const grid = screen.getByRole('heading', { level: 1 }).parentElement.parentElement
     expect(grid).toHaveClass('lg:grid-cols-[minmax(0,52%)_minmax(360px,48%)]')
   })
-  it('renders enlarged desktop doctor photos', () => {
+  it('stretches the desktop portrait across the content column height', () => {
     render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
     const image = screen.getAllByRole('img', { name: /егорова анастасия/i })[0]
-    expect(image).toHaveClass('lg:h-[630px]')
+    expect(image).toHaveClass('lg:absolute', 'lg:top-8', 'lg:h-[calc(100%-2rem)]')
+  })
+  it('keeps the profile heading at the smaller desktop size', () => {
+    render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
+    const heading = screen.getByRole('heading', { level: 1 })
+    expect({ large: heading.classList.contains('sm:text-4xl'), oversized: heading.classList.contains('md:text-5xl') }).toEqual({ large: true, oversized: false })
+  })
+  it('shows the ProDoctorov rating inside the reviews stat instead of a separate row', () => {
+    render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
+    const reviewsStat = screen.getByText('Отзывы').parentElement
+    const links = screen.getAllByRole('link', { name: /продокторов/i })
+    expect({ ratingInsideStat: reviewsStat.contains(links[0]), ratingLinks: links.length }).toEqual({ ratingInsideStat: true, ratingLinks: 1 })
+  })
+  it('links the reviews stat to ProDoctorov when only the profile URL is known', () => {
+    render(<DoctorPage doctor={{ ...RIGHT_PHOTO_DOCTOR, proDoctorovRating: undefined }} />)
+    const reviewsStat = screen.getByText('Отзывы').parentElement
+    expect(reviewsStat.querySelector('a')).toHaveAttribute('href', RIGHT_PHOTO_DOCTOR.proDoctorovUrl)
   })
   it('places the doctor photo above content on mobile layouts', () => {
     render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)

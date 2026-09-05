@@ -119,6 +119,13 @@ describe('Header', () => {
     expect(screen.getByRole('menu', { name: /^доктора$/i })).toBeInTheDocument()
   })
 
+  it('renders desktop doctors menu portraits at 45 pixels', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /показать подразделы: доктора/i }))
+    const portrait = within(screen.getByRole('menu', { name: /^доктора$/i })).getAllByRole('img')[0]
+    expect({ width: portrait.getAttribute('width'), height: portrait.getAttribute('height'), sized: portrait.classList.contains('h-[45px]') && portrait.classList.contains('w-[45px]') }).toEqual({ width: '45', height: '45', sized: true })
+  })
+
   it('moves focus into the doctors menu when its separate control receives ArrowDown', async () => {
     render(<Header />)
     const doctorsMenuButton = screen.getByRole('button', { name: /показать подразделы: доктора/i })

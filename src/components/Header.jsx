@@ -182,9 +182,9 @@ function DoctorsMegaMenuPanel({ item, currentPath }) {
                         <img
                           src={doc.photo}
                           alt={doc.name}
-                          width={28}
-                          height={28}
-                          className="w-7 h-7 rounded-full object-cover flex-shrink-0 shadow-sm"
+                          width={45}
+                          height={45}
+                          className="h-[45px] w-[45px] rounded-full object-cover flex-shrink-0 shadow-sm"
                           loading="lazy"
                         />
                         {doc.name}
