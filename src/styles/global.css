@@ -253,6 +253,12 @@
   :where(a, button, input, select, textarea, summary, [role='button'], [role='menuitem'], [tabindex]):focus:not(:focus-visible) {
     outline: none;
   }
+
+  .file-upload-field:has(input:focus-visible) label {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px var(--focus-ring-glow);
+  }
 }
 
 @layer components {

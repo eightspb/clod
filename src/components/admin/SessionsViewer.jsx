@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 function OnlineBadge({ isOnline }) {
@@ -41,16 +41,16 @@ export function SessionsViewer() {
   const [activeOnly, setActiveOnly] = useState(true)
   const [expanded, setExpanded] = useState(null)
 
-  async function loadSessions() {
+  const loadSessions = useCallback(async () => {
     const result = await fetchData(`/api/admin/sessions?active=${activeOnly}&limit=200`, { errorMessage: 'Не удалось загрузить сессии' })
     if (result) setSessions(result.sessions || [])
-  }
+  }, [fetchData, activeOnly])
 
   useEffect(() => {
     loadSessions()
     const interval = setInterval(loadSessions, 10000)
     return () => clearInterval(interval)
-  }, [activeOnly])
+  }, [loadSessions])
 
   const onlineCount = sessions.filter(s => s.isOnline).length
 
@@ -77,7 +77,7 @@ export function SessionsViewer() {
           <input
             type="checkbox"
             checked={activeOnly}
-            onChange={e => { setActiveOnly(e.target.checked); setLoading(true) }}
+            onChange={e => setActiveOnly(e.target.checked)}
           />
           Только активные
         </label>
@@ -98,7 +98,7 @@ export function SessionsViewer() {
             </tr>
           </thead>
           <tbody>
-            {sessions.map((s, i) => (
+            {sessions.map((s) => (
               <>
                 <tr
                   key={s.id}

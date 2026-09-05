@@ -60,8 +60,6 @@ export default [
       'src/layouts/**/*.astro',
       'src/content/**',
       'e2e/**',
-      'src/components/admin/**',
-      'src/middleware.js',
       'src/lib/tracker.js',
       'coverage/**',
       'test-results/**',
