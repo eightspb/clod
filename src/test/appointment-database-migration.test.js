@@ -584,7 +584,7 @@ describe('booking intent production migration', () => {
   it('runs the additive schema migration before every container process start', async () => {
     const source = await readFile(ENTRYPOINT_SCRIPT, 'utf8')
     const migrationIndex = source.indexOf('node /app/scripts/init-db.mjs')
-    const serverIndex = source.indexOf('exec node /app/dist/server/entry.mjs')
+    const serverIndex = source.indexOf('exec node /app/scripts/server.mjs')
     const result = { unconditional: !source.includes('[ ! -f /data/db.sqlite ]'), migrationFound: migrationIndex >= 0, serverFound: serverIndex >= 0, migrationBeforeServer: migrationIndex >= 0 && serverIndex >= 0 && migrationIndex < serverIndex }
     expect(result).toEqual({ unconditional: true, migrationFound: true, serverFound: true, migrationBeforeServer: true })
   })
