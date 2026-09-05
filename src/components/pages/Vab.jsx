@@ -63,16 +63,10 @@ const INDICATIONS = [
 ]
 
 const HERO_STATS = [
-  { value: '2 мм', label: 'размер прокола' },
+  { value: '2 мм', label: 'микропрокол вместо разреза' },
   { value: '30-40 мин', label: 'длительность процедуры' },
   { value: '1-2 дня', label: 'обычное восстановление' },
-  { value: 'УЗИ', label: 'контроль в реальном времени' },
-]
-
-const PROCEDURE_FACTS = [
-  { value: '2 мм', label: 'микропрокол вместо хирургического разреза' },
-  { value: '30-40 мин', label: 'средняя длительность процедуры' },
-  { value: '7-10 дней', label: 'ориентир по готовности гистологии' },
+  { value: '7-10 дней', label: 'готовность гистологии' },
 ]
 
 const EQUIPMENT_FEATURES = [
@@ -172,18 +166,6 @@ export function Vab() {
             <div className="text-xs text-clay-muted leading-tight">{stat.label}</div>
           </div>
         ))}
-      </section>
-
-      <section className="clay-card p-6 md:p-8 mb-10">
-        <h2 className="heading-serif text-xl text-clay-dark mb-5">Что важно знать о процедуре</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {PROCEDURE_FACTS.map((fact) => (
-            <div key={fact.label} className="rounded-[18px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-5">
-              <div className="heading-serif text-4xl text-clay-teal mb-2">{fact.value}</div>
-              <p className="text-sm text-clay-muted leading-tight">{fact.label}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section className="mb-10">
