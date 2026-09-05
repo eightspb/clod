@@ -51,6 +51,16 @@ describe('DoctorPage', () => {
     const links = screen.getAllByRole('link', { name: /продокторов/i })
     expect({ ratingInsideStat: reviewsStat.contains(links[0]), ratingLinks: links.length }).toEqual({ ratingInsideStat: true, ratingLinks: 1 })
   })
+  it('shows the rating score and the review count as separate lines inside the reviews stat', () => {
+    render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
+    const reviewsStat = screen.getByText('Отзывы').parentElement
+    expect({ score: reviewsStat.textContent.includes('5.0'), count: reviewsStat.textContent.includes('126 отзывов') }).toEqual({ score: true, count: true })
+  })
+  it('renders every hero stat with the same label, value and detail anatomy', () => {
+    render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
+    const tiles = ['Стаж работы', 'Направление', 'Отзывы'].map((label) => screen.getByText(label).closest('[data-hero-stat]'))
+    expect(tiles.map((tile) => tile.querySelectorAll('[data-hero-stat-value], [data-hero-stat-detail]').length)).toEqual([2, 2, 2])
+  })
   it('links the reviews stat to ProDoctorov when only the profile URL is known', () => {
     render(<DoctorPage doctor={{ ...RIGHT_PHOTO_DOCTOR, proDoctorovRating: undefined }} />)
     const reviewsStat = screen.getByText('Отзывы').parentElement

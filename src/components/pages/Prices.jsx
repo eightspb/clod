@@ -81,7 +81,7 @@ export function Prices() {
                 <Shield size={14} aria-hidden="true" />
                 Прозрачная стоимость
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl heading-display text-clay-dark leading-tight mb-5">
+              <h1 className="text-4xl sm:text-5xl heading-display text-clay-dark leading-tight mb-5">
                 Короткий и полный прайс-лист клиники
               </h1>
               <p className="text-lg text-clay-muted leading-relaxed mb-5 font-medium max-w-2xl">

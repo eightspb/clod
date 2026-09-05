@@ -1,4 +1,4 @@
-import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star, BookOpen, Tv, ExternalLink, Award } from 'lucide-react'
+import { GraduationCap, Phone, ArrowLeft, CheckCircle, Star, BookOpen, Tv, ExternalLink, Award, Stethoscope } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 import { CtaSection } from '../CtaSection.jsx'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
@@ -12,34 +12,93 @@ function paragraphs(value) {
   return safeText(value).split('\n').filter(Boolean)
 }
 
+const HERO_STAT_TONES = {
+  mint: 'clay-card-soft-mint',
+  blue: 'clay-card-soft-blue',
+  peach: 'clay-card-soft-peach',
+}
+
+function reviewsLabel(count) {
+  const lastTwo = count % 100
+  const last = count % 10
+  if (lastTwo >= 11 && lastTwo <= 19) return `${count} отзывов`
+  if (last === 1) return `${count} отзыв`
+  if (last >= 2 && last <= 4) return `${count} отзыва`
+  return `${count} отзывов`
+}
+
+function HeroStat({ tone, icon: Icon, label, value, detail }) {
+  return (
+    <div data-hero-stat={label} className={`clay ${HERO_STAT_TONES[tone]} flex flex-col px-4 py-3`}>
+      <p className="flex items-center gap-1.5 font-semibold text-clay-muted">
+        <Icon size={13} aria-hidden="true" />
+        {label}
+      </p>
+      <div data-hero-stat-value className="mt-1.5 flex-1">{value}</div>
+      <div data-hero-stat-detail className="mt-1 leading-snug text-clay-muted">{detail}</div>
+    </div>
+  )
+}
+
+function ProDoctorovLink({ url, children }) {
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-clay-dark transition-colors hover:text-clay-mint">
+      {children}
+      <ExternalLink size={11} aria-hidden="true" />
+    </a>
+  )
+}
+
 function ReviewsStat({ doctor }) {
-  const title = <p className="text-xs font-semibold text-clay-muted">Отзывы</p>
   if (doctor.proDoctorovRating) {
+    const { score, reviewCount } = doctor.proDoctorovRating
     return (
-      <div className="clay clay-card-soft-peach p-4">
-        {title}
-        <div className="mt-1 text-sm font-bold leading-snug text-clay-dark">
-          <StarRating score={doctor.proDoctorovRating.score} reviewCount={doctor.proDoctorovRating.reviewCount} url={doctor.proDoctorovUrl} size={14} variant="compact" />
-        </div>
-      </div>
+      <HeroStat
+        tone="peach"
+        icon={Star}
+        label="Отзывы"
+        value={(
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="font-serif text-3xl font-light leading-none text-clay-dark">{score.toFixed(1)}</span>
+            <StarRating score={score} reviewCount={reviewCount} size={13} variant="stars" />
+          </div>
+        )}
+        detail={doctor.proDoctorovUrl ? <ProDoctorovLink url={doctor.proDoctorovUrl}>{reviewsLabel(reviewCount)} на ПроДокторов</ProDoctorovLink> : `${reviewsLabel(reviewCount)} на ПроДокторов`}
+      />
     )
   }
   if (doctor.proDoctorovUrl) {
     return (
-      <div className="clay clay-card-soft-peach p-4">
-        {title}
-        <a href={doctor.proDoctorovUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold leading-snug text-clay-dark transition-colors hover:text-clay-mint">
-          ПроДокторов
-          <ExternalLink size={12} aria-hidden="true" />
-        </a>
-      </div>
+      <HeroStat
+        tone="peach"
+        icon={Star}
+        label="Отзывы"
+        value={<p className="text-base font-bold leading-snug text-clay-dark">ПроДокторов</p>}
+        detail={<ProDoctorovLink url={doctor.proDoctorovUrl}>Открыть профиль</ProDoctorovLink>}
+      />
     )
   }
   return (
-    <div className="clay clay-card-soft-peach p-4">
-      {title}
-      <p className="mt-1 text-sm font-bold leading-snug text-clay-dark">Профиль врача</p>
-    </div>
+    <HeroStat
+      tone="peach"
+      icon={Star}
+      label="Отзывы"
+      value={<p className="text-base font-bold leading-snug text-clay-dark">Профиль врача</p>}
+      detail="Отзывы пациентов ниже на странице"
+    />
+  )
+}
+
+function SpecializationStat({ specialization }) {
+  const [primary, ...rest] = safeText(specialization).split(',').map((part) => part.trim())
+  return (
+    <HeroStat
+      tone="blue"
+      icon={Stethoscope}
+      label="Направление"
+      value={<p className="text-base font-bold leading-snug text-clay-dark">{primary}</p>}
+      detail={rest.length > 0 ? rest.join(', ') : 'Основная специализация'}
+    />
   )
 }
 
@@ -53,39 +112,39 @@ export function DoctorPage({ doctor }) {
   return (
     <ErrorBoundary>
     <div className="grain-overlay">
-      <section className="relative overflow-hidden pt-4 pb-10">
+      <section className="relative overflow-hidden pt-3 pb-10">
         <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
         <div className="container-clay relative z-10">
           <a
             href="/doctors"
-            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-clay-muted transition-colors hover:text-clay-mint"
+            className="mb-3 inline-flex items-center gap-2 font-medium text-clay-muted transition-colors hover:text-clay-mint"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             Все доктора
           </a>
           <div className="clay clay-card-lg overflow-hidden">
             <div className={`grid grid-cols-1 gap-0 ${heroGridColumns}`}>
-              <div className={`relative order-2 p-5 sm:p-8 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
-                <div className="mb-4 inline-flex max-w-full rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 shadow-[var(--shadow-xs)]">
-                  <p className="truncate text-sm font-semibold text-clay-dark">{safeText(doctor.specialization)}</p>
+              <div className={`relative order-2 p-5 sm:p-7 lg:p-6 ${alignRight ? 'lg:order-1' : 'lg:order-2'}`}>
+                <div className="mb-2.5 inline-flex max-w-full rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 shadow-[var(--shadow-xs)]">
+                  <p className="truncate font-semibold text-clay-dark">{safeText(doctor.specialization)}</p>
                 </div>
-                <h1 className="text-3xl sm:text-4xl heading-display text-clay-dark leading-tight mb-3">
+                <h1 className="text-3xl sm:text-4xl heading-display text-clay-dark leading-tight mb-2">
                   {safeText(doctor.name)}
                 </h1>
                 {doctor.tagline && (
-                  <p className="text-base text-clay-muted leading-relaxed mb-4 max-w-2xl">
+                  <p className="text-clay-muted leading-normal mb-3 max-w-2xl">
                     {safeText(doctor.tagline)}
                   </p>
                 )}
-                <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="clay clay-card-soft-mint p-4">
-                    <p className="text-xs font-semibold text-clay-muted">Стаж работы</p>
-                    <p className="mt-1 font-serif text-3xl font-light leading-none text-clay-dark">{doctor.experienceYears} лет</p>
-                  </div>
-                  <div className="clay clay-card-soft-blue p-4">
-                    <p className="text-xs font-semibold text-clay-muted">Направление</p>
-                    <p className="mt-1 text-sm font-bold leading-snug text-clay-dark">{safeText(doctor.specialization.split(',')[0])}</p>
-                  </div>
+                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <HeroStat
+                    tone="mint"
+                    icon={Award}
+                    label="Стаж работы"
+                    value={<p className="font-serif text-3xl font-light leading-none text-clay-dark">{doctor.experienceYears} лет</p>}
+                    detail="Практический опыт"
+                  />
+                  <SpecializationStat specialization={doctor.specialization} />
                   <ReviewsStat doctor={doctor} />
                 </div>
                 <div className="flex flex-wrap gap-3">

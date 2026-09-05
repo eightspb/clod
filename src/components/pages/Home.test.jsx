@@ -215,6 +215,31 @@ describe('Home hero slider', () => {
     expect(document.querySelector('.hero-doctor-cta[data-booking-btn="true"]')).not.toBeInTheDocument()
   })
 
+  it('opens the mobile route with the doctor carousel before the hero slider', async () => {
+    await act(async () => {
+      render(<Home doctorsData={[{ slug: 'elkina', name: 'Ёлкина Анна О’Коннор', specialization: 'Эндокринолог', photoMobile: '/images/doctors/elkina-mobile.webp' }, { slug: 'tsoy', name: 'Цой Юрий Альбертович', specialization: 'Онколог-маммолог', photoMobile: '/images/doctors/tsoy-mobile.webp' }]} />)
+    })
+    const carousel = screen.getByRole('region', { name: 'Карусель врачей в начале страницы' })
+    const slider = screen.getByRole('region', { name: /главный слайдер/i })
+    expect(carousel.compareDocumentPosition(slider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('hides the hero slider below the tablet breakpoint', async () => {
+    await act(async () => {
+      render(<Home doctorsData={[]} />)
+    })
+    const wrapper = screen.getByRole('region', { name: /главный слайдер/i }).parentElement
+    expect(wrapper.className.split(' ')).toEqual(expect.arrayContaining(['hidden', 'md:block']))
+  })
+
+  it('hides the lower doctors section below the tablet breakpoint', async () => {
+    await act(async () => {
+      render(<Home doctorsData={[{ slug: 'elkina', name: 'Ёлкина Анна О’Коннор', specialization: 'Эндокринолог', photoMobile: '/images/doctors/elkina-mobile.webp' }]} />)
+    })
+    const wrapper = screen.getByRole('heading', { level: 2, name: 'Наши доктора' }).closest('section').parentElement
+    expect(wrapper.className.split(' ')).toEqual(expect.arrayContaining(['hidden', 'md:block']))
+  })
+
   it('uses a general booking CTA instead of the simulated contact form', async () => {
     await act(async () => {
       render(<Home doctorsData={[]} />)

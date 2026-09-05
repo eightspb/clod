@@ -151,8 +151,8 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabinde
 
 export function ThemeSwitcher() {
   const [isOpen, setIsOpen] = useState(false)
-  const [colorId, setColorId] = useState('emerald')
-  const [customHex, setCustomHex] = useState('#1B6B5A')
+  const [colorId, setColorId] = useState('teal')
+  const [customHex, setCustomHex] = useState('#0D9488')
   const [headingId, setHeadingId] = useState('lora')
   const [bodyId, setBodyId] = useState('golos')
   const [navId, setNavId] = useState('inherit')

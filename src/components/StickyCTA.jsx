@@ -17,7 +17,7 @@ export function StickyCTA() {
         <div className="flex items-stretch gap-0">
           <a
             href={`tel:${PHONE_NUMBER}`}
-            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-clay-dark hover:text-clay-mint transition-colors"
+            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 whitespace-nowrap font-semibold text-clay-dark hover:text-clay-mint transition-colors"
             aria-label={`Позвонить: ${PHONE_DISPLAY}`}
           >
             <Phone size={18} />
@@ -27,11 +27,11 @@ export function StickyCTA() {
           <button
             type="button"
             data-booking-btn="true"
-            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-clay-dark bg-clay-mint-pale"
+            className="flex-1 flex min-h-14 items-center justify-center gap-2 px-4 py-3 whitespace-nowrap font-semibold text-clay-dark bg-clay-mint-pale"
             aria-label="Записаться на приём"
           >
             <CalendarCheck size={18} />
-            Записаться сейчас
+            Записаться
           </button>
         </div>
       </div>

@@ -22,7 +22,9 @@ export function StarRating({ score, reviewCount, url, size = 14, variant = 'comp
           />
         ))}
       </span>
-      <span className="font-semibold text-clay-dark">{score.toFixed(1)}</span>
+      {variant !== 'stars' && (
+        <span className="font-semibold text-clay-dark">{score.toFixed(1)}</span>
+      )}
       {variant === 'full' && (
         <span className="text-clay-muted">· {reviewCount} отзывов</span>
       )}

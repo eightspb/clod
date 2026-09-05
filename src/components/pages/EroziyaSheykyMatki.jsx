@@ -120,7 +120,7 @@ export function EroziyaSheykyMatki() {
                 Врач объяснит, что именно выявлено, нужно ли лечение и какой вариант подходит в вашей ситуации.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                   Записаться к гинекологу
                   <ArrowRight size={16} />
                 </button>
@@ -319,7 +319,7 @@ export function EroziyaSheykyMatki() {
                 <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Запишитесь к гинекологу в Санкт-Петербурге</h2>
                 <p className="text-clay-muted mb-5 leading-relaxed">Клиника Одинцова находится на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                     Записаться на приём
                     <ArrowRight size={16} />
                   </button>

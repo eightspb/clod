@@ -25,8 +25,8 @@ export function VabSection() {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#EAF7F4] shadow-inner flex items-center justify-center flex-shrink-0">
-                    <Zap size={24} className="text-[#2A9E80]" />
+                  <div className="w-12 h-12 rounded-full bg-clay-mint-pale shadow-inner flex items-center justify-center flex-shrink-0">
+                    <Zap size={24} className="text-clay-mint" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">ВАБ под УЗ-контролем</h3>
@@ -36,8 +36,8 @@ export function VabSection() {
               </div>
               <div className="bg-white rounded-2xl p-5 shadow-xl border border-white/80">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#EAF7F4] shadow-inner flex items-center justify-center flex-shrink-0">
-                    <Clock size={24} className="text-[#2A9E80]" />
+                  <div className="w-12 h-12 rounded-full bg-clay-mint-pale shadow-inner flex items-center justify-center flex-shrink-0">
+                    <Clock size={24} className="text-clay-mint" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-[#1a2f26] mb-1.5 text-lg">Амбулаторно за 30 минут</h3>

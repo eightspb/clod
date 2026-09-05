@@ -28,7 +28,7 @@ const heroSlides = [
   },
   {
     trustBadge: 'Второе мнение',
-    title: <>Второе мнение по маммологии <br /><span className="heading-accent">с разбором документов</span></>,
+    title: <>Второе мнение врача-онколога-маммолога <br /><span className="heading-accent">с разбором документов</span></>,
     desc: 'Перепроверяем снимки и заключения, объясняем тактику и следующий шаг понятным языком.',
     primaryBtn: { label: 'Проверить операцию', href: '/second-opinion' },
     secondaryBtn: { label: 'Как это работает', href: '/second-opinion' },
@@ -187,7 +187,7 @@ export function HeroSlider() {
             type="button"
             onClick={prevSlide}
             className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:left-0 lg:-translate-y-1/2 xl:-left-3"
-            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
+            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
             aria-label="Предыдущий слайд"
           >
             <ChevronLeft size={14} className="text-clay-mint" />
@@ -196,7 +196,7 @@ export function HeroSlider() {
             type="button"
             onClick={nextSlide}
             className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:-translate-y-1/2 xl:-right-3"
-            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgba(27,107,90,0.10)', border: '1px solid rgba(27,107,90,0.16)' }}
+            style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
             aria-label="Следующий слайд"
           >
             <ChevronRight size={14} className="text-clay-mint" />

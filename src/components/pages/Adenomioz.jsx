@@ -121,7 +121,7 @@ export function Adenomioz() {
                 Аденомиоз часто связан с болезненными и обильными менструациями. Гинеколог определит форму заболевания и обсудит лечение с учётом ваших планов.
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                   Записаться к гинекологу
                   <ArrowRight size={16} />
                 </button>
@@ -320,7 +320,7 @@ export function Adenomioz() {
                 <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Запишитесь к гинекологу в Санкт-Петербурге</h2>
                 <p className="text-clay-muted mb-5 leading-relaxed">Клиника Одинцова находится на Богатырском проспекте, рядом с м. Комендантский проспект и м. Старая Деревня.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                     Записаться на приём
                     <ArrowRight size={16} />
                   </button>

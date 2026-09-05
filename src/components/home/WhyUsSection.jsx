@@ -41,8 +41,8 @@ export function WhyUsSection() {
                   <div key={item.title} className="clay clay-card card-interactive p-4 flex items-start gap-3">
                     <div className={item.bg}><Icon size={20} className="text-white" /></div>
                     <div>
-                      <h3 className="font-bold text-clay-dark text-sm mb-1">{item.title}</h3>
-                      <p className="text-clay-muted text-xs leading-relaxed">{item.desc}</p>
+                      <h3 className="font-bold text-clay-dark mb-1">{item.title}</h3>
+                      <p className="text-clay-muted leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 )
@@ -56,7 +56,7 @@ export function WhyUsSection() {
                   <div className={`font-serif font-light text-4xl sm:text-5xl text-clay-dark leading-none`}>{s.val}</div>
                   <div>
                     <p className="font-bold text-clay-dark mb-1">{s.label}</p>
-                    <p className="text-clay-muted text-sm leading-relaxed">{s.desc}</p>
+                    <p className="text-clay-muted leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
               </div>

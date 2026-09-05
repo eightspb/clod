@@ -59,11 +59,11 @@ export function DoctorCard({ doctor }) {
         )}
         <div className="doctor-card-footer">
           <div className="doctor-card-specialty clay">
-            <p className="text-[14px] font-semibold text-clay-dark leading-tight truncate">
+            <p className="font-semibold text-clay-dark leading-tight truncate">
               {primarySpecialty}
             </p>
             {secondarySpecialty && (
-              <p className="text-[14px] text-clay-muted leading-tight truncate mt-1">
+              <p className="text-clay-muted leading-tight truncate mt-1">
                 {secondarySpecialty}
               </p>
             )}
@@ -74,13 +74,13 @@ export function DoctorCard({ doctor }) {
               data-booking-btn="true"
               data-booking-doctor={doctor.slug}
               aria-label={`Записаться на приём к врачу ${doctor.name}`}
-              className="clay btn-clay-primary min-h-11 min-w-0 justify-center px-3 py-2.5 text-[14px]"
+              className="clay btn-clay-primary min-h-11 min-w-0 justify-center px-3 py-2.5"
             >
               Записаться
             </button>
             <a
               href={doctor.slug ? `/doctors/${doctor.slug}` : '/doctors'}
-              className="clay btn-clay-secondary min-h-11 min-w-0 justify-center px-3 py-2.5 text-center text-[14px]"
+              className="clay btn-clay-secondary min-h-11 min-w-0 justify-center px-3 py-2.5 text-center"
             >
               Подробнее
             </a>
