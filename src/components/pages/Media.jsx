@@ -126,7 +126,7 @@ export function Media() {
     <main className="grain-overlay">
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 hero-gradient pointer-events-none" aria-hidden="true" />
-        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
+        <div className="container-clay relative z-10 py-8 md:py-10">
           <BreadcrumbNav items={[{ label: 'СМИ и телевидение' }]} />
           <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
             <div className="max-w-3xl self-start text-left">

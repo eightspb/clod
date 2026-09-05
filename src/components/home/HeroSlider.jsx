@@ -76,7 +76,7 @@ export function HeroSlider() {
       aria-label="Главный слайдер"
     >
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="container-clay relative z-10 py-8 md:py-12 lg:py-16">
+      <div className="container-clay relative z-10 py-8 md:py-10">
         <div
           className="grid"
           aria-live="polite"

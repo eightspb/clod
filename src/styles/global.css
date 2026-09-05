@@ -2950,7 +2950,7 @@
 .mobile-doctor-carousel[data-variant='desktop'] {
   width: 100%;
   max-width: 24rem;
-  height: 36rem;
+  height: clamp(30rem, calc(100vh - 17rem), 39.5rem);
   margin-inline: auto;
   border-radius: 2rem;
   --mobile-doctor-plinth-height: 12.25rem;

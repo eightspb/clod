@@ -103,7 +103,7 @@ export function Endometrioz() {
     <div className="bg-[color:var(--surface-page)]">
       <section className="relative overflow-hidden grain-overlay border-b border-[color:var(--border-color)] bg-[color:var(--surface-accent)]">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
-        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
+        <div className="container-clay relative z-10 py-8 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-12 items-center">
             <div className="max-w-3xl self-start text-left">
               <div className="badge-specialty-peach-filled inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5">

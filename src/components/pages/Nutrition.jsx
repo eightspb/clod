@@ -117,7 +117,7 @@ export function Nutrition() {
       {/* HERO */}
       <section className="relative overflow-hidden grain-overlay">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
-        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
+        <div className="container-clay relative z-10 py-8 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-14 items-center">
             <div className="max-w-3xl self-start text-left">
               <div className="mb-5">

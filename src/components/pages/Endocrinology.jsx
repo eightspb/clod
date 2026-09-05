@@ -110,7 +110,7 @@ export function Endocrinology() {
       {/* HERO */}
       <section className="relative overflow-hidden grain-overlay">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
-        <div className="container-clay relative z-10 py-8 md:py-12 lg:py-14">
+        <div className="container-clay relative z-10 py-8 md:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-14 items-center">
             <div className="max-w-3xl self-start text-left">
               <div className="mb-5">
@@ -136,7 +136,7 @@ export function Endocrinology() {
                 </a>
               </div>
             </div>
-            <ResponsiveDoctorHero doctors={SPECIALTY_DOCTORS} label="Карусель эндокринологов в начале страницы" ctaHref="/second-opinion" desktopClassName="block" />
+            <ResponsiveDoctorHero doctors={SPECIALTY_DOCTORS} label="Карусель эндокринологов в начале страницы" ctaHref="/second-opinion" desktopClassName="block lg:[&_.hero-doctor-card-inner]:overflow-hidden lg:[&_.hero-doctor-photo-link]:max-h-[260px] lg:[&_.hero-doctor-photo-link]:overflow-hidden lg:[&_.hero-doctor-photo]:max-h-[260px] lg:[&_.hero-doctor-photo]:object-contain lg:[&_.hero-doctor-info]:p-4" />
           </div>
         </div>
       </section>
