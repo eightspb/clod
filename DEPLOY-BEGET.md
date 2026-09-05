@@ -276,10 +276,10 @@ docker compose run --rm --no-deps nginx nginx -t
 ### 4.5. Запустить весь стек (приложение + Nginx + Certbot)
 
 ```bash
-docker compose up -d --build
+docker compose pull app && docker compose up -d --no-build
 ```
 
-Первый запуск может занять несколько минут (сборка образа, установка зависимостей Bun, сборка Astro).
+Образ приложения приходит из GHCR (`ghcr.io/eightspb/clod:latest` или `sha-<коммит>` через `CLOD_IMAGE_TAG` в `.env`). Если доступа к реестру ещё нет, один раз соберите на хосте: `docker compose up -d --build`.
 
 Проверка:
 
@@ -304,7 +304,7 @@ docker compose logs app -f
 bun run deploy
 ```
 
-Скрипт подключится к серверу по `ssh clod`, проверит свободное место, выполнит `git pull`, отрендерит и проверит `nginx.conf`, затем `docker compose up -d --build` и перезагрузку Nginx (`nginx -s reload`). Либо запустите напрямую:
+Скрипт подключится к серверу по `ssh clod`, проверит свободное место, выполнит `git pull`, отрендерит и проверит `nginx.conf`, дождётся образа `ghcr.io/eightspb/clod:sha-<HEAD>` из GitHub Actions, затем `docker compose pull app && docker compose up -d --no-build` и перезагрузку Nginx (`nginx -s reload`). Образ на сервере не собирается; аварийная сборка на хосте — `DEPLOY_BUILD_ON_HOST=1 bun run deploy`. Хосту нужен доступ к пакету GHCR (публичный пакет или `docker login ghcr.io` с PAT `read:packages`). Либо запустите напрямую:
 
 ```bash
 sh scripts/deploy.sh
@@ -317,11 +317,12 @@ sh scripts/deploy.sh
 ```bash
 cd /srv/clod
 git pull
-docker compose up -d --build
+CLOD_IMAGE_TAG=sha-$(git rev-parse --short=7 HEAD) docker compose pull app
+docker compose up -d --no-build
 docker compose exec -T nginx nginx -s reload
 ```
 
-Сборка пересоберёт образ и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое - сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.
+Pull скачает образ, который CI собрал для этого коммита, и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое - сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.
 
 ---
 
@@ -386,11 +387,11 @@ docker compose down -v
 |----------|--------|
 | Подключиться к серверу | `ssh clod` |
 | Обновить сайт с ПК (скрипт) | `bun run deploy` |
-| Обновить сайт на сервере | `cd /srv/clod && git pull && docker compose up -d --build` |
+| Обновить сайт на сервере | `bun run deploy` с ПК; вручную — `git pull`, `docker compose pull app`, `docker compose up -d --no-build` |
 | Посмотреть логи | `cd /srv/clod && docker compose logs -f` |
 | Перезагрузить Nginx | `cd /srv/clod && docker compose exec nginx nginx -s reload` |
 | Остановить всё | `cd /srv/clod && docker compose down` |
 
 ---
 
-Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS. Обновление: с ПК - `bun run deploy` (скрипт подключается по `ssh clod` и выполняет `git pull` + `docker compose up -d --build`).
+Готово. После выполнения всех шагов сайт работает на Beget VPS по HTTPS. Обновление: с ПК - `bun run deploy` (скрипт подключается по `ssh clod`, выполняет `git pull`, ждёт образ из GHCR и делает `docker compose pull` + `up -d --no-build`).

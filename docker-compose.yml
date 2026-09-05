@@ -1,5 +1,6 @@
 services:
   app:
+    image: ${CLOD_IMAGE:-ghcr.io/eightspb/clod}:${CLOD_IMAGE_TAG:-latest}
     build:
       context: .
     restart: unless-stopped
@@ -22,7 +23,7 @@ services:
     depends_on: []
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.29.5-alpine
     restart: unless-stopped
     logging:
       driver: json-file
@@ -40,7 +41,7 @@ services:
       - app
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v5.7.0
     restart: unless-stopped
     logging:
       driver: json-file

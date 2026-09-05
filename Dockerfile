@@ -1,14 +1,22 @@
-FROM oven/bun:1 AS builder
+FROM oven/bun:1.3.10 AS deps
 WORKDIR /app
-
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-COPY . .
+FROM oven/bun:1.3.10 AS prod-deps
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --omit=dev
 
+FROM oven/bun:1.3.10 AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN bun run build
 
-FROM oven/bun:1-slim AS runner
+FROM oven/bun:1.3.10-slim AS runner
+LABEL org.opencontainers.image.source="https://github.com/eightspb/clod" \
+      org.opencontainers.image.description="Клиника Одинцова: Astro 7 site, admin CRM and booking API"
 WORKDIR /app
 
 RUN apt-get update && \
@@ -20,9 +28,8 @@ RUN apt-get update && \
 
 COPY --from=builder /app/dist ./dist
 RUN test -f /app/dist/client/pagefind/pagefind-entry.json
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/bun.lock ./
-RUN bun install --frozen-lockfile --omit=dev
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY package.json bun.lock ./
 COPY scripts ./scripts
 COPY src/lib ./src/lib
 COPY docker-entrypoint.sh ./docker-entrypoint.sh

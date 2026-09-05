@@ -81,7 +81,7 @@ bun run preview        # превью собранного билда
 
 ### GitHub Actions CI
 
-Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version`. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения (только Astro 4 / Vite 5 и dev-инструменты) перечислены в `docs/dependency-exposure.ignore` с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
+Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version` (та же версия закреплена в `engines.bun` и в базовых образах `oven/bun:1.3.10`). Job **Docker image** (`needs: lint, test, build, security`, `packages: write`) собирает production-образ через buildx с GHA-кешем, проверяет индекс Pagefind, env-gate, отсутствие `.env` и имён секретов в `docker history`, а при push в `main` публикует его в GHCR как `ghcr.io/eightspb/clod:sha-<7 символов>` и `:latest`. Production-хост образ не собирает. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения (только Astro 4 / Vite 5 и dev-инструменты) перечислены в `docs/dependency-exposure.ignore` с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
 
 При push/PR в `main` или `develop` выполняются:
 
@@ -514,7 +514,7 @@ clod/
 │   ├── styles/
 │   │   └── global.css             # Tailwind + ~87 CSS-переменных дизайн-системы + theme-switcher стили + prose-clay (блог)
 │   └── env.d.ts                   # Astro type references
-├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
+├── Dockerfile                     # Multi-stage Docker-сборка (deps → builder → prod-deps → runner), образ публикует CI в GHCR
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
 ├── nginx.https.conf               # Nginx: production-шаблон HTTPS (рендерится в nginx.conf)
 ├── nginx.http.conf                # Nginx: шаблон только HTTP (IP / до SSL)
@@ -912,9 +912,9 @@ integrations: [
 
 | Файл | Назначение |
 |---|---|
-| `Dockerfile` | Multi-stage сборка: builder (bun install + build) → runner (slim, node entry.mjs) |
-| `.dockerignore` | Исключает `node_modules`, `dist`, `.git`, `.env` из образа |
-| `docker-compose.yml` | Стек: `app` (Astro) + `nginx` (reverse proxy) + `certbot` (Let's Encrypt) |
+| `Dockerfile` | Multi-stage сборка на закреплённом `oven/bun:1.3.10`: `deps` (все зависимости) → `builder` (astro build + Pagefind) → `prod-deps` (`--omit=dev`) → `runner` (`1.3.10-slim`, non-root, копирует `dist` и production `node_modules` без сети) |
+| `.dockerignore` | Allow-list: в контекст попадают только `package.json`, `bun.lock`, конфиги Astro/Tailwind/PostCSS/TS, `docker-entrypoint.sh`, `public`, `src`, `scripts`; тесты, `public/uploads`, документы, аудиты и локальные артефакты исключены |
+| `docker-compose.yml` | Стек: `app` (`${CLOD_IMAGE:-ghcr.io/eightspb/clod}:${CLOD_IMAGE_TAG:-latest}`, `build:` оставлен для аварийной сборки) + `nginx:1.29.5-alpine` + `certbot/certbot:v5.7.0`; версии образов обновляет Dependabot |
 | `nginx.conf` | Рабочий конфиг, генерируется `scripts/render-nginx.sh` и не хранится в git |
 | `nginx.https.conf` | Production-шаблон HTTPS: security headers, catch-all для чужого Host, лимиты, allowlist MANGO |
 | `nginx.http.conf` | Шаблон только HTTP (доступ по IP или до выпуска сертификата) |
@@ -967,7 +967,7 @@ docker compose run --rm certbot certonly \
 # 6. Сгенерировать HTTPS-конфиг из шаблона и поднять стек
 sh scripts/render-nginx.sh https
 docker compose run --rm --no-deps nginx nginx -t
-docker compose up -d --build
+docker compose pull app && docker compose up -d --no-build   # образ из GHCR; DEPLOY_BUILD_ON_HOST=1 bun run deploy — сборка на хосте
 ```
 
 Рабочий `nginx.conf` не хранится в git: `scripts/render-nginx.sh [https|http|bootstrap]` генерирует его из соответствующего шаблона, подставляя `SITE_DOMAIN` и `NOINDEX` из `.env`. Редактируйте шаблоны `nginx.https.conf`, `nginx.http.conf`, `nginx.bootstrap.conf`; `bun run deploy` перерисовывает и проверяет `nginx.conf` на сервере при каждом деплое, поэтому `git pull` больше не конфликтует с локальными правками.
@@ -996,12 +996,14 @@ SITE_DOMAIN=example.test sh scripts/render-nginx.sh http && docker run --rm --ad
 bun run deploy
 ```
 
-Скрипт `scripts/deploy.sh` выполняет: проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → docker prune → docker compose build → nginx reload. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`).
+Скрипт `scripts/deploy.sh` выполняет: проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → ожидание образа `ghcr.io/eightspb/clod:sha-<HEAD>` в GHCR (до `DEPLOY_IMAGE_WAIT_SECONDS`, по умолчанию 1200 с; тег записывается в `CLOD_IMAGE_TAG` в серверном `.env`) → `docker compose pull app && docker compose up -d --no-build` → nginx reload → `docker image prune -af --filter until=24h`. Сборки на хосте нет: образ собирает и проверяет CI. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`), `DEPLOY_IMAGE`, `DEPLOY_IMAGE_WAIT_SECONDS`. Аварийный путь `DEPLOY_BUILD_ON_HOST=1 bun run deploy` собирает образ на сервере, как раньше, и удаляет `CLOD_IMAGE_TAG` из `.env`.
+
+Хост должен иметь доступ к пакету GHCR: либо пакет `clod` публичный, либо на сервере один раз выполнен `docker login ghcr.io` с PAT `read:packages`. Пока доступа нет, деплой останавливается на шаге ожидания образа с понятной ошибкой.
 
 Или вручную на сервере:
 
 ```bash
-cd /srv/clod && git pull && docker system prune -af && docker compose up -d --build
+cd /srv/clod && git pull && CLOD_IMAGE_TAG=sha-$(git rev-parse --short=7 HEAD) docker compose pull app && docker compose up -d --no-build
 ```
 
 ### Автообновление SSL-сертификата
@@ -1028,6 +1030,7 @@ Certbot-контейнер проверяет сертификат каждые 
 ### Апгрейд на Astro 7
 
 - **Astro 4 → 7.3, Vite 5 → 8, `@astrojs/node` 11, `@astrojs/react` 6, `@astrojs/sitemap` 3.7, Vitest 5, jsdom 30.** Ветка Astro 6.x после 6.4.8 security-релизов не получает, поэтому переход сразу на текущий мажор.
+- **Образ собирается в CI, хост только скачивает.** Все базовые образы и тулчейн закреплены (`oven/bun:1.3.10`, `nginx:1.29.5-alpine`, `certbot/certbot:v5.7.0`, `engines.bun`), `.dockerignore` стал allow-list, Dockerfile получил отдельные стадии `deps` и `prod-deps`; job «Docker image» публикует `ghcr.io/eightspb/clod:sha-<HEAD>` при push в `main`, а `scripts/deploy.sh` ждёт этот тег и делает `docker compose pull`. На сервере добавлен swap 2 ГБ (`/swapfile`, `vm.swappiness=10`), применены отложенные apt-обновления, а `unattended-upgrades` перезагружает хост при необходимости в окно 01:30 UTC (04:30 МСК) через drop-in `/etc/apt/apt.conf.d/52clod-unattended`.
 - **`@astrojs/db` удалён из Astro 7.** Его заменяет `src/lib/database.js`: ленивый `drizzle-orm` поверх `@libsql/client` с тем же query API (`db.select().from(Table)`), таблицы в `src/lib/database-schema.js`, даты аналитики по-прежнему хранятся ISO-текстом. Схему создаёт только `scripts/init-db.mjs`; `db/config.ts`, `db/seed.ts`, флаг `--remote` и build-args `ASTRO_DB_*` в Dockerfile/compose/CI убраны. Тест миграции сверяет `init-db` с DDL, которую генерировал Astro DB (`src/test/fixtures/astro-db-generated-schema.mjs`).
 - **Drizzle оборачивает ошибки libsql** в `DrizzleQueryError`: код `SQLITE_CONSTRAINT` теперь в `error.cause.code`, `upsertSession` аналитики читает его оттуда.
 - **`request.url` в SSR строится из `Host` без `X-Forwarded-*`** (адаптер Node 11), поэтому за nginx URL получается `http://`. `validateOrigin` сверяет forwarded-origin с текущим URL по hostname, а не по полному origin; протокол и порт по-прежнему проверяются по `X-Forwarded-Proto`/`X-Forwarded-Port`.

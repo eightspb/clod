@@ -1,22 +1,24 @@
-node_modules
-dist
-.git
-.cursor
-*.md
-.env
-.env.*
-!.env.example
+# Allow-list: the build context contains only what `bun run build` and the
+# runtime image need. Everything else (docs, audits, tool state, secrets,
+# local exports) never reaches the Docker daemon.
+*
+!package.json
+!bun.lock
+!astro.config.mjs
+!tailwind.config.js
+!postcss.config.js
+!tsconfig.json
+!docker-entrypoint.sh
+!public
+!src
+!scripts
 
-# Тесты и инструменты разработки - не должны попадать в production
-e2e
-**/*.test.js
-**/*.test.jsx
-**/*.spec.js
-**/*.spec.jsx
+# Re-exclude development-only content inside the allowed directories
+public/uploads/*
+public/images/blog/.jobs.json
 src/test
-coverage
-vitest.config.*
-playwright.config.*
-playwright-report
-test-results
-.github
+src/**/*.test.js
+src/**/*.test.jsx
+src/**/*.spec.js
+src/**/*.spec.jsx
+scripts/hooks
