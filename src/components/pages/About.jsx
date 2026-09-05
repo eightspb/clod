@@ -5,12 +5,6 @@ import { FadeInSection } from '../FadeInSection.jsx'
 
 const ADVANTAGES = [
   {
-    icon: Shield,
-    iconBg: 'icon-circle-mint',
-    title: 'Доказательная медицина',
-    desc: 'Назначаем обследования и лечение по показаниям, без лишних процедур и давления на пациента.',
-  },
-  {
     icon: Zap,
     iconBg: 'icon-circle-blue',
     title: 'Технология ВАБ',
@@ -33,12 +27,6 @@ const ADVANTAGES = [
     iconBg: 'icon-circle-mint',
     title: 'Бережный подход',
     desc: 'Спокойный приём, уважительный тон и аккуратные объяснения без лишней терминологии.',
-  },
-  {
-    icon: Award,
-    iconBg: 'icon-circle-peach',
-    title: 'Прозрачное ценообразование',
-    desc: 'Объём услуги и возможные дополнительные исследования обсуждаем до начала лечения.',
   },
 ]
 
@@ -312,7 +300,7 @@ export function About() {
                 Спокойный, понятный и медицински выверенный маршрут лечения
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {ADVANTAGES.map((item, i) => {
                 const Icon = item.icon
                 return (

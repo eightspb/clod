@@ -50,3 +50,11 @@ describe('About page', () => {
     expect(document.documentElement.style.fontSize).toBe('')
   })
 })
+
+describe('About page sections', () => {
+  it('never repeats a card title across advantages and principles', () => {
+    render(<About />)
+    const titles = Array.from(document.querySelectorAll('h3')).map((node) => node.textContent)
+    expect(titles.filter((title, index) => titles.indexOf(title) !== index)).toEqual([])
+  })
+})
