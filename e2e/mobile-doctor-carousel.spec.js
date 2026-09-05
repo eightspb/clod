@@ -188,8 +188,8 @@ test('changes exactly one doctor after left and right finger swipes over each po
   const results = {}
   for (const path of ['/', '/doctors']) {
     const { context, page, session } = await openTouchCarousel(browser, baseURL, path)
-    const count = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-count`)
-    const stage = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-track`)
+    const count = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-count`).first()
+    const stage = page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-carousel-track`).first()
     await stage.scrollIntoViewIfNeeded()
     const track = await stage.boundingBox()
     const y = track.y + Math.min(180, track.height / 2)

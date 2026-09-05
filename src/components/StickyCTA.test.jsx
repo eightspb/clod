@@ -20,4 +20,8 @@ describe('StickyCTA', () => {
     const phoneLink = screen.getByRole('link', { name: /позвонить/i })
     expect(phoneLink.getAttribute('aria-label')).toContain('Позвонить')
   })
+  it('keeps the booking label to one word so the panel stays one line tall on narrow screens', () => {
+    render(<StickyCTA />)
+    expect(screen.getByRole('button', { name: 'Записаться на приём' }).textContent.trim()).toBe('Записаться')
+  })
 })

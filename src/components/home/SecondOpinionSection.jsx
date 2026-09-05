@@ -9,7 +9,7 @@ export function SecondOpinionSection() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch">
             <div className="p-6 md:p-8 flex flex-col justify-center">
               <h2 className="text-3xl sm:text-4xl heading-serif text-clay-dark mb-3">
-                Второе мнение по маммологии
+                Второе мнение врача-онколога-маммолога
               </h2>
               <p className="text-clay-muted leading-relaxed mb-4">
                 Если вам назначили операцию, перепроверим документы, обсудим тактику и объясним, нужна ли она на самом деле.
@@ -35,7 +35,7 @@ export function SecondOpinionSection() {
             </div>
             <img
               src="/images/vab-alternative.png"
-              alt="Второе мнение по маммологии"
+              alt="Второе мнение врача-онколога-маммолога"
               width={400}
               height={400}
               loading="lazy"

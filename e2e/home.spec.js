@@ -30,27 +30,17 @@ test.describe('Главная страница', () => {
     await expect(quickNav.getByRole('link', { name: /^нутрициология$/i })).toBeVisible()
   })
 
-  test('hero сохраняет одинаковую высоту при смене слайдов', async ({ page }) => {
+  test('на мобильном сразу видна карусель врачей вместо hero-слайдера', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await page.goto('/')
-
-    const heroSection = page.locator('section').first()
-    const nextSlideButton = page.getByRole('button', { name: /следующий слайд/i })
-
-    await expect(heroSection).toBeVisible()
-
-    const heights = []
-
-    for (let index = 0; index < 3; index += 1) {
-      heights.push(await heroSection.evaluate((element) => element.getBoundingClientRect().height))
-
-      if (index < 2) {
-        await nextSlideButton.click()
-        await page.waitForTimeout(900)
-      }
-    }
-
-    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(5)
+    const carousel = page.getByRole('region', { name: 'Карусель врачей в начале страницы' })
+    await expect(carousel).toBeVisible()
+    const state = await carousel.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const slider = document.querySelector('[aria-label="Главный слайдер"]')
+      return { scrollY: window.scrollY, topInsideViewport: box.top >= 0 && box.top < window.innerHeight / 2, sliderHidden: getComputedStyle(slider.parentElement).display === 'none' }
+    })
+    expect(state).toEqual({ scrollY: 0, topInsideViewport: true, sliderHidden: true })
   })
 
   test('на десктопе стрелки находятся по сторонам hero-контента', async ({ page }) => {

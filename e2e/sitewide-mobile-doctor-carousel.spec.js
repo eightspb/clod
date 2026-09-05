@@ -16,6 +16,7 @@ const MAMMOLOGY_DOCTORS = Object.freeze([
   Object.freeze({ slug: 'macuchov', name: 'Мацухов Алим Суфьянович', profile: '/doctors/macuchov' }),
 ])
 const MOBILE_ROUTES = Object.freeze([
+  Object.freeze({ route: '/', carousels: 1 }),
   Object.freeze({ route: '/mammology', carousels: 2 }),
   Object.freeze({ route: '/gynecology', carousels: 2 }),
   Object.freeze({ route: '/vab', carousels: 2 }),
@@ -190,6 +191,51 @@ test('keeps the /mammology mobile hero below the header and copy without page ov
   await visitCarouselRoute(page, '/mammology', MOBILE_VIEWPORT)
   const layout = await mobileHeroLayout(page)
   expect(layout).toEqual({ scrollY: 0, headerDoesNotOverlap: true, pageFitsViewport: true, copyBeforeCarousel: true, heroLegacyCards: 0, lowerCarousels: 1, lowerLegacyCards: 0 })
+})
+
+async function gynecologyDesktopReadability(page) {
+  return page.evaluate(() => {
+    const carousel = document.querySelector('[data-mobile-doctor-carousel][data-variant="desktop"]')
+    const plinth = carousel.querySelector('.mobile-doctor-plinth').getBoundingClientRect()
+    const inside = (element) => {
+      const box = element.getBoundingClientRect()
+      return box.width > 0 && box.left >= plinth.left - 0.5 && box.right <= plinth.right + 0.5 && box.bottom <= plinth.bottom + 0.5
+    }
+    const fontSize = (selector) => Number.parseFloat(getComputedStyle(carousel.querySelector(selector)).fontSize)
+    const reviewCount = carousel.querySelector('.mobile-doctor-rating > :first-child > span > span:last-child')
+    const statLabels = Array.from(document.querySelectorAll('[data-route-stats] p'))
+    return {
+      scoreInside: inside(carousel.querySelector('.mobile-doctor-rating > :first-child > span > span:nth-child(2)')),
+      reviewCountInside: getComputedStyle(reviewCount).display !== 'none' && inside(reviewCount),
+      bookingInside: inside(carousel.querySelector('.mobile-doctor-booking')),
+      profileInside: inside(carousel.querySelector('.mobile-doctor-profile')),
+      smallestPlinthFontAtLeast14: Math.min(fontSize('.mobile-doctor-specialty'), fontSize('.mobile-doctor-rating'), fontSize('.mobile-doctor-booking'), fontSize('.mobile-doctor-profile')) >= 14,
+      statLabels: statLabels.length,
+      clippedStatLabels: statLabels.filter((label) => label.scrollWidth > label.clientWidth + 1).length,
+    }
+  })
+}
+
+test('keeps the /gynecology desktop hero plinth and route stats fully readable', async ({ page }) => {
+  await visitCarouselRoute(page, '/gynecology', DESKTOP_VIEWPORT)
+  const state = await gynecologyDesktopReadability(page)
+  expect(state).toEqual({ scoreInside: true, reviewCountInside: true, bookingInside: true, profileInside: true, smallestPlinthFontAtLeast14: true, statLabels: 4, clippedStatLabels: 0 })
+})
+
+async function mammologyDesktopOverflow(page) {
+  return page.evaluate(() => {
+    const carousel = document.querySelector('[data-mobile-doctor-carousel][data-variant="desktop"]')
+    const card = carousel.getBoundingClientRect()
+    const farSlide = carousel.querySelector('[data-coverflow-position="next-far"]').getBoundingClientRect()
+    const plinthRadius = getComputedStyle(carousel.querySelector('.mobile-doctor-plinth')).borderBottomLeftRadius
+    return { overflowX: getComputedStyle(carousel).overflowX, farSlideExtendsPastCard: farSlide.right > card.right + 8, plinthRadius }
+  })
+}
+
+test('lets /mammology desktop hero portraits extend past the carousel edges instead of clipping', async ({ page }) => {
+  await visitCarouselRoute(page, '/mammology', DESKTOP_VIEWPORT)
+  const state = await mammologyDesktopOverflow(page)
+  expect(state).toEqual({ overflowX: 'visible', farSlideExtendsPastCard: true, plinthRadius: '32px' })
 })
 
 test('shows the /mammology desktop hero carousel and doctor grid while hiding the mobile carousel', async ({ page }) => {

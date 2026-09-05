@@ -142,7 +142,7 @@ export function Gynecology({ servicesData = [] }) {
                 Бережный приём с уважением к вашему времени, деликатному осмотру и объяснением каждого шага
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                   Записаться на приём
                   <ArrowRight size={16} />
                 </button>
@@ -163,16 +163,16 @@ export function Gynecology({ servicesData = [] }) {
             <div className="overflow-hidden rounded-[22px] border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-sm)]">
               <div className="grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                 <div className="border-b border-[color:var(--border-color)] p-5 md:p-6 lg:border-b-0 lg:border-r">
-                  <p className="text-sm font-semibold text-clay-dark mb-2">Приём без давления</p>
-                  <p className="text-sm leading-relaxed text-clay-muted">
+                  <p className="text-base font-semibold text-clay-dark mb-2">Приём без давления</p>
+                  <p className="text-sm md:text-base leading-relaxed text-clay-muted">
                     Санкт-Петербург, Приморский район, Богатырский проспект. Удобно добираться от м. Комендантский проспект и м. Старая Деревня. Мы работаем спокойно: без давления, без лишних назначений и с опорой на показания.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4">
-                  {GYNECOLOGY_STATS.map((s) => (
-                    <div key={s.label} className="border-b border-r border-[color:var(--border-color)] p-4 last:border-r-0 sm:border-b-0">
-                      <div className="text-3xl sm:text-4xl font-serif font-light text-clay-peach leading-none mb-2">{s.val}</div>
-                      <p className="text-xs text-clay-muted leading-tight">{s.label}</p>
+                <div className="grid grid-cols-2" data-route-stats>
+                  {GYNECOLOGY_STATS.map((s, i) => (
+                    <div key={s.label} className={`p-5 md:p-6 border-[color:var(--border-color)] ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b' : ''}`}>
+                      <div className="text-3xl sm:text-4xl font-serif font-light text-clay-mint leading-none mb-3">{s.val}</div>
+                      <p className="text-sm md:text-base text-clay-muted leading-snug break-words">{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -396,7 +396,7 @@ export function Gynecology({ servicesData = [] }) {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
-                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary btn-specialty-peach gap-2">
+                  <button type="button" data-booking-btn="true" className="clay btn-clay-primary gap-2">
                     Записаться на приём
                     <ArrowRight size={16} />
                   </button>
