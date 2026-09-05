@@ -4,6 +4,7 @@ services:
     build:
       context: .
     restart: unless-stopped
+    stop_grace_period: 95s
     logging:
       driver: json-file
       options:

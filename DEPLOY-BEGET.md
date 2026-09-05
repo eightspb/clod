@@ -304,7 +304,7 @@ docker compose logs app -f
 bun run deploy
 ```
 
-Скрипт подключится к серверу по `ssh clod`, проверит свободное место, выполнит `git pull`, отрендерит и проверит `nginx.conf`, дождётся образа `ghcr.io/eightspb/clod:sha-<HEAD>` из GitHub Actions, затем `docker compose pull app && docker compose up -d --no-build` и перезагрузку Nginx (`nginx -s reload`). Образ на сервере не собирается; аварийная сборка на хосте — `DEPLOY_BUILD_ON_HOST=1 bun run deploy`. Хосту нужен доступ к пакету GHCR (публичный пакет или `docker login ghcr.io` с PAT `read:packages`). Либо запустите напрямую:
+Скрипт подключится к серверу по `ssh clod`, сделает бэкап базы (`scripts/backup.sh`), проверит свободное место, выполнит `git pull`, отрендерит и проверит `nginx.conf`, дождётся образа `ghcr.io/eightspb/clod:sha-<HEAD>` из GitHub Actions, затем `docker compose pull app && docker compose up -d --no-build`, перезагрузку Nginx (`nginx -s reload`) и smoke-проверку (`/api/health`, `/`, `/doctors`, `/api/admin/stats` → 401). Если smoke не прошёл, скрипт сам возвращает предыдущий образ и завершается с ошибкой; вручную это делает `bun run rollback`. Образ на сервере не собирается; аварийная сборка на хосте — `DEPLOY_BUILD_ON_HOST=1 bun run deploy`. Хосту нужен доступ к пакету GHCR (публичный пакет или `docker login ghcr.io` с PAT `read:packages`). Либо запустите напрямую:
 
 ```bash
 sh scripts/deploy.sh
@@ -320,6 +320,7 @@ git pull
 CLOD_IMAGE_TAG=sha-$(git rev-parse --short=7 HEAD) docker compose pull app
 docker compose up -d --no-build
 docker compose exec -T nginx nginx -s reload
+sh scripts/smoke.sh
 ```
 
 Pull скачает образ, который CI собрал для этого коммита, и перезапустит контейнер приложения. Перезагрузка Nginx сбрасывает кэш соединений; если страница всё ещё отдаёт старое - сделайте жёсткое обновление в браузере (Ctrl+F5). Nginx и certbot продолжат работать без изменений.

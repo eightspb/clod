@@ -68,6 +68,19 @@ sh /srv/clod/scripts/restore-check.sh /srv/backups/clod/daily/clod-<stamp>.tar.g
 Копия базы без исходного `PATIENT_ENCRYPTION_KEY` сохраняет обезличенную историю, но профили
 восстановить невозможно.
 
+## Откат версии приложения
+
+`bun run deploy` перед `git pull` делает обычный бэкап этим же скриптом, а после `nginx reload` прогоняет
+`scripts/smoke.sh`; провал smoke автоматически возвращает образ `CLOD_PREVIOUS_IMAGE_TAG`. Вручную:
+
+```bash
+bun run rollback          # с ПК разработчика: меняет теги в /srv/clod/.env, up -d --no-build app, smoke
+```
+
+Откат меняет только код. Схема SQLite аддитивна и остаётся; если новая версия сломала данные,
+восстановите базу из архива, созданного на шаге 1 того же деплоя, по процедуре выше.
+Повторный `bun run rollback` возвращает отменённую версию обратно (теги снова меняются местами).
+
 ## Журнал учений
 
 | Дата | Архив | integrity | Patient | HistoricalVisit | RTO, с | Кто |

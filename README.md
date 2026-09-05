@@ -145,7 +145,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 ### Безопасность
 
 - **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`)
-- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается собирать образ при заполнении диска выше 80 %
+- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается скачивать образ при заполнении диска выше 80 %, делает бэкап до деплоя, проверяет `/api/health` после и откатывается на предыдущий образ при провале smoke
 - **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
@@ -496,6 +496,7 @@ clod/
 │   │       ├── appointments/
 │   │       │   ├── slots.js       # GET - безопасное нормализованное расписание Medflex
 │   │       │   └── book.js        # POST - защищённое создание и согласование записи
+│   │       ├── health.js          # GET - readiness: обязательные env + таблица Patient, 200/503, no-store
 │   │       ├── tax-form.js        # POST - заявка на справку для налогового вычета
 │   │       ├── auth/
 │   │       │   ├── login.js       # POST - вход (rate limiting: 5 попыток / 15 мин)
@@ -609,7 +610,8 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 | Файл | Экспорты | Используется в |
 |---|---|---|
-| `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs` |
+| `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs`, `api/health` |
+| `graceful-shutdown.js` | `createGracefulShutdown(server, {timeoutMs})` — drain по SIGTERM: закрыть listener, дождаться in-flight, выйти 0, по таймауту 1 | `scripts/server.mjs` |
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `swipe-gesture.js` | `createSwipeGesture` — фиксация оси жеста и один шаг за свайп для touch и pointer | `MobileDoctorCarousel` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
@@ -945,6 +947,7 @@ integrations: [
 | `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую |
 | `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу для `@libsql/client`: `file:/data/db.sqlite`; `ASTRO_DB_APP_TOKEN` нужен только для удалённого libsql |
 | `SITE_DOMAIN` | Домен для генерации `nginx.conf` и путей сертификата, сейчас `new.odintsovclinic.ru` |
+| `CLOD_IMAGE_TAG` / `CLOD_PREVIOUS_IMAGE_TAG` | Текущий и предыдущий тег образа `ghcr.io/eightspb/clod`; записываются `scripts/deploy.sh`, меняются местами `bun run rollback` |
 
 ### Первый деплой (Bootstrap HTTPS)
 
@@ -1003,7 +1006,19 @@ SITE_DOMAIN=example.test sh scripts/render-nginx.sh http && docker run --rm --ad
 bun run deploy
 ```
 
-Скрипт `scripts/deploy.sh` выполняет: проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → ожидание образа `ghcr.io/eightspb/clod:sha-<HEAD>` в GHCR (до `DEPLOY_IMAGE_WAIT_SECONDS`, по умолчанию 1200 с; тег записывается в `CLOD_IMAGE_TAG` в серверном `.env`) → `docker compose pull app && docker compose up -d --no-build` → nginx reload → `docker image prune -af --filter until=24h`. Сборки на хосте нет: образ собирает и проверяет CI. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`), `DEPLOY_IMAGE`, `DEPLOY_IMAGE_WAIT_SECONDS`. Аварийный путь `DEPLOY_BUILD_ON_HOST=1 bun run deploy` собирает образ на сервере, как раньше, и удаляет `CLOD_IMAGE_TAG` из `.env`.
+Скрипт `scripts/deploy.sh` выполняет девять шагов: бэкап базы и volumes через `scripts/backup.sh` (пропуск только осознанно через `SKIP_BACKUP=1`) → проверка диска (< 80 %) → git pull → рендер и `nginx -t` для `nginx.conf` → ожидание образа `ghcr.io/eightspb/clod:sha-<HEAD>` в GHCR (до `DEPLOY_IMAGE_WAIT_SECONDS`, по умолчанию 1200 с; прежний тег сохраняется в `CLOD_PREVIOUS_IMAGE_TAG`, новый записывается в `CLOD_IMAGE_TAG` серверного `.env`) → `docker compose pull app && docker compose up -d --no-build` → nginx reload → smoke-гейт `scripts/smoke.sh` → удаление всех тегов образа, кроме текущего и предыдущего. Сборки на хосте нет: образ собирает и проверяет CI. Параметры: `DEPLOY_HOST` (по умолчанию `clod`), `DEPLOY_DIR` (по умолчанию `/srv/clod`), `DEPLOY_IMAGE`, `DEPLOY_IMAGE_WAIT_SECONDS`, `SKIP_BACKUP`. Аварийный путь `DEPLOY_BUILD_ON_HOST=1 bun run deploy` собирает образ на сервере, как раньше, удаляет `CLOD_IMAGE_TAG` из `.env` и не оставляет тега для автоматического отката.
+
+Smoke-гейт выполняется на сервере против `https://$SITE_DOMAIN`: ждёт `200` от `GET /api/health` до 60 с, затем требует `200` от `/` и `/doctors` и `401` от `/api/admin/stats`. Любое расхождение печатает хвост `docker compose logs app`, деплой автоматически откатывается на `CLOD_PREVIOUS_IMAGE_TAG` и завершается ненулевым кодом. `GET /api/health` (`src/pages/api/health.js`, SSR, `Cache-Control: no-store`, без авторизации) отвечает `{"ok":true}` только когда обязательные переменные окружения присутствуют и таблица `Patient` доступна в SQLite; иначе `503` с безопасной причиной `environment` или `database`. Тот же маршрут использует `HEALTHCHECK` контейнера (`--start-period=60s`, чтобы дождаться `init-db` на базе 446 МБ) вместо загрузки главной страницы на 244 КБ.
+
+Откат одной командой:
+
+```bash
+bun run rollback
+```
+
+`scripts/rollback.sh` меняет местами `CLOD_IMAGE_TAG` и `CLOD_PREVIOUS_IMAGE_TAG` в серверном `.env`, пересоздаёт только контейнер `app` из уже скачанного образа без сборки и прогоняет тот же smoke-гейт. Откат затрагивает только код: аддитивные изменения схемы SQLite остаются, а ломающее изменение схемы требует восстановления базы из бэкапа шага 1 по [`docs/runbooks/backup-restore.md`](./docs/runbooks/backup-restore.md).
+
+Контейнер `app` завершает работу мягко: `docker-entrypoint.sh` запускает `scripts/server.mjs`, который стартует адаптер с `ASTRO_NODE_AUTOSTART=disabled`, а по `SIGTERM`/`SIGINT` перестаёт принимать соединения, ждёт завершения текущих запросов (в том числе платного `POST /api/appointments/book` с `proxy_read_timeout 75s`) и выходит с кодом `0`; через 90 с незавершённый drain завершается кодом `1`. `stop_grace_period: 95s` в `docker-compose.yml` не даёт Docker послать `SIGKILL` раньше. Логика drain в `src/lib/graceful-shutdown.js` покрыта unit-тестами. Nginx-шаблоны используют `resolver 127.0.0.11 valid=10s` и `proxy_pass http://$app_upstream$request_uri`, поэтому адрес пересозданного контейнера `app` переразрешается на каждом запросе и деплой не оставляет окна `502` до reload. Переменная `SKIP_DB_INIT=true` в окружении контейнера пропускает `init-db` при старте: это осознанный запасной выход для диагностики несовместимой схемы, а не режим работы.
 
 Хост должен иметь доступ к пакету GHCR: либо пакет `clod` публичный, либо на сервере один раз выполнен `docker login ghcr.io` с PAT `read:packages`. Пока доступа нет, деплой останавливается на шаге ожидания образа с понятной ошибкой.
 
@@ -1025,6 +1040,12 @@ Certbot-контейнер проверяет сертификат каждые 
 ---
 
 ## Последние изменения (сентябрь 2026)
+
+### Деплой с бэкапом, health-gate и откатом (5 сентября 2026, Фаза 1 п.5 аудита)
+
+- `bun run deploy`: бэкап до `git pull`, smoke-гейт после reload, автоматический откат на `CLOD_PREVIOUS_IMAGE_TAG`, prune только лишних тегов; `bun run rollback` — тот же откат вручную
+- `GET /api/health` для `HEALTHCHECK` и smoke; graceful shutdown через `scripts/server.mjs` + `stop_grace_period: 95s`; nginx переразрешает `app` через `resolver 127.0.0.11`; `SKIP_DB_INIT=true` как запасной выход entrypoint
+- Осознанное отклонение от рекомендации аудита: `restart: unless-stopped` для `app` сохранён вместо `on-failure:5`, потому что без внешнего мониторинга (Фаза 1 п.6) остановленный после пяти падений контейнер не вернулся бы и после планового ночного reboot хоста; crash loop виден в `docker compose ps` и в smoke деплоя
 
 ### Быстрые победы аудита (5 сентября 2026)
 
