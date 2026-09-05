@@ -2,6 +2,9 @@
   "name": "klinika-odincova",
   "type": "module",
   "version": "1.0.0",
+  "engines": {
+    "bun": "1.3.x"
+  },
   "scripts": {
     "dev": "sh scripts/dev.sh",
     "build": "astro build",
