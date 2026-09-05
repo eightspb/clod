@@ -105,7 +105,7 @@ When the change scope is unclear, start by identifying the affected area:
 
 ## Key Architecture Constraints
 
-- This is an **Astro 4** site with **React 18 islands**, not a SPA and not a Next.js app
+- This is an **Astro 7** site with **React 18 islands**, not a SPA and not a Next.js app
 - File-based routing lives in `src/pages/**/*.astro`
 - Prefer **Astro-first** rendering for static and SEO-critical content
 - Use React only for interactive islands, admin UI, or genuinely stateful widgets

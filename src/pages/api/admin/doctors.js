@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db } from 'astro:db'
+import { db } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 import { createDoctorRecords } from '../../../lib/doctor-records.js'
 

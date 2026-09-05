@@ -34,8 +34,8 @@
 | Слой | Технология |
 |---|---|
 | Runtime | **Bun** (не npm/yarn) |
-| Фреймворк | **Astro 4** + React 18 (island architecture) |
-| База данных | **@astrojs/db** (SQLite) |
+| Фреймворк | **Astro 7** + React 18 (island architecture), Vite 8, Rust-компилятор |
+| База данных | **SQLite** через `@libsql/client` + `drizzle-orm` (`src/lib/database.js`); схема создаётся `scripts/init-db.mjs` |
 | Стилизация | **Tailwind CSS 3** + CSS-переменные дизайн-системы в `src/styles/global.css` |
 | Иконки | **Lucide React** |
 | Тема | Skinnable CSS-архитектура (~87 CSS-переменных в `:root`), `ThemeSwitcher.jsx` (20 цветовых пресетов, 3 шрифтовых селектора) |
@@ -50,14 +50,13 @@
 
 ```bash
 bun run dev            # dev-сервер на localhost:4321
-bun run build          # production-сборка в dist/ + индекс Pagefind в dist/client/pagefind
-bun run build:remote   # то же с --remote для Docker-образа (Dockerfile вызывает именно этот скрипт)
+bun run build          # production-сборка в dist/ + индекс Pagefind в dist/client/pagefind (тот же скрипт использует Dockerfile)
 bun run preview        # превью собранного билда
 ```
 
 После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
 
-`bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux). Dev-launcher явно загружает корневой `.env` до старта Astro, поэтому после изменения server-only переменных окружения dev-сервер нужно полностью перезапустить.
+`bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux). Dev-launcher явно загружает корневой `.env` до старта Astro, поэтому после изменения server-only переменных окружения dev-сервер нужно полностью перезапустить. Локальная база больше не создаётся автоматически: укажите в `.env` локальный файл, например `ASTRO_DB_REMOTE_URL=file:.astro/content.db`, и один раз выполните `node scripts/init-db.mjs`. Playwright сам создаёт временную базу в `os.tmpdir()` и запускает `init-db` перед сервером; под AI-агентом (`CLAUDECODE`) Astro 7 уводит `dev`/`preview` в фон, поэтому `playwright.config.js` снимает эту переменную для webServer.
 
 ---
 
@@ -104,7 +103,7 @@ Workflow работает с `permissions: contents: read`, `concurrency` с о�
 
 ## Архитектура
 
-Проект использует **Astro hybrid mode** (SSG + SSR):
+Проект использует **Astro static output с адаптером Node** (SSG по умолчанию + SSR через `export const prerender = false`):
 
 - Публичные страницы - статически пре-рендерятся (SSG)
 - Админ-панель и API - серверный рендеринг (SSR) через `@astrojs/node`
@@ -511,9 +510,6 @@ clod/
 │   ├── styles/
 │   │   └── global.css             # Tailwind + ~87 CSS-переменных дизайн-системы + theme-switcher стили + prose-clay (блог)
 │   └── env.d.ts                   # Astro type references
-├── db/                            # Astro DB
-│   ├── config.ts                  # Схема базы данных
-│   └── seed.ts                    # Скрипт наполнения (демо-данные)
 ├── Dockerfile                     # Multi-stage Docker-сборка (builder + runner)
 ├── docker-compose.yml             # Docker Compose: app + nginx + certbot
 ├── nginx.https.conf               # Nginx: production-шаблон HTTPS (рендерится в nginx.conf)
@@ -521,7 +517,7 @@ clod/
 ├── nginx.bootstrap.conf           # Nginx: HTTP для первичного ACME (Certbot)
 ├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
 ├── .env.example                   # Шаблон переменных окружения
-├── astro.config.mjs               # Astro конфиг (hybrid mode, node adapter, react + tailwind)
+├── astro.config.mjs               # Astro конфиг (static + node adapter, react, sitemap, remark-markdown, checkOrigin off)
 ├── vitest.config.mjs              # Vitest (Astro getViteConfig, jsdom)
 ├── playwright.config.js           # Playwright E2E
 ├── eslint.config.js               # ESLint 9 flat config (Astro, React)
@@ -808,7 +804,7 @@ const [errorMessage, setErrorMessage] = useState('')
 // astro.config.mjs
 integrations: [
   react(),                              // React-компоненты в .astro-файлах
-  tailwind({ applyBaseStyles: false }), // Tailwind без сброса базовых стилей
+  sitemap({ ... }),                     // Tailwind 3 подключается через postcss.config.js
 ]
 ```
 
@@ -859,7 +855,7 @@ integrations: [
 Блог реализован через **Astro Content Collections** (`src/content/blog/`):
 
 - Статьи в формате Markdown с frontmatter (title, description, keywords, publishDate, author, category, tags)
-- Схема коллекции в `src/content/config.ts`
+- Схема коллекции в `src/content.config.ts` (Content Layer, `glob`-loader; идентификатор статьи — `post.id`)
 - `/blog` - листинг статей с `ItemList` JSON-LD
 - `/blog/[slug]` - статья с `MedicalWebPage` JSON-LD (author = Physician, medicalAudience = Patient)
 - Автор статьи связывается с данными из `doctors-data.js` по `authorSlug`
@@ -935,7 +931,7 @@ integrations: [
 | `MANGO_VPBX_API_SALT` | Ключ подписи того же API-коннектора; только server-side |
 | `MANGO_CALL_ENCRYPTION_KEY` | Отдельный base64 AES-256-GCM ключ номеров; генерировать `openssl rand -base64 32` |
 | `MANGO_INBOUND_LINES` | Обязательный allowlist входящих линий через запятую |
-| `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу: `file:/data/db.sqlite` |
+| `ASTRO_DB_REMOTE_URL` | Путь к SQLite-файлу для `@libsql/client`: `file:/data/db.sqlite`; `ASTRO_DB_APP_TOKEN` нужен только для удалённого libsql |
 | `SITE_DOMAIN` | Домен для генерации `nginx.conf` и путей сертификата, сейчас `new.odintsovclinic.ru` |
 
 ### Первый деплой (Bootstrap HTTPS)
@@ -1013,6 +1009,21 @@ Certbot-контейнер проверяет сертификат каждые 
 ```
 
 ---
+
+## Последние изменения (сентябрь 2026)
+
+### Апгрейд на Astro 7
+
+- **Astro 4 → 7.3, Vite 5 → 8, `@astrojs/node` 11, `@astrojs/react` 6, `@astrojs/sitemap` 3.7, Vitest 5, jsdom 30.** Ветка Astro 6.x после 6.4.8 security-релизов не получает, поэтому переход сразу на текущий мажор.
+- **`@astrojs/db` удалён из Astro 7.** Его заменяет `src/lib/database.js`: ленивый `drizzle-orm` поверх `@libsql/client` с тем же query API (`db.select().from(Table)`), таблицы в `src/lib/database-schema.js`, даты аналитики по-прежнему хранятся ISO-текстом. Схему создаёт только `scripts/init-db.mjs`; `db/config.ts`, `db/seed.ts`, флаг `--remote` и build-args `ASTRO_DB_*` в Dockerfile/compose/CI убраны. Тест миграции сверяет `init-db` с DDL, которую генерировал Astro DB (`src/test/fixtures/astro-db-generated-schema.mjs`).
+- **Drizzle оборачивает ошибки libsql** в `DrizzleQueryError`: код `SQLITE_CONSTRAINT` теперь в `error.cause.code`, `upsertSession` аналитики читает его оттуда.
+- **`request.url` в SSR строится из `Host` без `X-Forwarded-*`** (адаптер Node 11), поэтому за nginx URL получается `http://`. `validateOrigin` сверяет forwarded-origin с текущим URL по hostname, а не по полному origin; протокол и порт по-прежнему проверяются по `X-Forwarded-Proto`/`X-Forwarded-Port`.
+- **`import.meta.env` инлайнится при сборке**, поэтому серверные секреты (`ADMIN_PASSWORD`, `TOKEN_SECRET`, SMTP, MANGO, `IMAGE_API_KEY`) читаются только из `process.env`.
+- **`security.checkOrigin: false`**: встроенная CSRF-проверка Astro отклоняла бы urlencoded webhook MANGO без `Origin`; собственная проверка `validateOrigin` на всех state-changing API сохранена.
+- **Content Layer**: конфиг коллекций в `src/content.config.ts` (`glob`-loader), статьи адресуются по `post.id` вместо `post.slug`.
+- **Сохранённое поведение**: `output: 'static'` вместо удалённого `hybrid`, `compressHTML: true` вместо нового JSX-режима пробелов, markdown через `unified()` из `@astrojs/markdown-remark` вместо Sätteri, Tailwind 3 через `postcss.config.js` без `@astrojs/tailwind`.
+- **Playwright** создаёт временную SQLite в `os.tmpdir()`, запускает `init-db` и снимает `CLAUDECODE`, потому что Astro 7 уводит `dev`/`preview` в фон под AI-агентом.
+- **Audit**: `docs/dependency-exposure.ignore` пуст, high/critical advisories нет.
 
 ## Последние изменения (апрель 2026)
 

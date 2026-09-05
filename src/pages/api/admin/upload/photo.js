@@ -1,7 +1,7 @@
 export const prerender = false
 
-import { db, Doctor, Media } from 'astro:db'
-import { eq } from 'astro:db'
+import { db, Doctor, Media } from '../../../../lib/database.js'
+import { eq } from '../../../../lib/database.js'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { guardAdminWrite } from '../../../../lib/admin-api.js'

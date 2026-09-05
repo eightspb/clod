@@ -89,7 +89,7 @@ const itemListSchema = {
   itemListElement: posts.map((post, index) => ({
     '@type': 'ListItem',
     position: index + 1,
-    url: `https://odintsovclinic.ru/blog/${post.slug}`,
+    url: `https://odintsovclinic.ru/blog/${post.id}`,
     name: post.data.title,
   })),
   publisher: {
@@ -226,7 +226,7 @@ const itemListSchema = {
             
             return (
               <a
-                href={`/blog/${post.slug}`}
+                href={`/blog/${post.id}`}
                 data-post-card
                 data-category={post.data.category}
                 class={`${cardColor} clay-card flex flex-col p-0 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 no-underline group border border-white/40 ${isFeatured ? 'lg:col-span-2 lg:grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]' : ''}`}

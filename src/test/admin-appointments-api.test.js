@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
 
 const APPOINTMENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
 const CLAIM_ID = 'd1c060a0-8375-4ff9-bce5-9bb03029256f'

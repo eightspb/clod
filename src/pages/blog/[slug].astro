@@ -26,13 +26,13 @@ function toAbsoluteUrl(url) {
 export async function getStaticPaths() {
   const posts = await getCollection('blog')
   return posts.map((post) => ({
-    params: { slug: post.slug },
+    params: { slug: post.id },
   }))
 }
 
 const allPosts = await getCollection('blog')
 const { slug } = Astro.params
-const post = allPosts.find((entry) => entry.slug === slug)
+const post = allPosts.find((entry) => entry.id === slug)
 
 if (!post) {
   throw new Error(`Missing blog post entry for slug "${slug}".`)
@@ -41,7 +41,7 @@ if (!post) {
 const { Content } = await render(post)
 
 function findRelatedPosts(currentPost, allEntries, limit = 3) {
-  const candidates = allEntries.filter((p) => p.slug !== currentPost.slug)
+  const candidates = allEntries.filter((p) => p.id !== currentPost.id)
   const currentTags = new Set(currentPost.data.tags || [])
   const scored = candidates.map((p) => {
     const categoryMatch = p.data.category === currentPost.data.category ? 10 : 0
@@ -58,7 +58,7 @@ function findRelatedPosts(currentPost, allEntries, limit = 3) {
 const relatedPosts = findRelatedPosts(post, allPosts)
 
 const relatedArticlesData = relatedPosts.map((p) => ({
-  slug: p.slug,
+  slug: p.id,
   title: p.data.title,
   description: p.data.description,
   category: p.data.category,
@@ -90,7 +90,7 @@ const seoKeywords = post.data.keywords
   ? post.data.keywords
   : `${post.data.category}, ${post.data.title}, Клиника Одинцова`
 
-const canonicalUrl = `https://odintsovclinic.ru/blog/${post.slug}`
+const canonicalUrl = `https://odintsovclinic.ru/blog/${post.id}`
 const ogImageUrl = normalizeImageUrl(post.data.image)
 const hasLocalSignals = /санкт-петербург|спб|приморский район|комендантский|старая деревня/i.test(
   `${post.data.description} ${seoKeywords} ${post.data.tags.join(' ')}`

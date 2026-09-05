@@ -8,7 +8,7 @@ import { createBookingIntentRepository } from '../lib/appointment-intents.js'
 import { validateBookingPayload } from '../lib/appointment-validation.js'
 import { MedflexError } from '../lib/medflex-client.js'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: undefined }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: undefined }) }))
 
 const CLAIM_ID = '872bb8e7-fdc5-4886-8c54-2be1fe31d7fb'
 

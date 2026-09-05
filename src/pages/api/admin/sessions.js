@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db, desc, gte, AnalyticsSession } from 'astro:db'
+import { db, databaseErrorCode, desc, gte, AnalyticsSession } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
@@ -64,7 +64,7 @@ export async function GET({ request }) {
       })),
     }, 200)
   } catch (error) {
-    console.error('[admin/sessions]', error?.code ?? error?.name ?? 'UNKNOWN')
+    console.error('[admin/sessions]', databaseErrorCode(error))
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось загрузить сессии.')
   }
 }

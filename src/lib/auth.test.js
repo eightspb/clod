@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { NodeApp } from 'astro/app/node'
+import { createRequestFromNodeRequest } from 'astro/app/node'
 import {
   buildClearCookie,
   buildSetCookie,
@@ -41,8 +41,9 @@ function makeJsonRequest({ origin = 'http://localhost:4321', referer = null, bod
   })
 }
 
+/** Mirrors @astrojs/node: the URL comes from the plain Host header, never from X-Forwarded-* */
 function makeAstroProxyRequest(origin, headers) {
-  return NodeApp.createRequest({ method: 'POST', url: '/api/test', headers: { origin, ...headers }, socket: {} }, { skipBody: true })
+  return createRequestFromNodeRequest({ method: 'POST', url: '/api/test', headers: { origin, ...headers }, socket: {}, on() {}, once() {}, off() {} }, { skipBody: true })
 }
 
 beforeEach(() => {
@@ -109,9 +110,9 @@ describe('auth.js', () => {
       ).toBe(true)
     })
 
-    it('accepts the external exact origin behind the configured HTTPS reverse proxy', () => {
-      const request = makeAstroProxyRequest('https://odintsovclinic.ru', { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443' })
-      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'https://odintsovclinic.ru/api/test', valid: true })
+    it('accepts the HTTPS origin when the adapter derives a plain HTTP url from the nginx Host header', () => {
+      const request = makeAstroProxyRequest('https://odintsovclinic.ru', { host: 'odintsovclinic.ru', 'x-forwarded-host': '', 'x-forwarded-proto': 'https', 'x-forwarded-port': '443' })
+      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'http://odintsovclinic.ru/api/test', valid: true })
     })
 
     it('accepts the exact HTTP origin behind the configured port 80 proxy', () => {
@@ -131,7 +132,7 @@ describe('auth.js', () => {
 
     it.each(['https://odintsovclinic.ru', 'https://odintsovclinic.ru:444'])('rejects %s when Astro receives a forged forwarded port 444', (origin) => {
       const request = makeAstroProxyRequest(origin, { host: 'odintsovclinic.ru', 'x-forwarded-proto': 'https', 'x-forwarded-port': '444' })
-      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'https://odintsovclinic.ru:444/api/test', valid: false })
+      expect({ url: request.url, valid: validateOrigin(request) }).toEqual({ url: 'http://odintsovclinic.ru/api/test', valid: false })
     })
 
     it.each(['https://odintsovclinic.ru', 'https://odintsovclinic.ru:444'])('rejects %s when the forwarded port is ambiguous', (origin) => {

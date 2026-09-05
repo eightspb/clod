@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AdminClinicQueryError } from '../lib/admin-clinic-query.js'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
 
 const VISIT_ID = '72000000-0000-4000-8000-000000000002'
 const PATIENT_ID = '71000000-0000-4000-8000-000000000001'

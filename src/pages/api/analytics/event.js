@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db as analyticsDb, AnalyticsSession, PageView, EventLog, eq } from 'astro:db'
+import { db as analyticsDb, AnalyticsSession, PageView, EventLog, databaseErrorCode, eq } from '../../../lib/database.js'
 import { validateOrigin } from '../../../lib/auth.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
@@ -254,7 +254,7 @@ async function upsertSession({ sessionId, visitorId, ip, now, values }) {
       ...values,
     })
   } catch (error) {
-    if (error?.code !== 'SQLITE_CONSTRAINT') {
+    if (databaseErrorCode(error) !== 'SQLITE_CONSTRAINT') {
       throw error
     }
 
@@ -388,7 +388,7 @@ export async function POST({ request }) {
 
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
-    console.error('[analytics/event]', error?.code ?? error?.name ?? 'UNKNOWN')
+    console.error('[analytics/event]', databaseErrorCode(error))
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось сохранить событие')
   }
 }

@@ -12,7 +12,8 @@ import {
   inArray,
   lte,
   AnalyticsSession,
-} from 'astro:db'
+  databaseErrorCode,
+} from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
@@ -126,7 +127,7 @@ export async function GET({ request }) {
       totalPages,
     }, 200)
   } catch (error) {
-    console.error('[admin/logs]', error?.code ?? error?.name ?? 'UNKNOWN')
+    console.error('[admin/logs]', databaseErrorCode(error))
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось загрузить логи.')
   }
 }

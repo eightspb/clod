@@ -4,8 +4,8 @@ import Layout from '../layouts/Layout.astro'
 import { Gynecology, GYNECOLOGY_FAQ } from '../components/pages/Gynecology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
-import { db, Service } from 'astro:db'
-import { eq } from 'astro:db'
+import { db, Service } from '../lib/database.js'
+import { eq } from '../lib/database.js'
 
 const services = await db.select().from(Service).where(eq(Service.direction, 'Гинекология'));
 

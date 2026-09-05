@@ -18,7 +18,7 @@ import {
   AnalyticsSession,
   PageView,
   Patient,
-} from 'astro:db'
+} from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 import { moscowDayBounds } from '../../../lib/clinic-time.js'
 

@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db } from 'astro:db'
+import { db } from '../../../lib/database.js'
 import { createAppointmentBooking } from '../../../lib/appointment-booking.js'
 import { createAppointmentRecords } from '../../../lib/appointment-records.js'
 import { validateBookingPayload } from '../../../lib/appointment-validation.js'
@@ -33,7 +33,7 @@ function safeLog(stage) {
 }
 
 function environment(name) {
-  const value = import.meta.env[name] || process.env[name]
+  const value = process.env[name]
   if (typeof value !== 'string' || value.length === 0) throw new TypeError(`${name} environment variable is required`)
   return value
 }

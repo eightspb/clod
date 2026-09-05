@@ -3,8 +3,8 @@
  * Защита от path traversal и невалидных doctorId.
  */
 
-import { db, Doctor } from 'astro:db'
-import { eq } from 'astro:db'
+import { db, Doctor } from './database.js'
+import { eq } from './database.js'
 import { unlink } from 'node:fs/promises'
 import { isSafeDoctorId } from './upload-validation.js'
 

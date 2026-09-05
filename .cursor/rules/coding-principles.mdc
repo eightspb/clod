@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Coding Principles
 
-These rules adapt the strongest ideas from [Elegant Objects](https://github.com/yegor256/prompt), DDD, and production web engineering to this repository's real stack: Astro 4, React 18, JavaScript, Tailwind, Vitest, and Playwright.
+These rules adapt the strongest ideas from [Elegant Objects](https://github.com/yegor256/prompt), DDD, and production web engineering to this repository's real stack: Astro 7, React 18, JavaScript, Tailwind, Vitest, and Playwright.
 
 ## Core Paradigms
 

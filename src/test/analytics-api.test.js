@@ -62,7 +62,7 @@ const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock
   }
 })
 
-vi.mock('astro:db', () => ({
+vi.mock('../lib/database.js', () => ({
   db: dbMock,
   AnalyticsSession: { id: 'analytics_session.id', visitorId: 'analytics_session.visitorId', startedAt: 'analytics_session.startedAt', lastActiveAt: 'analytics_session.lastActiveAt' },
   Appointment: { startsAt: 'appointment.startsAt', status: 'appointment.status' },
@@ -72,6 +72,7 @@ vi.mock('astro:db', () => ({
   Patient: { piiDestroyedAt: 'patient.piiDestroyedAt' },
   and: andMock,
   avg: avgMock,
+  databaseErrorCode: (error) => error?.cause?.code ?? error?.code ?? error?.name ?? 'UNKNOWN',
   count: countMock,
   countDistinct: countDistinctMock,
   desc: descMock,
@@ -239,6 +240,14 @@ describe('analytics API hardening', () => {
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ ok: true })
     expect(insertCalls).toHaveLength(3)
+  })
+
+  it('touches the existing session when the insert fails with a Drizzle-wrapped SQLITE_CONSTRAINT error', async () => {
+    const { POST } = await loadEventHandler()
+    const wrapped = Object.assign(new Error('Failed query: insert into "AnalyticsSession"'), { cause: Object.assign(new Error('UNIQUE constraint failed: AnalyticsSession.id'), { code: 'SQLITE_CONSTRAINT' }) })
+    dbMock.insert.mockImplementationOnce(() => ({ values: vi.fn(async () => { throw wrapped }) }))
+    const response = await POST({ request: makeJsonRequest({ body: { type: 'page_enter', sessionId: 'сессия-Ω', visitorId: 'гость-1', data: { page: '/mammology' } } }) })
+    expect({ status: response.status, updates: updateCalls.length }).toEqual({ status: 200, updates: 1 })
   })
 
   it('rejects heartbeat requests from unknown origins with the same error shape', async () => {

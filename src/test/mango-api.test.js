@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
 
 const API_KEY = '123456789'
 const API_SALT = 'mango-test-salt-with-enough-entropy'

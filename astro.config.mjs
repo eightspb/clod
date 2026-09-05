@@ -1,14 +1,16 @@
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
-import tailwind from '@astrojs/tailwind'
-import db from '@astrojs/db'
 import node from '@astrojs/node'
 import sitemap from '@astrojs/sitemap'
+import { unified } from '@astrojs/markdown-remark'
 
 export default defineConfig({
   site: 'https://odintsovclinic.ru',
-  output: 'hybrid',
+  output: 'static',
   adapter: node({ mode: 'standalone' }),
+  compressHTML: true,
+  security: { checkOrigin: false },
+  markdown: { processor: unified() },
   redirects: {
     '/napravleniya': '/',
     '/procedures': '/prices',
@@ -52,8 +54,6 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    tailwind({ applyBaseStyles: false }),
-    db({ seedLocal: false }),
     sitemap({
       changefreq: 'monthly',
       priority: 0.7,

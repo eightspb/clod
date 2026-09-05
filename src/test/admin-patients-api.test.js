@@ -3,7 +3,7 @@ import { AdminClinicQueryError } from '../lib/admin-clinic-query.js'
 import { PatientHistoryRecordError } from '../lib/patient-history-records.js'
 import { PatientRecordError } from '../lib/patient-records.js'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
 
 const PATIENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
 const ACTOR = `v1:${'a7'.repeat(32)}`

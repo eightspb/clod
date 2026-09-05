@@ -1,7 +1,7 @@
 export const prerender = false
 
-import { db, Doctor } from 'astro:db'
-import { eq } from 'astro:db'
+import { db, Doctor } from '../../../../lib/database.js'
+import { eq } from '../../../../lib/database.js'
 import { guardAdminWrite, readAdminJson } from '../../../../lib/admin-api.js'
 
 export async function PUT({ request, params }) {

@@ -1,11 +1,11 @@
 export const prerender = false
 
-import { db } from 'astro:db'
+import { db } from '../../../../../lib/database.js'
 import { createCallCallerEndpoint } from '../../../../../lib/admin-call-api.js'
 import { createMangoCallRecords } from '../../../../../lib/mango-call-records.js'
 
 function environment(name) {
-  const value = import.meta.env[name] || process.env[name]
+  const value = process.env[name]
   if (typeof value !== 'string' || value.length === 0) throw new TypeError(`${name} environment variable is required`)
   return value
 }

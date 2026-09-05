@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { db as analyticsDb, AnalyticsSession, eq } from 'astro:db'
+import { db as analyticsDb, AnalyticsSession, databaseErrorCode, eq } from '../../../lib/database.js'
 import { validateOrigin } from '../../../lib/auth.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
@@ -118,7 +118,7 @@ export async function POST({ request }) {
 
     return jsonResponse({ ok: true }, 200)
   } catch (error) {
-    console.error('[analytics/heartbeat]', error?.code ?? error?.name ?? 'UNKNOWN')
+    console.error('[analytics/heartbeat]', databaseErrorCode(error))
     return errorResponse(500, 'INTERNAL_ERROR', 'Не удалось обновить heartbeat')
   }
 }

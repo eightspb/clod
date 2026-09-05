@@ -7,10 +7,10 @@ alwaysApply: true
 
 ## Stack
 - **Runtime**: Bun (not npm/yarn)
-- **Framework**: Astro 4 + React 18 islands
+- **Framework**: Astro 7 + React 18 islands
 - **Language**: JavaScript (`.js`, `.jsx`) with selective TypeScript config files
 - **Routing**: Astro file-based routing in `src/pages/**`
-- **Database**: `@astrojs/db` with SQLite
+- **Database**: SQLite (libsql) through `drizzle-orm`; schema lives in `src/lib/database-schema.js`, DDL in `scripts/init-db.mjs`
 - **Styling**: Tailwind CSS 3 + custom clay utilities in `src/styles/global.css`
 - **Icons**: Lucide React
 - **CSS library**: `claymorphism-css` (npm package, imported in global.css)
@@ -54,7 +54,7 @@ alwaysApply: true
 - `src/lib/**`: domain data, filters, auth, validation, tracker utilities
 - `src/layouts/**`: page shells
 - `src/content/**`: blog collections
-- `db/**`: Astro DB schema and seed data
+- `src/lib/database.js`: lazy libsql/Drizzle handle shared by API routes
 - `e2e/**`: Playwright coverage
 
 ## Delivery Expectations

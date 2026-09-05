@@ -44,7 +44,7 @@ function errorResponse(status, code, message, details, headers) {
 }
 
 function getEnvValue(name) {
-  return import.meta.env[name] || process.env[name] || ''
+  return process.env[name] || ''
 }
 
 

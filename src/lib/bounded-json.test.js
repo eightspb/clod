@@ -26,7 +26,7 @@ describe('readBoundedJson', () => {
     expect(await readBoundedJson(request({ body: '{}', contentType: 'text/plain' }), 64)).toEqual({ valid: false, tooLarge: false })
   })
 
-  it('fails fast on a non-positive limit', () => {
-    expect(() => readBoundedJson(request({ body: '{}' }), 0)).rejects.toThrow(TypeError)
+  it('fails fast on a non-positive limit', async () => {
+    await expect(() => readBoundedJson(request({ body: '{}' }), 0)).rejects.toThrow(TypeError)
   })
 })

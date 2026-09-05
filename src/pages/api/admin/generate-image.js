@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { buildPrompt, AVAILABLE_MODELS, PROMPTS } from '../../../lib/blog-prompts.js'
 import { guardAdminRead, guardAdminWrite } from '../../../lib/admin-api.js'
 
-const API_KEY = import.meta.env.IMAGE_API_KEY
+const API_KEY = process.env.IMAGE_API_KEY
 const POLZA_URL = 'https://polza.ai/api/v1/media'
 const SLUG_PATTERN = /^[a-z0-9-]{1,80}$/
 const FETCH_TIMEOUT_MS = 20_000

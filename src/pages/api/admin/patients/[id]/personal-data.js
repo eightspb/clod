@@ -1,12 +1,12 @@
 export const prerender = false
 
-import { db } from 'astro:db'
+import { db } from '../../../../../lib/database.js'
 import { createPatientPersonalDataEndpoint } from '../../../../../lib/admin-patient-api.js'
 import { createPatientHistoryRecords } from '../../../../../lib/patient-history-records.js'
 import { createPatientRecords } from '../../../../../lib/patient-records.js'
 
 function environment(name) {
-  const value = import.meta.env[name] || process.env[name]
+  const value = process.env[name]
   if (typeof value !== 'string' || value.length === 0) throw new TypeError(`${name} environment variable is required`)
   return value
 }

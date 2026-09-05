@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('astro:db', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
+vi.mock('../lib/database.js', () => ({ db: Object.freeze({ $client: Object.freeze({}) }) }))
 
 const DOCTOR = Object.freeze({ id: 'doctor-odintsov', name: 'Одинцов Владислав Александрович', slug: 'odintsov', specialization: 'Онколог-маммолог', experienceYears: 30, bio: 'Главный врач', photoUrl: '/images/doctors/odintsov.webp', certificates: [], medflexDoctorId: 70120, medflexName: 'Одинцов Владислав Александрович', active: true, syncedAt: '2026-08-28T17:00:00.000Z' })
 

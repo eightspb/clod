@@ -1,7 +1,7 @@
 export const prerender = false
 
-import { db, DoctorCertificate, Media } from 'astro:db'
-import { and, eq } from 'astro:db'
+import { db, DoctorCertificate, Media } from '../../../../../lib/database.js'
+import { and, eq } from '../../../../../lib/database.js'
 import { guardAdminRead, guardAdminWrite, readAdminJson } from '../../../../../lib/admin-api.js'
 import { deleteFileIfExists, mediaUrlToFilePath } from '../../../../../lib/upload-utils.js'
 

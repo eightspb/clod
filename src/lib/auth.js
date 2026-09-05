@@ -5,7 +5,7 @@ const TOKEN_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000
 
 function getEnvValue(name) {
-  return import.meta.env[name] || process.env[name] || ''
+  return process.env[name] || ''
 }
 
 export function getTokenSecret() {
@@ -130,6 +130,11 @@ function exactOrigin(value) {
   }
 }
 
+/**
+ * The adapter derives request.url from the plain Host header, so behind the TLS-terminating
+ * nginx hop the URL is http:// while the forwarded headers describe the real https:// origin;
+ * only the hostname has to agree between the two.
+ */
 function proxyOrigin(request, current) {
   const rawProto = normalizeHeader(request.headers.get('x-forwarded-proto'))
   const rawForwardedHost = normalizeHeader(request.headers.get('x-forwarded-host'))
@@ -144,7 +149,7 @@ function proxyOrigin(request, current) {
   const origin = exactOrigin(`${rawProto}://${forwardedHost}`)
   if (!origin || (rawForwardedHost && rawForwardedHost !== host)) return Object.freeze({ valid: false, origin: '' })
   const originUrl = new URL(origin)
-  if ((originUrl.port || configuredPort) !== rawPort || origin !== current) return Object.freeze({ valid: false, origin: '' })
+  if ((originUrl.port || configuredPort) !== rawPort || !current || new URL(current).hostname !== originUrl.hostname) return Object.freeze({ valid: false, origin: '' })
   return Object.freeze({ valid: true, origin })
 }
 
