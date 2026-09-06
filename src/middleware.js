@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware'
 import { isAuthenticated } from './lib/auth.js'
+import { throttleUnauthenticatedAdmin } from './lib/admin-api.js'
 
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
 // Primary fonts are self-hosted (/fonts/); Google Fonts are loaded dynamically
@@ -71,6 +72,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (isAdminRoute || isAdminApi) {
     const authed = await isAuthenticated(context.request)
     if (!authed && isAdminApi) {
+      const throttled = throttleUnauthenticatedAdmin(context.request)
+      if (throttled) return secured(throttled, path)
       return secured(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } }), path)
     }
     if (!authed) {

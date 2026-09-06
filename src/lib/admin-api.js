@@ -12,9 +12,21 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const ADMIN_READ_LIMIT = { namespace: 'admin-read', maxRequests: 60, windowMs: 60_000 }
 const ADMIN_WRITE_LIMIT = { namespace: 'admin-write', maxRequests: 20, windowMs: 60_000 }
 const ADMIN_PII_LIMIT = { namespace: 'admin-pii', maxRequests: 10, windowMs: 60_000 }
+const ADMIN_UNAUTHENTICATED_LIMIT = { namespace: 'admin-unauthenticated', maxRequests: 30, windowMs: 60_000 }
 const ACTOR_DOMAIN = 'clod.admin-actor\0v1\0'
 const ADMIN_JSON_LIMIT = 4 * 1024
 
+
+/**
+ * Pre-authentication throttle for the middleware: the middleware answers 401 before any route
+ * guard runs, so without this an anonymous client could probe admin routes without limit.
+ * Returns a 429 Response or undefined.
+ */
+export function throttleUnauthenticatedAdmin(request) {
+  const { allowed, retryAfterSec } = checkRateLimit(getClientIp(request), ADMIN_UNAUTHENTICATED_LIMIT)
+  if (allowed) return undefined
+  return new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429, headers: { ...JSON_HEADERS, 'Retry-After': String(retryAfterSec) } })
+}
 
 /**
  * Guard for admin GET endpoints: rate limit (by IP) + auth.

@@ -150,11 +150,11 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 - **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`). Срок кэша статики тоже задаёт nginx: Node-адаптер отвечает `Cache-Control: public, max-age=0` для всего из `dist/client`, а `map $uri $clod_static_expires` в шаблонах выставляет `expires` год для хэшированных `/_astro/` и `/fonts/`, 30 дней для `/images/` (имена без хэша, файл можно заменить на месте) и не трогает HTML и `/api/`
 - **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается собирать образ при заполнении диска выше 80 %
-- **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
+- **Rate limiting** - login: 5 попыток / 15 мин, считаются из `AdminAuthEvent` и переживают деплой; анонимные `/api/admin/*`: 30 req/min в middleware; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
 - **Лимиты тела запроса** - JSON читается через `readBoundedJson`: 4 КиБ для login и admin JSON, 32 КиБ для analytics; публичные формы ограничивают имена 120 и комментарий 2000 символами; контейнер `app` ограничен `mem_limit: 700m` и `pids_limit: 256`
-- **Разделение секретов** - `TOKEN_SECRET` обязателен для HMAC-подписи админ-сессий и больше не падает обратно на `ADMIN_PASSWORD`; в production для cookies выставляется `Secure`
+- **Разделение секретов** - `TOKEN_SECRET` обязателен для HMAC-подписи админ-сессий и больше не падает обратно на `ADMIN_PASSWORD`; cookie `__Host-admin_session` всегда `Secure`, сессии отзываемы на сервере (см. «Админ-панель»)
 - **Analytics ingestion** - `event` и `heartbeat` используют одинаковую модель origin-check, rate limit и machine-readable ошибок
 - **Публичные формы “Второе мнение” и “Налоговая справка”** - endpoint работает fail-fast по SMTP-конфигу и отвечает `503` с телефоном клиники, валидирует origin/files и не использует placeholder credentials; получатели налоговой формы задаются только через `TAX_FORM_TO_EMAIL` в домене клиники
 
@@ -350,7 +350,11 @@ Server-side интеграция принимает подписанные вх�
 
 ### Админ-панель
 
-Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`. Кнопка «Выйти» остаётся видимой на мобильной ширине (контракт в `e2e/admin-security.spec.js` для 375×812) и показывает `role="alert"`, если `POST /api/auth/logout` не ответил `2xx`, вместо слепого перехода на страницу входа.
+Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
+
+Сессии администратора хранятся на сервере (сентябрь 2026, Фаза 1 п.10 аудита). Cookie `__Host-admin_session` (всегда `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`) несёт `sessionId.issuedAt.signature`, а строка `AdminSession(id, issuedAt, lastSeenAt, revokedAt)` решает, действительна ли она: подпись HMAC-SHA-256 по `TOKEN_SECRET`, абсолютный срок 24 часа, простой более 60 минут закрывает сессию, `lastSeenAt` обновляется не чаще раза в минуту. Кнопка «Выйти» вызывает `POST /api/auth/logout`, который ставит `revokedAt` и только потом просит браузер удалить cookie; «Завершить все сессии» (`POST /api/auth/logout-all`, с подтверждением) отзывает все активные сессии сразу — это ответ на подозрение об украденной cookie. Дублирующаяся cookie с тем же именем считается отсутствием сессии. Логика в `src/lib/admin-sessions.js`, контракт в `src/lib/admin-sessions.test.js`.
+
+Журнал `AdminAuthEvent(kind, actor, ip, userAgentHash, createdAt)` получает строку на `login_success`, `login_failure`, `login_limited`, `logout` и `logout_all`; User-Agent хранится только как SHA-256, адрес — полностью, потому что это журнал безопасности; строки старше 365 дней удаляет ежедневный ретеншен аналитики. Лимит входа теперь durable: пять `login_failure` с одного адреса за 15 минут дают `429` и строку `login_limited`, и перезапуск контейнера или деплой блокировку не снимает. Анонимные запросы к `/api/admin/*` дополнительно ограничены в middleware до 30 в минуту с адреса (`throttleUnauthenticatedAdmin`) — раньше `401` отдавался до route guard, и pre-auth лимит был недостижим. `timingSafeEqualText` сравнивает SHA-256-дайджесты фиксированной длины, а `validateOrigin` в production требует, чтобы запрос был адресован именно `SITE_DOMAIN`, а не любому `Host`. Мёртвый `validatePassword` удалён. Кнопка «Выйти» остаётся видимой на мобильной ширине (контракт в `e2e/admin-security.spec.js` для 375×812) и показывает `role="alert"`, если `POST /api/auth/logout` не ответил `2xx`, вместо слепого перехода на страницу входа.
 
 | Раздел | URL | Описание |
 |---|---|---|
@@ -495,7 +499,7 @@ clod/
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
 │   ├── lib/                       # Доменная логика (полная таблица в «Централизованные данные и утилиты»)
 │   │   ├── database.js / database-schema.js # Drizzle поверх @libsql/client, таблицы
-│   │   ├── auth.js / admin-api.js / rate-limit.js / client-ip.js / bounded-json.js
+│   │   ├── auth.js / admin-sessions.js / admin-api.js / rate-limit.js / client-ip.js / bounded-json.js
 │   │   ├── appointment-*.js / medflex-*.js # Онлайн-запись и клиент Medflex
 │   │   ├── patient-records.js / patient-history-*.js / protected-patient-data.js / contact-identity.js
 │   │   ├── clinic-import-*.js / tabular-csv.js / tabular-xlsx.js # Импорт исторической базы
@@ -533,7 +537,7 @@ clod/
 │   │       ├── analytics/event.js / heartbeat.js # POST - трекер и heartbeat сессий
 │   │       ├── appointments/slots.js / book.js  # GET расписание / POST защищённое создание записи
 │   │       ├── second-opinion.js / tax-form.js  # POST - публичные формы (SMTP)
-│   │       ├── auth/login.js / logout.js        # POST - вход (5 попыток / 15 мин) и выход
+│   │       ├── auth/login.js / logout.js / logout-all.js # POST - вход (durable 5 попыток / 15 мин), выход, отзыв всех сессий
 │   │       ├── integrations/mango/              # POST events/call, events/summary — подписанные webhook MANGO
 │   │       └── admin/
 │   │           ├── stats.js / sessions.js / logs.js
@@ -1083,6 +1087,18 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Дизайн**: интегрирован handoff `design_handoff_hero_doctor_carousel` (вариант 1b) — grid `62fr 38fr`, портреты без подложки, плоская белая карточка вместо стеклянной плашки, стрелки и счётчик «1 / N» в шапке карточки, одна звезда рейтинга, кнопки `btn-clay-primary`/`btn-clay-secondary`; подробности в разделе «Адаптивное представление врачей»
 - **Отклонения от макета**: размеры шрифта в карточке не меньше `var(--fs-base)` (нижняя граница размера шрифта, `typography-floor.test.js`), а не 0.8125–0.9375 rem из макета; кнопки-стрелки 36 px получили невидимую зону нажатия 44 px; `photoMobileFit === 'square'` из макета не переносился, потому что портреты уже нормализованы на общий холст
 - **Контракты**: e2e-пороги обновлены под новую геометрию (масштабы `0.78`/`0.6`, фильтры слоёв, отступ слайда `4 %` сцены, радиус карточки 22 px, счётчик «1 / 9»); на `/doctors` mobile-карусель обёрнута в `container-clay`, поэтому страница не переполняется по горизонтали на 320 px
+
+### Отзываемые сессии и журнал аутентификации (6 сентября 2026, Фаза 1 п.10 аудита)
+
+- `AdminSession` и `AdminAuthEvent` в `init-db`; cookie `__Host-admin_session` с `sessionId.issuedAt.signature`; logout отзывает сессию, «Завершить все сессии» отзывает все; idle-timeout 60 минут поверх 24 часов
+- Durable лимит входа по `AdminAuthEvent`, pre-auth throttle анонимных `/api/admin/*` в middleware, SHA-256-дайджесты в `timingSafeEqualText`, `SITE_DOMAIN` в `validateOrigin` для production, дубль cookie = нет сессии, `validatePassword` удалён
+
+### Ретеншен и минимизация аналитики и журнала звонков (6 сентября 2026, Фаза 1 п.9 аудита)
+
+- Адрес посетителя хранится как сеть `/24`/`/48`, реферер — как origin; трекер не читает текст кликнутых элементов и отслеживает только `a`/`button`/`[data-track]`
+- Batch-события проходят allowlist и нормализацию одиночных; `details` не режутся посреди JSON
+- `/api/admin/sessions` и `/api/admin/logs` без полного IP и сырого User-Agent
+- `ANALYTICS_RETENTION_DAYS` (90) и `MANGO_CALL_RETENTION_DAYS` (365): `prune-analytics.mjs` и `prune-calls.mjs` из entrypoint и раз в сутки из `server.mjs`
 
 ### SQLite WAL, busy_timeout и индексы аналитики (6 сентября 2026, Фаза 1 п.8 аудита)
 

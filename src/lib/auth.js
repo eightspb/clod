@@ -1,8 +1,8 @@
-import { timingSafeEqual } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
+import { createAdminSessions, SESSION_TTL_MS } from './admin-sessions.js'
+import { db } from './database.js'
 
-const COOKIE_NAME = 'admin_session'
-const TOKEN_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
-const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000
+const COOKIE_NAME = '__Host-admin_session'
 
 function getEnvValue(name) {
   return process.env[name] || ''
@@ -25,72 +25,45 @@ export function assertAuthConfiguration() {
   getTokenSecret()
 }
 
+/**
+ * Compares two strings in constant time through fixed-length SHA-256 digests, so neither the
+ * length nor the first differing byte of the secret leaks through timing.
+ */
 export function timingSafeEqualText(left, right) {
   if (typeof left !== 'string' || typeof right !== 'string') return false
-
-  const leftBuffer = Buffer.from(left)
-  const rightBuffer = Buffer.from(right)
-
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer)
+  const leftDigest = createHash('sha256').update(left, 'utf8').digest()
+  const rightDigest = createHash('sha256').update(right, 'utf8').digest()
+  return timingSafeEqual(leftDigest, rightDigest) && left === right
 }
 
-async function hmacSign(data, secret) {
-  const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data))
-  return btoa(String.fromCharCode(...new Uint8Array(signature)))
-}
-
-async function hmacVerify(data, signature, secret) {
-  const expected = await hmacSign(data, secret)
-  return timingSafeEqualText(expected, signature)
+/**
+ * Server-side session store bound to the application database and the current TOKEN_SECRET.
+ */
+export function adminSessions() {
+  return createAdminSessions({ client: db.$client, secret: getTokenSecret() })
 }
 
 export async function createToken() {
-  const secret = getTokenSecret()
-  const timestamp = Date.now().toString()
-  const sig = await hmacSign(timestamp, secret)
-  return `${timestamp}.${sig}`
+  return adminSessions().issue()
 }
 
 export async function verifyToken(token) {
   if (!token) return false
-  const parts = token.split('.')
-  if (parts.length !== 2) return false
-  const [timestamp, sig] = parts
-  const ts = parseInt(timestamp, 10)
-  if (isNaN(ts)) return false
-  if (ts > Date.now() + MAX_CLOCK_SKEW_MS) return false
-  if (Date.now() - ts > TOKEN_TTL_MS) return false
-  let secret
   try {
-    secret = getTokenSecret()
+    return (await adminSessions().verify(token)).valid
   } catch {
     return false
   }
-
-  return hmacVerify(timestamp, sig, secret)
 }
 
+/**
+ * Reads the session cookie; a duplicated cookie name is treated as no session because a
+ * second value can only come from an attacker-controlled path or domain.
+ */
 export function getTokenFromCookie(request) {
   const cookieHeader = request.headers.get('cookie') || ''
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=')
-      return [k, v.join('=')]
-    })
-  )
-  return cookies[COOKIE_NAME] || null
+  const values = cookieHeader.split(';').map((part) => part.trim()).filter((part) => part.startsWith(`${COOKIE_NAME}=`)).map((part) => part.slice(COOKIE_NAME.length + 1))
+  return values.length === 1 && values[0] ? values[0] : null
 }
 
 export async function isAuthenticated(request) {
@@ -98,19 +71,12 @@ export async function isAuthenticated(request) {
   return verifyToken(token)
 }
 
-function getCookieSecuritySuffix() {
-  const isProduction = process.env.NODE_ENV === 'production' || import.meta.env.MODE === 'production'
-  return isProduction ? '; Secure' : ''
-}
-
 export function buildSetCookie(token) {
-  const secureFlag = getCookieSecuritySuffix()
-  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Strict; Path=/${secureFlag}; Max-Age=${TOKEN_TTL_MS / 1000}`
+  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Strict; Path=/; Secure; Max-Age=${SESSION_TTL_MS / 1000}`
 }
 
 export function buildClearCookie() {
-  const secureFlag = getCookieSecuritySuffix()
-  return `${COOKIE_NAME}=; HttpOnly; SameSite=Strict; Path=/${secureFlag}; Max-Age=0`
+  return `${COOKIE_NAME}=; HttpOnly; SameSite=Strict; Path=/; Secure; Max-Age=0`
 }
 
 const FORWARDED_PORT_BY_PROTOCOL = Object.freeze({ http: '80', https: '443' })
@@ -153,8 +119,19 @@ function proxyOrigin(request, current) {
   return Object.freeze({ valid: true, origin })
 }
 
+function siteDomainMatches(current) {
+  const domain = normalizeHeader(process.env.SITE_DOMAIN)
+  if (!domain || process.env.NODE_ENV !== 'production') return true
+  return current.length > 0 && new URL(current).hostname === domain
+}
+
+/**
+ * In production the request must address SITE_DOMAIN itself: a spoofed Host header cannot turn
+ * an attacker's origin into an allowed one.
+ */
 export function validateOrigin(request) {
   const current = exactOrigin(request.url)
+  if (!siteDomainMatches(current)) return false
   const proxy = proxyOrigin(request, current)
   if (!proxy.valid) return false
   const allowed = new Set([current, proxy.origin].filter(Boolean))
@@ -162,8 +139,4 @@ export function validateOrigin(request) {
   if (!source) return normalizeHeader(request.headers.get('sec-fetch-site')) === 'same-origin' && allowed.size > 0
   const origin = exactOrigin(source)
   return origin.length > 0 && allowed.has(origin)
-}
-
-export function validatePassword(password, expectedPassword) {
-  return timingSafeEqualText(password, expectedPassword)
 }

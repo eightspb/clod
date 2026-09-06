@@ -262,6 +262,21 @@ const mangoCallAccessTableStatement = `CREATE TABLE IF NOT EXISTS MangoCallAcces
     createdAt TEXT NOT NULL
   )`
 
+const adminSessionTableStatement = `CREATE TABLE IF NOT EXISTS AdminSession (
+    id TEXT PRIMARY KEY,
+    issuedAt TEXT NOT NULL,
+    lastSeenAt TEXT NOT NULL,
+    revokedAt TEXT
+  )`
+const adminAuthEventTableStatement = `CREATE TABLE IF NOT EXISTS AdminAuthEvent (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    actor TEXT,
+    ip TEXT,
+    userAgentHash TEXT,
+    createdAt TEXT NOT NULL
+  )`
+
 const statements = [
   `CREATE TABLE IF NOT EXISTS Doctor (
     id TEXT PRIMARY KEY,
@@ -405,7 +420,13 @@ const statements = [
   'CREATE INDEX IF NOT EXISTS MangoCallLeg_state_eventAt_idx ON MangoCallLeg(state, eventAt)',
   'CREATE INDEX IF NOT EXISTS MangoCallLeg_extension_eventAt_idx ON MangoCallLeg(extension, eventAt)',
   mangoCallAccessTableStatement,
+  adminSessionTableStatement,
+  adminAuthEventTableStatement,
   'CREATE INDEX IF NOT EXISTS MangoCallAccess_entryId_createdAt_idx ON MangoCallAccess(entryId, createdAt)',
+
+  'CREATE INDEX IF NOT EXISTS AdminSession_lastSeenAt_idx ON AdminSession(lastSeenAt)',
+  'CREATE INDEX IF NOT EXISTS AdminAuthEvent_ip_kind_createdAt_idx ON AdminAuthEvent(ip, kind, createdAt)',
+  'CREATE INDEX IF NOT EXISTS AdminAuthEvent_createdAt_idx ON AdminAuthEvent(createdAt)',
 ]
 
 const bookingIntentColumns = [
@@ -778,6 +799,30 @@ function canonicalSchemaSql(value) {
 }
 
 const bookingIntentCanonicalSql = canonicalSchemaSql(bookingIntentTableStatement)
+const adminSessionColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['issuedAt', 'TEXT', 1, null, 0],
+  ['lastSeenAt', 'TEXT', 1, null, 0],
+  ['revokedAt', 'TEXT', 0, null, 0],
+]
+const adminSessionIndexes = [
+  { name: 'AdminSession_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'sqlite_autoindex_AdminSession_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const adminAuthEventColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['kind', 'TEXT', 1, null, 0],
+  ['actor', 'TEXT', 0, null, 0],
+  ['ip', 'TEXT', 0, null, 0],
+  ['userAgentHash', 'TEXT', 0, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+]
+const adminAuthEventIndexes = [
+  { name: 'AdminAuthEvent_createdAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['createdAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'AdminAuthEvent_ip_kind_createdAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['ip', 'kind', 'createdAt'], collations: ['BINARY', 'BINARY', 'BINARY'], descending: [0, 0, 0] },
+  { name: 'sqlite_autoindex_AdminAuthEvent_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+
 const clinicSchemas = [
   { name: 'Patient', statement: patientTableStatement, columns: patientColumns, indexes: patientIndexes },
   { name: 'PatientExternalIdentifier', statement: patientExternalIdentifierTableStatement, columns: patientExternalIdentifierColumns, indexes: patientExternalIdentifierIndexes },
@@ -798,6 +843,8 @@ const clinicSchemas = [
   { name: 'MangoCall', statement: mangoCallTableStatement, columns: mangoCallColumns, indexes: mangoCallIndexes },
   { name: 'MangoCallLeg', statement: mangoCallLegTableStatement, columns: mangoCallLegColumns, indexes: mangoCallLegIndexes },
   { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes },
+  { name: 'AdminSession', statement: adminSessionTableStatement, columns: adminSessionColumns, indexes: adminSessionIndexes },
+  { name: 'AdminAuthEvent', statement: adminAuthEventTableStatement, columns: adminAuthEventColumns, indexes: adminAuthEventIndexes },
 ]
 
 async function schemaIndexes(database, tableName) {
