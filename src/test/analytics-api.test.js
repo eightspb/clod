@@ -116,6 +116,11 @@ async function loadHeartbeatHandler() {
   return import('../pages/api/analytics/heartbeat.js')
 }
 
+async function loadSessionsHandler() {
+  vi.resetModules()
+  return import('../pages/api/admin/sessions.js')
+}
+
 async function loadStatsHandler() {
   vi.resetModules()
   return import('../pages/api/admin/stats.js')
@@ -295,6 +300,53 @@ describe('analytics API hardening', () => {
       ])
     )
     expect(updateCalls).toHaveLength(0)
+  })
+})
+
+describe('analytics data minimisation', () => {
+  beforeEach(() => {
+    insertCalls.length = 0
+    selectRows.length = 0
+    guardAdminReadMock.mockReset()
+    guardAdminReadMock.mockResolvedValue(null)
+  })
+
+  it('stores only the /24 network of the visitor address', async () => {
+    const { POST } = await loadEventHandler()
+    await POST({ request: makeJsonRequest({ ip: '203.0.113.71', body: { type: 'session_start', sessionId: 'сессия-1', visitorId: 'гость-1', data: { page: '/gipotireoz', userAgent: 'Mozilla/5.0 Chrome/126' } } }) })
+    expect(insertCalls[0].ip).toBe('203.0.113.0/24')
+  })
+
+  it('keeps only the origin of the referrer', async () => {
+    const { POST } = await loadEventHandler()
+    await POST({ request: makeJsonRequest({ body: { type: 'session_start', sessionId: 'сессия-1', visitorId: 'гость-1', data: { page: '/mastopatiya', referrer: 'https://yandex.ru/search/?text=мастопатия+спб' } } }) })
+    expect(insertCalls[0].referrer).toBe('https://yandex.ru')
+  })
+
+  it('drops the visible text of a clicked element', async () => {
+    const { POST } = await loadEventHandler()
+    await POST({ request: makeJsonRequest({ body: { type: 'click', sessionId: 'сессия-1', visitorId: 'гость-1', data: { page: '/second-opinion', target: 'btn', tag: 'button', text: 'Иванова Мария +7 921 555-01-29' } } }) })
+    expect(insertCalls[0].details).not.toContain('Иванова')
+  })
+
+  it('applies the interaction allowlist and normalisation to batch events', async () => {
+    const { POST } = await loadEventHandler()
+    const events = [{ type: 'click', page: '/vab', target: 'a', details: { href: '/vab', text: 'Пациентка Ёлкина', secret: 'x' } }, { type: 'heartbeat', page: '/vab' }]
+    const response = await POST({ request: makeJsonRequest({ body: { type: 'batch', sessionId: 'сессия-1', visitorId: 'гость-1', data: { events } } }) })
+    expect({ status: response.status, inserted: insertCalls.map((call) => call.details) }).toEqual({ status: 200, inserted: ['{"href":"/vab"}'] })
+  })
+
+  it('rejects a batch that contains no allowlisted interaction', async () => {
+    const { POST } = await loadEventHandler()
+    const response = await POST({ request: makeJsonRequest({ body: { type: 'batch', sessionId: 'сессия-1', visitorId: 'гость-1', data: { events: [{ type: 'heartbeat', page: '/vab' }] } } }) })
+    expect(response.status).toBe(400)
+  })
+
+  it('returns coarse user agents and truncated addresses from the session list', async () => {
+    selectRows.push([{ id: 's-1', visitorId: 'v-1', ip: '203.0.113.71', userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36', currentPage: '/', referrer: null, screenWidth: 1440, screenHeight: 900, language: 'ru', startedAt: '2026-08-26T10:00:00.000Z', lastActiveAt: '2026-08-26T10:05:00.000Z' }])
+    const { GET } = await loadSessionsHandler()
+    const body = await (await GET({ request: new Request('https://odintsovclinic.ru/api/admin/sessions?active=false') })).json()
+    expect({ ip: body.sessions[0].ip, userAgent: body.sessions[0].userAgent, raw: JSON.stringify(body).includes('AppleWebKit') }).toEqual({ ip: '203.0.113.0/24', userAgent: 'Chrome · Windows', raw: false })
   })
 })
 

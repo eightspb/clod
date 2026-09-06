@@ -10,6 +10,9 @@ else
   echo "[entrypoint] Applying additive database schema..."
   node /app/scripts/init-db.mjs
   echo "[entrypoint] Database schema is ready."
+  echo "[entrypoint] Applying analytics and call retention..."
+  node /app/scripts/prune-analytics.mjs || echo "[entrypoint] WARNING: analytics retention failed; the server still starts"
+  node /app/scripts/prune-calls.mjs || echo "[entrypoint] WARNING: call retention failed; the server still starts"
 fi
 
 exec node /app/scripts/server.mjs

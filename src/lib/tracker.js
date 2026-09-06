@@ -1,6 +1,7 @@
 ;(function () {
   'use strict'
 
+  // Skip tracking on admin pages
   if (window.location.pathname.startsWith('/admin')) return
 
   var API_EVENT = '/api/analytics/event'
@@ -8,6 +9,7 @@
   var HEARTBEAT_INTERVAL = 30000 // 30s
   var BATCH_INTERVAL = 5000 // 5s
 
+  // IDs
   var visitorId = localStorage.getItem('_vid')
   if (!visitorId) {
     visitorId = uuid()
@@ -44,19 +46,26 @@
         headers: { 'Content-Type': 'application/json' },
         body: json,
         keepalive: true,
-      }).catch(function () {})
+      }).catch(function (err) {
+        if (typeof console !== 'undefined') console.warn('[tracker] send failed:', err)
+      })
     }
   }
 
+  function getEventUrl(type) {
+    var eventType = type || 'unknown'
+    return API_EVENT + '?event=' + encodeURIComponent(eventType)
+  }
+
   function sendEvent(type, data, beacon) {
-    send(API_EVENT, { type: type, sessionId: sessionId, visitorId: visitorId, data: data }, beacon)
+    send(getEventUrl(type), { type: type, sessionId: sessionId, visitorId: visitorId, data: data }, beacon)
   }
 
   function flushBatch() {
     if (eventQueue.length === 0) return
     var events = eventQueue.slice()
     eventQueue = []
-    send(API_EVENT, { type: 'batch', sessionId: sessionId, visitorId: visitorId, data: { events: events } })
+    send(getEventUrl('batch'), { type: 'batch', sessionId: sessionId, visitorId: visitorId, data: { events: events } })
   }
 
   function queueEvent(type, page, target, details) {
@@ -102,6 +111,8 @@
   })
 
   window.addEventListener('beforeunload', function () {
+    if (heartbeatTimer) clearInterval(heartbeatTimer)
+    if (batchTimer) clearInterval(batchTimer)
     onPageLeave()
   })
 
@@ -131,34 +142,34 @@
     handleNavigation(window.location.pathname)
   })
 
-  // Click tracking
+  // Click tracking: only links, buttons and explicit data-track targets; never the text of the
+  // clicked element, because it can be a patient's own data on the booking review screen.
   document.addEventListener('click', function (e) {
-    var el = e.target
-    var tracked = el
-    for (var i = 0; i < 5; i++) {
-      if (!tracked) break
+    var tracked = e.target
+    var matched = false
+    for (var i = 0; i < 5 && tracked; i++) {
       var tag = tracked.tagName ? tracked.tagName.toLowerCase() : ''
-      if (tag === 'a' || tag === 'button' || tracked.getAttribute('data-track')) break
+      if (tag === 'a' || tag === 'button' || (tracked.getAttribute && tracked.getAttribute('data-track'))) {
+        matched = true
+        break
+      }
       tracked = tracked.parentElement
     }
-    if (!tracked) return
+    if (!matched) return
 
-    var tag = tracked.tagName ? tracked.tagName.toLowerCase() : ''
-    var text = (tracked.innerText || tracked.textContent || '').trim().slice(0, 100)
+    var trackedTag = tracked.tagName.toLowerCase()
     var href = tracked.getAttribute('href') || null
     var id = tracked.id || null
+    var track = tracked.getAttribute('data-track') || null
     var classes = tracked.className && typeof tracked.className === 'string'
       ? tracked.className.split(' ').filter(Boolean).slice(0, 5).join(' ')
       : null
 
-    var target = text || href || id || tag
-
-    queueEvent('click', currentPage, target, {
-      tag: tag,
+    queueEvent('click', currentPage, track || href || id || trackedTag, {
+      tag: trackedTag,
       id: id,
       classes: classes,
       href: href,
-      text: text,
     })
   }, true)
 

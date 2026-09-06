@@ -2,6 +2,7 @@ export const prerender = false
 
 import { db, databaseErrorCode, desc, gte, AnalyticsSession } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
+import { truncateIp, userAgentFamily } from '../../../lib/analytics-privacy.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const DEFAULT_LIMIT = 100
@@ -55,7 +56,17 @@ export async function GET({ request }) {
 
     return jsonResponse({
       sessions: sessions.map((session) => ({
-        ...session,
+        id: session.id,
+        visitorId: session.visitorId,
+        ip: truncateIp(session.ip) ?? null,
+        userAgent: userAgentFamily(session.userAgent),
+        currentPage: session.currentPage,
+        referrer: session.referrer,
+        screenWidth: session.screenWidth,
+        screenHeight: session.screenHeight,
+        language: session.language,
+        startedAt: session.startedAt,
+        lastActiveAt: session.lastActiveAt,
         isOnline: new Date(session.lastActiveAt) >= onlineThreshold,
         durationSeconds: Math.max(
           0,
