@@ -71,7 +71,7 @@ bun run preview        # превью собранного билда
 | `bun run test:coverage` | Тесты с отчётом покрытия |
 | `bun run test:e2e` | E2E-тесты (Playwright) |
 | `bun run test:e2e -- e2e/booking.spec.js --project=chromium --workers=1` | Изолированный booking E2E с локальными route mocks и без реального Medflex POST |
-| `bun run lint` | Проверка кода ESLint; охватывает `src/components/admin/**` и `src/middleware.js` |
+| `bun run lint` | Проверка кода ESLint: `src/**` включая `.astro` (frontmatter через `@typescript-eslint/parser`), `scripts/**`, `e2e/**` и `src/lib/tracker.js`; `react/jsx-key` с `checkFragmentShorthand` |
 | `bun run lint:fix` | Автоисправление ESLint |
 
 ### Покрытие тестами
@@ -95,7 +95,7 @@ Workflow работает с `permissions: contents: read`, `concurrency` с о�
 | Файл | Назначение |
 |------|------------|
 | `vitest.config.mjs` | Vitest + Astro getViteConfig, jsdom |
-| `eslint.config.js` | ESLint 9 flat config + Astro, React |
+| `eslint.config.js` | ESLint 9 flat config + Astro (TS-frontmatter), React; ignores только для сборочных артефактов и `public/**` (копия трекера линтуется в `src/lib`) |
 | `playwright.config.js` | Playwright, webServer: dev/preview |
 | `.github/workflows/ci.yml` | GitHub Actions pipeline |
 

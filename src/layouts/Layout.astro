@@ -139,7 +139,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
           if(s.headingId&&headings[s.headingId]) root.setProperty('--font-serif',headings[s.headingId])
           if(s.bodyId&&bodies[s.bodyId]) root.setProperty('--font-body',bodies[s.bodyId])
           if(s.navId&&s.navId!=='inherit'&&navs[s.navId]) root.setProperty('--font-nav',navs[s.navId])
-        } catch(e) {}
+        } catch { /* a corrupted theme setting must never block first paint */ }
       })()
     </script>
 

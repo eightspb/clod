@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 function OnlineBadge({ isOnline }) {
@@ -99,9 +99,8 @@ export function SessionsViewer() {
           </thead>
           <tbody>
             {sessions.map((s) => (
-              <>
+              <Fragment key={s.id}>
                 <tr
-                  key={s.id}
                   onClick={() => setExpanded(expanded === s.id ? null : s.id)}
                   style={{
                     borderBottom: '1px solid #f1f5f9',
@@ -124,7 +123,7 @@ export function SessionsViewer() {
                   </td>
                 </tr>
                 {expanded === s.id && (
-                  <tr key={`${s.id}-detail`} style={{ background: '#f8fafc' }}>
+                  <tr style={{ background: '#f8fafc' }}>
                     <td colSpan={8} style={{ padding: '12px 14px 14px' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', fontSize: '12px' }}>
                         <div><span style={{ color: '#94a3b8' }}>Session ID: </span><span style={{ fontFamily: 'monospace', color: '#374151' }}>{s.id}</span></div>
@@ -136,7 +135,7 @@ export function SessionsViewer() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
