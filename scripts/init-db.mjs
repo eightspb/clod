@@ -190,7 +190,8 @@ const patientAccessTableStatement = `CREATE TABLE IF NOT EXISTS PatientAccess (
     patientId TEXT NOT NULL,
     action TEXT NOT NULL,
     actor TEXT NOT NULL,
-    createdAt TEXT NOT NULL
+    createdAt TEXT NOT NULL,
+    reason TEXT
   )`
 const appointmentTableStatement = `CREATE TABLE IF NOT EXISTS Appointment (
     id TEXT PRIMARY KEY,
@@ -686,6 +687,7 @@ const patientAccessColumns = [
   ['action', 'TEXT', 1, null, 0],
   ['actor', 'TEXT', 1, null, 0],
   ['createdAt', 'TEXT', 1, null, 0],
+  ['reason', 'TEXT', 0, null, 0],
 ]
 const patientAccessIndexes = [
   { name: 'PatientAccess_patientId_createdAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId', 'createdAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
@@ -895,6 +897,16 @@ async function rebuildPatientTable(database) {
   await database.execute('DROP TABLE Patient_nullable_migration')
 }
 
+/**
+ * Additive column migration: SQLite rewrites the stored CREATE TABLE text on ALTER, so the
+ * schema verification below still matches the canonical statement.
+ */
+async function addColumnIfMissing(database, table, column, definition) {
+  const columns = await database.execute({ sql: 'SELECT name FROM pragma_table_info(?)', args: [table] })
+  if (columns.rows.some(({ name }) => name === column)) return
+  await database.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
+}
+
 async function verifySchema(database, schema) {
   const table = await database.execute({ sql: "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", args: [schema.name] })
   if (table.rows.length !== 1 || canonicalSchemaSql(table.rows[0].sql) !== canonicalSchemaSql(schema.statement)) throw new Error(`[init-db] ${schema.name} table definition invariant failed`)
@@ -942,6 +954,7 @@ try {
     const patientState = await patientMigrationState(transaction)
     if (patientState === 'previous') await rebuildPatientTable(transaction)
     for (const statement of statements) await transaction.execute(statement)
+    await addColumnIfMissing(transaction, 'PatientAccess', 'reason', 'TEXT')
     await verifyBookingIntentSchema(transaction)
     for (const schema of clinicSchemas) await verifySchema(transaction, schema)
     await transaction.commit()

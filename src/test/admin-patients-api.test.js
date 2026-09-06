@@ -16,11 +16,14 @@ const SAFE_COUNTS = Object.freeze(Object.fromEntries(Object.entries(COUNTS).filt
 const VISIT_PAGE = Object.freeze({ items: Object.freeze([{ id: '72000000-0000-4000-8000-000000000002', sourceName: VISIT_SOURCE, sourceRow: 29, startsAt: null, endsAt: null, sourceStatus: 'unknown', linkStatus: 'linked', linkMethod: 'exact_ehr', evidenceLevel: 'exact', issueCount: 1, candidateCount: 0, protectedDetailsAvailable: true }]), page: 2, pageSize: 7, total: 8, pages: 2 })
 const ISSUE_PAGE = Object.freeze({ items: Object.freeze([{ id: '78000000-0000-4000-8000-000000000008', sourceName: VISIT_SOURCE, sourceRow: 29, code: 'INVALID_START_DATE', historicalVisitId: VISIT_PAGE.items[0].id, createdAt: '2026-08-27T10:00:00.000Z', resolvedAt: null }]), page: 3, pageSize: 6, total: 13, pages: 3 })
 const REVEALED = Object.freeze({ id: PATIENT_ID, patientLastSeenAt: PATIENT.lastSeenAt, profile: Object.freeze({ firstName: 'Лёля', lastName: 'О’Коннор-Сидорова', secondName: 'Алиевна', phone: '79215550129', birthday: '1988-02-29' }), contacts: Object.freeze([{ kind: 'email', value: 'synthetic@example.test', mask: 's••••••••@example.test', isPrimary: false, sourceName: PD_SOURCE, firstSeenAt: '2026-08-26T10:00:00.000Z', lastSeenAt: '2026-08-27T10:00:00.000Z' }]), previousLastNames: Object.freeze([{ lastName: 'Прежняя', reason: 'surname_change', sourceName: PD_SOURCE, observedAt: '2026-08-26T10:00:00.000Z' }]), externalIdentifiers: Object.freeze([{ system: 'medesk_ehr', value: '0000000000007109', isPrimary: true, sourceName: PD_SOURCE, sourceRow: 17 }]), privateData: Object.freeze({ passport: Object.freeze({ series: '4012', number: '000149' }), address: Object.freeze({ city: 'Синтетический город' }), contract: 'Договор-149', notes: 'Синтетическая заметка' }), consents: Object.freeze([{ type: 'sms_notifications', status: 'granted', sourceName: 'Vse pacienty.xlsx', observedAt: '2026-08-26T10:00:00.000Z' }]), attachments: Object.freeze([]), historicalVisits: Object.freeze([{ id: VISIT_PAGE.items[0].id, appointmentId: 'appointment-protected-29', doctor: 'Врач Защищённый', details: Object.freeze({ services: Object.freeze(['Приём']), cabinet: '7', comment: 'Позвонить вечером' }) }]), revealedAt: '2026-08-27T11:00:00.000Z' })
+const FULL_BODY = Object.freeze({ scope: 'full', reason: 'Сверка данных пациента' })
 const PUBLIC_REVEALED = Object.freeze(Object.fromEntries(Object.entries(REVEALED).filter(([key]) => key !== 'patientLastSeenAt')))
 
 function records(overrides = {}) {
-  const state = { list: [], get: [], reveal: [], destroy: [] }
+  const state = { list: [], get: [], reveal: [], destroy: [], countAccess: [], auditSearch: [] }
   const value = {
+    countAccess: async (input) => { state.countAccess.push(structuredClone(input)); return overrides.countAccess ?? 0 },
+    auditSearch: async (input) => { state.auditSearch.push(structuredClone(input)); return { audited: input.patientIds.length, createdAt: '2026-08-27T11:00:00.000Z' } },
     list: async (input) => { state.list.push(structuredClone(input)); return overrides.list ?? { items: [PATIENT], page: input.page, pageSize: input.pageSize, total: 1, pages: 1 } },
     get: async (input) => { state.get.push(structuredClone(input)); if (overrides.getError) throw overrides.getError; return overrides.get ?? PATIENT },
     reveal: async (input) => { state.reveal.push(structuredClone(input)); if (overrides.revealError) throw overrides.revealError; return overrides.reveal ?? { id: PATIENT_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } },
@@ -56,14 +59,16 @@ async function endpoints(fixture, overrides = {}) {
   const index = await import('../pages/api/admin/patients/index.js')
   const detail = await import('../pages/api/admin/patients/[id].js')
   const reveal = await import('../pages/api/admin/patients/[id]/reveal.js')
+  const revealFull = await import('../pages/api/admin/patients/[id]/reveal-full.js')
   const personal = await import('../pages/api/admin/patients/[id]/personal-data.js')
   const guard = overrides.guard ?? (async () => undefined)
   const actor = overrides.actor ?? (async () => ACTOR)
   const log = overrides.log ?? (() => undefined)
   return Object.freeze({
-    GET_INDEX: index.createPatientIndexEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, guard, log }),
+    GET_INDEX: index.createPatientIndexEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, guard, actor, log }),
     GET_DETAIL: detail.createPatientDetailEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, calls: overrides.calls, guard, log }),
     POST_REVEAL: reveal.createPatientRevealEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, guard, actor, log }),
+    POST_REVEAL_FULL: revealFull.createPatientRevealFullEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, guard, actor, body: overrides.body, log }),
     DELETE_PERSONAL: personal.createPatientPersonalDataEndpoint({ records: () => fixture.value, history: overrides.history === undefined ? undefined : () => overrides.history.value, guard, actor, body: overrides.body, log }),
   })
 }
@@ -290,7 +295,7 @@ describe('admin patient API', () => {
   it('destroys confirmed patient personal data with an audit actor', async () => {
     const fixture = records()
     const { DELETE_PERSONAL } = await endpoints(fixture)
-    const result = await responseValue(await DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { id: PATIENT_ID } }))
+    const result = await responseValue(await DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID } }), params: { id: PATIENT_ID } }))
     expect({ result, calls: fixture.state.destroy }).toEqual({ result: { status: 200, body: { data: { id: PATIENT_ID, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } } }, calls: [{ id: PATIENT_ID, actor: ACTOR }] })
   })
 
@@ -417,43 +422,87 @@ describe('admin patient API', () => {
     expect({ status: result.status, error: result.body.error }).toEqual({ status: 503, error: 'PATIENTS_UNAVAILABLE' })
   })
 
-  it('returns the expanded reveal only after the history repository audits it', async () => {
+  it('returns the expanded reveal only from the full route with an audited reason', async () => {
+    const fixture = records()
+    const history = historyRecords()
+    const { POST_REVEAL_FULL } = await endpoints(fixture, { history })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: { scope: 'full', reason: 'Сверка паспорта перед договором' } }), params: { id: PATIENT_ID } }))
+    expect({ result, historyCalls: history.state.reveal, legacyCalls: fixture.state.reveal }).toEqual({ result: { status: 200, body: { data: PUBLIC_REVEALED } }, historyCalls: [{ id: PATIENT_ID, actor: ACTOR, reason: 'Сверка паспорта перед договором' }], legacyCalls: [] })
+  })
+
+  it('keeps the ordinary reveal to the phone even when the history repository is configured', async () => {
     const fixture = records()
     const history = historyRecords()
     const { POST_REVEAL } = await endpoints(fixture, { history })
     const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
-    expect({ result, historyCalls: history.state.reveal, legacyCalls: fixture.state.reveal }).toEqual({ result: { status: 200, body: { data: PUBLIC_REVEALED } }, historyCalls: [{ id: PATIENT_ID, actor: ACTOR }], legacyCalls: [] })
+    expect({ body: result.body, historyCalls: history.state.reveal.length, leaked: JSON.stringify(result).includes('000149') }).toEqual({ body: { data: { id: PATIENT_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } }, historyCalls: 0, leaked: false })
+  })
+
+  it('requires a written reason for the full reveal', async () => {
+    const history = historyRecords()
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history })
+    const response = await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: { scope: 'full', reason: 'ок' } }), params: { id: PATIENT_ID } })
+    expect({ status: response.status, historyCalls: history.state.reveal.length }).toEqual({ status: 400, historyCalls: 0 })
+  })
+
+  it('refuses any reveal once the clinic-wide daily budget is spent regardless of the session', async () => {
+    const fixture = records({ countAccess: 150 })
+    const history = historyRecords()
+    const { POST_REVEAL, POST_REVEAL_FULL } = await endpoints(fixture, { history })
+    const statuses = [(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } })).status, (await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: { scope: 'full', reason: 'Сверка паспорта' } }), params: { id: PATIENT_ID } })).status]
+    expect({ statuses, reveals: fixture.state.reveal.length + history.state.reveal.length }).toEqual({ statuses: [429, 429], reveals: 0 })
+  })
+
+  it('audits every patient matched by an exact phone search as a search access', async () => {
+    const fixture = records()
+    const { GET_INDEX } = await endpoints(fixture)
+    await GET_INDEX({ request: request('/api/admin/patients?phone=8%20921%20555-01-29') })
+    expect(fixture.state.auditSearch).toEqual([{ patientIds: [PATIENT_ID], actor: ACTOR }])
+  })
+
+  it('does not audit a plain patient list as a search', async () => {
+    const fixture = records()
+    const { GET_INDEX } = await endpoints(fixture)
+    await GET_INDEX({ request: request('/api/admin/patients?page=2') })
+    expect(fixture.state.auditSearch).toEqual([])
+  })
+
+  it('rejects a destruction confirmation that names another patient', async () => {
+    const fixture = records()
+    const { DELETE_PERSONAL } = await endpoints(fixture)
+    const response = await DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ', patientId: SECOND_PATIENT.id } }), params: { id: PATIENT_ID } })
+    expect({ status: response.status, calls: fixture.state.destroy.length }).toEqual({ status: 400, calls: 0 })
   })
 
   it('returns a bounded identity alias in the expanded reveal', async () => {
     const alias = Object.freeze({ ...REVEALED.previousLastNames[0], reason: 'identity_alias', observedAt: null })
     const history = historyRecords({ reveal: { ...REVEALED, previousLastNames: [alias] } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: { scope: 'full', reason: 'Сверка фамилии' } }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, history: result.body.data?.previousLastNames }).toEqual({ status: 200, history: [{ ...alias }] })
   })
 
   it('rejects a formatted phone in an expanded patient profile', async () => {
     const profile = { ...REVEALED.profile, phone: '+7 921 555-01-29' }
     const history = historyRecords({ reveal: { ...REVEALED, profile } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: { scope: 'full', reason: 'Сверка телефона' } }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, leaked: JSON.stringify(result).includes('+7 921 555-01-29') }).toEqual({ status: 503, leaked: false })
   })
 
   it('rejects a formatted phone in a revealed contact', async () => {
     const contact = { ...REVEALED.contacts[0], kind: 'phone', value: '+7 921 555-01-29', mask: '+7 •••••••• 29' }
     const history = historyRecords({ reveal: { ...REVEALED, contacts: [contact] } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, leaked: JSON.stringify(result).includes('+7 921 555-01-29') }).toEqual({ status: 503, leaked: false })
   })
 
   it('rejects a noncanonical email in a revealed contact', async () => {
     const contact = { ...REVEALED.contacts[0], value: 'Synthetic@Example.Test' }
     const history = historyRecords({ reveal: { ...REVEALED, contacts: [contact] } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, leaked: JSON.stringify(result).includes('Synthetic@Example.Test') }).toEqual({ status: 503, leaked: false })
   })
 
@@ -461,8 +510,8 @@ describe('admin patient API', () => {
     const privateData = Object.create(null)
     Object.defineProperty(privateData, key, { enumerable: true, value: Object.freeze({ exposed: true }) })
     const history = historyRecords({ reveal: { ...REVEALED, privateData } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
@@ -470,8 +519,8 @@ describe('admin patient API', () => {
     const reads = { length: 0 }
     const services = new Proxy(['Приём'], { get: (target, key, receiver) => { if (key === 'length') reads.length += 1; return Reflect.get(target, key, receiver) } })
     const history = historyRecords({ reveal: { ...REVEALED, privateData: { services } } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, reads }).toEqual({ status: 200, reads: { length: 0 } })
   })
 
@@ -479,24 +528,24 @@ describe('admin patient API', () => {
     const services = ['Приём']
     services.secret = 'не должно читаться'
     const history = historyRecords({ reveal: { ...REVEALED, privateData: { services } } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
   it('bounds aggregate work while copying revealed plain data', async () => {
     const privateData = { groups: Array.from({ length: 6 }, () => Array.from({ length: 2_000 }, () => false)) }
     const history = historyRecords({ reveal: { ...REVEALED, privateData } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
   it('shares one plain-data work budget across every revealed attachment', async () => {
     const attachments = Array.from({ length: 6 }, (_, index) => ({ id: `7b000000-0000-4000-8000-${String(index + 31).padStart(12, '0')}`, kind: 'external_material', url: null, metadata: Array.from({ length: 2_000 }, () => false), sourceName: 'operational', createdAt: '2026-08-27T10:00:00.000Z' }))
     const history = historyRecords({ reveal: { ...REVEALED, attachments } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
@@ -510,23 +559,23 @@ describe('admin patient API', () => {
     const attachments = Array.from({ length: size }, (_, index) => ({ id: id(index + 10), kind: 'external_material', url: null, metadata: null, sourceName: 'operational', createdAt: '2026-08-27T10:00:00.000Z' }))
     const historicalVisits = Array.from({ length: size }, (_, index) => ({ id: id(index + 2_000), appointmentId: null, doctor: null, details: null }))
     const history = historyRecords({ reveal: { ...REVEALED, contacts, previousLastNames, externalIdentifiers, privateData: {}, consents, attachments, historicalVisits } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
   it('rejects an unbounded source row in an expanded reveal', async () => {
     const externalIdentifiers = [{ ...REVEALED.externalIdentifiers[0], sourceRow: 79_215_550_129 }]
     const history = historyRecords({ reveal: { ...REVEALED, externalIdentifiers } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, leaked: JSON.stringify(result).includes('79215550129') }).toEqual({ status: 503, leaked: false })
   })
 
   it('binds patient reveal and destruction responses to the requested patient', async () => {
     const history = historyRecords({ reveal: { ...REVEALED, id: SECOND_PATIENT.id }, destroy: { id: SECOND_PATIENT.id, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } })
     const endpointsValue = await endpoints(records(), { history, log: () => undefined })
-    const responses = await Promise.all([endpointsValue.POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }), endpointsValue.DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { id: PATIENT_ID } })])
+    const responses = await Promise.all([endpointsValue.POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }), endpointsValue.DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID } }), params: { id: PATIENT_ID } })])
     expect(responses.map(({ status }) => status)).toEqual([503, 503])
   })
 
@@ -534,15 +583,15 @@ describe('admin patient API', () => {
     const fixture = records()
     const contact = { ...REVEALED.contacts[0], firstSeenAt: null, lastSeenAt: null }
     const history = historyRecords({ reveal: { ...REVEALED, contacts: [contact] } })
-    const { POST_REVEAL } = await endpoints(fixture, { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(fixture, { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, chronology: result.body.data.contacts[0] }).toMatchObject({ status: 200, chronology: { firstSeenAt: null, lastSeenAt: null } })
   })
 
   it('accepts the internal patient chronology needed to validate surname history without exposing it', async () => {
     const history = historyRecords({ reveal: { ...REVEALED, patientLastSeenAt: PATIENT.lastSeenAt } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ status: result.status, exposed: Object.hasOwn(result.body.data ?? {}, 'patientLastSeenAt') }).toEqual({ status: 200, exposed: false })
   })
 
@@ -554,8 +603,8 @@ describe('admin patient API', () => {
     ['surname change after the current observation', { previousLastNames: [{ ...REVEALED.previousLastNames[0], observedAt: '2026-08-28T10:00:00.000Z' }] }],
   ])('rejects %s returned by the reveal repository', async (_label, override) => {
     const history = historyRecords({ reveal: { ...REVEALED, ...override } })
-    const { POST_REVEAL } = await endpoints(records(), { history, log: () => undefined })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(records(), { history, log: () => undefined })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect(result.status).toBe(503)
   })
 
@@ -563,8 +612,8 @@ describe('admin patient API', () => {
     const fixture = records()
     const secret = 'corrupt-child-secret'
     const history = historyRecords({ revealError: new PatientHistoryRecordError('PATIENT_HISTORY_STORAGE_INVARIANT') })
-    const { POST_REVEAL } = await endpoints(fixture, { history })
-    const result = await responseValue(await POST_REVEAL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal`, { method: 'POST' }), params: { id: PATIENT_ID } }))
+    const { POST_REVEAL_FULL } = await endpoints(fixture, { history })
+    const result = await responseValue(await POST_REVEAL_FULL({ request: request(`/api/admin/patients/${PATIENT_ID}/reveal-full`, { method: 'POST', body: FULL_BODY }), params: { id: PATIENT_ID } }))
     expect({ result, leaked: JSON.stringify(result).includes(secret) }).toEqual({ result: { status: 503, body: { error: 'PATIENTS_UNAVAILABLE', message: 'Данные пациентов временно недоступны' } }, leaked: false })
   })
 
@@ -572,7 +621,7 @@ describe('admin patient API', () => {
     const fixture = records()
     const history = historyRecords()
     const { DELETE_PERSONAL } = await endpoints(fixture, { history })
-    const result = await responseValue(await DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ' } }), params: { id: PATIENT_ID } }))
+    const result = await responseValue(await DELETE_PERSONAL({ request: request(`/api/admin/patients/${PATIENT_ID}/personal-data`, { method: 'DELETE', body: { confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID } }), params: { id: PATIENT_ID } }))
     expect({ result, historyCalls: history.state.destroy, legacyCalls: fixture.state.destroy }).toEqual({ result: { status: 200, body: { data: { id: PATIENT_ID, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } } }, historyCalls: [{ id: PATIENT_ID, actor: ACTOR }], legacyCalls: [] })
   })
 

@@ -10,6 +10,8 @@ const PAGE_KEYS = Object.freeze(['patientId', 'page', 'pageSize', 'status'])
 const ISSUE_KEYS = Object.freeze(['patientId', 'page', 'pageSize'])
 const PATIENT_KEYS = Object.freeze(['patientId'])
 const ACCESS_KEYS = Object.freeze(['id', 'actor'])
+const REVEAL_KEYS = Object.freeze(['id', 'actor', 'reason'])
+const REASON_PATTERN = /^[\p{L}\p{N}\p{P}\p{Zs}]{5,200}$/u
 const LINK_KEYS = Object.freeze(['page', 'pageSize', 'status'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
@@ -443,9 +445,11 @@ async function selectedRevealRows(transaction, sql, patientId, state) {
 }
 
 async function reveal(configuration, value) {
-  const input = record(value, ACCESS_KEYS, ACCESS_KEYS, 'Patient history reveal')
+  const input = record(value, REVEAL_KEYS, ACCESS_KEYS, 'Patient history reveal')
   const id = uuid(input.id)
   const accessActor = actor(input.actor)
+  if (input.reason !== undefined && (typeof input.reason !== 'string' || input.reason.normalize('NFC') !== input.reason || !REASON_PATTERN.test(input.reason))) throw new TypeError('Patient history reveal reason is invalid')
+  const reason = input.reason ?? null
   return storage(() => inTransaction(configuration, async (transaction) => {
     const patientRows = await selectedRows(transaction, 'SELECT id, profileCiphertext, firstSeenAt, lastSeenAt, piiDestroyedAt FROM Patient WHERE id = ? LIMIT 2', id)
     if (patientRows.length === 0) invalid('PATIENT_NOT_FOUND')
@@ -473,7 +477,7 @@ async function reveal(configuration, value) {
     const protectedAttachments = Object.freeze(attachmentRows.map((row) => revealedAttachment(configuration, row)))
     const historicalVisits = Object.freeze(historicalVisitRows.map((row) => revealedVisit(configuration, row)))
     const revealedAt = currentTime(configuration)
-    await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [nextUuid(configuration), id, 'reveal', accessActor, revealedAt] })
+    await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt, reason) VALUES (?, ?, ?, ?, ?, ?)', args: [nextUuid(configuration), id, 'reveal_full', accessActor, revealedAt, reason] })
     return Object.freeze({ id, patientLastSeenAt: patientChronology.lastSeenAt, profile, contacts, previousLastNames, externalIdentifiers, privateData, consents, attachments: protectedAttachments, historicalVisits, revealedAt })
   }))
 }

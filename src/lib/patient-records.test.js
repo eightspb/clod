@@ -83,6 +83,34 @@ async function capturedInvariant(operation, secret) {
   }
 }
 
+describe('patient access budget and search audit', () => {
+  it('counts clinic-wide reveals since a moment regardless of the actor', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'upsert', { profile: FIRST_PROFILE })
+    await invoke(records, 'reveal', { id: FIRST_ID, actor: ACTOR })
+    await client.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt, reason) VALUES (?, ?, ?, ?, ?, ?)', args: ['70000000-0000-4000-8000-000000000007', FIRST_ID, 'reveal_full', `v1:${'b8'.repeat(32)}`, SECOND_TIME.toISOString(), 'Сверка паспорта'] })
+    const total = await invoke(records, 'countAccess', { actions: ['reveal', 'reveal_full'], since: FIRST_TIME.toISOString() })
+    client.close()
+    expect(total).toBe(2)
+  })
+
+  it('rejects an access count for actions outside the allowlist', async () => {
+    const { client, records } = await fixture()
+    const failure = await captured(() => invoke(records, 'countAccess', { actions: ['drop'], since: FIRST_TIME.toISOString() }))
+    client.close()
+    expect(failure.threw).toBe(true)
+  })
+
+  it('audits every patient matched by an exact phone search without storing the digits', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'upsert', { profile: FIRST_PROFILE })
+    await invoke(records, 'auditSearch', { patientIds: [FIRST_ID], actor: ACTOR })
+    const audit = await client.execute({ sql: 'SELECT action, actor, reason FROM PatientAccess WHERE patientId = ?', args: [FIRST_ID] })
+    client.close()
+    expect(audit.rows[0]).toMatchObject({ action: 'search', actor: ACTOR, reason: null })
+  })
+})
+
 describe('patient list query shape', () => {
   it('lists patients without DISTINCT when no contact join is needed', async () => {
     const statements = []

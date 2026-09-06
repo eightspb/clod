@@ -3,7 +3,9 @@ import { normalizeContactPhone } from './contact-identity.js'
 /** Highest page an administrator can request; 10 000 pages × 50 rows already exceeds any list in the clinic. */
 export const MAX_PAGE_NUMBER = 10_000
 const PATIENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'phone', 'patient', 'piiStatus', 'history', 'issues', 'from', 'to'])
-const DESTROY_KEYS = Object.freeze(['confirmation'])
+const DESTROY_KEYS = Object.freeze(['confirmation', 'patientId'])
+const REVEAL_FULL_KEYS = Object.freeze(['scope', 'reason'])
+const REVEAL_REASON_PATTERN = /^[\p{L}\p{N}\p{P}\p{Zs}]{5,200}$/u
 const APPOINTMENT_QUERY_KEYS = Object.freeze(['page', 'pageSize', 'status', 'source', 'doctorId', 'from', 'to'])
 const APPOINTMENT_CREATE_KEYS = Object.freeze(['source', 'profile', 'appointment', 'booking'])
 const APPOINTMENT_CANCEL_KEYS = Object.freeze(['confirmation'])
@@ -119,10 +121,25 @@ export function parsePatientId(value) {
 /**
  * Requires an explicit Russian confirmation before irreversible PII destruction.
  */
+/**
+ * Destruction must name the patient explicitly: the typed word alone could be replayed against
+ * any route, the patient ID binds the confirmation to one card.
+ */
 export function parseDestroyPatientBody(value) {
   const body = plainBody(value, DESTROY_KEYS)
-  if (Reflect.ownKeys(body).length !== 1 || body.confirmation !== 'УНИЧТОЖИТЬ') throw new AdminClinicQueryError('INVALID_BODY')
-  return Object.freeze({ confirmation: body.confirmation })
+  if (Reflect.ownKeys(body).length !== 2 || body.confirmation !== 'УНИЧТОЖИТЬ' || typeof body.patientId !== 'string' || !UUID_PATTERN.test(body.patientId)) throw new AdminClinicQueryError('INVALID_BODY')
+  return Object.freeze({ confirmation: body.confirmation, patientId: body.patientId.toLowerCase() })
+}
+
+/**
+ * A full dossier reveal needs an explicit scope and a human-readable reason for the audit trail.
+ */
+export function parseRevealFullBody(value) {
+  const body = plainBody(value, REVEAL_FULL_KEYS)
+  if (Reflect.ownKeys(body).length !== 2 || body.scope !== 'full' || typeof body.reason !== 'string') throw new AdminClinicQueryError('INVALID_BODY')
+  const reason = body.reason.trim().normalize('NFC')
+  if (!REVEAL_REASON_PATTERN.test(reason)) throw new AdminClinicQueryError('INVALID_BODY')
+  return Object.freeze({ scope: 'full', reason })
 }
 
 function optionalFilter(parameters, key, allowed) {

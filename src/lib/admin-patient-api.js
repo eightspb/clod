@@ -1,5 +1,6 @@
-import { isAdminClinicQueryError, parseDestroyPatientBody, parsePatientDetailQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
+import { isAdminClinicQueryError, parseDestroyPatientBody, parsePatientDetailQuery, parsePatientId, parsePatientQuery, parseRevealFullBody } from './admin-clinic-query.js'
 import { adminActor, guardAdminPii, guardAdminRead, readAdminJson } from './admin-api.js'
+import { checkRateLimit } from './rate-limit.js'
 import { safeCallPage } from './admin-call-api.js'
 import { PATIENT_HISTORY_ATTACHMENT_KINDS as ATTACHMENT_KINDS, PATIENT_HISTORY_ATTACHMENT_SOURCES as ATTACHMENT_SOURCE_NAMES, PATIENT_HISTORY_CONTACT_SOURCES as CONTACT_SOURCE_NAMES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_IMPORT_ISSUE_CODES as IMPORT_ISSUE_CODES, PATIENT_HISTORY_IMPORT_SOURCES as IMPORT_SOURCE_NAMES, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_NAME_HISTORY_REASONS as NAME_HISTORY_REASONS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES, PATIENT_HISTORY_VISIT_STATUSES as VISIT_STATUSES } from './patient-history-contract.js'
 import { isPatientHistoryRecordError } from './patient-history-records.js'
@@ -432,6 +433,26 @@ function endpointFailure(configuration, stage, error) {
 
 const DEFAULTS = Object.freeze({ guard: guardAdminRead, actor: adminActor, body: readAdminJson, log: (stage) => console.error('[admin/patients]', stage) })
 const PII_DEFAULTS = Object.freeze({ ...DEFAULTS, guard: guardAdminPii })
+const SEARCH_LIMIT = Object.freeze({ namespace: 'admin-patient-search', maxRequests: 20, windowMs: 60_000 })
+const REVEAL_ACTIONS = Object.freeze(['reveal', 'reveal_full'])
+const REVEAL_BUDGET = Object.freeze([Object.freeze({ windowMs: 60 * 60_000, limit: 30 }), Object.freeze({ windowMs: 24 * 60 * 60_000, limit: 150 })])
+
+/**
+ * Clinic-wide reveal budget read from the durable PatientAccess audit: a per-session limiter
+ * resets with every login or redeploy, the audit does not.
+ */
+async function withinRevealBudget(repository, now = new Date()) {
+  if (typeof repository.countAccess !== 'function') throw new TypeError('Patient reveal repository is invalid')
+  for (const window of REVEAL_BUDGET) {
+    const total = await repository.countAccess({ actions: REVEAL_ACTIONS, since: new Date(now.getTime() - window.windowMs).toISOString() })
+    if (total >= window.limit) return false
+  }
+  return true
+}
+
+function budgetExhausted() {
+  return noStore(failure(429, 'REVEAL_BUDGET_EXCEEDED', 'Суточный лимит раскрытий персональных данных исчерпан'))
+}
 
 /**
  * Creates the protected patient list endpoint.
@@ -444,7 +465,14 @@ export function createPatientIndexEndpoint(input) {
     try {
       const query = parsePatientQuery(new URL(request.url).searchParams)
       const repository = configuration.records()
-      return json(await patientPage(configuration, await repository.list(query)), 200)
+      if (query.phone === undefined) return json(await patientPage(configuration, await repository.list(query)), 200)
+      const actor = await configuration.actor(request)
+      const limit = checkRateLimit(actor, SEARCH_LIMIT)
+      if (!limit.allowed) return noStore(new Response(JSON.stringify({ error: 'SEARCH_LIMITED', message: 'Слишком много поисков по телефону' }), { status: 429, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Retry-After': String(limit.retryAfterSec) } }))
+      if (typeof repository.auditSearch !== 'function') throw new TypeError('Patient search repository is invalid')
+      const page = await patientPage(configuration, await repository.list(query))
+      await repository.auditSearch({ patientIds: page.data.map(({ id }) => id), actor })
+      return json(page, 200)
     } catch (error) {
       return endpointFailure(configuration, 'LIST_FAILED', error)
     }
@@ -487,7 +515,8 @@ export function createPatientDetailEndpoint(input) {
 }
 
 /**
- * Creates the separately limited and audited patient reveal endpoint.
+ * Creates the separately limited and audited phone reveal endpoint: only the phone, never the
+ * dossier, and only while the clinic-wide reveal budget has room.
  */
 export function createPatientRevealEndpoint(input) {
   const configuration = options(input, PII_DEFAULTS)
@@ -497,11 +526,40 @@ export function createPatientRevealEndpoint(input) {
     try {
       const id = parsePatientId(params?.id)
       const actor = await configuration.actor(request)
-      const repository = configuration.history === undefined ? configuration.records() : configuration.history()
+      const repository = configuration.records()
       if (!repository || typeof repository.reveal !== 'function') throw new TypeError('Patient reveal repository is invalid')
+      if (!await withinRevealBudget(repository)) return budgetExhausted()
       return json({ data: reveal(await repository.reveal({ id, actor }), id) }, 200)
     } catch (error) {
       return endpointFailure(configuration, 'REVEAL_FAILED', error)
+    }
+  }
+}
+
+/**
+ * Creates the full dossier reveal endpoint: explicit scope, a written reason in the audit, the
+ * same clinic-wide budget.
+ */
+export function createPatientRevealFullEndpoint(input) {
+  const configuration = options(input, PII_DEFAULTS)
+  return async function patientRevealFullEndpoint({ request, params }) {
+    const blocked = await guarded(configuration, request, 'REVEAL_FULL_FAILED')
+    if (blocked) return blocked
+    const body = await requestBody(configuration, request, 'REVEAL_FULL_FAILED')
+    if (body.response) return body.response
+    try {
+      const parsed = body.parsed
+      if (!parsed.valid) return noStore(parsed.tooLarge ? failure(413, 'BODY_TOO_LARGE', 'Тело запроса превышает допустимый размер') : failure(400, 'INVALID_JSON', 'Передайте корректный JSON'))
+      const { reason } = parseRevealFullBody(parsed.value)
+      const id = parsePatientId(params?.id)
+      const actor = await configuration.actor(request)
+      if (configuration.history === undefined) throw new TypeError('Patient full reveal repository is invalid')
+      const repository = configuration.history()
+      if (!repository || typeof repository.reveal !== 'function') throw new TypeError('Patient full reveal repository is invalid')
+      if (!await withinRevealBudget(configuration.records())) return budgetExhausted()
+      return json({ data: reveal(await repository.reveal({ id, actor, reason }), id) }, 200)
+    } catch (error) {
+      return endpointFailure(configuration, 'REVEAL_FULL_FAILED', error)
     }
   }
 }
@@ -519,8 +577,9 @@ export function createPatientPersonalDataEndpoint(input) {
     try {
       const parsed = body.parsed
       if (!parsed.valid) return noStore(parsed.tooLarge ? failure(413, 'BODY_TOO_LARGE', 'Тело запроса превышает допустимый размер') : failure(400, 'INVALID_JSON', 'Передайте корректный JSON'))
-      parseDestroyPatientBody(parsed.value)
+      const confirmation = parseDestroyPatientBody(parsed.value)
       const id = parsePatientId(params?.id)
+      if (confirmation.patientId !== id) return noStore(failure(400, 'INVALID_BODY', 'Подтверждение относится к другому пациенту'))
       const actor = await configuration.actor(request)
       const repository = configuration.history === undefined ? configuration.records() : configuration.history()
       if (!repository || typeof repository.destroy !== 'function') throw new TypeError('Patient destruction repository is invalid')

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Patients } from './Patients.jsx'
 
@@ -201,7 +201,7 @@ describe('Patients admin view', () => {
 
   it('reveals a phone explicitly and hides it again after thirty seconds', async () => {
     vi.useFakeTimers()
-    transport([json(PAGE), json({ data: REVEALED })])
+    transport([json(PAGE), json({ data: { id: PATIENT_ID, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } })])
     render(<Patients />)
     await act(async () => undefined)
     fireEvent.click(screen.getByRole('button', { name: `Показать телефон ${PATIENT.name}` }))
@@ -220,7 +220,7 @@ describe('Patients admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
     await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
     await act(async () => {
-      pending.resolve(await json({ data: REVEALED }))
+      pending.resolve(await json({ data: { id: PATIENT_ID, phone: REVEALED.profile.phone, revealedAt: '2026-08-27T11:00:00.000Z' } }))
       await new Promise((resolve) => setTimeout(resolve, 0))
     })
     expect(screen.queryByText(REVEALED.profile.phone)).toBeNull()
@@ -233,6 +233,8 @@ describe('Patients admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
     await screen.findByRole('region', { name: `Карточка пациента ${PATIENT.name}` })
     fireEvent.click(screen.getByRole('button', { name: 'Раскрыть персональные данные' }))
+    fireEvent.change(screen.getByLabelText('Причина раскрытия полного досье'), { target: { value: 'Сверка паспорта' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Раскрыть полное досье' }))
     await screen.findByText('Нет других фамилий')
     fireEvent.click(screen.getByRole('button', { name: `Открыть карточку ${PATIENT.name}` }))
     await waitFor(() => expect(screen.queryByText(REVEALED.profile.phone)).toBeNull())
@@ -244,9 +246,29 @@ describe('Patients admin view', () => {
     await screen.findByText(PATIENT.name)
     fireEvent.click(screen.getByRole('button', { name: `Уничтожить данные ${PATIENT.name}` }))
     const dialog = screen.getByRole('dialog', { name: 'Уничтожить персональные данные?' })
+    fireEvent.change(within(dialog).getByLabelText('Введите слово УНИЧТОЖИТЬ'), { target: { value: 'УНИЧТОЖИТЬ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Уничтожить безвозвратно' }))
     await screen.findByText('Данные уничтожены')
     expect({ dialog: Boolean(dialog), name: screen.queryByText(PATIENT.name), mask: screen.queryByText(PATIENT.phoneMask) }).toEqual({ dialog: true, name: null, mask: null })
+  })
+
+  it('keeps destruction disabled until the administrator types the confirmation word', async () => {
+    transport([json(PAGE)])
+    render(<Patients />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: `Уничтожить данные ${PATIENT.name}` }))
+    expect(screen.getByRole('button', { name: 'Уничтожить безвозвратно' })).toBeDisabled()
+  })
+
+  it('sends the patient identifier together with the typed confirmation', async () => {
+    const calls = transport([json(PAGE), json({ data: { id: PATIENT_ID, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } })])
+    render(<Patients />)
+    await screen.findByText(PATIENT.name)
+    fireEvent.click(screen.getByRole('button', { name: `Уничтожить данные ${PATIENT.name}` }))
+    fireEvent.change(screen.getByLabelText('Введите слово УНИЧТОЖИТЬ'), { target: { value: ' УНИЧТОЖИТЬ ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Уничтожить безвозвратно' }))
+    await screen.findByText('Данные уничтожены')
+    expect(JSON.parse(calls[1][1].body)).toEqual({ confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID })
   })
 
   it('restores focus after cancelling destruction from the patient list', async () => {
@@ -266,12 +288,15 @@ describe('Patients admin view', () => {
     fireEvent.click(screen.getByRole('button', { name: `Уничтожить данные ${PATIENT.name}` }))
     const dialog = screen.getByRole('dialog', { name: 'Уничтожить персональные данные?' })
     const cancel = screen.getByRole('button', { name: 'Отмена' })
+    const phrase = screen.getByLabelText('Введите слово УНИЧТОЖИТЬ')
+    fireEvent.change(phrase, { target: { value: 'УНИЧТОЖИТЬ' } })
     const destroy = screen.getByRole('button', { name: 'Уничтожить безвозвратно' })
     expect(cancel).toHaveFocus()
+    destroy.focus()
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(phrase).toHaveFocus()
     fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })
     expect(destroy).toHaveFocus()
-    fireEvent.keyDown(dialog, { key: 'Tab' })
-    expect(cancel).toHaveFocus()
   })
 
   it('shows an empty state when no patients match the filter', async () => {
