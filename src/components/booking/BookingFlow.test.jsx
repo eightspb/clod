@@ -76,11 +76,12 @@ function transport(responses) {
   return { calls, fetcher }
 }
 
-function renderFlow({ explicitDoctor, pageDoctorSlug = '', responseDoctor = 'odintsov', responses, uuid = () => FIRST_INTENT_ID, clock = () => TEST_NOW } = {}) {
+function renderFlow({ explicitDoctor, specialty, pageDoctorSlug = '', responseDoctor = 'odintsov', responses, uuid = () => FIRST_INTENT_ID, clock = () => TEST_NOW } = {}) {
   const queued = responses ? [...responses] : [json(emptySchedule(responseDoctor))]
   const request = transport(queued)
   const triggerProps = { 'data-booking-btn': '' }
   if (explicitDoctor !== undefined) triggerProps['data-booking-doctor'] = explicitDoctor
+  if (specialty !== undefined) triggerProps['data-booking-specialty'] = specialty
   const view = render(
     <>
       <button type="button" {...triggerProps}>Открыть запись</button>
@@ -187,11 +188,32 @@ async function reachTypedReview({ responses, uuid } = {}) {
   return request
 }
 
+function pickerOptions() {
+  return [...document.querySelectorAll('.booking-doctor-option')].map((option) => option.dataset.doctor)
+}
+
 describe('BookingFlow delegated opening', () => {
   it('opens a general trigger on public doctor selection', () => {
     const request = renderFlow()
     const dialog = screen.getByRole('dialog', { name: 'Онлайн-запись' })
     expect({ step: screen.getByRole('heading', { name: 'Выберите врача' }).textContent, requests: request.calls.length, open: Boolean(dialog) }).toEqual({ step: 'Выберите врача', requests: 0, open: true })
+  })
+
+  it('lists only doctors of the trigger specialty', () => {
+    renderFlow({ specialty: 'gynecology' })
+    expect(pickerOptions()).toEqual(['egorova', 'volkova'])
+  })
+
+  it('keeps the trigger specialty when choosing another doctor after an empty schedule', async () => {
+    renderFlow({ specialty: 'nutrition', responses: [json(unavailableSchedule({ slug: 'kalinina' }))] })
+    fireEvent.click(screen.getByRole('button', { name: /Калинина/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Выбрать другого врача' }))
+    expect(pickerOptions()).toEqual(['kalinina'])
+  })
+
+  it('lists every doctor for a general trigger without a specialty', () => {
+    renderFlow()
+    expect(pickerOptions()).toEqual(PUBLIC_DOCTORS.map((candidate) => candidate.slug))
   })
 
   it('inherits the public page doctor for a doctor-specific trigger', async () => {

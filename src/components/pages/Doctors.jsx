@@ -61,7 +61,9 @@ export function Doctors() {
               Показываем {filtered.length} из {DOCTORS.length} специалистов
             </p>
           </div>
-          <MobileDoctorCarousel doctors={filtered} label="Мобильная карусель врачей" />
+          <div className="container-clay">
+            <MobileDoctorCarousel doctors={filtered} label="Мобильная карусель врачей" />
+          </div>
           <div className="container-clay">
             <div className="doctors-desktop-grid hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-16" data-doctors-desktop-grid>
               {filtered.map((doc) => (

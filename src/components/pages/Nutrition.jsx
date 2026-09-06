@@ -332,7 +332,7 @@ export function Nutrition() {
                 </div>
                 <ArrowRight size={16} className="hidden text-clay-blue transition-transform duration-200 group-hover:translate-x-0.5 md:block" />
               </a>
-              <button type="button" data-booking-btn="true" className="group grid w-full gap-3 border-t border-[color:var(--border-color)] px-5 py-5 text-left transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
+              <button type="button" data-booking-btn="true" data-booking-specialty="nutrition" className="group grid w-full gap-3 border-t border-[color:var(--border-color)] px-5 py-5 text-left transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
                 <MessageCircle size={20} className="text-clay-mint mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-mint transition-colors">Записаться на приём</p>

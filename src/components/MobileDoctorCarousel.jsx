@@ -22,6 +22,10 @@ function portraitSource(doctor) {
   return doctor.photoMobile || doctor.photoFull || doctor.photo
 }
 
+function primarySpecialty(doctor) {
+  return doctor.specialization.split(',')[0].trim()
+}
+
 function doctorNameLines(name) {
   const [surname = '', givenName = '', ...patronymic] = name.trim().split(/\s+/)
   return [`${surname} ${givenName}`.trim(), patronymic.join(' ') || ' ']
@@ -64,7 +68,7 @@ function useFingerSwipe(trackRef, gesture, onStep) {
 function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) {
   const isActive = position === 'current'
   const shouldLoadPortrait = position !== 'hidden'
-  const specialty = doctor.specialization.split(',')[0].trim()
+  const specialty = primarySpecialty(doctor)
   return (
     <article
       className="mobile-doctor-slide"
@@ -75,7 +79,6 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) 
       aria-hidden={!isActive}
       data-doctor-index={index}
       data-coverflow-position={position}
-      data-photo-fit={doctor.photoMobileFit}
     >
       <div className="mobile-doctor-portrait-wrap">
         {shouldLoadPortrait ? (
@@ -101,8 +104,8 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) 
 }
 
 /**
- * Presents doctors as an accessible circular coverflow; the mobile variant is
- * full-bleed and hidden on desktop, the desktop variant fits a hero column.
+ * Presents doctors as an accessible circular coverflow above a flat information
+ * card; the mobile variant is hidden on desktop, the desktop variant fits a hero column.
  */
 export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portraitMedia = MOBILE_PORTRAIT_MEDIA }) {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -129,7 +132,6 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
   useFingerSwipe(trackRef, gesture, (step) => moveTo(currentIndex + step))
   if (!doctors.length) return null
   const activeDoctor = doctors[currentIndex]
-  const activeSpecialty = activeDoctor.specialization.split(',')[0].trim()
   const activeNameLines = doctorNameLines(activeDoctor.name)
   function handleKeyDown(event) {
     const destinations = {
@@ -168,17 +170,6 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
       data-mobile-doctor-carousel
       data-variant={variant}
     >
-      <div className="mobile-doctor-carousel-controls">
-        <button type="button" onClick={() => moveTo(currentIndex - 1)} aria-label="Предыдущий врач">
-          <ChevronLeft size={20} strokeWidth={1.8} aria-hidden="true" />
-        </button>
-        <span className="mobile-doctor-carousel-count" aria-live="polite" aria-atomic="true">
-          {currentIndex + 1} из {doctors.length}
-        </span>
-        <button type="button" onClick={() => moveTo(currentIndex + 1)} aria-label="Следующий врач">
-          <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />
-        </button>
-      </div>
       <div
         ref={trackRef}
         className="mobile-doctor-carousel-track"
@@ -206,42 +197,59 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
       </div>
       <div className="mobile-doctor-plinth">
         <div className="mobile-doctor-info">
-          <h3 className="mobile-doctor-name" aria-label={activeDoctor.name}>
-            {activeNameLines.map((line, index) => (
-              <span key={index} className="mobile-doctor-name-line" aria-hidden="true">{line}</span>
-            ))}
-          </h3>
-          <p className="mobile-doctor-specialty">{activeSpecialty}</p>
-          <div className="mobile-doctor-info-actions">
+          <div className="mobile-doctor-heading">
+            <h3 className="mobile-doctor-name" aria-label={activeDoctor.name}>
+              {activeNameLines.map((line, index) => (
+                <span key={index} className="mobile-doctor-name-line" aria-hidden="true">{line}</span>
+              ))}
+            </h3>
+            <div className="mobile-doctor-carousel-controls">
+              <button type="button" onClick={() => moveTo(currentIndex - 1)} aria-label="Предыдущий врач">
+                <ChevronLeft size={18} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+              <span className="mobile-doctor-carousel-count" aria-live="polite" aria-atomic="true">
+                {currentIndex + 1} / {doctors.length}
+              </span>
+              <button type="button" onClick={() => moveTo(currentIndex + 1)} aria-label="Следующий врач">
+                <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <p className="mobile-doctor-specialty">{activeDoctor.specialization}</p>
+          <div className="mobile-doctor-meta">
+            {activeDoctor.experienceYears && <span>Стаж {activeDoctor.experienceYears} лет</span>}
+            {activeDoctor.experienceYears && activeDoctor.proDoctorovRating && <span className="mobile-doctor-meta-dot" aria-hidden="true" />}
             {activeDoctor.proDoctorovRating && (
               <div className="mobile-doctor-rating">
                 <StarRating
                   score={activeDoctor.proDoctorovRating.score}
                   reviewCount={activeDoctor.proDoctorovRating.reviewCount}
                   url={activeDoctor.proDoctorovUrl}
-                  size={16}
+                  size={14}
                   variant="compact"
                 />
               </div>
             )}
-            <button
-              type="button"
-              data-booking-btn="true"
-              data-booking-doctor={activeDoctor.slug}
-              className="mobile-doctor-booking clay btn-clay-primary min-h-11 px-3 py-2 text-sm"
-              aria-label={`Записаться к ${activeDoctor.name}`}
-            >
-              Записаться
-            </button>
-            <a
-              href={`/doctors/${activeDoctor.slug}`}
-              className="mobile-doctor-profile"
-              aria-label={`Профиль врача ${activeDoctor.name}`}
-            >
-              Профиль
-              <ArrowRight size={17} strokeWidth={1.8} aria-hidden="true" />
-            </a>
           </div>
+        </div>
+        <div className="mobile-doctor-info-actions">
+          <button
+            type="button"
+            data-booking-btn="true"
+            data-booking-doctor={activeDoctor.slug}
+            className="mobile-doctor-booking clay btn-clay-primary"
+            aria-label={`Записаться к ${activeDoctor.name}`}
+          >
+            Записаться
+          </button>
+          <a
+            href={`/doctors/${activeDoctor.slug}`}
+            className="mobile-doctor-profile clay btn-clay-secondary"
+            aria-label={`Профиль врача ${activeDoctor.name}`}
+          >
+            Профиль
+            <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
+          </a>
         </div>
       </div>
     </section>

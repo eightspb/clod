@@ -27,6 +27,7 @@ export function DoctorPicker({ doctors, query, onQueryChange, onSelect }) {
           <button
             key={doctor.slug}
             type="button"
+            data-doctor={doctor.slug}
             onClick={() => onSelect(doctor)}
             className="booking-doctor-option flex min-h-11 w-full items-center gap-4 rounded-2xl border border-clay-bg bg-white p-3 text-left text-clay-dark hover:border-clay-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint"
           >

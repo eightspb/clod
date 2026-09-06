@@ -1,7 +1,8 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { DOCTORS, getDoctorBySlug } from './doctors-data.js'
+import { webpDimensions } from './webp-dimensions.js'
 
 describe('doctors-data.js', () => {
   describe('DOCTORS', () => {
@@ -41,12 +42,18 @@ describe('doctors-data.js', () => {
       expect(DOCTORS[0].degree).toBe('д.м.н.')
     })
 
-    it('marks square mobile portraits for uncropped art direction', () => {
-      expect(DOCTORS.filter((doctor) => doctor.photoMobileFit === 'square').map((doctor) => doctor.slug)).toEqual(['odintsov', 'zaharova'])
+    it('ships every mobile portrait on the shared 600×800 canvas', () => {
+      const offCanvas = DOCTORS.map((doc) => [doc.slug, webpDimensions(readFileSync(join(process.cwd(), 'public', doc.photoMobile)))]).filter(([, size]) => size.width !== 600 || size.height !== 800)
+      expect(offCanvas).toEqual([])
     })
 
-    it('marks the compact mobile portrait that needs extra stage scale', () => {
-      expect(DOCTORS.filter((doctor) => doctor.photoMobileFit === 'compact').map((doctor) => doctor.slug)).toEqual(['nevzorova'])
+    it('ships every full portrait on the shared 1024×1365 canvas', () => {
+      const offCanvas = DOCTORS.map((doc) => [doc.slug, webpDimensions(readFileSync(join(process.cwd(), 'public', doc.photoFull)))]).filter(([, size]) => size.width !== 1024 || size.height !== 1365)
+      expect(offCanvas).toEqual([])
+    })
+
+    it('needs no per-doctor portrait scale once portraits share one canvas', () => {
+      expect(DOCTORS.filter((doctor) => 'photoMobileFit' in doctor).map((doctor) => doctor.slug)).toEqual([])
     })
 
     it('doctors have helpsWith array', () => {

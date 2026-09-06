@@ -165,7 +165,7 @@ function numericRatingIsVisible(carousel) {
 function doctorNameControlClearance(carousel) {
   const controls = carousel.querySelector('.mobile-doctor-carousel-controls')?.getBoundingClientRect()
   const name = carousel.querySelector('.mobile-doctor-name')?.getBoundingClientRect()
-  return Number(((name?.top ?? 0) - (controls?.bottom ?? 0)).toFixed(2))
+  return Number(((controls?.left ?? 0) - (name?.right ?? 0)).toFixed(2))
 }
 
 function doctorNamePlinthInset(carousel) {
@@ -195,15 +195,15 @@ test('changes exactly one doctor after left and right finger swipes over each po
     const y = track.y + Math.min(180, track.height / 2)
     const counts = [await count.textContent()]
     await dispatchTouchGesture(session, [{ x: track.x + 300, y }, { x: track.x + 180, y: y + 5 }])
-    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '2 из 9')
+    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '2 / 9')
     counts.push(await count.textContent())
     await dispatchTouchGesture(session, [{ x: track.x + 180, y }, { x: track.x + 300, y: y + 5 }])
-    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '1 из 9')
+    await page.waitForFunction(() => document.querySelector('[data-mobile-doctor-carousel] .mobile-doctor-carousel-count')?.textContent === '1 / 9')
     counts.push(await count.textContent())
     results[path] = counts
     await context.close()
   }
-  expect(results).toEqual({ '/': ['1 из 9', '2 из 9', '1 из 9'], '/doctors': ['1 из 9', '2 из 9', '1 из 9'] })
+  expect(results).toEqual({ '/': ['1 / 9', '2 / 9', '1 / 9'], '/doctors': ['1 / 9', '2 / 9', '1 / 9'] })
 })
 
 test('preserves vertical page scrolling from the portrait track', async ({ browser, baseURL }) => {
@@ -217,7 +217,7 @@ test('preserves vertical page scrolling from the portrait track', async ({ brows
   await page.waitForFunction(() => window.scrollY > 0)
   const after = { count: await count.textContent(), scrollY: await page.evaluate(() => window.scrollY) }
   await context.close()
-  expect({ counts: [before.count, after.count], startedAtTop: before.scrollY === 0, scrolled: after.scrollY > before.scrollY }).toEqual({ counts: ['1 из 9', '1 из 9'], startedAtTop: true, scrolled: true })
+  expect({ counts: [before.count, after.count], startedAtTop: before.scrollY === 0, scrolled: after.scrollY > before.scrollY }).toEqual({ counts: ['1 / 9', '1 / 9'], startedAtTop: true, scrolled: true })
 })
 
 test('ignores a horizontal finger swipe over the information plinth', async ({ browser, baseURL }) => {
@@ -228,7 +228,7 @@ test('ignores a horizontal finger swipe over the information plinth', async ({ b
   await dispatchTouchGesture(session, [{ x: plinth.x + 300, y }, { x: plinth.x + 180, y: y + 4 }])
   const active = await count.textContent()
   await context.close()
-  expect(active).toBe('1 из 9')
+  expect(active).toBe('1 / 9')
 })
 
 test('keeps specialty filters inside the page at 320 pixels', async ({ page }) => {
@@ -256,7 +256,7 @@ test('keeps every visible doctor head close to the carousel top', async ({ page 
     gaps.push(await visiblePortraitTopGap(page))
     await page.getByRole('button', { name: 'Следующий врач' }).click()
   }
-  expect(gaps.every((gap) => gap >= 8 && gap <= 80), `portrait gaps: ${gaps.join(', ')}`).toBe(true)
+  expect(gaps.every((gap) => gap >= 8 && gap <= 96), `portrait gaps: ${gaps.join(', ')}`).toBe(true)
 })
 
 test('keeps every doctor profile action reachable on mobile screens', async ({ page }) => {
@@ -264,14 +264,14 @@ test('keeps every doctor profile action reachable on mobile screens', async ({ p
   expect(reachability).toEqual(expectedMobileMeasurements('reachable'))
 })
 
-test('keeps every doctor name clear of the carousel controls on mobile screens', async ({ page }) => {
+test('keeps every doctor name clear of the in-card controls on mobile screens', async ({ page }) => {
   const clearances = await cycleMobileViewports(page, doctorNameControlClearance)
-  expect(clearances.every((clearance) => clearance >= 12), `name clearances: ${clearances.join(', ')}`).toBe(true)
+  expect(clearances.every((clearance) => clearance >= 8), `name clearances: ${clearances.join(', ')}`).toBe(true)
 })
 
-test('keeps every doctor name below the plinth top treatment on mobile screens', async ({ page }) => {
+test('keeps every doctor name inside the card padding on mobile screens', async ({ page }) => {
   const insets = await cycleMobileViewports(page, doctorNamePlinthInset)
-  expect(insets.every((inset) => inset >= 32), `name plinth insets: ${insets.join(', ')}`).toBe(true)
+  expect(insets.every((inset) => inset >= 16), `name card insets: ${insets.join(', ')}`).toBe(true)
 })
 
 test('hides the theme switcher only on the mobile doctors page', async ({ page }) => {
@@ -293,7 +293,7 @@ test('renders current and forward slides at refined depth scales', async ({ page
     const { m11, m12, m13 } = new DOMMatrixReadOnly(transform)
     return Number(Math.hypot(m11, m12, m13).toFixed(6))
   }), DEPTH_POSITIONS)
-  expect(scales).toEqual([1, 0.757576, 0.573921])
+  expect(scales).toEqual([1, 0.78, 0.6])
 })
 
 test('preserves portrait placement when reduced motion is enabled', async ({ page }) => {
@@ -358,8 +358,8 @@ test('renders opaque high-key near doctors and softer color-preserving far docto
     }
   }, { near: NEAR_POSITIONS, far: FAR_POSITIONS })
   expect(layers).toEqual({
-    near: NEAR_POSITIONS.map(() => ({ slideOpacity: 1, portraitOpacity: 1, saturation: 1, brightness: 1.22, contrast: 0.78, blur: 0.55 })),
-    far: FAR_POSITIONS.map(() => ({ slideOpacity: 0.72, portraitOpacity: 1, saturation: 1, brightness: 1.32, contrast: 0.7, blur: 1.15 })),
+    near: NEAR_POSITIONS.map(() => ({ slideOpacity: 1, portraitOpacity: 1, saturation: 1, brightness: 1.12, contrast: 0.85, blur: 0.6 })),
+    far: FAR_POSITIONS.map(() => ({ slideOpacity: 0.65, portraitOpacity: 1, saturation: 1, brightness: 1.2, contrast: 0.75, blur: 1.2 })),
   })
 })
 
@@ -395,9 +395,9 @@ test('keeps the numeric rating visible beside both actions on narrow screens', a
   expect(visibility).toEqual(expectedMobileMeasurements('visible'))
 })
 
-test('places the current slide 44.8 pixels below the carousel top', async ({ page }) => {
+test('places the current slide four percent below the portrait stage top', async ({ page }) => {
   await gotoHydratedDoctors(page)
   const currentSlide = page.locator(`${CAROUSEL_SELECTOR} [data-coverflow-position="current"]`)
-  const top = await currentSlide.evaluate((slide) => Number.parseFloat(getComputedStyle(slide).top))
-  expect(top).toBeCloseTo(44.8, 1)
+  const offset = await currentSlide.evaluate((slide) => ({ top: slide.getBoundingClientRect().top - slide.parentElement.getBoundingClientRect().top, expected: slide.parentElement.getBoundingClientRect().height * 0.04 }))
+  expect(offset.top).toBeCloseTo(offset.expected, 0)
 })

@@ -7,10 +7,10 @@ const DOCTORS = Object.freeze([
     slug: 'belova',
     name: 'Белова Эльвира Рашидовна',
     specialization: 'Онколог-маммолог, врач УЗД',
+    experienceYears: 12,
     photo: '/images/doctors/belova.webp',
     photoFull: '/images/doctors/belova.png',
     photoMobile: '/images/doctors/belova-mobile.webp',
-    photoMobileFit: 'square',
     tagline: 'Длинное описание не должно попадать в мобильную сцену',
     proDoctorovUrl: 'https://prodoctorov.ru/spb/vrach/101/',
     proDoctorovRating: { score: 5, reviewCount: 37 },
@@ -19,6 +19,7 @@ const DOCTORS = Object.freeze([
     slug: 'karimov',
     name: 'Каримов Руслан Фаридович',
     specialization: 'Хирург, онколог',
+    experienceYears: 9,
     photo: '/images/doctors/karimov.webp',
     photoFull: '/images/doctors/karimov.png',
     photoMobile: '/images/doctors/karimov-mobile.webp',
@@ -30,6 +31,7 @@ const DOCTORS = Object.freeze([
     slug: 'wang',
     name: 'Ван Мария Юрьевна',
     specialization: 'Эндокринолог, нутрициолог',
+    experienceYears: 15,
     photo: '/images/doctors/wang.webp',
     photoFull: '/images/doctors/wang.png',
     photoMobile: '/images/doctors/wang-mobile.webp',
@@ -148,11 +150,6 @@ describe('MobileDoctorCarousel', () => {
     for (const portrait of screen.getAllByRole('img')) {
       expect(portrait).toHaveClass('object-contain', 'object-bottom')
     }
-  })
-
-  it('marks square portraits for uncropped scene-width scaling', () => {
-    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Специалисты" />)
-    expect(container.querySelector('[aria-current="true"]')).toHaveAttribute('data-photo-fit', 'square')
   })
 
   it('moves to the next doctor with the next control', () => {
@@ -395,6 +392,33 @@ describe('MobileDoctorCarousel', () => {
   it('renders one shared dimensional information plinth', () => {
     const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Подиум врачей" />)
     expect(container.querySelectorAll('.mobile-doctor-plinth')).toHaveLength(1)
+  })
+
+  it('shows every specialty of the active doctor on the card', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Подиум врачей" />)
+    expect(container.querySelector('.mobile-doctor-specialty').textContent).toBe('Онколог-маммолог, врач УЗД')
+  })
+
+  it('places the navigation controls inside the information card', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Навигация в карточке" />)
+    expect(container.querySelector('.mobile-doctor-plinth .mobile-doctor-carousel-controls')).not.toBeNull()
+  })
+
+  it('announces the position as a slash-separated counter', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Счётчик врачей" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
+    expect(screen.getByText('2 / 4')).toBeInTheDocument()
+  })
+
+  it('shows the experience of the active doctor on the card', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS} label="Стаж врачей" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
+    expect(screen.getByText('Стаж 9 лет')).toBeInTheDocument()
+  })
+
+  it('omits the experience line for a doctor without a known experience', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(3)} label="Без стажа" />)
+    expect(screen.queryByText(/Стаж/)).not.toBeInTheDocument()
   })
 
   it('omits long doctor descriptions from the mobile scene', () => {

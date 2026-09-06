@@ -23,6 +23,16 @@ describe('DoctorCard', () => {
     expect(screen.getByText('Онколог-маммолог')).toBeInTheDocument()
   })
 
+  it('shows secondary specialties without truncation', () => {
+    render(<DoctorCard doctor={baseDoctor} />)
+    expect(screen.getByText('врач УЗД').className.split(' ')).not.toContain('truncate')
+  })
+
+  it('shows the primary specialty without truncation', () => {
+    render(<DoctorCard doctor={baseDoctor} />)
+    expect(screen.getByText('Онколог-маммолог').className.split(' ')).not.toContain('truncate')
+  })
+
   it('renders experience years', () => {
     render(<DoctorCard doctor={baseDoctor} />)
     expect(screen.getByText('15 лет')).toBeInTheDocument()

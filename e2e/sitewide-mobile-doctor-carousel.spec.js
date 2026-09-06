@@ -235,7 +235,7 @@ async function mammologyDesktopOverflow(page) {
 test('lets /mammology desktop hero portraits extend past the carousel edges instead of clipping', async ({ page }) => {
   await visitCarouselRoute(page, '/mammology', DESKTOP_VIEWPORT)
   const state = await mammologyDesktopOverflow(page)
-  expect(state).toEqual({ overflowX: 'visible', farSlideExtendsPastCard: true, plinthRadius: '32px' })
+  expect(state).toEqual({ overflowX: 'visible', farSlideExtendsPastCard: true, plinthRadius: '22px' })
 })
 
 test('shows the /mammology desktop hero carousel and doctor grid while hiding the mobile carousel', async ({ page }) => {
