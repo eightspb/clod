@@ -1,4 +1,4 @@
-import { isAdminClinicQueryError, parseCallEntryId, parseCallQuery, parseDestroyCallBody } from './admin-clinic-query.js'
+import { MAX_PAGE_NUMBER, isAdminClinicQueryError, parseCallEntryId, parseCallQuery, parseDestroyCallBody } from './admin-clinic-query.js'
 import { adminActor, guardAdminPii, guardAdminRead, readAdminJson } from './admin-api.js'
 import { isMangoCallRecordError } from './mango-call-records.js'
 
@@ -13,7 +13,6 @@ const PHONE_MASK_PATTERN = /^\+[1-9] •{5,12} [0-9]{2}$/u
 const PHONE_PATTERN = /^[1-9][0-9]{7,14}$/
 const EXTENSION_PATTERN = /^[0-9]{1,32}$/
 const UNSAFE_NAME_PATTERN = /[\p{Cc}\p{Cf}\p{Cs}\p{N}]/u
-const MAX_PAGE_NUMBER = 1_000_000
 const MAX_PAGE_SIZE = 50
 const MAX_PAGE_TOTAL = MAX_PAGE_NUMBER * MAX_PAGE_SIZE
 const MAX_COUNT = 50_000_000

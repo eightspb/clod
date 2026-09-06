@@ -5,7 +5,7 @@ const updateCalls = []
 const selectRows = []
 const selectCalls = []
 
-const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock, gteMock, guardAdminReadMock, inArrayMock, isNullMock, ltMock } = vi.hoisted(() => {
+const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock, gteMock, guardAdminReadMock, inArrayMock, isNullMock, ltMock, sqlMock } = vi.hoisted(() => {
   function expression(type) {
     return vi.fn((...values) => ({ type, values }))
   }
@@ -14,13 +14,15 @@ const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock
     const call = { table: undefined, where: undefined }
     const result = () => rows instanceof Error ? Promise.reject(rows) : Promise.resolve(rows ?? [])
     const query = {
+      then: (resolve, reject) => result().then(resolve, reject),
       where: vi.fn((where) => {
         call.where = where
-        return result()
+        return query
       }),
       groupBy: vi.fn(() => query),
       orderBy: vi.fn(() => query),
-      limit: vi.fn(() => result()),
+      limit: vi.fn(() => query),
+      offset: vi.fn(() => query),
     }
     return {
       from: vi.fn((table) => {
@@ -59,6 +61,7 @@ const { andMock, avgMock, countDistinctMock, countMock, dbMock, descMock, eqMock
     inArrayMock: expression('inArray'),
     isNullMock: expression('isNull'),
     ltMock: expression('lt'),
+    sqlMock: vi.fn((strings, ...values) => ({ type: 'sql', values: [strings.join('?'), ...values] })),
   }
 })
 
@@ -81,6 +84,7 @@ vi.mock('../lib/database.js', () => ({
   inArray: inArrayMock,
   isNull: isNullMock,
   lt: ltMock,
+  sql: sqlMock,
 }))
 
 vi.mock('../lib/admin-api.js', () => ({ guardAdminRead: guardAdminReadMock }))
@@ -314,7 +318,7 @@ describe('admin clinic statistics', () => {
       [{ sessions: 30, uniqueVisitors: 19 }],
       [{ avgDuration: 72 }],
       [{ page: '/', count: 9 }],
-      [],
+      [{ day: '2026-08-26', count: 3 }],
       [],
       [{ count: 4 }],
       [{ count: 8 }],
@@ -335,6 +339,8 @@ describe('admin clinic statistics', () => {
     expect(body.calls).toEqual({ active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83, lastEventAt: '2026-08-26T21:55:00.000Z' })
     expect(body.monitor).toEqual({ available: false })
     expect(body.today).toEqual({ sessions: 3, uniqueVisitors: 2 })
+    expect(body.dailyVisits.at(-1)).toEqual({ date: '2026-08-26', count: 3 })
+    expect(selectCalls.filter((call) => call.table?.startedAt === 'analytics_session.startedAt').at(-1).where).toEqual({ type: 'gte', values: ['analytics_session.startedAt', new Date('2026-07-27T22:30:00.000Z')] })
     const todayQuery = selectCalls.find((call) => call.table?.startsAt === 'appointment.startsAt' && call.where?.values?.some((condition) => condition.type === 'lt'))
     expect(todayQuery.where).toEqual({
       type: 'and',

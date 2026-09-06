@@ -1,4 +1,4 @@
-import { isAdminClinicQueryError, parsePatientHistoryIssueQuery } from './admin-clinic-query.js'
+import { MAX_PAGE_NUMBER, isAdminClinicQueryError, parsePatientHistoryIssueQuery } from './admin-clinic-query.js'
 import { guardAdminRead } from './admin-api.js'
 import { PATIENT_HISTORY_CANDIDATE_EVIDENCE_CODES as CANDIDATE_EVIDENCE_CODES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES } from './patient-history-contract.js'
 
@@ -7,7 +7,6 @@ const ITEM_FIELDS = Object.freeze(['id', 'sourceName', 'sourceRow', 'startsAt', 
 const CANDIDATE_FIELDS = Object.freeze(['patientId', 'evidenceCode', 'score'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
-const MAX_PAGE_NUMBER = 1_000_000
 const MAX_PAGE_SIZE = 50
 const MAX_PAGE_TOTAL = MAX_PAGE_NUMBER * MAX_PAGE_SIZE
 const MAX_COUNT = 50_000_000
