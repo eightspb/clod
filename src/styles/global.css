@@ -2876,6 +2876,13 @@
   margin-inline: auto;
   overflow: visible;
 }
+.mobile-doctor-carousel[data-variant='desktop'] .mobile-doctor-plinth {
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+.mobile-doctor-carousel[data-variant='desktop'] .mobile-doctor-info {
+  gap: 0.5rem;
+}
 .mobile-doctor-carousel[data-variant='desktop'] .mobile-doctor-carousel-track {
   margin-inline: 0;
   overflow: visible;
