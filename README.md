@@ -81,7 +81,7 @@ bun run preview        # превью собранного билда
 
 ### GitHub Actions CI
 
-Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version` (та же версия закреплена в `engines.bun` и в базовых образах `oven/bun:1.3.10`). Job **Docker image** (`needs: lint, test, build, security`, `packages: write`) собирает production-образ через buildx с GHA-кешем, проверяет индекс Pagefind, env-gate, отсутствие `.env` и имён секретов в `docker history`, а при push в `main` публикует его в GHCR как `ghcr.io/eightspb/clod:sha-<7 символов>` и `:latest`. Production-хост образ не собирает. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения (только Astro 4 / Vite 5 и dev-инструменты) перечислены в `docs/dependency-exposure.ignore` с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
+Workflow работает с `permissions: contents: read`, `concurrency` с отменой устаревших прогонов и `timeout-minutes` на каждой job; версия Bun берётся из `.bun-version` (та же версия закреплена в `engines.bun` и в базовых образах `oven/bun:1.3.10`). Job **Docker image** (`needs: lint, test, build, security`, `packages: write`) собирает production-образ через buildx с GHA-кешем, проверяет индекс Pagefind, env-gate, отсутствие `.env` и имён секретов в `docker history`, а при push в `main` публикует его в GHCR как `ghcr.io/eightspb/clod:sha-<7 символов>` и `:latest`. Production-хост образ не собирает. Job **Security audit** блокирующая: `scripts/audit-dependencies.sh` выполняет `bun audit --audit-level=high`, а осознанные исключения перечислены в `docs/dependency-exposure.ignore` (после Astro 7 файл пуст) с обоснованием в [`docs/dependency-exposure.md`](./docs/dependency-exposure.md). Playwright-репорт и `test-results/` загружаются артефактами. `.github/dependabot.yml` еженедельно обновляет npm-зависимости (группы `astro` и dev-tooling), базовые Docker-образы и GitHub Actions.
 
 При push/PR в `main` или `develop` выполняются:
 
@@ -178,6 +178,10 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `FROM_EMAIL` | Необязательный адрес отправителя для писем формы “Второе мнение” |
 | `TO_EMAIL` | Обязательный адрес клиники для получения заявок |
 | `TAX_FORM_TO_EMAIL` | Получатели заявок на налоговую справку через запятую; допускаются только адреса `@odintsovclinic.ru`, иначе форма отвечает `503` |
+| `ASTRO_DB_REMOTE_URL` | Путь к SQLite для `@libsql/client`, локально `file:.astro/content.db`; `ASTRO_DB_APP_TOKEN` нужен только для удалённого libsql |
+| `IMAGE_API_KEY` | Ключ Polza.ai для генерации постеров блога в `/admin/blog-images`; без него endpoint отвечает `500` |
+| `NOINDEX` | `true` на staging-поддомене: `X-Robots-Tag: noindex` через nginx и middleware |
+| `SITE_DOMAIN` | Домен для рендера `nginx.conf` и путей сертификата |
 
 ### Инфраструктура безопасной онлайн-записи
 
@@ -348,197 +352,196 @@ Server-side интеграция принимает подписанные вх�
 
 ```
 clod/
-├── .github/workflows/
-│   └── ci.yml                    # GitHub Actions: lint, test, build, e2e
-├── e2e/                          # E2E-тесты (Playwright)
-│   ├── booking.spec.js           # First-party запись с полностью перехваченными GET/POST без Medflex network
+├── .github/
+│   ├── workflows/ci.yml           # GitHub Actions: lint, test, build, e2e, security audit, Docker image → GHCR
+│   └── dependabot.yml             # Еженедельные обновления npm, Docker-образов и Actions
+├── .cursor/rules/                 # Правила для AI-агентов (карта в AGENTS.md)
+│   ├── core-stack.mdc             # Стек и принципы (alwaysApply: true)
+│   ├── coding-principles.mdc      # DDD-lite, fail fast, именование
+│   ├── tdd-testing.mdc            # Red → Green → Refactor, Angry Tests
+│   ├── astro-pages-and-react-islands.mdc
+│   ├── react-patterns.mdc         # Паттерны React-компонентов
+│   ├── error-handling.mdc         # Обработка ошибок
+│   ├── api-and-security.mdc       # Валидация, CSRF, rate limit, upload
+│   ├── documentation-and-delivery.mdc
+│   └── git-workflow.mdc
+├── docs/
+│   ├── dependency-exposure.md     # Обоснование исключений bun audit (+ .ignore)
+│   ├── mango-office-integration.md # Настройка, диагностика и rollback телефонии MANGO
+│   ├── medflex-contract-discovery-2026-08-30.md # Факты проверки контракта Medflex
+│   ├── runbooks/backup-restore.md # Процедура восстановления и журнал учений
+│   └── superpowers/               # Спецификации и планы реализованных фич (история)
+├── e2e/                           # E2E-тесты (Playwright)
+│   ├── admin-calls.spec.js        # Журнал звонков MANGO в админке
+│   ├── admin-clinic.spec.js       # Пациенты и записи в админке
+│   ├── admin-patients-history.spec.js # Импортированная история и проблемы качества
+│   ├── admin-security.spec.js     # Базовая security-проверка админки, кнопка «Выйти» на 375×812
+│   ├── blog.spec.js               # Страница статьи
+│   ├── booking.spec.js            # First-party запись с полностью перехваченными GET/POST без Medflex network
+│   ├── booking-layout.spec.js     # Геометрия диалога записи
 │   ├── doctor-profile-hero.spec.js # Hero-карточка врача целиком помещается в desktop viewport 1440x800 и 1280x800
-│   ├── hero-viewport-fit.spec.js # Hero-секция каждой публичной страницы целиком помещается в desktop viewport 1440x800 и 1280x800
-│   ├── text-overflow.spec.js     # Ни один текст 21 публичного маршрута не обрезан по горизонтали на 1440/1280/1024/390 (кроме намеренного ellipsis)
-│   ├── home.spec.js              # Главная страница
-│   └── navigation.spec.js        # Навигация
+│   ├── hero-alignment.spec.js     # Текстовая колонка hero закреплена у верхнего левого края
+│   ├── hero-viewport-fit.spec.js  # Hero каждой публичной страницы помещается в 1440x800 и 1280x800
+│   ├── home.spec.js               # Главная страница
+│   ├── mobile-doctor-carousel.spec.js # Карусель врачей на /doctors
+│   ├── navigation.spec.js         # Навигация
+│   ├── sitewide-mobile-doctor-carousel.spec.js # Карусель на страницах направлений и заболеваний
+│   └── text-overflow.spec.js      # Ни один текст 21 публичного маршрута не обрезан на 1440/1280/1024/390
 ├── public/                        # Статические ассеты
 │   ├── tracker.js                 # Клиентский трекер аналитики
 │   ├── robots.txt                 # Ссылается на автогенерируемый sitemap-index.xml
+│   ├── fonts/                     # Self-hosted Golos Text и Lora (woff2)
 │   ├── images/                    # logo.webp, портреты врачей (-full/-mobile/-thumb.webp), og/, blog/ — только WebP
-│   └── uploads/                   # Медиафайлы (разбиты по папкам: doctors и т.д.)
+│   └── uploads/                   # Медиафайлы админки (не в git)
+├── scripts/
+│   ├── dev.sh                     # Освобождает порт, снимает lock Astro, грузит .env, стартует dev
+│   ├── deploy.sh / rollback.sh / smoke.sh # Деплой с бэкапом, smoke-гейтом и откатом
+│   ├── backup.sh / restore-check.sh / install-backup-timer.sh # Ежедневный бэкап и проверка восстановления
+│   ├── render-nginx.sh            # Генерация nginx.conf из шаблона (https|http|bootstrap)
+│   ├── server.mjs                 # Запуск адаптера с graceful shutdown
+│   ├── check-required-env.mjs     # Fail-fast проверка env при старте контейнера
+│   ├── init-db.mjs                # Идемпотентная миграция схемы SQLite
+│   ├── import-clinic-history.mjs  # CLI импорта исторической базы пациентов
+│   ├── medflex-discover.mjs / sync-medflex-doctors.mjs # Discovery контракта и синхронизация врачей
+│   ├── audit-dependencies.sh      # bun audit с allowlist из docs/dependency-exposure.ignore
+│   ├── generate-og-images.mjs     # Генерация OG-изображений
+│   ├── normalize-portraits.swift  # Единый холст портретов врачей (Vision + cwebp)
+│   └── hooks/pre-commit           # Отклоняет .env*, *.sqlite, *.stage, бэкапы и выгрузки
 ├── src/
-│   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
+│   ├── middleware.js              # Security headers, no-store для /api и /admin, noindex
+│   ├── content.config.ts          # Схема коллекции blog (Content Layer, glob-loader)
+│   ├── content/blog/              # 40 Markdown-статей блога
 │   ├── components/
-│   │   ├── home/                  # Модули главной страницы (извлечены из Home.jsx)
-│   │   │   ├── HeroSlider.jsx     # Карусель героя (3 слайда, autoplay, карточки врачей)
-│   │   │   ├── ServicesSection.jsx # Грид направлений
-│   │   │   ├── DoctorsSection.jsx # Фильтры + mobile-карусель / desktop-карточки врачей
+│   │   ├── home/                  # Модули главной страницы
+│   │   │   ├── HeroSlider.jsx     # Desktop-hero: 3 слайда, autoplay 12 с, ARIA carousel
+│   │   │   ├── ServicesSection.jsx # Направления
+│   │   │   ├── DoctorsSection.jsx # Фильтры + desktop-карточки врачей
 │   │   │   ├── WhyUsSection.jsx   # «Почему выбирают» + статистика
 │   │   │   ├── SecondOpinionSection.jsx  # Баннер второго мнения
 │   │   │   ├── VabSection.jsx     # Блок ВАБ
 │   │   │   ├── DirectContactSection.jsx  # Прямая связь
 │   │   │   ├── ReviewsSection.jsx # Отзывы с ПроДокторов из doctors-data.js со ссылкой на источник
-│   │   │   └── AppointmentFormSection.jsx # CTA входа в общий first-party BookingFlow
-│   │   ├── booking/               # Диалог записи: врачи, тип приёма, расписание, пациент, результат
-│   │   ├── pages/                 # React-компоненты страниц
-│   │   │   ├── Home.jsx           # Главная: композиция 9 модулей из home/
-│   │   │   ├── About.jsx          # Страница "О клинике": миссия, руководство, маршрут пациента, принципы
-│   │   │   ├── Mammology.jsx      # Маммология + секция "Заболевания" с condition-ссылками
-│   │   │   ├── Gynecology.jsx     # Гинекология + секция "Заболевания"
-│   │   │   ├── Endocrinology.jsx  # Эндокринология + секция "Заболевания"
-│   │   │   ├── Nutrition.jsx
-│   │   │   ├── Fibroadenoma.jsx   # Condition: Фиброаденома
-│   │   │   ├── Mastopatiya.jsx    # Condition: Мастопатия
-│   │   │   ├── KistaMolochnoyZhelezy.jsx  # Condition: Киста молочной железы
-│   │   │   ├── EroziyaSheykyMatki.jsx     # Condition: Эрозия шейки матки
-│   │   │   ├── Gipotireoz.jsx     # Condition: Гипотиреоз
-│   │   │   ├── Adenomioz.jsx      # Condition: Аденомиоз
-│   │   │   ├── Endometrioz.jsx    # Condition: Эндометриоз
-│   │   │   ├── TireoiditKhashimoto.jsx # Condition: Тиреоидит Хашимото
-│   │   │   ├── Vab.jsx            # Страница ВАБ-процедуры (с визуальным timeline)
-│   │   │   ├── DlyaInogorodnikh.jsx  # Для иногородних пациентов
-│   │   │   ├── NashiRezultaty.jsx # Наши результаты (count-up анимации)
-│   │   │   ├── Media.jsx          # Медиа / СМИ
-│   │   │   ├── Contacts.jsx       # Страница контактов с картой
-│   │   │   ├── SecondOpinion.jsx
-│   │   │   ├── Prices.jsx
-│   │   │   ├── Doctors.jsx        # Листинг всех докторов с фильтрами
-│   │   │   ├── DoctorPage.jsx     # Страница отдельного доктора
-│   │   │   └── PrivacyPolicy.jsx  # Политика конфиденциальности
+│   │   │   ├── AppointmentFormSection.jsx # CTA входа в общий first-party BookingFlow
+│   │   │   └── home-directions.js # Данные направлений главной
+│   │   ├── booking/               # Диалог записи
+│   │   │   ├── BookingFlow.jsx    # Единственный глобальный диалог (client:idle в Layout.astro)
+│   │   │   ├── DoctorPicker.jsx / DoctorSummary.jsx
+│   │   │   ├── AppointmentTypePicker.jsx / SchedulePicker.jsx
+│   │   │   ├── PatientDetailsForm.jsx / BookingReview.jsx / BookingResult.jsx
+│   │   │   └── BookingDialogFooter.jsx
+│   │   ├── pages/                 # React-компоненты страниц (по одному на маршрут, см. «Роутинг»)
+│   │   │   ├── Home.jsx           # Главная: композиция модулей из home/
+│   │   │   ├── About.jsx          # О клинике: миссия, руководство, маршрут пациента, принципы
+│   │   │   ├── Mammology.jsx / Gynecology.jsx / Endocrinology.jsx / Nutrition.jsx # Направления + «Заболевания»
+│   │   │   ├── Fibroadenoma.jsx … TireoiditKhashimoto.jsx # 8 condition-лендингов
+│   │   │   ├── Vab.jsx / SecondOpinion.jsx / Prices.jsx / Contacts.jsx
+│   │   │   ├── Doctors.jsx / DoctorPage.jsx
+│   │   │   ├── DlyaInogorodnikh.jsx / NashiRezultaty.jsx / Media.jsx
+│   │   │   ├── PrivacyPolicy.jsx / Licenses.jsx
+│   │   │   └── BlogImageGenerator.jsx # Инструмент /admin/blog-images
 │   │   ├── admin/                 # Компоненты админ-панели
-│   │   │   ├── LoginForm.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── DoctorList.jsx     # Контейнер списка докторов
-│   │   │   ├── DoctorEditForm.jsx # Форма редактирования (модалка)
-│   │   │   ├── DoctorPhotoUpload.jsx # Загрузка фото доктора
-│   │   │   ├── DoctorCertificates.jsx # Управление сертификатами
-│   │   │   ├── SessionsViewer.jsx
-│   │   │   └── LogsViewer.jsx
+│   │   │   ├── LoginForm.jsx / Dashboard.jsx / SessionsViewer.jsx / LogsViewer.jsx
+│   │   │   ├── DoctorList.jsx / DoctorEditForm.jsx / DoctorPhotoUpload.jsx / DoctorCertificates.jsx
+│   │   │   ├── Patients.jsx / PatientDetails.jsx / PatientPrivateData.jsx / PatientVisitDetails.jsx / PatientHistoryIssues.jsx
+│   │   │   ├── Appointments.jsx / Calls.jsx
+│   │   │   ├── FilterPanel.jsx    # Сворачиваемые фильтры списков
+│   │   │   └── dialog-keyboard.js # Escape/focus trap диалогов
 │   │   ├── Header.jsx             # Навигация (client:load, mega-menu, поиск Pagefind)
 │   │   ├── Footer.jsx             # Подвал сайта (4 колонки)
 │   │   ├── SearchModal.jsx        # Модалка поиска Pagefind
+│   │   ├── BreadcrumbNav.jsx      # Хлебные крошки + BreadcrumbList JSON-LD
+│   │   ├── FaqSection.jsx         # FAQ + FAQPage JSON-LD
 │   │   ├── FadeInSection.jsx      # Scroll fade-in анимация (Intersection Observer)
 │   │   ├── StarRating.jsx         # Звёздный рейтинг ПроДокторов
-│   │   ├── RelatedArticles.jsx    # Блок "Читайте также" для блога
-│   │   ├── StickyCTA.jsx          # Фиксированная панель внизу экрана (только mobile, md:hidden)
+│   │   ├── RelatedArticles.jsx    # Блок «Читайте также» для блога
+│   │   ├── StickyCTA.jsx          # Фиксированная панель внизу экрана (только mobile)
 │   │   ├── ClayContactBanner.jsx  # Баннер с контактами
-│   │   ├── DoctorCard.jsx         # Переиспользуемая карточка доктора (с ПроДокторов рейтингом)
-│   │   ├── MobileDoctorCarousel.jsx # Круговой flat-coverflow прозрачных портретов над плоской карточкой врача
-│   │   ├── ResponsiveDoctorHero.jsx # Mobile-карусель нескольких врачей + сохранённый desktop HeroDoctorCard
-│   │   ├── ResponsiveDoctorCollection.jsx # Mobile-карусель/одна карточка + сохранённая desktop-сетка
+│   │   ├── ClayBlobTitle.jsx      # Заголовок с декоративным blob
+│   │   ├── DoctorCard.jsx         # Карточка доктора с рейтингом ПроДокторов
+│   │   ├── HeroDoctorCard.jsx     # Desktop hero-карточка одного врача
+│   │   ├── MobileDoctorCarousel.jsx # Coverflow-карусель «Открытая сцена» (mobile и desktop variant)
+│   │   ├── ResponsiveDoctorHero.jsx # Карусель нескольких врачей / HeroDoctorCard для одного
+│   │   ├── ResponsiveDoctorCollection.jsx # Mobile-карусель / desktop-сетка
+│   │   ├── SpecialtyFilter.jsx    # Фильтр по специальностям
+│   │   ├── SecondOpinionForm.jsx  # Форма «Второе мнение» с файлами
+│   │   ├── TaxFormRequestForm.jsx # Форма справки для налогового вычета
 │   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
-│   │   ├── ThemeSwitcher.jsx       # Переключатель темы (20 цветов, 3 шрифтовых селектора, client:idle)
+│   │   ├── ThemeSwitcher.jsx      # Переключатель темы (20 цветов, 3 шрифтовых селектора, client:idle)
 │   │   ├── ErrorBoundary.jsx      # React Error Boundary для page-level компонентов
 │   │   └── PageWrapper.jsx        # Обёртка страницы с ErrorBoundary
 │   ├── layouts/
-│   │   ├── Layout.astro           # Главный лейаут (OG-теги, canonical, JSON-LD)
+│   │   ├── Layout.astro           # Главный лейаут (OG-теги, canonical, JSON-LD, BookingFlow, font-size controls)
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
-│   ├── lib/
-│   │   ├── auth.js                # HMAC-авторизация (токены, cookie, CSRF validateOrigin)
-│   │   ├── admin-api.js           # guardAdminRead/guardAdminWrite (auth + rate limit)
-│   │   ├── rate-limit.js          # In-memory rate limiter с namespace-изоляцией
-│   │   ├── file-constraints.js    # Shared upload-константы (MAX_FILES, ALLOWED_MIME_TYPES)
-│   │   ├── theme-config.js        # Цветовые пресеты, шрифты, buildFullPalette
-│   │   ├── useAdminFetch.js       # React hook: loading/error/fetchData для admin-панели
-│   │   ├── useHeroFit.js          # React hook: auto-fit font size для hero-блоков
-│   │   ├── constants.js           # UI-константы: ICON_SIZES, RING_COLOR_MAP
-│   │   ├── contacts.js            # Контактные данные: телефоны, адрес, часы, мессенджеры
-│   │   ├── nav.js                 # Навигация: DIRECTIONS, NAV_ITEMS, FOOTER_LINKS
-│   │   ├── filters.js             # Фильтры докторов: FILTER_TABS, FILTER_BG, matchesFilter
-│   │   ├── clinic-info.js         # Данные клиники: CLINIC_FACTS, SERVICES, WHY_ITEMS
-│   │   ├── price-list.js          # Официальный и короткий прайс-лист клиники
-│   │   └── doctors-data.js        # Статические данные 9 докторов клиники
-│   ├── content/                   # Astro Content Collections
-│   │   ├── config.ts              # Схема коллекций (blog: title, description, author, tags…)
-│   │   └── blog/                  # Markdown-статьи блога
-│   │       ├── vab-ili-operatsiya.md
-│   │       ├── chto-takoe-fibroadenoma.md
-│   │       ├── kak-izbezhat-operatsii-na-grudi.md
-│   │       ├── mammografiya-ili-uzi.md
-│   │       ├── gipotireoz-simptomy-lechenie.md
-│   │       └── ... (всего 40 статей)
+│   ├── lib/                       # Доменная логика (полная таблица в «Централизованные данные и утилиты»)
+│   │   ├── database.js / database-schema.js # Drizzle поверх @libsql/client, таблицы
+│   │   ├── auth.js / admin-api.js / rate-limit.js / client-ip.js / bounded-json.js
+│   │   ├── appointment-*.js / medflex-*.js # Онлайн-запись и клиент Medflex
+│   │   ├── patient-records.js / patient-history-*.js / protected-patient-data.js / contact-identity.js
+│   │   ├── clinic-import-*.js / tabular-csv.js / tabular-xlsx.js # Импорт исторической базы
+│   │   ├── mango-*.js             # Телефония MANGO OFFICE
+│   │   ├── admin-*-api.js / admin-clinic-query.js / admin-filter-date.js # Admin API
+│   │   ├── doctors-data.js / nav.js / filters.js / contacts.js / clinic-info.js / price-list.js / constants.js
+│   │   ├── theme-config.js / font-size.js / swipe-gesture.js / selection-feedback.js / useAdminFetch.js
+│   │   ├── upload-utils.js / upload-validation.js / file-constraints.js
+│   │   ├── blog-prompts.js / og-prompts.js # Allowlist промптов генерации постеров
+│   │   ├── startup-environment.js / graceful-shutdown.js / clinic-time.js / webp-dimensions.js
+│   │   └── tracker.js             # Источник public/tracker.js
 │   ├── pages/                     # Astro-роуты (file-based routing)
 │   │   ├── index.astro            # /
-│   │   ├── about.astro            # /about - О клинике (миссия, руководство, документы, преимущества, оборудование)
-│   │   ├── mammology.astro        # /mammology
-│   │   ├── gynecology.astro       # /gynecology
-│   │   ├── endocrinology.astro    # /endocrinology
-│   │   ├── nutrition.astro        # /nutrition
-│   │   ├── fibroadenoma.astro      # /fibroadenoma - Фиброаденома (MedicalCondition JSON-LD)
-│   │   ├── mastopatiya.astro      # /mastopatiya - Мастопатия
-│   │   ├── kista-molochnoy-zhelezy.astro  # /kista-molochnoy-zhelezy - Киста молочной железы
-│   │   ├── eroziya-sheyki-matki.astro  # /eroziya-sheyki-matki - Эрозия шейки матки
-│   │   ├── gipotireoz.astro       # /gipotireoz - Гипотиреоз
-│   │   ├── adenomioz.astro        # /adenomioz - Аденомиоз (MedicalCondition JSON-LD)
-│   │   ├── endometrioz.astro      # /endometrioz - Эндометриоз (MedicalCondition JSON-LD)
-│   │   ├── tireoidit-khashimoto.astro # /tireoidit-khashimoto - Тиреоидит Хашимото (MedicalCondition JSON-LD)
-│   │   ├── dlya-inogorodnikh.astro # /dlya-inogorodnikh - Для иногородних
-│   │   ├── nashi-rezultaty.astro  # /nashi-rezultaty - Наши результаты
-│   │   ├── media.astro            # /media - Медиа / СМИ
-│   │   ├── second-opinion.astro   # /second-opinion
-│   │   ├── tax-form.astro         # /tax-form - форма запроса справки для налогового вычета
-│   │   ├── prices.astro           # /prices
-│   │   ├── prices/
-│   │   │   └── full.astro         # /prices/full - полный официальный прайс-лист
-│   │   ├── vab.astro              # /vab - ВАБ-процедура (MedicalProcedure + FAQPage JSON-LD)
-│   │   ├── contacts.astro         # /contacts - контакты с картой
-│   │   ├── blog/
-│   │   │   ├── index.astro        # /blog - список статей (ItemList JSON-LD)
-│   │   │   └── [slug].astro       # /blog/vab-ili-operatsiya и т.д. (MedicalWebPage + Article JSON-LD)
-│   │   ├── doctors.astro          # /doctors - листинг докторов
-│   │   ├── doctors/
-│   │   │   └── [slug].astro       # /doctors/odintsov, /doctors/egorova и т.д. (+ Physician JSON-LD)
-│   │   ├── privacy-policy.astro   # /privacy-policy
-│   │   ├── licenses.astro         # /licenses - лицензии и сертификаты клиники
-│   │   ├── 404.astro              # Кастомная страница 404
+│   │   ├── about.astro            # /about
+│   │   ├── mammology.astro / gynecology.astro / endocrinology.astro / nutrition.astro
+│   │   ├── fibroadenoma.astro / mastopatiya.astro / kista-molochnoy-zhelezy.astro / eroziya-sheyki-matki.astro
+│   │   ├── gipotireoz.astro / adenomioz.astro / endometrioz.astro / tireoidit-khashimoto.astro # MedicalCondition JSON-LD
+│   │   ├── vab.astro              # /vab (MedicalProcedure + FAQPage JSON-LD)
+│   │   ├── dlya-inogorodnikh.astro / nashi-rezultaty.astro / media.astro / contacts.astro
+│   │   ├── second-opinion.astro / tax-form.astro
+│   │   ├── prices.astro / prices/full.astro
+│   │   ├── blog/index.astro / blog/[slug].astro # ItemList / MedicalWebPage + Article JSON-LD
+│   │   ├── doctors.astro / doctors/[slug].astro # + Physician JSON-LD
+│   │   ├── privacy-policy.astro / licenses.astro / 404.astro
 │   │   ├── admin/                 # Админ-панель (SSR)
 │   │   │   ├── index.astro        # /admin - дашборд
 │   │   │   ├── login.astro        # /admin/login
+│   │   │   ├── sessions.astro / logs.astro
+│   │   │   ├── patients.astro / appointments.astro / calls.astro
 │   │   │   ├── doctors.astro      # /admin/doctors
-│   │   │   ├── sessions.astro     # /admin/sessions
-│   │   │   └── logs.astro         # /admin/logs
+│   │   │   └── blog-images.astro  # /admin/blog-images
 │   │   └── api/                   # API-эндпоинты (SSR)
-│   │       ├── analytics/
-│   │       │   ├── event.js       # POST - приём событий трекера
-│   │       │   └── heartbeat.js   # POST - heartbeat сессий
-│   │       ├── appointments/
-│   │       │   ├── slots.js       # GET - безопасное нормализованное расписание Medflex
-│   │       │   └── book.js        # POST - защищённое создание и согласование записи
 │   │       ├── health.js          # GET - readiness: обязательные env + таблица Patient, 200/503, no-store
-│   │       ├── tax-form.js        # POST - заявка на справку для налогового вычета
-│   │       ├── auth/
-│   │       │   ├── login.js       # POST - вход (rate limiting: 5 попыток / 15 мин)
-│   │       │   └── logout.js      # POST - выход
+│   │       ├── analytics/event.js / heartbeat.js # POST - трекер и heartbeat сессий
+│   │       ├── appointments/slots.js / book.js  # GET расписание / POST защищённое создание записи
+│   │       ├── second-opinion.js / tax-form.js  # POST - публичные формы (SMTP)
+│   │       ├── auth/login.js / logout.js        # POST - вход (5 попыток / 15 мин) и выход
+│   │       ├── integrations/mango/              # POST events/call, events/summary — подписанные webhook MANGO
 │   │       └── admin/
-│   │           ├── stats.js       # GET - агрегированная статистика
-│   │           ├── sessions.js    # GET - список сессий
-│   │           ├── logs.js        # GET - логи событий
-│   │           ├── doctors.js     # GET - список докторов
-│   │           ├── doctors/[id].js # PUT - обновление доктора (с санитизацией)
-│   │           ├── doctors/[id]/certificates.js # DELETE - удаление сертификата
-│   │           └── upload/
-│   │               ├── photo.js   # POST - загрузка фото доктора
-│   │               └── certificates.js # POST - загрузка сертификатов
-│   ├── test/
-│   │   └── setup.js              # Vitest setup (jest-dom, cleanup)
+│   │           ├── stats.js / sessions.js / logs.js
+│   │           ├── doctors.js / doctors/[id].js / doctors/[id]/certificates.js / doctors/sync.js
+│   │           ├── upload/photo.js / upload/certificates.js
+│   │           ├── patients/index.js / patients/[id].js / patients/[id]/reveal.js / patients/[id]/personal-data.js
+│   │           ├── patient-history/issues.js
+│   │           ├── appointments/index.js / [id].js / [id]/cancel.js / [id]/resolve.js
+│   │           ├── calls/index.js / [entryId].js / [entryId]/reveal.js / [entryId]/caller.js
+│   │           └── generate-image.js # POST - AI-постер для статьи блога
+│   ├── test/                      # API-тесты, миграции, контракты деплоя, setup.js, fixtures/
 │   ├── styles/
-│   │   └── global.css             # Tailwind + ~87 CSS-переменных дизайн-системы + theme-switcher стили + prose-clay (блог)
+│   │   ├── global.css             # Tailwind + ~87 CSS-переменных + theme-switcher + prose-clay
+│   │   └── *.test.js              # typography-floor, self-hosted-fonts контракты
 │   └── env.d.ts                   # Astro type references
-├── Dockerfile                     # Multi-stage Docker-сборка (deps → builder → prod-deps → runner), образ публикует CI в GHCR
-├── docker-compose.yml             # Docker Compose: app + nginx + certbot
+├── Dockerfile                     # Multi-stage (deps → prod-deps → builder → runner); образ публикует CI в GHCR
+├── docker-compose.yml             # app + nginx + certbot
+├── docker-entrypoint.sh           # check-required-env → init-db → server.mjs
 ├── nginx.https.conf               # Nginx: production-шаблон HTTPS (рендерится в nginx.conf)
 ├── nginx.http.conf                # Nginx: шаблон только HTTP (IP / до SSL)
 ├── nginx.bootstrap.conf           # Nginx: HTTP для первичного ACME (Certbot)
-├── .env                           # Переменные окружения (ADMIN_PASSWORD, TOKEN_SECRET, ASTRO_DB_REMOTE_URL)
-├── .env.example                   # Шаблон переменных окружения
-├── astro.config.mjs               # Astro конфиг (static + node adapter, react, sitemap, remark-markdown, checkOrigin off)
-├── vitest.config.mjs              # Vitest (Astro getViteConfig, jsdom)
-├── playwright.config.js           # Playwright E2E
-├── eslint.config.js               # ESLint 9 flat config (Astro, React)
-├── tailwind.config.js             # Tailwind тема (цвета, тени, радиусы)
-├── postcss.config.js
-├── package.json
-├── bun.lock
-└── .cursor/rules/                 # Правила для AI-агентов
-    ├── core-stack.mdc             # Стек и принципы (alwaysApply: true)
-    ├── react-patterns.mdc         # Паттерны React-компонентов
-    └── error-handling.mdc         # Обработка ошибок
+├── .env / .env.example            # Переменные окружения (untracked) и шаблон
+├── .bun-version                   # Версия Bun для CI и Docker-образов
+├── astro.config.mjs               # static + node adapter, react, sitemap, redirects, checkOrigin off
+├── vitest.config.mjs / playwright.config.js / eslint.config.js
+├── tailwind.config.js / postcss.config.js
+├── AGENTS.md / CLAUDE.md          # Инструкции для AI-агентов
+├── DEPLOY-BEGET.md                # Пошаговый деплой на VPS
+├── CONTEXT.md                     # Словарь домена CRM пациентов
+└── ROADMAP.md, ACCESSIBILITY-AUDIT.md, SECURITY-AND-QUALITY-REPORT.md, USER-RESEARCH-PLAN.md # Исторические отчёты
 ```
 
 ---
@@ -648,7 +651,6 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `client-ip.js` | `getClientIp` — единственный источник адреса клиента для rate limit (X-Real-IP, затем ближайший хоп X-Forwarded-For) | Все rate-limited endpoints |
 | `file-constraints.js` | `MAX_FILES`, `MAX_FILE_SIZE_BYTES`, `ALLOWED_EXTENSIONS`, `ALLOWED_MIME_TYPES` | `SecondOpinionForm`, `api/second-opinion` |
 | `useAdminFetch.js` | `useAdminFetch` | `Dashboard`, `DoctorList`, `SessionsViewer`, `LogsViewer` |
-| `useHeroFit.js` | `useHeroFit` | Все 17 страниц с hero-блоком (auto-fit font size) |
 
 ### Админ-панель (SSR - серверные)
 
@@ -684,7 +686,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 Трёхслайдовый hero показывается только на desktop (`hidden md:block`). На mobile вместо него первым блоком под шапкой идёт `MobileDoctorCarousel` со всеми девятью врачами (метка «Карусель врачей в начале страницы»), затем быстрый выбор 4 направлений в `ServicesSection`; нижняя секция «Наши доктора» с фильтрами по специальностям скрыта на mobile (`hidden md:block`), чтобы не дублировать hero-карусель, и остаётся только на desktop. Строка под названием направления в `ServicesSection` описывает, с какими жалобами приходят, а не перечисляет ключевые слова. `h1` остаётся внутри скрытого на mobile слайдера, поэтому на странице по-прежнему один `h1`. Первый слайд позиционирует клинику как многопрофильную. Карточка врача внутри слайдера остаётся только на desktop. Текст начинается от верхнего левого края слайда; на desktop стрелки вынесены по сторонам, а на mobile остаются снизу. Нижние точки и кнопка паузы не отображаются. Автопереключение выполняется каждые 12 секунд и отключается при `prefers-reduced-motion`. Все слайды наложены в одной CSS-grid ячейке, поэтому hero сразу получает высоту самого высокого слайда и не меняет её при переключении.
 
-Блоки статистики под hero на `/mammology`, `/nutrition` и `/gynecology` используют одну сетку `2×2` (`data-route-stats`) в правой половине карточки: четыре колонки в половине контейнера обрезали словесные значения вроде «Гистология». На `/nutrition` значение «Доказательно» длиннее числа, поэтому значения там идут ступенями `text-xl sm:text-2xl xl:text-3xl`. Футер `DoctorCard` раскладывается `repeat(auto-fit, minmax(9rem, 1fr))` (минимум `9rem`, чтобы неразрывное «Эндокринолог» помещалось в плитку без прежнего `truncate`): в карточке шире ~304 px плашка специальности и кнопки стоят рядом, в узкой (страницы заболеваний на `xl`) — в столбик, поэтому «Записаться»/«Подробнее» не режутся. Контракт отсутствия обрезанного текста на 21 публичном маршруте и четырёх viewport — `e2e/text-overflow.spec.js`; намеренный `text-overflow: ellipsis` из проверки исключён.
+Блоки статистики под hero на `/mammology`, `/nutrition` и `/gynecology` используют одну сетку `2×2` (`data-route-stats`) в правой половине карточки: четыре колонки в половине контейнера обрезали словесные значения вроде «Гистология». На `/nutrition` значение «Доказательно» длиннее числа, поэтому значения там идут ступенями `text-xl sm:text-2xl xl:text-3xl`. Футер `DoctorCard` раскладывается `repeat(auto-fit, minmax(9rem, 1fr))` (минимум `9.5rem`: при `9rem` неразрывное «Эндокринолог» полужирным выходило за плитку на 2 px под Linux-шрифтами CI): в карточке шире ~304 px плашка специальности и кнопки стоят рядом, в узкой (страницы заболеваний на `xl`) — в столбик, поэтому «Записаться»/«Подробнее» не режутся. Контракт отсутствия обрезанного текста на 21 публичном маршруте и четырёх viewport — `e2e/text-overflow.spec.js`; намеренный `text-overflow: ellipsis` из проверки исключён.
 
 Текстовая колонка во всех двухколоночных публичных hero закреплена у верхнего левого края независимо от высоты соседней карточки. Геометрический контракт основных маршрутов проверяет `e2e/hero-alignment.spec.js`.
 
@@ -1130,7 +1132,7 @@ cwebp -q 82 -m 6 -sharp_yuv -resize 320 320 public/images/doctors/<slug>.webp -o
 - **Home.jsx split**: 1009→84 строк, 9 модульных компонентов в `src/components/home/`
 - **ThemeSwitcher**: 770→378 строк, конфиг и palette-логика вынесены в `theme-config.js`
 - **Сжатие изображений**: OG + blog картинки 207MB→1.7MB (-99%), решает "no space left" при Docker-билде
-- **Hero auto-fit**: `useHeroFit` хук на 17 страницах — авто-подгонка размера шрифта под viewport
+- **Hero auto-fit**: `useHeroFit` хук на 17 страницах (позже удалён: hero теперь помещается в viewport за счёт фиксированных размеров, см. `e2e/hero-viewport-fit.spec.js`)
 - **CI**: Bun cache, security audit job, 0 lint errors/warnings, 192/192 тестов
 - **Docker**: non-root user, HEALTHCHECK, deploy.sh с авто-очисткой Docker-кэша
 - **Полные ФИО врачей** в навигационном меню
