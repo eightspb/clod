@@ -5,6 +5,7 @@ import { validateOrigin } from '../../../lib/auth.js'
 import { checkRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
 import { readBoundedJson } from '../../../lib/bounded-json.js'
+import { referrerOrigin, safeDetails, truncateIp } from '../../../lib/analytics-privacy.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const RATE_LIMIT_OPTS = { namespace: 'analytics-event', maxRequests: 100, windowMs: 60_000 }
@@ -28,6 +29,7 @@ const ALLOWED_EVENT_TYPES = new Set([
   'form_submit',
   'navigation',
 ])
+const INTERACTION_EVENT_TYPES = new Set(['click', 'form_submit', 'navigation'])
 
 function jsonResponse(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), {
@@ -79,13 +81,21 @@ function normalizeInteger(value, min, max) {
   return rounded
 }
 
-function safeJsonStringify(value) {
-  try {
-    const json = JSON.stringify(value)
-    if (!json) return undefined
-    return json.slice(0, MAX_EVENT_DETAILS_LENGTH)
-  } catch {
-    return undefined
+/**
+ * Interaction payloads keep only structural attributes of the clicked or submitted element:
+ * the visible text of an element can be a patient's own data on the booking review screen.
+ */
+function normalizeInteraction(data) {
+  const source = isRecord(data) ? data : {}
+  return {
+    target: normalizeString(source.target, MAX_TARGET_LENGTH) || undefined,
+    tag: normalizeString(source.tag, MAX_TYPE_LENGTH) || undefined,
+    id: normalizeString(source.id, MAX_ID_LENGTH) || undefined,
+    classes: normalizeString(source.classes, MAX_TEXT_LENGTH) || undefined,
+    href: normalizeString(source.href, MAX_REFERRER_LENGTH) || undefined,
+    from: normalizePage(source.from) || undefined,
+    action: normalizeString(source.action, MAX_REFERRER_LENGTH) || undefined,
+    name: normalizeString(source.name, MAX_TEXT_LENGTH) || undefined,
   }
 }
 
@@ -142,7 +152,7 @@ function validateEventPayload(body) {
   if (base.type === 'session_start') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      referrer: normalizeString(base.data.referrer, MAX_REFERRER_LENGTH) || undefined,
+      referrer: referrerOrigin(normalizeString(base.data.referrer, MAX_REFERRER_LENGTH)),
       userAgent: normalizeString(base.data.userAgent, MAX_USER_AGENT_LENGTH) || undefined,
       screenWidth: normalizeInteger(base.data.screenWidth, 0, 10000),
       screenHeight: normalizeInteger(base.data.screenHeight, 0, 10000),
@@ -180,15 +190,7 @@ function validateEventPayload(body) {
   if (base.type === 'click' || base.type === 'form_submit' || base.type === 'navigation') {
     normalized.data = {
       page: normalizePage(base.data.page),
-      target: normalizeString(base.data.target, MAX_TARGET_LENGTH) || undefined,
-      tag: normalizeString(base.data.tag, MAX_TYPE_LENGTH) || undefined,
-      id: normalizeString(base.data.id, MAX_ID_LENGTH) || undefined,
-      classes: normalizeString(base.data.classes, MAX_TEXT_LENGTH) || undefined,
-      href: normalizeString(base.data.href, MAX_REFERRER_LENGTH) || undefined,
-      text: normalizeString(base.data.text, MAX_TEXT_LENGTH) || undefined,
-      from: normalizePage(base.data.from) || undefined,
-      action: normalizeString(base.data.action, MAX_REFERRER_LENGTH) || undefined,
-      name: normalizeString(base.data.name, MAX_TEXT_LENGTH) || undefined,
+      ...normalizeInteraction(base.data),
     }
 
     if (!normalized.data.page) {
@@ -212,13 +214,13 @@ function validateEventPayload(body) {
           const eventType = normalizeString(event.type, MAX_TYPE_LENGTH)
           const page = normalizePage(event.page)
 
-          if (!eventType || !page) return undefined
+          if (!INTERACTION_EVENT_TYPES.has(eventType) || !page) return undefined
 
           return {
             type: eventType,
             page,
             target: normalizeString(event.target, MAX_TARGET_LENGTH) || undefined,
-            details: isRecord(event.details) ? event.details : undefined,
+            details: normalizeInteraction(event.details),
             timestamp: normalizeInteger(event.timestamp, 0, 9999999999999) || Date.now(),
           }
         })
@@ -248,7 +250,7 @@ async function upsertSession({ sessionId, visitorId, ip, now, values }) {
     await analyticsDb.insert(AnalyticsSession).values({
       id: sessionId,
       visitorId,
-      ip,
+      ip: truncateIp(ip),
       startedAt: now,
       lastActiveAt: now,
       ...values,
@@ -272,7 +274,7 @@ async function insertEventLog(sessionId, eventType, page, target, details, creat
     eventType,
     page,
     target,
-    details: safeJsonStringify(details),
+    details: safeDetails(details, MAX_EVENT_DETAILS_LENGTH),
     createdAt,
   })
 }
@@ -380,7 +382,7 @@ export async function POST({ request }) {
           eventType: event.type,
           page: event.page,
           target: event.target,
-          details: safeJsonStringify(event.details),
+          details: safeDetails(event.details, MAX_EVENT_DETAILS_LENGTH),
           createdAt: new Date(event.timestamp),
         })
       }

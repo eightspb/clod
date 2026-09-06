@@ -137,3 +137,14 @@ describe('self-hosted monitor', () => {
     })
   }
 })
+
+describe('retention jobs', () => {
+  it('runs analytics and call retention from the entrypoint without blocking startup on failure', async () => {
+    const source = await read('docker-entrypoint.sh')
+    expect(source.includes('scripts/prune-analytics.mjs ||') && source.includes('scripts/prune-calls.mjs ||')).toBe(true)
+  })
+
+  it('schedules the same jobs daily inside the server process', async () => {
+    expect(await read('scripts/server.mjs')).toContain('scheduleRetention({ jobs: [() => runAnalyticsRetention')
+  })
+})

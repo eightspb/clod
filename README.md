@@ -144,6 +144,8 @@ API запрос       → src/pages/api/**/*.js (SSR)
 Данные хранятся в трёх таблицах БД: `AnalyticsSession`, `PageView`, `EventLog`.
 Клиент отправляет события на `POST /api/analytics/event` и heartbeat на `POST /api/analytics/heartbeat`.
 
+Минимизация и ретеншен (сентябрь 2026, Фаза 1 п.9 аудита). Сервер хранит не полный адрес, а сеть: `/24` для IPv4 и `/48` для IPv6 (`truncateIp` в `src/lib/analytics-privacy.js`); от реферера остаётся только origin, потому что URL поисковой выдачи содержит запрос пациента. Трекер (`public/tracker.js`, побайтово равен `src/lib/tracker.js`, контракт в `src/lib/tracker.test.js`) считает кликом только `a`, `button` или `[data-track]` среди пяти предков и никогда не читает текст элемента: на экране проверки записи это были бы ФИО и телефон. Batch-события проходят тот же allowlist (`click`, `form_submit`, `navigation`) и ту же нормализацию полей (`tag`, `id`, `classes`, `href`, `from`, `action`, `name`), что и одиночные; слишком длинные `details` заменяются на `{"truncated":true}` вместо обрезанного JSON. `GET /api/admin/sessions` отдаёт усечённый адрес и только семейство браузера и платформы (`Chrome · Windows`), сырой User-Agent в браузер не уходит; `GET /api/admin/logs` отдаёт тот же усечённый адрес. Срок хранения задаёт `ANALYTICS_RETENTION_DAYS` (по умолчанию 90): `scripts/prune-analytics.mjs` (`bun run analytics:prune`) в одной транзакции удаляет `EventLog` → `PageView` → `AnalyticsSession` старше окна и попутно дожимает старые строки до усечённого адреса и origin реферера. `scripts/prune-calls.mjs` (`bun run calls:prune`) через `MANGO_CALL_RETENTION_DAYS` (по умолчанию 365) обезличивает звонки MANGO старше окна: номер, маска, отпечаток и связь с пациентом удаляются, ожидание, разговор и статус остаются, для каждого звонка пишется строка `destroy` с актором `retention` в `MangoCallAccess`, а сам аудит хранится дольше. Обе задачи запускает `docker-entrypoint.sh` после `init-db` (ошибка не блокирует старт) и раз в сутки `scripts/server.mjs` через `src/lib/retention-schedule.js`.
+
 ### Безопасность
 
 - **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`). Срок кэша статики тоже задаёт nginx: Node-адаптер отвечает `Cache-Control: public, max-age=0` для всего из `dist/client`, а `map $uri $clod_static_expires` в шаблонах выставляет `expires` год для хэшированных `/_astro/` и `/fonts/`, 30 дней для `/images/` (имена без хэша, файл можно заменить на месте) и не трогает HTML и `/api/`
@@ -182,6 +184,8 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `IMAGE_API_KEY` | Ключ Polza.ai для генерации постеров блога в `/admin/blog-images`; без него endpoint отвечает `500` |
 | `NOINDEX` | `true` на staging-поддомене: `X-Robots-Tag: noindex` через nginx и middleware |
 | `SITE_DOMAIN` | Домен для рендера `nginx.conf` и путей сертификата |
+| `ANALYTICS_RETENTION_DAYS` | Срок хранения аналитики посещений в днях, по умолчанию 90 |
+| `MANGO_CALL_RETENTION_DAYS` | Через сколько дней обезличивается номер звонящего в журнале MANGO, по умолчанию 365 |
 | `MONITOR_STATUS_FILE` | Необязательный путь к `status.json` хостового монитора; по умолчанию `/var/lib/clod-monitor/status.json` |
 
 ### Инфраструктура безопасной онлайн-записи
@@ -411,6 +415,7 @@ clod/
 │   ├── deploy.sh / rollback.sh / smoke.sh # Деплой с бэкапом, smoke-гейтом и откатом
 │   ├── backup.sh / restore-check.sh / install-backup-timer.sh # Ежедневный бэкап и проверка восстановления
 │   ├── monitor.sh / install-monitor-timer.sh # Самохостинговый монитор: health, TLS, диск, память, контейнеры, бэкап
+│   ├── prune-analytics.mjs / prune-calls.mjs # Ретеншен аналитики (90 дней) и обезличивание звонков (365 дней)
 │   ├── render-nginx.sh            # Генерация nginx.conf из шаблона (https|http|bootstrap)
 │   ├── server.mjs                 # Запуск адаптера с graceful shutdown
 │   ├── check-required-env.mjs     # Fail-fast проверка env при старте контейнера
@@ -498,6 +503,7 @@ clod/
 │   │   ├── admin-*-api.js / admin-clinic-query.js / admin-filter-date.js # Admin API
 │   │   ├── doctors-data.js / nav.js / filters.js / contacts.js / clinic-info.js / price-list.js / constants.js
 │   │   ├── theme-config.js / font-size.js / swipe-gesture.js / selection-feedback.js / useAdminFetch.js
+│   │   ├── analytics-privacy.js / analytics-retention.js / mango-call-retention.js / retention-schedule.js # Минимизация и ретеншен
 │   │   ├── upload-utils.js / upload-validation.js / file-constraints.js
 │   │   ├── blog-prompts.js / og-prompts.js # Allowlist промптов генерации постеров
 │   │   ├── startup-environment.js / graceful-shutdown.js / clinic-time.js / webp-dimensions.js

@@ -15,6 +15,7 @@ import {
   databaseErrorCode,
 } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
+import { truncateIp } from '../../../lib/analytics-privacy.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const DEFAULT_PAGE = 1
@@ -120,7 +121,7 @@ export async function GET({ request }) {
     return jsonResponse({
       logs: logs.map((log) => ({
         ...log,
-        ip: sessionMap[log.sessionId]?.ip || null,
+        ip: truncateIp(sessionMap[log.sessionId]?.ip) ?? null,
       })),
       total: Number(total),
       page,
