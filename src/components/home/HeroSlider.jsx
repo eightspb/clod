@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award } from 'lucide-react'
+import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award, Pause, Play } from 'lucide-react'
 import { StarRating } from '../StarRating.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 
@@ -58,11 +58,13 @@ export function HeroSlider() {
       }
     }
   }, [])
+  const [isPaused, setIsPaused] = useState(false)
+  const [isEngaged, setIsEngaged] = useState(false)
   useEffect(() => {
-    if (isAutoplayDisabled) return undefined
+    if (isAutoplayDisabled || isPaused || isEngaged) return undefined
     const timer = setInterval(() => setActiveSlide((prev) => (prev + 1) % heroSlides.length), HERO_AUTOPLAY_INTERVAL)
     return () => clearInterval(timer)
-  }, [isAutoplayDisabled])
+  }, [isAutoplayDisabled, isPaused, isEngaged])
   function prevSlide() {
     setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
   }
@@ -74,6 +76,10 @@ export function HeroSlider() {
       className="relative overflow-hidden grain-overlay"
       aria-roledescription="carousel"
       aria-label="Главный слайдер"
+      onMouseEnter={() => setIsEngaged(true)}
+      onMouseLeave={() => setIsEngaged(false)}
+      onFocus={() => setIsEngaged(true)}
+      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsEngaged(false) }}
     >
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
       <div className="container-clay relative z-10 py-8 md:py-10">
@@ -202,6 +208,18 @@ export function HeroSlider() {
           >
             <ChevronRight size={14} className="text-clay-mint" />
           </button>
+          {!isAutoplayDisabled && (
+            <button
+              type="button"
+              onClick={() => setIsPaused((current) => !current)}
+              className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:bottom-0 xl:-right-3"
+              style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
+              aria-pressed={isPaused}
+              aria-label={isPaused ? 'Возобновить автопрокрутку слайдов' : 'Приостановить автопрокрутку слайдов'}
+            >
+              {isPaused ? <Play size={14} className="text-clay-mint" /> : <Pause size={14} className="text-clay-mint" />}
+            </button>
+          )}
         </div>
       </div>
     </section>

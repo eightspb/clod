@@ -70,3 +70,24 @@ describe('anonymizeOldCalls', () => {
     expect(second.anonymized).toBe(0)
   })
 })
+
+describe('expireStaleLiveCalls', () => {
+  it('closes a live call older than a day as missed', async () => {
+    const { expireStaleLiveCalls } = await import('./mango-call-retention.js')
+    const client = await database()
+    await client.execute({ sql: 'INSERT INTO MangoCall (entryId, status, callerCiphertext, callerMask, callerFingerprint, repeatCaller, lineNumber, startedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['зависший', 'ringing', 'sealed', '+7 •••••••• 29', 'v1:fingerprint', 0, '78127482210', '2026-09-04T10:00:00.000Z', '2026-09-04T10:00:00.000Z', '2026-09-04T10:00:00.000Z'] })
+    await expireStaleLiveCalls({ client, now: new Date(NOW) })
+    const row = await client.execute('SELECT status, finalizedAt FROM MangoCall')
+    client.close()
+    expect(row.rows[0]).toMatchObject({ status: 'missed', finalizedAt: NOW })
+  })
+
+  it('leaves a call that started within the last day on the line', async () => {
+    const { expireStaleLiveCalls } = await import('./mango-call-retention.js')
+    const client = await database()
+    await client.execute({ sql: 'INSERT INTO MangoCall (entryId, status, callerCiphertext, callerMask, callerFingerprint, repeatCaller, lineNumber, startedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['свежий', 'connected', 'sealed', '+7 •••••••• 29', 'v1:fingerprint', 0, '78127482210', '2026-09-06T11:00:00.000Z', '2026-09-06T11:00:00.000Z', '2026-09-06T11:00:00.000Z'] })
+    const result = await expireStaleLiveCalls({ client, now: new Date(NOW) })
+    client.close()
+    expect(result.expired).toBe(0)
+  })
+})

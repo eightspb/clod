@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import { createClient } from '@libsql/client'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { encryptPatientProfile, fingerprintContactPhone } from './contact-identity.js'
 import { createPatientRecords } from './patient-records.js'
 
@@ -265,6 +265,58 @@ describe('MANGO call records', () => {
     const active = await invoke(records, 'active')
     client.close()
     expect(active.map(({ entryId, status }) => ({ entryId, status }))).toEqual([{ entryId: 'entry-3', status: 'connected' }, { entryId: 'entry-2', status: 'ringing' }])
+  })
+
+  it('inherits the line of the stored aggregate for a later leg event without one', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'apply', live())
+    const result = await invoke(records, 'apply', live({ callId: 'leg-2', seq: 2, state: 'connected', location: 'abonent', eventAt: '2026-08-26T10:00:30.000Z', lineNumber: null }))
+    const row = await client.execute({ sql: 'SELECT status, lineNumber FROM MangoCall WHERE entryId = ?', args: ['entry-1'] })
+    client.close()
+    expect({ outcome: result.outcome, row: row.rows[0] }).toEqual({ outcome: 'applied', row: { status: 'connected', lineNumber: LINE } })
+  })
+
+  it('ignores a first leg event that carries no line at all', async () => {
+    const { client, records } = await fixture()
+    const result = await invoke(records, 'apply', live({ lineNumber: null }))
+    const count = await client.execute('SELECT COUNT(*) AS total FROM MangoCall')
+    client.close()
+    expect({ outcome: result.outcome, total: Number(count.rows[0].total) }).toEqual({ outcome: 'ignored', total: 0 })
+  })
+
+  it('lists only live calls that started within the last day', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'apply', live({ entryId: 'entry-old', callId: 'leg-old', eventAt: '2026-08-24T10:00:00.000Z' }))
+    await invoke(records, 'apply', live({ entryId: 'entry-new', callId: 'leg-new', eventAt: '2026-08-26T10:00:00.000Z' }))
+    const active = await invoke(records, 'active')
+    client.close()
+    expect(active.map(({ entryId }) => entryId)).toEqual(['entry-new'])
+  })
+
+  it('journals a rejected webhook by code only', async () => {
+    const { client, records } = await fixture()
+    await invoke(records, 'issue', { code: 'INVALID_LIVE_EVENT', entryId: 'entry-1' })
+    const row = await client.execute('SELECT code, entryId FROM MangoCallIssue')
+    client.close()
+    expect(row.rows[0]).toMatchObject({ code: 'INVALID_LIVE_EVENT', entryId: 'entry-1' })
+  })
+
+  it('rejects an issue code outside the allowlist', async () => {
+    const { client, records } = await fixture()
+    const failure = await captured(() => invoke(records, 'issue', { code: 'DROP TABLE', entryId: null }))
+    client.close()
+    expect(failure.threw).toBe(true)
+  })
+
+  it('gives up on a transaction that never finishes instead of blocking every later write', async () => {
+    vi.useFakeTimers()
+    const stuck = Object.freeze({ execute: async () => ({ rows: [] }), transaction: () => new Promise(() => undefined) })
+    const { records } = await fixture({ storage: { client: stuck, url: 'file:stuck' } })
+    const pending = invoke(records, 'apply', summary())
+    const settled = pending.then(() => 'resolved', (error) => error.code)
+    await vi.advanceTimersByTimeAsync(5_500)
+    vi.useRealTimers()
+    expect(await settled).toBe('CALL_STORAGE_BUSY')
   })
 
   it('returns safe detail and aggregate call metrics', async () => {

@@ -69,6 +69,39 @@ function phone(value, code) {
   }
 }
 
+/**
+ * Caller numbers arrive in whatever format the trunk delivers: E.164, national digits without
+ * a plus, or nothing at all for anonymous calls. Anything with 8–15 digits is kept, an empty or
+ * hidden caller becomes null so the call is skipped rather than rejected as a contract error.
+ */
+function callerPhone_(value) {
+  if (value === undefined || value === null || value === '') return null
+  if (typeof value !== 'string') return null
+  try {
+    return normalizeContactPhone(value)
+  } catch {
+    const digits = value.replaceAll(/[^0-9]/g, '')
+    if (digits.length === 11 && digits.startsWith('8')) return `7${digits.slice(1)}`
+    return digits.length >= 8 && digits.length <= 15 && !digits.startsWith('0') ? digits : null
+  }
+}
+
+const PAST_WINDOW_MS = 7 * 24 * 60 * 60_000
+const FUTURE_WINDOW_MS = 5 * 60_000
+
+function withinWindow(stamp, now, code) {
+  if (stamp === null) return stamp
+  const milliseconds = stamp.seconds * 1_000
+  if (milliseconds < now.getTime() - PAST_WINDOW_MS || milliseconds > now.getTime() + FUTURE_WINDOW_MS) throw new MangoCallEventError(code)
+  return stamp
+}
+
+function currentMoment(value) {
+  const now = value === undefined ? new Date() : value
+  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new TypeError('MANGO event normalization requires a valid current Date')
+  return now
+}
+
 function lines(value, code) {
   if (!Array.isArray(value) || value.length === 0 || value.some((line) => typeof line !== 'string' || !/^[1-9][0-9]{7,14}$/.test(line))) throw new MangoCallEventError(code)
   return new Set(value)
@@ -85,41 +118,44 @@ function direction(value, code) {
 /**
  * Normalizes a supported inbound MANGO live-leg event into a persistence command.
  */
-export function normalizeMangoLiveEvent({ event, inboundLines }) {
+export function normalizeMangoLiveEvent({ event, inboundLines, now }) {
   const code = 'INVALID_LIVE_EVENT'
+  const moment = currentMoment(now)
   const input = plain(event, code)
   const entryId = identifier(input.entry_id, code)
   const callId = identifier(input.call_id, code)
   const seq = integer(input.seq, code, 1)
-  const eventTime = timestamp(input.timestamp, code)
+  const eventTime = withinWindow(timestamp(input.timestamp, code), moment, code)
   if (!Object.hasOwn(LIVE_STATES, input.call_state) || !LOCATIONS.has(input.location)) throw new MangoCallEventError(code)
   const to = party(input.to, code)
   const rawLine = to.line_number ?? input.line_number
-  if (rawLine === undefined || rawLine === null || rawLine === '') return Object.freeze({ kind: 'ignore', reason: 'LINE_UNKNOWN', entryId })
-  const lineNumber = phone(rawLine, code)
-  if (!lines(inboundLines, code).has(lineNumber)) return Object.freeze({ kind: 'ignore', reason: 'LINE_NOT_ALLOWED', entryId })
-  const callerPhone = phone(party(input.from, code).number, code)
+  const lineNumber = rawLine === undefined || rawLine === null || rawLine === '' ? null : phone(rawLine, code)
+  if (lineNumber !== null && !lines(inboundLines, code).has(lineNumber)) return Object.freeze({ kind: 'ignore', reason: 'LINE_NOT_ALLOWED', entryId })
+  const caller = callerPhone_(party(input.from, code).number)
+  if (caller === null) return Object.freeze({ kind: 'ignore', reason: 'CALLER_UNKNOWN', entryId })
   const state = input.call_state === 'Appeared' && input.location === 'queue' ? 'queued' : LIVE_STATES[input.call_state]
-  return Object.freeze({ kind: 'apply_live', entryId, callId, seq, state, location: input.location, eventAt: eventTime.iso, callerPhone, lineNumber, operatorExtension: extension(to.extension, code), disconnectReason: reason(input.disconnect_reason, code) })
+  return Object.freeze({ kind: 'apply_live', entryId, callId, seq, state, location: input.location, eventAt: eventTime.iso, callerPhone: caller, lineNumber, operatorExtension: extension(to.extension, code), disconnectReason: reason(input.disconnect_reason, code) })
 }
 
 /**
  * Normalizes a final MANGO summary and makes talk_time the answer source of truth.
  */
-export function normalizeMangoSummaryEvent({ event, inboundLines }) {
+export function normalizeMangoSummaryEvent({ event, inboundLines, now }) {
   const code = 'INVALID_SUMMARY_EVENT'
+  const moment = currentMoment(now)
   const input = plain(event, code)
   const entryId = identifier(input.entry_id, code)
   const callDirection = direction(input.call_direction, code)
   if (callDirection !== 1) return Object.freeze({ kind: 'remove_non_inbound', entryId })
   const lineNumber = phone(input.line_number, code)
   if (!lines(inboundLines, code).has(lineNumber)) return Object.freeze({ kind: 'ignore', reason: 'LINE_NOT_ALLOWED', entryId })
-  const callerPhone = phone(party(input.from, code).number, code)
+  const callerPhone = callerPhone_(party(input.from, code).number)
+  if (callerPhone === null) return Object.freeze({ kind: 'ignore', reason: 'CALLER_UNKNOWN', entryId })
   const operatorExtension = extension(party(input.to, code).extension, code)
-  const started = timestamp(input.create_time, code)
+  const started = withinWindow(timestamp(input.create_time, code), moment, code)
   const forwarded = timestamp(input.forward_time, code, true)
   const answered = timestamp(input.talk_time, code, true)
-  const ended = timestamp(input.end_time, code)
+  const ended = withinWindow(timestamp(input.end_time, code), moment, code)
   integer(input.entry_result, code, 0, 1)
   if (ended.seconds < started.seconds || ended.seconds - started.seconds > MAX_CALL_SECONDS) throw new MangoCallEventError(code)
   if (forwarded && (forwarded.seconds < started.seconds || forwarded.seconds > ended.seconds)) throw new MangoCallEventError(code)
