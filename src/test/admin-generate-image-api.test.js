@@ -1,5 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createToken } from '../lib/auth.js'
+import { migratedDatabaseUrl } from './fixtures/migrated-database.mjs'
+
+beforeAll(async () => {
+  process.env.ASTRO_DB_REMOTE_URL = await migratedDatabaseUrl('clod-generate-image-')
+})
 
 const ORIGINAL_SECRET = process.env.TOKEN_SECRET
 
@@ -17,7 +22,7 @@ async function loadHandlers() {
 
 async function sessionCookie() {
   process.env.TOKEN_SECRET = 'generate-image-test-secret-with-enough-entropy'
-  return `admin_session=${await createToken()}`
+  return `__Host-admin_session=${await createToken()}`
 }
 
 afterEach(() => {

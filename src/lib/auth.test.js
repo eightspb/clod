@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { createRequestFromNodeRequest } from 'astro/app/node'
 import {
   buildClearCookie,
@@ -10,6 +10,8 @@ import {
 } from './auth.js'
 import { POST as loginPost } from '../pages/api/auth/login.js'
 import { POST as logoutPost } from '../pages/api/auth/logout.js'
+import { POST as logoutAllPost } from '../pages/api/auth/logout-all.js'
+import { migratedDatabaseUrl } from '../test/fixtures/migrated-database.mjs'
 
 const ORIGINAL_ENV = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
@@ -28,8 +30,8 @@ function restoreEnv() {
   }
 }
 
-function makeJsonRequest({ origin = 'http://localhost:4321', referer = null, body = {}, cookie = '' } = {}) {
-  const headers = new Headers({ 'Content-Type': 'application/json' })
+function makeJsonRequest({ origin = 'http://localhost:4321', referer = null, body = {}, cookie = '', ip = '203.0.113.200' } = {}) {
+  const headers = new Headers({ 'Content-Type': 'application/json', 'x-real-ip': ip })
   if (origin) headers.set('origin', origin)
   if (referer) headers.set('referer', referer)
   if (cookie) headers.set('cookie', cookie)
@@ -45,6 +47,10 @@ function makeJsonRequest({ origin = 'http://localhost:4321', referer = null, bod
 function makeAstroProxyRequest(origin, headers) {
   return createRequestFromNodeRequest({ method: 'POST', url: '/api/test', headers: { origin, ...headers }, socket: {}, on() {}, once() {}, off() {} }, { skipBody: true })
 }
+
+beforeAll(async () => {
+  process.env.ASTRO_DB_REMOTE_URL = await migratedDatabaseUrl('clod-auth-')
+})
 
 beforeEach(() => {
   process.env.ADMIN_PASSWORD = 'top-secret-password'
@@ -71,6 +77,22 @@ describe('auth.js', () => {
         },
       }
     }
+
+    it('rejects a request addressed to another host than SITE_DOMAIN in production', () => {
+      process.env.NODE_ENV = 'production'
+      process.env.SITE_DOMAIN = 'new.odintsovclinic.ru'
+      const result = validateOrigin(makeRequest('https://odintsovclinic.ru', null))
+      delete process.env.SITE_DOMAIN
+      expect(result).toBe(false)
+    })
+
+    it('accepts the request addressed to SITE_DOMAIN itself in production', () => {
+      process.env.NODE_ENV = 'production'
+      process.env.SITE_DOMAIN = 'odintsovclinic.ru'
+      const result = validateOrigin(makeRequest('https://odintsovclinic.ru', null))
+      delete process.env.SITE_DOMAIN
+      expect(result).toBe(true)
+    })
 
     it('accepts odintsovclinic.ru', () => {
       expect(validateOrigin(makeRequest('https://odintsovclinic.ru/', null))).toBe(true)
@@ -175,8 +197,13 @@ describe('auth.js', () => {
 
   describe('getTokenFromCookie', () => {
     it('extracts cookie value', () => {
-      const req = { headers: { get: () => 'admin_session=abc123; other=val' } }
+      const req = { headers: { get: () => '__Host-admin_session=abc123; other=val' } }
       expect(getTokenFromCookie(req)).toBe('abc123')
+    })
+
+    it('treats a duplicated session cookie as no session', () => {
+      const req = { headers: { get: () => '__Host-admin_session=abc123; __Host-admin_session=xyz789' } }
+      expect(getTokenFromCookie(req)).toBe(null)
     })
 
     it('returns null when cookie absent', () => {
@@ -185,7 +212,7 @@ describe('auth.js', () => {
     })
 
     it('handles cookie with equals in value', () => {
-      const req = { headers: { get: () => 'admin_session=a.b.c' } }
+      const req = { headers: { get: () => '__Host-admin_session=a.b.c' } }
       expect(getTokenFromCookie(req)).toBe('a.b.c')
     })
   })
@@ -193,16 +220,14 @@ describe('auth.js', () => {
   describe('buildSetCookie', () => {
     it('returns cookie string with token', () => {
       const s = buildSetCookie('my-token')
-      expect(s).toContain('admin_session=my-token')
+      expect(s).toContain('__Host-admin_session=my-token')
       expect(s).toContain('HttpOnly')
       expect(s).toContain('SameSite=Strict')
       expect(s).toContain('Path=/')
       expect(s).toContain('Max-Age=')
     })
 
-    it('adds Secure in production', () => {
-      process.env.NODE_ENV = 'production'
-
+    it('always marks the cookie Secure so the __Host- prefix is honoured', () => {
       expect(buildSetCookie('my-token')).toContain('Secure')
     })
   })
@@ -210,13 +235,11 @@ describe('auth.js', () => {
   describe('buildClearCookie', () => {
     it('returns cookie string that clears the session', () => {
       const s = buildClearCookie()
-      expect(s).toContain('admin_session=')
+      expect(s).toContain('__Host-admin_session=')
       expect(s).toContain('Max-Age=0')
     })
 
-    it('adds Secure in production', () => {
-      process.env.NODE_ENV = 'production'
-
+    it('always marks the clearing cookie Secure', () => {
       expect(buildClearCookie()).toContain('Secure')
     })
   })
@@ -236,10 +259,25 @@ describe('auth.js', () => {
 
     it('rejects a tampered signature', async () => {
       const token = await createToken()
-      const [timestamp] = token.split('.')
-      const tampered = `${timestamp}.tampered-signature`
+      const [sessionId, issuedAt] = token.split('.')
+      const tampered = `${sessionId}.${issuedAt}.${'A'.repeat(43)}`
 
       await expect(verifyToken(tampered)).resolves.toBe(false)
+    })
+
+    it('rejects the token of a session ended by logout', async () => {
+      const token = await createToken()
+      await logoutPost({ request: makeJsonRequest({ cookie: `__Host-admin_session=${token}` }) })
+
+      await expect(verifyToken(token)).resolves.toBe(false)
+    })
+
+    it('rejects every token after ending all sessions', async () => {
+      const first = await createToken()
+      const second = await createToken()
+      await logoutAllPost({ request: makeJsonRequest({ cookie: `__Host-admin_session=${first}`, ip: '203.0.113.201' }) })
+
+      await expect(Promise.all([verifyToken(first), verifyToken(second)])).resolves.toEqual([false, false])
     })
   })
 

@@ -1,6 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createToken } from './auth.js'
-import { adminActor, guardAdminPii, guardAdminRead, guardAdminWrite, readAdminJson } from './admin-api.js'
+import { adminActor, guardAdminPii, guardAdminRead, guardAdminWrite, readAdminJson, throttleUnauthenticatedAdmin } from './admin-api.js'
+import { migratedDatabaseUrl } from '../test/fixtures/migrated-database.mjs'
+
+beforeAll(async () => {
+  process.env.ASTRO_DB_REMOTE_URL = await migratedDatabaseUrl('clod-admin-api-')
+})
 
 const ORIGINAL_SECRET = process.env.TOKEN_SECRET
 
@@ -17,7 +22,7 @@ function request({ method = 'GET', ip = '203.0.113.41', origin, cookie, body, co
 async function authorized(overrides = {}) {
   process.env.TOKEN_SECRET = overrides.secret ?? 'admin-api-test-secret-with-enough-entropy'
   const token = await createToken()
-  return Object.freeze({ token, request: request({ method: overrides.method ?? 'POST', ip: overrides.ip, origin: overrides.origin ?? 'https://odintsovclinic.ru', cookie: `admin_session=${token}`, body: overrides.body }) })
+  return Object.freeze({ token, request: request({ method: overrides.method ?? 'POST', ip: overrides.ip, origin: overrides.origin ?? 'https://odintsovclinic.ru', cookie: `__Host-admin_session=${token}`, body: overrides.body }) })
 }
 
 afterEach(() => {
@@ -27,6 +32,12 @@ afterEach(() => {
 })
 
 describe('admin API security', () => {
+  it('throttles anonymous admin probes before the middleware answers 401', () => {
+    const statuses = []
+    for (let index = 0; index < 31; index += 1) statuses.push(throttleUnauthenticatedAdmin(request({ ip: '203.0.113.46' }))?.status)
+    expect({ passed: statuses.filter((status) => status === undefined).length, final: statuses.at(-1) }).toEqual({ passed: 30, final: 429 })
+  })
+
   it('derives the same non-secret audit actor for one authenticated session', async () => {
     const fixture = await authorized({ ip: '203.0.113.42' })
     const first = await adminActor(fixture.request)
@@ -49,7 +60,7 @@ describe('admin API security', () => {
     const fixture = await authorized({ ip: '203.0.113.45' })
     const statuses = []
     for (let index = 0; index < 11; index += 1) {
-      const current = request({ method: 'POST', ip: `203.0.113.${100 + index}`, origin: 'https://odintsovclinic.ru', cookie: `admin_session=${fixture.token}` })
+      const current = request({ method: 'POST', ip: `203.0.113.${100 + index}`, origin: 'https://odintsovclinic.ru', cookie: `__Host-admin_session=${fixture.token}` })
       statuses.push((await guardAdminPii(current))?.status ?? 204)
     }
     expect({ allowed: statuses.filter((status) => status === 204).length, final: statuses.at(-1) }).toEqual({ allowed: 10, final: 429 })

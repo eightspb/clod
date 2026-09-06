@@ -1,81 +1,53 @@
 export const prerender = false
 
 import {
+  adminSessions,
   assertAuthConfiguration,
   buildSetCookie,
-  createToken,
   getAdminPassword,
   timingSafeEqualText,
   validateOrigin,
 } from '../../../lib/auth.js'
-import { checkRateLimit, resetRateLimit } from '../../../lib/rate-limit.js'
 import { getClientIp } from '../../../lib/client-ip.js'
 import { readBoundedJson } from '../../../lib/bounded-json.js'
 
-const RATE_LIMIT_OPTS = { namespace: 'login', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 const LOGIN_JSON_LIMIT = 4 * 1024
+const MAX_FAILURES = 5
+const FAILURE_WINDOW_MS = 15 * 60 * 1000
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
+function json(payload, status, headers = {}) {
+  return new Response(JSON.stringify(payload), { status, headers: { ...JSON_HEADERS, ...headers } })
+}
 
+/**
+ * Password login. Failed attempts are counted from AdminAuthEvent, so the lockout survives a
+ * container restart instead of resetting with the in-memory limiter.
+ */
 export async function POST({ request }) {
-  if (!validateOrigin(request)) {
-    return new Response(JSON.stringify({ error: 'Forbidden' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
-
+  if (!validateOrigin(request)) return json({ error: 'Forbidden' }, 403)
   const ip = getClientIp(request)
-  const { allowed, retryAfterSec } = checkRateLimit(ip, RATE_LIMIT_OPTS)
-
-  if (!allowed) {
-    return new Response(
-      JSON.stringify({ error: `Слишком много попыток. Попробуйте через ${retryAfterSec} секунд.` }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': String(retryAfterSec),
-        },
-      }
-    )
-  }
-
+  const userAgent = request.headers.get('user-agent') ?? ''
   const parsed = await readBoundedJson(request, LOGIN_JSON_LIMIT)
-  if (!parsed.valid) {
-    return new Response(JSON.stringify({ error: parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON' }), {
-      status: parsed.tooLarge ? 413 : 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
-
+  if (!parsed.valid) return json({ error: parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON' }, parsed.tooLarge ? 413 : 400)
   try {
     assertAuthConfiguration()
-
-    const { password } = parsed.value ?? {}
-    const adminPassword = getAdminPassword()
-
-    if (!timingSafeEqualText(password || '', adminPassword)) {
-      return new Response(JSON.stringify({ error: 'Неверный пароль' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    const sessions = adminSessions()
+    if (await sessions.recentFailures({ ip, windowMs: FAILURE_WINDOW_MS }) >= MAX_FAILURES) {
+      await sessions.record({ kind: 'login_limited', ip, userAgent })
+      const retryAfterSec = Math.ceil(FAILURE_WINDOW_MS / 1000)
+      return json({ error: `Слишком много попыток. Попробуйте через ${retryAfterSec} секунд.` }, 429, { 'Retry-After': String(retryAfterSec) })
     }
-
-    resetRateLimit(ip, RATE_LIMIT_OPTS)
-
-    const token = await createToken()
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': buildSetCookie(token),
-      },
-    })
+    const { password } = parsed.value ?? {}
+    if (!timingSafeEqualText(typeof password === 'string' ? password : '', getAdminPassword())) {
+      await sessions.record({ kind: 'login_failure', ip, userAgent })
+      return json({ error: 'Неверный пароль' }, 401)
+    }
+    const token = await sessions.issue()
+    await sessions.record({ kind: 'login_success', actor: sessions.sessionId(token), ip, userAgent })
+    return json({ ok: true }, 200, { 'Set-Cookie': buildSetCookie(token) })
   } catch (err) {
     console.error('[auth/login]', err?.code ?? err?.name ?? 'UNKNOWN')
-    return new Response(JSON.stringify({ error: 'Internal error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Internal error' }, 500)
   }
 }

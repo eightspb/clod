@@ -1,6 +1,7 @@
 import { referrerOrigin, truncateIp } from './analytics-privacy.js'
 
 export const DEFAULT_ANALYTICS_RETENTION_DAYS = 90
+export const AUTH_EVENT_RETENTION_DAYS = 365
 const DAY_MS = 24 * 60 * 60_000
 
 function affected(result) {
@@ -60,5 +61,6 @@ export async function runAnalyticsRetention({ client, env = process.env, now = n
   const days = env.ANALYTICS_RETENTION_DAYS === undefined || env.ANALYTICS_RETENTION_DAYS === '' ? DEFAULT_ANALYTICS_RETENTION_DAYS : Number(env.ANALYTICS_RETENTION_DAYS)
   const minimized = await minimizeStoredAnalytics({ client })
   const pruned = await pruneAnalytics({ client, cutoff: retentionCutoff({ now, days }) })
-  return Object.freeze({ days, ...pruned, minimized: minimized.updated })
+  const authEvents = affected(await client.execute({ sql: 'DELETE FROM AdminAuthEvent WHERE createdAt < ?', args: [retentionCutoff({ now, days: AUTH_EVENT_RETENTION_DAYS })] }))
+  return Object.freeze({ days, ...pruned, minimized: minimized.updated, authEvents })
 }
