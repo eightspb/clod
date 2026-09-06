@@ -10,7 +10,7 @@ import { checkRateLimit } from '../../../../../lib/rate-limit.js'
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
 const RATE_LIMIT_OPTIONS = Object.freeze({ namespace: 'mango-webhooks', maxRequests: 300, windowMs: 60_000 })
 const ACK_OUTCOMES = new Set(['applied', 'duplicate', 'stale', 'ignored', 'removed'])
-const OPTION_KEYS = Object.freeze(['normalize', 'verify', 'records', 'credentials', 'limit', 'clientIp', 'log'])
+const OPTION_KEYS = Object.freeze(['normalize', 'verify', 'records', 'credentials', 'limit', 'clientIp', 'log', 'clock'])
 
 function json(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), { status, headers: { ...JSON_HEADERS, ...headers } })
@@ -47,13 +47,14 @@ function options(input) {
   const prototype = Object.getPrototypeOf(input)
   if (prototype !== Object.prototype && prototype !== null) throw new TypeError('MANGO endpoint options must be a plain object')
   if (!Reflect.ownKeys(input).every((key) => typeof key === 'string' && OPTION_KEYS.includes(key))) throw new TypeError('MANGO endpoint options contain unknown fields')
-  const configuration = { normalize: input.normalize, verify: input.verify ?? verifyMangoWebhook, records: input.records ?? productionRecords, credentials: input.credentials ?? productionCredentials, limit: input.limit ?? checkRateLimit, clientIp: input.clientIp ?? getClientIp, log: input.log ?? productionLog }
+  const configuration = { normalize: input.normalize, verify: input.verify ?? verifyMangoWebhook, records: input.records ?? productionRecords, credentials: input.credentials ?? productionCredentials, limit: input.limit ?? checkRateLimit, clientIp: input.clientIp ?? getClientIp, log: input.log ?? productionLog, clock: input.clock ?? (() => new Date()) }
   if (!Object.values(configuration).every((value) => typeof value === 'function')) throw new TypeError('MANGO endpoint adapters must be functions')
   return Object.freeze(configuration)
 }
 
-function boundaryFailure(error) {
+function boundaryFailure(error, log) {
   if (!(error instanceof MangoWebhookError)) return null
+  safeLog(log, error.code)
   if (error.code === 'UNAUTHORIZED') return json({ error: error.code }, 401)
   if (error.code === 'UNSUPPORTED_MEDIA_TYPE') return json({ error: error.code }, 415)
   if (error.code === 'PAYLOAD_TOO_LARGE') return json({ error: error.code }, 413)
@@ -63,6 +64,26 @@ function boundaryFailure(error) {
 
 function unavailable() {
   return json({ error: 'MANGO_UNAVAILABLE' }, 503)
+}
+
+function eventEntryId(verified) {
+  const entryId = verified && typeof verified === 'object' && verified.event && typeof verified.event === 'object' ? verified.event.entry_id : undefined
+  return typeof entryId === 'string' && entryId.length > 0 && entryId.length <= 128 ? entryId : null
+}
+
+/**
+ * A contract violation will never be accepted no matter how often MANGO retries it, so the
+ * webhook is acknowledged with 200 and the rejection is journaled without the payload.
+ */
+async function rejected(configuration, code, verified) {
+  safeLog(configuration.log, code)
+  try {
+    const repository = configuration.records()
+    if (repository && typeof repository.issue === 'function') await repository.issue({ code, entryId: eventEntryId(verified) })
+  } catch {
+    safeLog(configuration.log, 'ISSUE_JOURNAL_FAILED')
+  }
+  return json({ data: { outcome: 'rejected', reason: code } }, 200)
 }
 
 /**
@@ -90,16 +111,16 @@ export function createMangoWebhookEndpoint(input) {
     try {
       verified = await configuration.verify({ request, ...credentials })
     } catch (error) {
-      const response = boundaryFailure(error)
+      const response = boundaryFailure(error, configuration.log)
       if (response) return response
       safeLog(configuration.log, error instanceof MangoWebhookError && error.code === 'INVALID_CONFIGURATION' ? 'CONFIGURATION_FAILED' : 'VERIFICATION_FAILED')
       return unavailable()
     }
     let command
     try {
-      command = configuration.normalize(verified)
+      command = configuration.normalize({ ...verified, now: configuration.clock() })
     } catch (error) {
-      if (error instanceof MangoCallEventError) return json({ error: 'INVALID_EVENT' }, 400)
+      if (error instanceof MangoCallEventError) return rejected(configuration, error.code, verified)
       safeLog(configuration.log, 'NORMALIZATION_FAILED')
       return unavailable()
     }

@@ -22,7 +22,12 @@ const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const PHONE_MASK_PATTERN = /^\+[1-9] •{5,12} [0-9]{2}$/u
 const PUBLIC_COLUMNS = Object.freeze(['entryId', 'patientId', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
 const SELECT_PUBLIC = PUBLIC_COLUMNS.join(', ')
-const ERROR_MESSAGES = Object.freeze({ CALL_NOT_FOUND: 'Call record was not found', CALL_PII_DESTROYED: 'Call personal data has been destroyed', CALL_CONFLICT: 'Call identity conflicts with stored data', CALL_STORAGE_INVARIANT: 'Call storage contains an invalid record' })
+const ERROR_MESSAGES = Object.freeze({ CALL_NOT_FOUND: 'Call record was not found', CALL_PII_DESTROYED: 'Call personal data has been destroyed', CALL_CONFLICT: 'Call identity conflicts with stored data', CALL_STORAGE_INVARIANT: 'Call storage contains an invalid record', CALL_STORAGE_BUSY: 'Call storage did not finish within its deadline' })
+const QUEUE_WAIT_MS = 8_000
+const TRANSACTION_MS = 5_000
+const ACTIVE_WINDOW_MS = 24 * 60 * 60_000
+const ACTIVE_LIMIT = 200
+const ISSUE_CODES = Object.freeze(['INVALID_LIVE_EVENT', 'INVALID_SUMMARY_EVENT', 'INVALID_EVENT'])
 const MAX_STORAGE_ROWS = 1_000
 const MAX_STORAGE_COLUMNS = 128
 const TRUSTED_ERRORS = new WeakSet()
@@ -240,15 +245,26 @@ async function transactionAttempt(client, operation) {
   }
 }
 
+function withDeadline(promise, milliseconds) {
+  let timer
+  const expiry = new Promise((_, reject) => { timer = setTimeout(() => reject(new MangoCallRecordError('CALL_STORAGE_BUSY')), milliseconds) })
+  return Promise.race([promise, expiry]).finally(() => clearTimeout(timer))
+}
+
+/**
+ * Serialises local writes but never lets one stuck transaction block every later webhook and
+ * admin action forever: a bounded wait for the queue and a bounded transaction, then a
+ * retryable CALL_STORAGE_BUSY.
+ */
 async function inTransaction(client, operation) {
   let release
   const previous = localWriteQueue
   localWriteQueue = new Promise((resolve) => { release = resolve })
-  await previous
   try {
+    await withDeadline(previous, QUEUE_WAIT_MS)
     for (let attempt = 1; attempt <= 5; attempt += 1) {
       try {
-        return await transactionAttempt(client, operation)
+        return await withDeadline(transactionAttempt(client, operation), TRANSACTION_MS)
       } catch (error) {
         if (!transientLock(error) || attempt === 5) throw error
         await retryPause(attempt)
@@ -280,7 +296,7 @@ async function repeatedCaller(executor, entryId, fingerprint) {
 function liveCommand(raw) {
   const input = readRecord(raw, LIVE_KEYS, LIVE_KEYS, 'MANGO live persistence command')
   if (input.kind !== 'apply_live' || !LIVE_STATES.has(input.state) || !LOCATIONS.has(input.location)) throw new TypeError('MANGO live persistence command is invalid')
-  return Object.freeze({ ...input, entryId: identifier(input.entryId, 'MANGO entry ID'), callId: identifier(input.callId, 'MANGO call ID'), seq: sequenceNumber(input.seq), eventAt: timestamp(input.eventAt, 'MANGO live event time'), callerPhone: normalizeContactPhone(input.callerPhone), lineNumber: normalizeContactPhone(input.lineNumber), operatorExtension: nullableText(input.operatorExtension, 'MANGO operator extension', /^[0-9]{1,32}$/), disconnectReason: nullableText(input.disconnectReason, 'MANGO disconnect reason') })
+  return Object.freeze({ ...input, entryId: identifier(input.entryId, 'MANGO entry ID'), callId: identifier(input.callId, 'MANGO call ID'), seq: sequenceNumber(input.seq), eventAt: timestamp(input.eventAt, 'MANGO live event time'), callerPhone: normalizeContactPhone(input.callerPhone), lineNumber: input.lineNumber === null ? null : normalizeContactPhone(input.lineNumber), operatorExtension: nullableText(input.operatorExtension, 'MANGO operator extension', /^[0-9]{1,32}$/), disconnectReason: nullableText(input.disconnectReason, 'MANGO disconnect reason') })
 }
 
 function finalCommand(raw) {
@@ -300,7 +316,7 @@ async function selectAggregate(executor, entryId) {
 
 function assertAggregateIdentity(row, identity, lineNumber) {
   if (row.piiDestroyedAt === null && row.callerFingerprint !== identity.fingerprint) throw new MangoCallRecordError('CALL_CONFLICT')
-  if (row.lineNumber !== lineNumber) throw new MangoCallRecordError('CALL_CONFLICT')
+  if (lineNumber !== null && row.lineNumber !== lineNumber) throw new MangoCallRecordError('CALL_CONFLICT')
 }
 
 async function insertLiveAggregate(configuration, executor, command, identity, now) {
@@ -318,7 +334,8 @@ async function applyLive(configuration, raw) {
     if (aggregate !== null) {
       assertAggregateIdentity(aggregate, identity, command.lineNumber)
       if (aggregate.finalizedAt !== null) return Object.freeze({ outcome: 'stale', entryId: command.entryId })
-    } else await insertLiveAggregate(configuration, executor, command, identity, now)
+    } else if (command.lineNumber === null) return Object.freeze({ outcome: 'ignored', entryId: command.entryId })
+    else await insertLiveAggregate(configuration, executor, command, identity, now)
     const applied = await executor.execute({ sql: 'INSERT INTO MangoCallLeg (callId, entryId, maxSeq, state, location, extension, eventAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(callId) DO UPDATE SET maxSeq = excluded.maxSeq, state = excluded.state, location = excluded.location, extension = excluded.extension, eventAt = excluded.eventAt, updatedAt = max(MangoCallLeg.updatedAt, excluded.updatedAt) WHERE MangoCallLeg.entryId = excluded.entryId AND excluded.maxSeq > MangoCallLeg.maxSeq RETURNING maxSeq', args: [command.callId, command.entryId, command.seq, command.state, command.location, command.operatorExtension, command.eventAt, now, now] })
     if (readRows(applied).length === 0) {
       const stored = await executor.execute({ sql: 'SELECT entryId, maxSeq FROM MangoCallLeg WHERE callId = ? LIMIT 2', args: [command.callId] })
@@ -441,7 +458,8 @@ async function list(configuration, raw) {
 }
 
 async function active(configuration) {
-  const selected = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall WHERE status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') ORDER BY startedAt DESC, entryId`, args: [] })
+  const since = new Date(Date.parse(currentTime(configuration)) - ACTIVE_WINDOW_MS).toISOString()
+  const selected = await configuration.client.execute({ sql: `SELECT ${SELECT_PUBLIC} FROM MangoCall WHERE status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') AND startedAt >= ? ORDER BY startedAt DESC, entryId LIMIT ?`, args: [since, ACTIVE_LIMIT] })
   return namedCalls(configuration, readRows(selected).map(publicCall))
 }
 
@@ -470,6 +488,18 @@ async function metrics(configuration, raw) {
   const final = answered + missed
   const rounded = (value) => Math.round(Number(value ?? 0) * 10) / 10
   return Object.freeze({ active, incoming, answered, missed, answerRate: final === 0 ? 0 : rounded(answered * 100 / final), averageWaitSeconds: rounded(rows[0].averageWait), averageTalkSeconds: rounded(rows[0].averageTalk), lastEventAt: typeof rows[0].lastEventAt === 'string' ? rows[0].lastEventAt : null })
+}
+
+/**
+ * Records a permanently rejected webhook without any of its content, so contract drift on the
+ * MANGO side becomes visible in the journal instead of an endless retry storm.
+ */
+async function issue(configuration, raw) {
+  const input = readRecord(raw, ['code', 'entryId'], ['code'], 'MANGO call issue')
+  if (!ISSUE_CODES.includes(input.code)) throw new TypeError('MANGO call issue code is not allowed')
+  const entryId = input.entryId === undefined || input.entryId === null ? null : identifier(input.entryId, 'MANGO entry ID')
+  await configuration.client.execute({ sql: 'INSERT INTO MangoCallIssue (id, code, entryId, createdAt) VALUES (?, ?, ?, ?)', args: [configuration.uuid(), input.code, entryId, currentTime(configuration)] })
+  return Object.freeze({ code: input.code, entryId })
 }
 
 function actor(value) {
@@ -517,5 +547,5 @@ async function destroy(configuration, raw) {
  */
 export function createMangoCallRecords(input) {
   const configuration = normalizeFactory(input)
-  return Object.freeze({ apply: (raw) => apply(configuration, raw), list: (raw) => list(configuration, raw), active: () => active(configuration), get: (raw) => get(configuration, raw), metrics: (raw) => metrics(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw) })
+  return Object.freeze({ apply: (raw) => apply(configuration, raw), list: (raw) => list(configuration, raw), active: () => active(configuration), get: (raw) => get(configuration, raw), metrics: (raw) => metrics(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw), issue: (raw) => issue(configuration, raw) })
 }
