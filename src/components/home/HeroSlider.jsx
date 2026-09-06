@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
-import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Award, Pause, Play } from 'lucide-react'
-import { StarRating } from '../StarRating.jsx'
+import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Pause, Play } from 'lucide-react'
+import { MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
 
-const HERO_AUTOPLAY_INTERVAL = 12000
-const MAMMOLOGISTS = DOCTORS.filter(d => /онколог-маммолог/i.test(d.specialization))
-const HERO_DOCTORS = [
-  DOCTORS.find(d => d.slug === 'odintsov') || DOCTORS[0],
-  MAMMOLOGISTS[0],
-  DOCTORS.find(d => d.slug === 'prikhodko') || MAMMOLOGISTS[1],
-]
+const HERO_AUTOPLAY_INTERVAL = 6000
+const HERO_DOCTOR_AUTOPLAY_INTERVAL = 4000
+const HERO_CAROUSEL_LABEL = 'Карусель врачей в главном слайдере'
+const HERO_PORTRAIT_MEDIA = '(min-width: 1024px)'
 
 const heroSlides = [
   {
@@ -60,11 +57,12 @@ export function HeroSlider() {
   }, [])
   const [isPaused, setIsPaused] = useState(false)
   const [isEngaged, setIsEngaged] = useState(false)
+  const isAutoplayActive = !isAutoplayDisabled && !isPaused && !isEngaged
   useEffect(() => {
-    if (isAutoplayDisabled || isPaused || isEngaged) return undefined
+    if (!isAutoplayActive) return undefined
     const timer = setInterval(() => setActiveSlide((prev) => (prev + 1) % heroSlides.length), HERO_AUTOPLAY_INTERVAL)
     return () => clearInterval(timer)
-  }, [isAutoplayDisabled, isPaused, isEngaged])
+  }, [isAutoplayActive])
   function prevSlide() {
     setActiveSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
   }
@@ -83,31 +81,30 @@ export function HeroSlider() {
     >
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
       <div className="container-clay relative z-10 py-8 md:py-10">
-        <div
-          className="grid"
-          aria-live="polite"
-          aria-atomic="false"
-        >
-          {heroSlides.map((slide, idx) => {
-            const isActive = activeSlide === idx
-            const doctor = HERO_DOCTORS[idx]
-            return (
-            <div
-              key={idx}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`Слайд ${idx + 1} из ${heroSlides.length}`}
-              aria-hidden={!isActive}
-              className="col-start-1 row-start-1 transition-all duration-[800ms] ease-out"
-              style={{
-                opacity: isActive ? 1 : 0,
-                transform: isActive ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.98)',
-                filter: isActive ? 'blur(0px)' : 'blur(4px)',
-                pointerEvents: isActive ? 'auto' : 'none',
-                visibility: isActive ? 'visible' : 'hidden',
-              }}
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] gap-8 lg:gap-14 items-center">
+          <div
+            className="grid"
+            aria-live="polite"
+            aria-atomic="false"
+          >
+            {heroSlides.map((slide, idx) => {
+              const isActive = activeSlide === idx
+              return (
+              <div
+                key={idx}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`Слайд ${idx + 1} из ${heroSlides.length}`}
+                aria-hidden={!isActive}
+                className="col-start-1 row-start-1 transition-all duration-[800ms] ease-out"
+                style={{
+                  opacity: isActive ? 1 : 0,
+                  transform: isActive ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.98)',
+                  filter: isActive ? 'blur(0px)' : 'blur(4px)',
+                  pointerEvents: isActive ? 'auto' : 'none',
+                  visibility: isActive ? 'visible' : 'hidden',
+                }}
+              >
                 <div className="max-w-3xl self-start text-left">
                   <div className="mb-5">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-color)] bg-[color:var(--surface-card)] px-4 py-2 text-sm font-semibold text-clay-dark shadow-[var(--shadow-xs)]">
@@ -137,57 +134,13 @@ export function HeroSlider() {
                     </a>
                   </div>
                 </div>
-                <div className="hero-doctor-card hidden lg:block">
-                  {doctor && (
-                    <div className="clay clay-card hero-doctor-card-inner">
-                      <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
-                        <img
-                          src={doctor.photoMobile || doctor.photoFull || doctor.photo}
-                          alt={doctor.name}
-                          width={280}
-                          height={380}
-                          className="hero-doctor-photo"
-                          loading={idx === 0 ? 'eager' : 'lazy'}
-                          fetchpriority={idx === 0 ? 'high' : undefined}
-                        />
-                      </a>
-                      <div className="hero-doctor-info">
-                        <a href={`/doctors/${doctor.slug}`} className="hero-doctor-name-link group">
-                          <p className="hero-doctor-name">{doctor.name}</p>
-                        </a>
-                        <p className="hero-doctor-spec">{doctor.specialization}</p>
-                        <div className="hero-doctor-meta">
-                          {doctor.experienceYears && (
-                            <span className="hero-doctor-experience">
-                              <Award size={14} />
-                              Стаж {doctor.experienceYears} лет
-                            </span>
-                          )}
-                          {doctor.proDoctorovRating && (
-                            <StarRating
-                              score={doctor.proDoctorovRating.score}
-                              reviewCount={doctor.proDoctorovRating.reviewCount}
-                              url={doctor.proDoctorovUrl}
-                              size={14}
-                              variant="compact"
-                            />
-                          )}
-                        </div>
-                        <a
-                          href={`/doctors/${doctor.slug}`}
-                          className="btn-clay-secondary hero-doctor-cta"
-                        >
-                          Профиль врача
-                          <ArrowRight size={16} />
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
-            )
-          })}
+              )
+            })}
+          </div>
+          <div className="hidden lg:block">
+            <MobileDoctorCarousel doctors={DOCTORS} label={HERO_CAROUSEL_LABEL} variant="desktop" portraitMedia={HERO_PORTRAIT_MEDIA} autoplayMs={isAutoplayActive ? HERO_DOCTOR_AUTOPLAY_INTERVAL : undefined} />
+          </div>
         </div>
         <div className="flex justify-center items-center gap-3 mt-8 lg:mt-0">
           <button

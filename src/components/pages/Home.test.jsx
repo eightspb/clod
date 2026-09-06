@@ -157,7 +157,7 @@ describe('Home hero slider', () => {
     })
     const initial = screen.getByRole('heading', { level: 1 }).textContent
     await act(async () => {
-      vi.advanceTimersByTime(12000)
+      vi.advanceTimersByTime(6000)
     })
     const afterTimer = screen.getByRole('heading', { level: 1 }).textContent
     expect({ initial, afterTimer }).toEqual({ initial: expect.stringMatching(/медицинский маршрут/i), afterTimer: expect.stringMatching(/ваб под уз-контролем/i) })
@@ -201,10 +201,10 @@ describe('Home hero slider', () => {
       render(<Home doctorsData={[]} />)
     })
     const carousel = screen.getByRole('region', { name: /главный слайдер/i })
-    const initialDoctor = carousel.querySelector('.hero-doctor-photo-link').getAttribute('href')
+    const initialDoctor = carousel.querySelector('a[aria-label^="Профиль врача"]').getAttribute('href')
     await act(async () => fireEvent.click(screen.getByRole('button', { name: /следующий слайд/i })))
     await act(async () => fireEvent.click(screen.getByRole('button', { name: /предыдущий слайд/i })))
-    expect(carousel.querySelector('.hero-doctor-photo-link').getAttribute('href')).toBe(initialDoctor)
+    expect(carousel.querySelector('a[aria-label^="Профиль врача"]').getAttribute('href')).toBe(initialDoctor)
   })
 
   it('does not duplicate booking actions inside doctor preview cards', async () => {
