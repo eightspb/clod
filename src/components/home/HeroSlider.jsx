@@ -81,7 +81,7 @@ export function HeroSlider() {
     >
       <div className="absolute inset-0 hero-gradient pointer-events-none" style={{ zIndex: 0 }} />
       <div className="container-clay relative z-10 py-8 md:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] gap-8 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] gap-8 lg:gap-14 items-start">
           <div
             className="grid"
             aria-live="polite"
