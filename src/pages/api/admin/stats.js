@@ -21,6 +21,7 @@ import {
 } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 import { moscowDayBounds } from '../../../lib/clinic-time.js'
+import { readMonitorStatus } from '../../../lib/monitor-status.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const ACTIVE_APPOINTMENT_STATUSES = Object.freeze(['pending', 'confirmed', 'needs_review'])
@@ -93,6 +94,8 @@ export async function GET({ request }) {
       answeredCallRows,
       missedCallRows,
       callAverageRows,
+      lastCallEventRows,
+      monitor,
     ] = await Promise.all([
       db.select({ count: count() }).from(AnalyticsSession).where(gte(AnalyticsSession.lastActiveAt, onlineThreshold)),
       db.select({
@@ -125,6 +128,8 @@ export async function GET({ request }) {
       db.select({ count: count() }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), eq(MangoCall.status, 'answered'))),
       db.select({ count: count() }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), eq(MangoCall.status, 'missed'))),
       db.select({ averageWait: avg(MangoCall.waitSeconds), averageTalk: avg(MangoCall.talkSeconds) }).from(MangoCall).where(and(gte(MangoCall.startedAt, clinicDay.start), lt(MangoCall.startedAt, clinicDay.end), inArray(MangoCall.status, FINAL_CALL_STATUSES))),
+      db.select({ updatedAt: MangoCall.updatedAt }).from(MangoCall).orderBy(desc(MangoCall.updatedAt)).limit(1),
+      readMonitorStatus({ path: process.env.MONITOR_STATUS_FILE || undefined, now }),
     ])
 
     const dailyVisitsMap = new Map()
@@ -187,7 +192,9 @@ export async function GET({ request }) {
         answerRate: answerRate(answeredToday, missedToday),
         averageWaitSeconds: aggregateAverage(callAverageRows, 'averageWait'),
         averageTalkSeconds: aggregateAverage(callAverageRows, 'averageTalk'),
+        lastEventAt: typeof lastCallEventRows[0]?.updatedAt === 'string' ? lastCallEventRows[0].updatedAt : null,
       },
+      monitor,
     }, 200)
   } catch {
     console.error('[admin/stats]', 'QUERY_FAILED')
