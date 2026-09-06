@@ -1,16 +1,20 @@
 import { createBookingIntentRepository } from './appointment-intents.js'
+import { AppointmentRecordError } from './appointment-records.js'
 import { verifyAppointmentSlot } from './appointment-schedule.js'
 import { validateBookingPayload } from './appointment-validation.js'
 import { createMedflexClient, MedflexError } from './medflex-client.js'
 import { resolveMedflexAppointmentType, resolveMedflexDoctor } from './medflex-doctors.js'
 
-const CONFIGURATION_KEYS = Object.freeze(['intentClient', 'intentSecret', 'appointmentRecords', 'source', 'medflex', 'clock', 'log'])
+const CONFIGURATION_KEYS = Object.freeze(['intentClient', 'intentSecret', 'appointmentRecords', 'source', 'medflex', 'clock', 'log', 'sleep'])
 const MOSCOW_OFFSET_MS = 3 * 60 * 60 * 1000
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const SLOT_FAILURE_CODES = new Set(['MEDFLEX_CONFLICT', 'MEDFLEX_SLOT_UNAVAILABLE'])
+const REJECTED_CODES = new Set(['MEDFLEX_REJECTED', 'MEDFLEX_AUTH'])
+const PROJECTION_BACKOFF_MS = Object.freeze([50, 200])
+const DEFAULT_RETRY_AFTER_SECONDS = 60
 
-function result(status, body) {
-  return Object.freeze({ status, body: Object.freeze(body) })
+function result(status, body, headers) {
+  return Object.freeze(headers ? { status, body: Object.freeze(body), headers: Object.freeze(headers) } : { status, body: Object.freeze(body) })
 }
 
 function error(status, code, message, extra) {
@@ -31,6 +35,14 @@ function slotUnavailable() {
 
 function requestConflict() {
   return error(409, 'BOOKING_REQUEST_CONFLICT', 'Эта попытка записи не может быть повторена')
+}
+
+function duplicateBooking() {
+  return error(409, 'BOOKING_DUPLICATE', 'У вас уже есть активная запись на это время', { phoneFallback: true })
+}
+
+function upstreamBusy(retryAfterSeconds) {
+  return result(503, { error: 'BOOKING_UNAVAILABLE', message: 'Запись временно недоступна. Попробуйте позже', retryAfterSeconds }, { 'Retry-After': String(retryAfterSeconds) })
 }
 
 function pending() {
@@ -60,7 +72,7 @@ function outcomeResult(outcome, confirmedStatus = 200) {
   if (outcome.action === 'pending') return pending()
   if (outcome.action === 'reconcile') return uncertain()
   if (outcome.action === 'failed') return failed(outcome.public)
-  if (outcome.action === 'duplicate' || outcome.action === 'mismatch') return requestConflict()
+  if (outcome.action === 'mismatch') return requestConflict()
   return unavailable()
 }
 
@@ -91,6 +103,7 @@ async function projectLocal(configuration, booking, intent) {
       return true
     } catch {
       if (attempt === attempts - 1) safeLog(configuration, 'LOCAL_PROJECTION_FAILED')
+      else await configuration.sleep(PROJECTION_BACKOFF_MS[attempt] ?? PROJECTION_BACKOFF_MS.at(-1))
     }
   }
   return false
@@ -177,16 +190,18 @@ async function uncertainResult(configuration, booking, transition) {
 async function prepareLocal(configuration, booking, slot, identity, acquired) {
   try {
     await configuration.appointmentRecords.prepare(preparationInput(configuration, booking, slot, identity))
-    return true
-  } catch {
-    safeLog(configuration, 'LOCAL_PREPARATION_FAILED')
+    return Object.freeze({ prepared: true })
+  } catch (caught) {
+    const duplicate = caught instanceof AppointmentRecordError && caught.code === 'APPOINTMENT_DUPLICATE'
+    safeLog(configuration, duplicate ? 'LOCAL_DUPLICATE_BOOKING' : 'LOCAL_PREPARATION_FAILED')
     await recordFailure(configuration, acquired.capability, 'LOCAL_PERSISTENCE_FAILED')
-    return false
+    return Object.freeze({ prepared: false, duplicate })
   }
 }
 
 async function dispatch(configuration, client, booking, slot, identity, acquired) {
-  if (!await prepareLocal(configuration, booking, slot, identity, acquired)) return unavailable()
+  const preparation = await prepareLocal(configuration, booking, slot, identity, acquired)
+  if (!preparation.prepared) return preparation.duplicate ? duplicateBooking() : unavailable()
   let operation
   try {
     operation = client.createDoctorAppointment(createInput(booking, slot))
@@ -206,6 +221,16 @@ async function dispatch(configuration, client, booking, slot, identity, acquired
       await projectLocal(configuration, booking, transition.public)
       return transition.action !== 'failed' ? outcomeResult(transition) : slotUnavailable()
     }
+    if (caught instanceof MedflexError && REJECTED_CODES.has(caught.code) && caught.outcomeUncertain !== true) {
+      safeLog(configuration, caught.code === 'MEDFLEX_AUTH' ? 'CREATE_REJECTED_AUTH' : 'CREATE_REJECTED')
+      const transition = await recordFailure(configuration, acquired.capability, 'UPSTREAM_REJECTED')
+      return transition ? projectedResult(configuration, booking, transition) : error(422, 'BOOKING_REJECTED', 'Не удалось подтвердить запись')
+    }
+    if (caught instanceof MedflexError && caught.code === 'MEDFLEX_RATE_LIMITED' && caught.outcomeUncertain !== true) {
+      safeLog(configuration, 'CREATE_RATE_LIMITED')
+      await recordFailure(configuration, acquired.capability, 'UPSTREAM_NOT_ACCEPTED')
+      return upstreamBusy(Number.isSafeInteger(caught.retryAfterSeconds) ? caught.retryAfterSeconds : DEFAULT_RETRY_AFTER_SECONDS)
+    }
     if (caught instanceof MedflexError && caught.outcomeUncertain !== true) {
       safeLog(configuration, 'CREATE_NOT_ACCEPTED')
       const transition = await recordFailure(configuration, acquired.capability, 'UPSTREAM_NOT_ACCEPTED')
@@ -215,6 +240,7 @@ async function dispatch(configuration, client, booking, slot, identity, acquired
     const transition = await recordUncertain(configuration, acquired.capability)
     return uncertainResult(configuration, booking, transition)
   }
+  if (claim && claim.extraFields === true) safeLog(configuration, 'CREATE_CLAIM_EXTRA_FIELDS')
   if (!claim || typeof claim.claim_id !== 'string' || !UUID_PATTERN.test(claim.claim_id)) {
     safeLog(configuration, 'CREATE_RESPONSE_UNCERTAIN')
     const transition = await recordUncertain(configuration, acquired.capability)
@@ -299,7 +325,7 @@ async function submit(configuration, raw) {
     return unavailable()
   }
   if (resumed.action === 'confirmed' || resumed.action === 'failed') return projectedResult(runtime, structural.value, resumed)
-  if (resumed.action === 'pending' || resumed.action === 'duplicate' || resumed.action === 'mismatch') return outcomeResult(resumed)
+  if (resumed.action === 'pending' || resumed.action === 'mismatch') return outcomeResult(resumed)
   if (resumed.action === 'reconcile' && resumed.capability) return reconcile(runtime, structural.value, resumed)
   if (resumed.action !== 'validate') return unavailable()
   return validateAndDispatch(runtime, raw)
@@ -315,12 +341,13 @@ function readConfiguration(input) {
   const medflex = input.medflex === undefined ? createMedflexClient : input.medflex
   const clock = input.clock === undefined ? () => new Date() : input.clock
   const log = input.log === undefined ? (stage) => console.error('[appointments/book]', stage) : input.log
+  const sleep = input.sleep === undefined ? (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)) : input.sleep
   const source = input.source === undefined ? 'website' : input.source
   const appointmentRecords = input.appointmentRecords
-  if (typeof medflex !== 'function' || typeof clock !== 'function' || typeof log !== 'function') throw new TypeError('Appointment booking adapters must be functions')
+  if (typeof medflex !== 'function' || typeof clock !== 'function' || typeof log !== 'function' || typeof sleep !== 'function') throw new TypeError('Appointment booking adapters must be functions')
   if (appointmentRecords === null || typeof appointmentRecords !== 'object' || typeof appointmentRecords.prepare !== 'function' || typeof appointmentRecords.project !== 'function' || typeof appointmentRecords.get !== 'function') throw new TypeError('Appointment booking record adapter is invalid')
   if (!['website', 'admin_medflex'].includes(source)) throw new TypeError('Appointment booking source is invalid')
-  const configuration = { intentClient: input.intentClient, appointmentRecords, source, medflex, clock, log }
+  const configuration = { intentClient: input.intentClient, appointmentRecords, source, medflex, clock, log, sleep }
   if (Object.hasOwn(input, 'intentSecret')) configuration.intentSecret = input.intentSecret
   return Object.freeze(configuration)
 }

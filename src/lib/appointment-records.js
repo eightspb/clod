@@ -224,7 +224,7 @@ async function writePrepared(configuration, normalized) {
     const now = currentTime(configuration)
     const inserted = await transaction.execute(insertStatement(normalized.id, patient.id, normalized.source, normalized.status, normalized.appointment, fingerprint, now))
     const insertedRows = readRows(inserted).map(parseRow)
-    const selected = await transaction.execute({ sql: `SELECT ${SELECT_COLUMNS} FROM Appointment WHERE id = ? OR bookingFingerprint = ? ORDER BY id`, args: [normalized.id, fingerprint] })
+    const selected = await transaction.execute({ sql: `SELECT ${SELECT_COLUMNS} FROM Appointment WHERE id = ? OR (bookingFingerprint = ? AND status IN ('pending', 'confirmed', 'needs_review')) ORDER BY id`, args: [normalized.id, fingerprint] })
     const rows = readRows(selected).map(parseRow)
     if (insertedRows.length > 1 || rows.length < 1 || rows.length > 2) throw new AppointmentRecordError('APPOINTMENT_STORAGE_INVARIANT')
     const idRow = rows.find((row) => row.id === normalized.id)

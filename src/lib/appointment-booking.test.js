@@ -6,7 +6,8 @@ import { promisify } from 'node:util'
 import { createClient } from '@libsql/client'
 import { describe, expect, it, vi } from 'vitest'
 import { createAppointmentBooking } from './appointment-booking.js'
-import { createAppointmentRecords } from './appointment-records.js'
+import { AppointmentRecordError, createAppointmentRecords } from './appointment-records.js'
+import { MedflexError } from './medflex-client.js'
 
 const executeFile = promisify(execFile)
 const PROJECT_ROOT = resolve(import.meta.dirname, '../..')
@@ -217,5 +218,62 @@ describe('appointment booking workflow', () => {
     client.close()
     const row = local.rows[0] ?? {}
     expect({ response: response.status, creates: creates.length, status: row.status, claimId: row.medflexClaimId, encrypted: row.profileCiphertext?.startsWith('v1.') && !row.profileCiphertext.includes('79215550129'), mask: row.phoneMask }).toEqual({ response: 201, creates: 1, status: 'confirmed', claimId: CLAIM_ID, encrypted: true, mask: '+7 •••••••• 29' })
+  })
+})
+
+describe('booking dead ends', () => {
+  it('answers a duplicate active appointment with its own conflict code instead of a generic outage', async () => {
+    const client = await database()
+    const state = { prepareFailure: new AppointmentRecordError('APPOINTMENT_DUPLICATE') }
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter(state), medflex: () => upstream(async () => ({ claim_id: CLAIM_ID })), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined })
+    const result = await booking.submit(payload())
+    const stored = await client.execute({ sql: 'SELECT status, failureCode FROM BookingIntent WHERE id = ?', args: [payload().intentId] })
+    client.close()
+    expect({ status: result.status, code: result.body.error, stored: stored.rows[0] }).toEqual({ status: 409, code: 'BOOKING_DUPLICATE', stored: { status: 'failed', failureCode: 'LOCAL_PERSISTENCE_FAILED' } })
+  })
+
+  it('treats a Medflex 400 as a final rejection instead of a temporary outage', async () => {
+    const client = await database()
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter(), medflex: () => upstream(async () => { throw new MedflexError('MEDFLEX_REJECTED', { status: 400 }) }), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined })
+    const result = await booking.submit(payload())
+    const stored = await client.execute({ sql: 'SELECT status, failureCode FROM BookingIntent WHERE id = ?', args: [payload().intentId] })
+    client.close()
+    expect({ status: result.status, code: result.body.error, stored: stored.rows[0] }).toEqual({ status: 422, code: 'BOOKING_REJECTED', stored: { status: 'failed', failureCode: 'UPSTREAM_REJECTED' } })
+  })
+
+  it('treats an expired clinic token as a final rejection with its own stage code', async () => {
+    const client = await database()
+    const stages = []
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter(), medflex: () => upstream(async () => { throw new MedflexError('MEDFLEX_AUTH', { status: 401 }) }), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: (stage) => stages.push(stage) })
+    const result = await booking.submit(payload())
+    client.close()
+    expect({ status: result.status, stage: stages.includes('CREATE_REJECTED_AUTH') }).toEqual({ status: 422, stage: true })
+  })
+
+  it('passes the Medflex Retry-After through a 503 and keeps the intent retryable', async () => {
+    const client = await database()
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter(), medflex: () => upstream(async () => { throw new MedflexError('MEDFLEX_RATE_LIMITED', { status: 429, retryable: true, retryAfterSeconds: 17 }) }), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined })
+    const result = await booking.submit(payload())
+    const stored = await client.execute({ sql: 'SELECT status, failureCode FROM BookingIntent WHERE id = ?', args: [payload().intentId] })
+    client.close()
+    expect({ status: result.status, retryAfter: result.headers['Retry-After'], stored: stored.rows[0] }).toEqual({ status: 503, retryAfter: '17', stored: { status: 'failed', failureCode: 'UPSTREAM_NOT_ACCEPTED' } })
+  })
+
+  it('confirms a booking whose claim response carries additive fields and logs the deviation', async () => {
+    const client = await database()
+    const stages = []
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter(), medflex: () => upstream(async () => ({ claim_id: CLAIM_ID, extraFields: true })), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: (stage) => stages.push(stage) })
+    const result = await booking.submit(payload())
+    client.close()
+    expect({ status: result.status, stage: stages.includes('CREATE_CLAIM_EXTRA_FIELDS') }).toEqual({ status: 201, stage: true })
+  })
+
+  it('waits between local projection attempts through the injected sleep', async () => {
+    const client = await database()
+    const waits = []
+    const booking = createAppointmentBooking({ intentClient: client, intentSecret: SECRET, appointmentRecords: recordAdapter({ projectFailures: 3 }), medflex: () => upstream(async () => ({ claim_id: CLAIM_ID })), clock: () => new Date('2088-01-01T00:00:00.000Z'), log: () => undefined, sleep: async (milliseconds) => { waits.push(milliseconds) } })
+    await booking.submit(payload())
+    client.close()
+    expect(waits).toEqual([50, 200])
   })
 })

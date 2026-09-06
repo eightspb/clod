@@ -501,9 +501,15 @@ describe('Medflex invalid responses', () => {
     expect(error).toMatchObject({ code: 'MEDFLEX_INVALID_RESPONSE' })
   })
 
+  it('accepts additive fields next to a valid claim and flags them for the caller', async () => {
+    const capture = fetchCapture(jsonResponse({ claim_id: UUID_ONE, patient: 'не возвращать' }, 200, {}))
+    const client = createMedflexClient({ fetchImpl: capture.fetchImpl, token: 'claim-shape-224', timeoutMs: 1013 })
+    const result = await client.createDoctorAppointment(appointment({}))
+    expect(result).toEqual({ claim_id: UUID_ONE, extraFields: true })
+  })
+
   it.each([
     ['missing claim', {}],
-    ['extra field', { claim_id: UUID_ONE, patient: 'не возвращать' }],
     ['malformed claim', { claim_id: 'd1c060a0-not-a-uuid' }],
   ])('rejects the malformed appointment success %s', async (_label, body) => {
     const capture = fetchCapture(jsonResponse(body, 200, {}))

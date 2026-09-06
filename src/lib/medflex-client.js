@@ -463,10 +463,15 @@ function normalizePage(payload, status, outcomeUncertain) {
   return Object.freeze({ data, count: payload.count, num_pages: payload.num_pages })
 }
 
+/**
+ * A valid claim_id is the only proof of a paid booking; additive fields in the response must not
+ * turn a successful creation into an uncertain one, they are only flagged for the caller's log.
+ */
 function normalizeClaim(payload, status) {
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload) || Object.getPrototypeOf(payload) !== Object.prototype) throw invalidResponse(status, true)
-  if (Reflect.ownKeys(payload).length !== 1 || !Object.hasOwn(payload, 'claim_id') || typeof payload.claim_id !== 'string' || !UUID_PATTERN.test(payload.claim_id)) throw invalidResponse(status, true)
-  return Object.freeze({ claim_id: payload.claim_id.toLowerCase() })
+  if (!Object.hasOwn(payload, 'claim_id') || typeof payload.claim_id !== 'string' || !UUID_PATTERN.test(payload.claim_id)) throw invalidResponse(status, true)
+  const extraFields = Reflect.ownKeys(payload).length !== 1
+  return Object.freeze(extraFields ? { claim_id: payload.claim_id.toLowerCase(), extraFields: true } : { claim_id: payload.claim_id.toLowerCase() })
 }
 
 function normalizeTransportFailure(error, signal, outcomeUncertain) {

@@ -399,7 +399,8 @@ const statements = [
   'CREATE INDEX IF NOT EXISTS PatientAccess_patientId_createdAt_idx ON PatientAccess(patientId, createdAt)',
   appointmentTableStatement,
   'CREATE UNIQUE INDEX IF NOT EXISTS Appointment_medflexClaimId_unique ON Appointment(medflexClaimId)',
-  'CREATE UNIQUE INDEX IF NOT EXISTS Appointment_bookingFingerprint_unique ON Appointment(bookingFingerprint)',
+  'DROP INDEX IF EXISTS Appointment_bookingFingerprint_unique',
+  "CREATE UNIQUE INDEX IF NOT EXISTS Appointment_bookingFingerprint_active_unique ON Appointment(bookingFingerprint) WHERE status IN ('pending', 'confirmed', 'needs_review')",
   'CREATE INDEX IF NOT EXISTS Appointment_startsAt_idx ON Appointment(startsAt)',
   'CREATE INDEX IF NOT EXISTS Appointment_patientId_startsAt_idx ON Appointment(patientId, startsAt)',
   'CREATE INDEX IF NOT EXISTS Appointment_status_startsAt_idx ON Appointment(status, startsAt)',
@@ -713,7 +714,7 @@ const appointmentColumns = [
   ['cancelledAt', 'TEXT', 0, null, 0],
 ]
 const appointmentIndexes = [
-  { name: 'Appointment_bookingFingerprint_unique', unique: 1, origin: 'c', partial: 0, columns: ['bookingFingerprint'], collations: ['BINARY'], descending: [0] },
+  { name: 'Appointment_bookingFingerprint_active_unique', unique: 1, origin: 'c', partial: 1, columns: ['bookingFingerprint'], collations: ['BINARY'], descending: [0] },
   { name: 'Appointment_medflexClaimId_unique', unique: 1, origin: 'c', partial: 0, columns: ['medflexClaimId'], collations: ['BINARY'], descending: [0] },
   { name: 'Appointment_medflexDoctorId_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['medflexDoctorId', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
   { name: 'Appointment_patientId_startsAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId', 'startsAt'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
