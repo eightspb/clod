@@ -158,6 +158,18 @@ describe('Calls admin view', () => {
     expect(screen.getByText(CALL.callerMask)).toBeVisible()
   })
 
+  it('hides a revealed caller as soon as the browser tab becomes hidden', async () => {
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+    transport([json(PAGE), json({ data: { entryId: CALL.entryId, phone: '79215550129', revealedAt: '2026-08-27T11:00:00.000Z' } })])
+    render(<Calls />)
+    await screen.findByRole('table')
+    fireEvent.click(screen.getByRole('button', { name: `Показать номер ${CALL.callerMask}` }))
+    await screen.findByText('79215550129')
+    visibility.mockReturnValue('hidden')
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+    expect(screen.queryByText('79215550129')).toBeNull()
+  })
+
   it('requires confirmation and anonymizes a destroyed caller without deleting metrics', async () => {
     transport([json(PAGE), json({ data: { entryId: CALL.entryId, destroyedAt: '2026-08-27T12:00:00.000Z', alreadyDestroyed: false } })])
     render(<Calls />)

@@ -9,6 +9,9 @@ const PII_STATUSES = Object.freeze(['active', 'destroyed'])
 const HISTORY_FILTERS = Object.freeze(['with_visits', 'without_visits'])
 const ISSUE_FILTERS = Object.freeze(['with_issues', 'without_issues'])
 const ACCESS_KEYS = Object.freeze(['id', 'actor'])
+const ACCESS_COUNT_KEYS = Object.freeze(['actions', 'since'])
+const SEARCH_AUDIT_KEYS = Object.freeze(['patientIds', 'actor'])
+const ACCESS_ACTIONS = Object.freeze(['reveal', 'reveal_full', 'search', 'destroy'])
 const ID_KEYS = Object.freeze(['id'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const ACTOR_PATTERN = /^v1:[0-9a-f]{64}$/
@@ -400,7 +403,39 @@ async function destroy(configuration, raw) {
 /**
  * Creates the encrypted patient record boundary used by booking and admin flows.
  */
+/**
+ * Clinic-wide count of audited accesses since a moment; the reveal budget is derived from the
+ * durable audit instead of a per-token limiter that a fresh login or a redeploy resets.
+ */
+async function countAccess(configuration, raw) {
+  const input = readRecord(raw, ACCESS_COUNT_KEYS, ACCESS_COUNT_KEYS, 'Patient access count')
+  if (!Array.isArray(input.actions) || input.actions.length === 0 || input.actions.some((action) => !ACCESS_ACTIONS.includes(action))) throw new TypeError('Patient access count requires allowlisted actions')
+  const since = filterTimestamp(input.since, 'Patient access count start')
+  const placeholders = input.actions.map(() => '?').join(', ')
+  const result = await configuration.client.execute({ sql: `SELECT COUNT(*) AS total FROM PatientAccess WHERE action IN (${placeholders}) AND createdAt > ?`, args: [...input.actions, since] })
+  const rows = readRows(result)
+  const total = rows.length === 1 ? Number(storedValue(rows[0], 'total')) : Number.NaN
+  if (!Number.isSafeInteger(total) || total < 0) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
+  return total
+}
+
+/**
+ * Records that an exact phone search matched these patients: the search answers "is this person
+ * a patient here" and must leave the same trail as a reveal, without the digits themselves.
+ */
+async function auditSearch(configuration, raw) {
+  const input = readRecord(raw, SEARCH_AUDIT_KEYS, SEARCH_AUDIT_KEYS, 'Patient search audit')
+  if (!Array.isArray(input.patientIds)) throw new TypeError('Patient search audit requires patient IDs')
+  const ids = input.patientIds.map((id) => normalizeUuid(id, 'Patient ID'))
+  const actor = normalizeActor(input.actor)
+  const createdAt = currentTime(configuration)
+  for (const id of ids) {
+    await configuration.client.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: [nextUuid(configuration, 'Patient access ID'), id, 'search', actor, createdAt] })
+  }
+  return Object.freeze({ audited: ids.length, createdAt })
+}
+
 export function createPatientRecords(input) {
   const configuration = normalizeFactory(input)
-  return Object.freeze({ upsert: (raw) => upsert(configuration, raw), list: (raw) => list(configuration, raw), get: (raw) => get(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw) })
+  return Object.freeze({ upsert: (raw) => upsert(configuration, raw), list: (raw) => list(configuration, raw), get: (raw) => get(configuration, raw), reveal: (raw) => reveal(configuration, raw), destroy: (raw) => destroy(configuration, raw), countAccess: (raw) => countAccess(configuration, raw), auditSearch: (raw) => auditSearch(configuration, raw) })
 }

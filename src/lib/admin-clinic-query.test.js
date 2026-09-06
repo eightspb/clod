@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseCallEntryId, parseCallQuery, parseDestroyCallBody, parseDestroyPatientBody, parsePatientCallQuery, parsePatientDetailQuery, parsePatientHistoryIssueQuery, parsePatientId, parsePatientQuery } from './admin-clinic-query.js'
+import { parseAppointmentCancelBody, parseAppointmentCreateBody, parseAppointmentId, parseAppointmentQuery, parseAppointmentResolveBody, parseCallEntryId, parseCallQuery, parseDestroyCallBody, parseDestroyPatientBody, parsePatientCallQuery, parsePatientDetailQuery, parsePatientHistoryIssueQuery, parsePatientId, parsePatientQuery, parseRevealFullBody } from './admin-clinic-query.js'
 
 const PATIENT_ID = 'A68F05C5-8528-4E08-86E5-3BD00CC3A79F'
 
@@ -51,11 +51,11 @@ describe('admin clinic query', () => {
   })
 
   it('requires an exact destructive confirmation object', () => {
-    expect(parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ' })).toEqual({ confirmation: 'УНИЧТОЖИТЬ' })
+    expect(parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID })).toEqual({ confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID.toLowerCase() })
   })
 
   it('rejects extra destruction fields', () => {
-    expect(captured(() => parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID }))).toEqual({ threw: true, name: 'AdminClinicQueryError', code: 'INVALID_BODY' })
+    expect(captured(() => parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ', patientId: PATIENT_ID, force: true }))).toEqual({ threw: true, name: 'AdminClinicQueryError', code: 'INVALID_BODY' })
   })
 
   it('parses the complete bounded appointment filter set', () => {
@@ -124,5 +124,29 @@ describe('admin clinic query', () => {
 describe('page number bound', () => {
   it('rejects a page beyond the reachable maximum', () => {
     expect(() => parsePatientQuery(new URLSearchParams('page=10001'))).toThrow(/INVALID_QUERY|query/i)
+  })
+})
+
+describe('full reveal body', () => {
+  it('accepts an explicit full scope with a trimmed reason', () => {
+    expect(parseRevealFullBody({ scope: 'full', reason: '  Сверка паспорта перед договором ' })).toEqual({ scope: 'full', reason: 'Сверка паспорта перед договором' })
+  })
+
+  it('rejects a reason shorter than five characters', () => {
+    expect(() => parseRevealFullBody({ scope: 'full', reason: 'ок' })).toThrow(/INVALID_BODY|invalid/i)
+  })
+
+  it('rejects a phone-only scope on the full reveal route', () => {
+    expect(() => parseRevealFullBody({ scope: 'phone', reason: 'Сверка паспорта' })).toThrow(/INVALID_BODY|invalid/i)
+  })
+})
+
+describe('destroy patient body', () => {
+  it('requires the patient identifier next to the typed confirmation', () => {
+    expect(() => parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ' })).toThrow(/INVALID_BODY|invalid/i)
+  })
+
+  it('binds the confirmation to one lower-cased patient identifier', () => {
+    expect(parseDestroyPatientBody({ confirmation: 'УНИЧТОЖИТЬ', patientId: 'A68F05C5-8528-4E08-86E5-3BD00CC3A79F' })).toEqual({ confirmation: 'УНИЧТОЖИТЬ', patientId: 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f' })
   })
 })

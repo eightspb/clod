@@ -55,6 +55,7 @@ export function Patients() {
   const [busy, setBusy] = useState('')
   const [actionError, setActionError] = useState('')
   const [destroyTarget, setDestroyTarget] = useState(undefined)
+  const [destroyPhrase, setDestroyPhrase] = useState('')
   const [expandedPatient, setExpandedPatient] = useState('')
   const [callHistory, setCallHistory] = useState({})
   const [selectedPatientId, setSelectedPatientId] = useState(initialPatient)
@@ -156,7 +157,7 @@ export function Patients() {
     try {
       const result = await mutate(`/api/admin/patients/${patient.id}/reveal`, { method: 'POST' })
       if (revealEpoch.current !== epoch || revealGenerations.current.get(patient.id) !== generation) return
-      const phone = result?.data?.profile?.phone
+      const phone = result?.data?.phone
       if (typeof phone !== 'string' || phone.length === 0) throw new TypeError('Patient reveal response is invalid')
       setRevealed((current) => ({ ...current, [patient.id]: phone }))
       const previous = timers.current.get(patient.id)
@@ -173,7 +174,7 @@ export function Patients() {
     setBusy(`destroy:${destroyTarget.id}`)
     setActionError('')
     try {
-      const result = await mutate(`/api/admin/patients/${destroyTarget.id}/personal-data`, { method: 'DELETE', body: JSON.stringify({ confirmation: 'УНИЧТОЖИТЬ' }) })
+      const result = await mutate(`/api/admin/patients/${destroyTarget.id}/personal-data`, { method: 'DELETE', body: JSON.stringify({ confirmation: destroyPhrase.trim(), patientId: destroyTarget.id }) })
       hide(destroyTarget.id)
       setPatients((current) => current.map((patient) => patient.id === destroyTarget.id ? { ...patient, name: null, phoneMask: null, piiDestroyedAt: result.data.destroyedAt } : patient))
       setDestroyTarget(undefined)
@@ -234,6 +235,7 @@ export function Patients() {
   function closeDestroyDialog() {
     const id = destroyTarget?.id
     setDestroyTarget(undefined)
+    setDestroyPhrase('')
     if (id) destroyButtons.current.get(id)?.focus()
   }
   if (loading && patients.length === 0) return <div role="status" className="clay-card flex min-h-48 items-center justify-center p-8 text-clay-admin-muted">Загружаем пациентов…</div>
@@ -272,7 +274,7 @@ export function Patients() {
       {!error && <div className="flex items-center justify-between gap-3"><button type="button" className={SMALL_BUTTON} disabled={page.number <= 1 || loading} onClick={() => changePage(page.number - 1)} aria-label="Предыдущая страница"><ChevronLeft aria-hidden="true" size={17} />Назад</button><span className="text-sm text-clay-admin-muted">Страница {page.number}{page.pages > 0 ? ` из ${page.pages}` : ''}</span><button type="button" className={SMALL_BUTTON} disabled={page.pages === 0 || page.number >= page.pages || loading} onClick={() => changePage(page.number + 1)} aria-label="Следующая страница">Далее<ChevronRight aria-hidden="true" size={17} /></button></div>}
       <div className="flex justify-end"><button type="button" className={SMALL_BUTTON} aria-expanded={showHistoryIssues} onClick={() => setShowHistoryIssues((current) => !current)} aria-label={showHistoryIssues ? 'Скрыть проблемы сопоставления' : 'Показать проблемы сопоставления'}><AlertTriangle aria-hidden="true" size={17} />{showHistoryIssues ? 'Скрыть проблемы' : 'Проблемы сопоставления'}</button></div>
       {showHistoryIssues && <PatientHistoryIssues />}
-      {destroyTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDestroyDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="destroy-patient-title" tabIndex={-1} onKeyDown={(event) => handleDialogKeyDown(event, closeDestroyDialog)} className="clay-card-lg w-full max-w-lg p-6"><ShieldX aria-hidden="true" className="text-red-600" size={28} /><h2 id="destroy-patient-title" className="mt-4 font-serif text-2xl text-clay-dark">Уничтожить персональные данные?</h2><p className="mt-3 text-sm text-clay-muted">ФИО, телефон и отпечаток будут удалены безвозвратно. Обезличенная история записей сохранится.</p><div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button autoFocus type="button" className={SMALL_BUTTON} onClick={closeDestroyDialog}>Отмена</button><button type="button" disabled={busy === `destroy:${destroyTarget.id}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50" onClick={destroy}>Уничтожить безвозвратно</button></div></section></div>}
+      {destroyTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDestroyDialog() }}><section role="dialog" aria-modal="true" aria-labelledby="destroy-patient-title" tabIndex={-1} onKeyDown={(event) => handleDialogKeyDown(event, closeDestroyDialog)} className="clay-card-lg w-full max-w-lg p-6"><ShieldX aria-hidden="true" className="text-red-600" size={28} /><h2 id="destroy-patient-title" className="mt-4 font-serif text-2xl text-clay-dark">Уничтожить персональные данные?</h2><p className="mt-3 text-sm text-clay-muted">ФИО, телефон и отпечаток будут удалены безвозвратно. Обезличенная история записей сохранится.</p><label className="mt-4 flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Введите слово УНИЧТОЖИТЬ<input className={INPUT_CLASS} value={destroyPhrase} autoComplete="off" onChange={(event) => setDestroyPhrase(event.target.value)} /></label><div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button autoFocus type="button" className={SMALL_BUTTON} onClick={closeDestroyDialog}>Отмена</button><button type="button" disabled={busy === `destroy:${destroyTarget.id}` || destroyPhrase.trim() !== 'УНИЧТОЖИТЬ'} className="inline-flex min-h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50" onClick={destroy}>Уничтожить безвозвратно</button></div></section></div>}
     </section>
   )
 }

@@ -4,6 +4,9 @@ import { moscowFilterEnd, moscowFilterStart } from '../../lib/admin-filter-date.
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 import { FilterPanel } from './FilterPanel.jsx'
 import { TelephonyFreshnessAlert } from './TelephonyFreshnessAlert.jsx'
+import { RevealCountdown } from './RevealCountdown.jsx'
+
+const REVEAL_WINDOW_MS = 30_000
 
 const EMPTY_PAGE = Object.freeze({ number: 1, size: 50, total: 0, pages: 0 })
 const EMPTY_METRICS = Object.freeze({ active: 0, incoming: 0, answered: 0, missed: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0 })
@@ -65,6 +68,7 @@ export function Calls() {
   const [filters, setFilters] = useState(initial)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [revealed, setRevealed] = useState({})
+  const [revealExpiry, setRevealExpiry] = useState({})
   const [busy, setBusy] = useState('')
   const [actionError, setActionError] = useState('')
   const [destroyTarget, setDestroyTarget] = useState(undefined)
@@ -100,10 +104,22 @@ export function Calls() {
       document.removeEventListener('visibilitychange', refresh)
     }
   }, [initial, load])
-  useEffect(() => () => {
+  const hideAll = useCallback(() => {
     for (const timer of revealTimers.current.values()) clearTimeout(timer)
     revealTimers.current.clear()
+    setRevealed({})
+    setRevealExpiry({})
   }, [])
+  useEffect(() => {
+    const hideWhenHidden = () => { if (document.visibilityState !== 'visible') hideAll() }
+    document.addEventListener('visibilitychange', hideWhenHidden)
+    window.addEventListener('pagehide', hideAll)
+    return () => {
+      document.removeEventListener('visibilitychange', hideWhenHidden)
+      window.removeEventListener('pagehide', hideAll)
+      hideAll()
+    }
+  }, [hideAll])
   function apply(event) {
     event.preventDefault()
     const next = Object.freeze({ ...filters, lineNumber: filters.lineNumber.trim(), operatorExtension: filters.operatorExtension.trim() })
@@ -134,6 +150,17 @@ export function Calls() {
       delete next[entryId]
       return next
     })
+    setRevealExpiry((current) => {
+      const next = { ...current }
+      delete next[entryId]
+      return next
+    })
+  }
+  function scheduleHide(entryId) {
+    const previous = revealTimers.current.get(entryId)
+    if (previous) clearTimeout(previous)
+    revealTimers.current.set(entryId, setTimeout(() => hide(entryId), REVEAL_WINDOW_MS))
+    setRevealExpiry((current) => ({ ...current, [entryId]: Date.now() + REVEAL_WINDOW_MS }))
   }
   async function reveal(call) {
     setBusy(`reveal:${call.entryId}`)
@@ -141,9 +168,7 @@ export function Calls() {
     try {
       const result = await mutate(`/api/admin/calls/${encodeURIComponent(call.entryId)}/reveal`, { method: 'POST' })
       setRevealed((current) => ({ ...current, [call.entryId]: result.data.phone }))
-      const previous = revealTimers.current.get(call.entryId)
-      if (previous) clearTimeout(previous)
-      revealTimers.current.set(call.entryId, setTimeout(() => hide(call.entryId), 30_000))
+      scheduleHide(call.entryId)
     } catch {
       setActionError('Не удалось показать номер звонящего')
     } finally {
@@ -181,7 +206,7 @@ export function Calls() {
       <div className="clay-card overflow-hidden">{calls.length === 0 ? <div className="flex min-h-52 flex-col items-center justify-center gap-3 p-8 text-center text-clay-admin-muted"><PhoneCall aria-hidden="true" size={36} /><strong className="text-clay-admin-dark">Звонков не найдено</strong><span className="text-sm">Измените фильтры или дождитесь нового входящего.</span></div> : <div className="overflow-x-auto"><table className="w-full min-w-[1120px] border-collapse text-left text-sm"><thead className="bg-clay-admin-bg text-xs uppercase tracking-wider text-clay-admin-muted"><tr><th className="px-5 py-3">Время</th><th className="px-5 py-3">Звонящий</th><th className="px-5 py-3">Статус</th><th className="px-5 py-3">Линия / оператор</th><th className="px-5 py-3">Ожидание / разговор</th><th className="px-5 py-3 text-right">Действия</th></tr></thead><tbody>{calls.map((call) => {
           const destroyed = Boolean(call.piiDestroyedAt)
           const phone = revealed[call.entryId] || call.callerMask
-          return <tr key={call.entryId} className="border-t border-clay-admin-border align-middle"><td className="px-5 py-4"><span className="block font-semibold text-clay-admin-dark">{date(call.startedAt)}</span><span className="mt-1 block text-xs text-clay-admin-muted">{call.repeatCaller ? 'Повторный звонок' : 'Первое обращение'}</span></td><td className="px-5 py-4"><span className="block font-mono font-semibold text-clay-admin-dark">{phone || '—'}</span>{destroyed ? <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Данные уничтожены</span> : call.patientId ? <a className="mt-1 inline-flex text-xs font-semibold text-clay-mint hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-mint" href={`/admin/patients?patient=${encodeURIComponent(call.patientId)}`}>{call.patientName || 'Карточка пациента'}</a> : <span className="mt-1 block text-xs text-clay-admin-muted">Новый звонящий</span>}</td><td className="px-5 py-4"><span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_CLASSES[call.status] || 'bg-slate-100 text-slate-700'}`}>{STATUS_LABELS[call.status] || call.status}</span></td><td className="px-5 py-4"><span className="block font-mono text-clay-admin-dark">+{call.lineNumber}</span><span className="mt-1 block text-xs text-clay-admin-muted">{call.operatorExtension ? `доб. ${call.operatorExtension}` : 'без оператора'}</span></td><td className="px-5 py-4 text-clay-admin-muted"><span className="block">Ожидание: {duration(call.waitSeconds)}</span><span className="mt-1 block">Разговор: {duration(call.talkSeconds)}</span></td><td className="px-5 py-4"><div className="flex justify-end gap-2">{!destroyed && (revealed[call.entryId] ? <button type="button" className={SMALL_BUTTON} onClick={() => hide(call.entryId)} aria-label={`Скрыть номер ${call.callerMask}`}><EyeOff aria-hidden="true" size={16} />Скрыть</button> : <button type="button" className={SMALL_BUTTON} disabled={busy === `reveal:${call.entryId}`} onClick={() => reveal(call)} aria-label={`Показать номер ${call.callerMask}`}><Eye aria-hidden="true" size={16} />Показать</button>)}{!destroyed && <button type="button" className={`${SMALL_BUTTON} border-red-200 text-red-700 hover:border-red-400 hover:text-red-800`} onClick={() => setDestroyTarget(call)} aria-label={`Уничтожить номер ${call.callerMask}`}><ShieldX aria-hidden="true" size={16} />Уничтожить</button>}</div></td></tr>
+          return <tr key={call.entryId} className="border-t border-clay-admin-border align-middle"><td className="px-5 py-4"><span className="block font-semibold text-clay-admin-dark">{date(call.startedAt)}</span><span className="mt-1 block text-xs text-clay-admin-muted">{call.repeatCaller ? 'Повторный звонок' : 'Первое обращение'}</span></td><td className="px-5 py-4"><span className="block font-mono font-semibold text-clay-admin-dark">{phone || '—'}</span>{revealed[call.entryId] && <RevealCountdown expiresAt={revealExpiry[call.entryId] ?? 0} onExtend={() => scheduleHide(call.entryId)} />}{destroyed ? <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Данные уничтожены</span> : call.patientId ? <a className="mt-1 inline-flex text-xs font-semibold text-clay-mint hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-mint" href={`/admin/patients?patient=${encodeURIComponent(call.patientId)}`}>{call.patientName || 'Карточка пациента'}</a> : <span className="mt-1 block text-xs text-clay-admin-muted">Новый звонящий</span>}</td><td className="px-5 py-4"><span className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${STATUS_CLASSES[call.status] || 'bg-slate-100 text-slate-700'}`}>{STATUS_LABELS[call.status] || call.status}</span></td><td className="px-5 py-4"><span className="block font-mono text-clay-admin-dark">+{call.lineNumber}</span><span className="mt-1 block text-xs text-clay-admin-muted">{call.operatorExtension ? `доб. ${call.operatorExtension}` : 'без оператора'}</span></td><td className="px-5 py-4 text-clay-admin-muted"><span className="block">Ожидание: {duration(call.waitSeconds)}</span><span className="mt-1 block">Разговор: {duration(call.talkSeconds)}</span></td><td className="px-5 py-4"><div className="flex justify-end gap-2">{!destroyed && (revealed[call.entryId] ? <button type="button" className={SMALL_BUTTON} onClick={() => hide(call.entryId)} aria-label={`Скрыть номер ${call.callerMask}`}><EyeOff aria-hidden="true" size={16} />Скрыть</button> : <button type="button" className={SMALL_BUTTON} disabled={busy === `reveal:${call.entryId}`} onClick={() => reveal(call)} aria-label={`Показать номер ${call.callerMask}`}><Eye aria-hidden="true" size={16} />Показать</button>)}{!destroyed && <button type="button" className={`${SMALL_BUTTON} border-red-200 text-red-700 hover:border-red-400 hover:text-red-800`} onClick={() => setDestroyTarget(call)} aria-label={`Уничтожить номер ${call.callerMask}`}><ShieldX aria-hidden="true" size={16} />Уничтожить</button>}</div></td></tr>
         })}</tbody></table></div>}</div>
       <div className="flex items-center justify-between gap-3"><button type="button" className={SMALL_BUTTON} disabled={page.number <= 1 || loading} onClick={() => changePage(page.number - 1)} aria-label="Предыдущая страница"><ChevronLeft aria-hidden="true" size={17} />Назад</button><span className="text-sm text-clay-admin-muted">Страница {page.number}{page.pages > 0 ? ` из ${page.pages}` : ''}<span className="hidden sm:inline"> · {page.total} звонков</span></span><button type="button" className={SMALL_BUTTON} disabled={page.pages === 0 || page.number >= page.pages || loading} onClick={() => changePage(page.number + 1)} aria-label="Следующая страница">Далее<ChevronRight aria-hidden="true" size={17} /></button></div>
       {destroyTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setDestroyTarget(undefined) }}><section role="dialog" aria-modal="true" aria-labelledby="destroy-caller-title" onKeyDown={(event) => { if (event.key === 'Escape') setDestroyTarget(undefined) }} className="clay-card-lg w-full max-w-lg p-6"><ShieldX aria-hidden="true" className="text-red-600" size={28} /><h2 id="destroy-caller-title" className="mt-4 font-serif text-2xl text-clay-dark">Уничтожить данные звонящего?</h2><p className="mt-3 text-sm text-clay-muted">Номер, маска, отпечаток и связь с пациентом будут удалены безвозвратно. Обезличенные показатели звонка сохранятся.</p><div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button autoFocus type="button" className={SMALL_BUTTON} onClick={() => setDestroyTarget(undefined)}>Отмена</button><button type="button" disabled={busy === `destroy:${destroyTarget.entryId}`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-red-700 px-5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50" onClick={destroy}>Уничтожить безвозвратно</button></div></section></div>}

@@ -100,6 +100,7 @@ const EXPECTED_CLINIC_SCHEMA = Object.freeze({
       ['action', 'TEXT', 1, 0],
       ['actor', 'TEXT', 1, 0],
       ['createdAt', 'TEXT', 1, 0],
+      ['reason', 'TEXT', 0, 0],
     ]),
     indexes: Object.freeze({
       sqlite_autoindex_PatientAccess_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
@@ -366,7 +367,8 @@ describe('booking intent production migration', () => {
     afterClient.close()
     const { Appointment_bookingFingerprint_active_unique: activeUnique, ...otherAppointmentIndexes } = EXPECTED_CLINIC_SCHEMA.Appointment.indexes
     const legacyAppointment = { ...EXPECTED_CLINIC_SCHEMA.Appointment, indexes: { ...otherAppointmentIndexes, Appointment_bookingFingerprint_unique: { ...activeUnique, partial: 0 } } }
-    expect({ before, after }).toEqual({ before: { ...EXPECTED_CLINIC_SCHEMA, Appointment: legacyAppointment }, after: EXPECTED_CLINIC_SCHEMA })
+    const legacyPatientAccess = { ...EXPECTED_CLINIC_SCHEMA.PatientAccess, columns: EXPECTED_CLINIC_SCHEMA.PatientAccess.columns.filter(([name]) => name !== 'reason') }
+    expect({ before, after }).toEqual({ before: { ...EXPECTED_CLINIC_SCHEMA, Appointment: legacyAppointment, PatientAccess: legacyPatientAccess }, after: EXPECTED_CLINIC_SCHEMA })
   })
 
   it('rolls back all additive schema changes when a legacy Patient table is incompatible', async () => {
