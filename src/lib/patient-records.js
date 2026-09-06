@@ -335,7 +335,8 @@ async function list(configuration, raw) {
   const total = countRows.length === 1 ? Number(storedValue(countRows[0], 'total')) : Number.NaN
   if (!Number.isSafeInteger(total) || total < 0) throw new PatientRecordError('PATIENT_STORAGE_INVARIANT')
   const columns = ROW_COLUMNS.map((column) => `p.${column} AS ${column}`).join(', ')
-  const result = await configuration.client.execute({ sql: `SELECT DISTINCT ${columns} FROM ${source}${where} ORDER BY p.lastSeenAt DESC, p.id LIMIT ? OFFSET ?`, args: [...args, pageSize, (page - 1) * pageSize] })
+  const distinct = phoneFingerprint === undefined ? '' : 'DISTINCT '
+  const result = await configuration.client.execute({ sql: `SELECT ${distinct}${columns} FROM ${source}${where} ORDER BY p.lastSeenAt DESC, p.id LIMIT ? OFFSET ?`, args: [...args, pageSize, (page - 1) * pageSize] })
   const items = readRows(result).map(parseRow).map((row) => publicPatient(configuration, row))
   return Object.freeze({ items: Object.freeze(items), page, pageSize, total, pages: total === 0 ? 0 : Math.ceil(total / pageSize) })
 }

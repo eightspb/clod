@@ -304,7 +304,7 @@ async function project(configuration, raw) {
 
 function normalizeList(raw) {
   const input = readRecord(raw, LIST_KEYS, ['page', 'pageSize'], 'Appointment list')
-  if (!Number.isSafeInteger(input.page) || input.page < 1 || input.page > 1_000_000) throw new TypeError('Appointment page must be a positive bounded integer')
+  if (!Number.isSafeInteger(input.page) || input.page < 1 || input.page > 10_000) throw new TypeError('Appointment page must be a positive bounded integer')
   if (!Number.isSafeInteger(input.pageSize) || input.pageSize < 1) throw new TypeError('Appointment page size must be a positive integer')
   if (input.status !== undefined && !STATUSES.includes(input.status)) throw new TypeError('Appointment status filter is invalid')
   if (input.source !== undefined) normalizeSource(input.source)

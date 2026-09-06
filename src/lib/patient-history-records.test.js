@@ -157,6 +157,15 @@ describe('patient history records', () => {
     expect({ result, frozen: Object.isFrozen(result) && Object.isFrozen(result[0]), leaked: /sealed|v1:card|v1:phone/.test(JSON.stringify(result)) }).toEqual({ result: [{ patientId: PATIENT_ID, externalIdentifierCount: 1, clinicCardCount: 1, contactCount: 1, previousLastNameCount: 1, historicalVisitCount: 1, issueCount: 1, attachmentCount: 0 }], frozen: true, leaked: false })
   })
 
+  it('lists undated historical visits before dated ones', async () => {
+    const { client, records } = await fixture()
+    await historyRows(client)
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['79000000-0000-4000-8000-000000000009', BATCH_ID, VISIT_SOURCE, 30, PATIENT_ID, null, null, '2026-08-01T07:00:00.000Z', '2026-08-01T07:30:00.000Z', 'completed', null, null, 'linked', 'exact_clinic_card', 'strong', NOW, null] })
+    const result = await records.visits({ patientId: PATIENT_ID, page: 1, pageSize: 10, status: 'linked' })
+    client.close()
+    expect(result.items.map(({ startsAt }) => startsAt)).toEqual([null, '2026-08-01T07:00:00.000Z'])
+  })
+
   it('paginates safe historical visits by an allowlisted link status', async () => {
     const { client, records } = await fixture()
     await historyRows(client)

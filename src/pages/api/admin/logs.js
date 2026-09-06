@@ -20,6 +20,7 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const DEFAULT_PAGE = 1
 const DEFAULT_PER_PAGE = 50
 const MAX_PER_PAGE = 100
+const MAX_PAGE = 10_000
 const MAX_FILTER_LENGTH = 100
 
 function jsonResponse(payload, status) {
@@ -84,7 +85,7 @@ export async function GET({ request }) {
 
   try {
     const url = new URL(request.url)
-    const page = parsePositiveInt(url.searchParams.get('page'), DEFAULT_PAGE)
+    const page = Math.min(parsePositiveInt(url.searchParams.get('page'), DEFAULT_PAGE), MAX_PAGE)
     const perPage = Math.min(parsePositiveInt(url.searchParams.get('perPage'), DEFAULT_PER_PAGE), MAX_PER_PAGE)
     const whereClause = buildWhereClause(url.searchParams)
     const offset = (page - 1) * perPage

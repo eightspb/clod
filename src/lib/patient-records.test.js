@@ -83,6 +83,24 @@ async function capturedInvariant(operation, secret) {
   }
 }
 
+describe('patient list query shape', () => {
+  it('lists patients without DISTINCT when no contact join is needed', async () => {
+    const statements = []
+    const client = Object.freeze({ execute: async ({ sql }) => { statements.push(sql); return { rows: sql.startsWith('SELECT COUNT') ? [{ total: 0 }] : [] } }, transaction: async () => { throw new Error('unused') } })
+    const { records } = await fixture({ client })
+    await invoke(records, 'list', { page: 1, pageSize: 10 })
+    expect(statements.some((sql) => /SELECT DISTINCT/.test(sql))).toBe(false)
+  })
+
+  it('keeps DISTINCT for the phone search that joins contacts', async () => {
+    const statements = []
+    const client = Object.freeze({ execute: async ({ sql }) => { statements.push(sql); return { rows: sql.startsWith('SELECT COUNT') ? [{ total: 0 }] : [] } }, transaction: async () => { throw new Error('unused') } })
+    const { records } = await fixture({ client })
+    await invoke(records, 'list', { page: 1, pageSize: 10, phone: '+7 921 555-01-29' })
+    expect(statements.some((sql) => /SELECT DISTINCT p\.id/.test(sql))).toBe(true)
+  })
+})
+
 describe('patient records', () => {
   it('inserts one encrypted patient without returning full contact data', async () => {
     const { client, records } = await fixture()

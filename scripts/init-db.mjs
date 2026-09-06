@@ -331,6 +331,13 @@ const statements = [
   'CREATE INDEX IF NOT EXISTS BookingIntent_resumeScope_idx ON BookingIntent(doctorSlug, appointmentType, startsAt, endsAt)',
   'CREATE INDEX IF NOT EXISTS BookingIntent_status_pendingUntil_idx ON BookingIntent(status, pendingUntil)',
   patientTableStatement,
+  'CREATE INDEX IF NOT EXISTS AnalyticsSession_startedAt_idx ON AnalyticsSession(startedAt)',
+  'CREATE INDEX IF NOT EXISTS AnalyticsSession_lastActiveAt_idx ON AnalyticsSession(lastActiveAt)',
+  'CREATE INDEX IF NOT EXISTS PageView_sessionId_idx ON PageView(sessionId)',
+  'CREATE INDEX IF NOT EXISTS PageView_page_idx ON PageView(page)',
+  'CREATE INDEX IF NOT EXISTS EventLog_createdAt_idx ON EventLog(createdAt)',
+  'CREATE INDEX IF NOT EXISTS EventLog_eventType_createdAt_idx ON EventLog(eventType, createdAt)',
+  'CREATE INDEX IF NOT EXISTS EventLog_sessionId_idx ON EventLog(sessionId)',
   'CREATE INDEX IF NOT EXISTS Patient_phoneFingerprint_idx ON Patient(phoneFingerprint)',
   'CREATE INDEX IF NOT EXISTS Patient_lastSeenAt_idx ON Patient(lastSeenAt)',
   patientExternalIdentifierTableStatement,
@@ -871,8 +878,17 @@ async function verifyBookingIntentSchema(database) {
   if (JSON.stringify(actualIndexes) !== JSON.stringify(bookingIntentIndexes)) throw new Error('[init-db] BookingIntent index invariant failed')
 }
 
+async function enableWriteAheadLog(database) {
+  await database.execute('PRAGMA busy_timeout = 5000')
+  if (!url.startsWith('file:')) return
+  const result = await database.execute('PRAGMA journal_mode = WAL')
+  const mode = String(result.rows[0]?.journal_mode ?? '').toLowerCase()
+  if (mode !== 'wal' && mode !== 'memory') throw new Error(`[init-db] journal_mode must be wal but SQLite reported ${mode}`)
+}
+
 let transaction
 try {
+  await enableWriteAheadLog(db)
   transaction = await db.transaction('write')
   try {
     const patientState = await patientMigrationState(transaction)

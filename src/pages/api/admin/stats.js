@@ -18,6 +18,7 @@ import {
   AnalyticsSession,
   PageView,
   Patient,
+  sql,
 } from '../../../lib/database.js'
 import { guardAdminRead } from '../../../lib/admin-api.js'
 import { moscowDayBounds } from '../../../lib/clinic-time.js'
@@ -83,7 +84,7 @@ export async function GET({ request }) {
       monthRows,
       avgDurationRows,
       topPagesRows,
-      recentSessions,
+      dailyVisitRows,
       recentEvents,
       todayAppointmentRows,
       upcomingAppointmentRows,
@@ -116,8 +117,9 @@ export async function GET({ request }) {
         count: count(),
       }).from(PageView).groupBy(PageView.page).orderBy(desc(count())).limit(5),
       db.select({
-        startedAt: AnalyticsSession.startedAt,
-      }).from(AnalyticsSession).where(gte(AnalyticsSession.startedAt, monthStart)),
+        day: sql`substr(${AnalyticsSession.startedAt}, 1, 10)`,
+        count: count(),
+      }).from(AnalyticsSession).where(gte(AnalyticsSession.startedAt, monthStart)).groupBy(sql`substr(${AnalyticsSession.startedAt}, 1, 10)`),
       db.select().from(EventLog).orderBy(desc(EventLog.createdAt)).limit(10),
       db.select({ count: count() }).from(Appointment).where(and(gte(Appointment.startsAt, clinicDay.start), lt(Appointment.startsAt, clinicDay.end), inArray(Appointment.status, ACTIVE_APPOINTMENT_STATUSES))),
       db.select({ count: count() }).from(Appointment).where(and(gte(Appointment.startsAt, now.toISOString()), inArray(Appointment.status, ACTIVE_APPOINTMENT_STATUSES))),
@@ -132,11 +134,7 @@ export async function GET({ request }) {
       readMonitorStatus({ path: process.env.MONITOR_STATUS_FILE || undefined, now }),
     ])
 
-    const dailyVisitsMap = new Map()
-    for (const session of recentSessions) {
-      const key = new Date(session.startedAt).toISOString().slice(0, 10)
-      dailyVisitsMap.set(key, (dailyVisitsMap.get(key) || 0) + 1)
-    }
+    const dailyVisitsMap = new Map(dailyVisitRows.map((row) => [row.day, Number(row.count)]))
 
     const dailyVisits = []
     for (let index = 29; index >= 0; index -= 1) {

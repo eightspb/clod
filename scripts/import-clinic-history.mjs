@@ -4,6 +4,7 @@ import { access, link, lstat, mkdtemp, open, realpath, rmdir, unlink } from 'nod
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createClient } from '@libsql/client'
+import { BUSY_TIMEOUT_MS, withBusyTimeout } from '../src/lib/database.js'
 import { createClinicImportBundle } from '../src/lib/clinic-import-bundle.js'
 import { CLINIC_IMPORT_STAGE_LIMITS } from '../src/lib/clinic-import-stage-limits.js'
 import { writeClinicImportStage } from '../src/lib/clinic-import-stage.js'
@@ -134,6 +135,7 @@ async function boundDatabase(handle, identity, code = 'CLI_FILE_INVALID') {
 async function cleanupBinding(binding) {
   if (binding === undefined) return
   try {
+    await removeEmptySidecars(binding.alias)
     if (await sidecarExists(`${binding.alias}-wal`, 'CLI_FAILED') || await sidecarExists(`${binding.alias}-shm`, 'CLI_FAILED') || await sidecarExists(`${binding.alias}-journal`, 'CLI_FAILED')) invalid('CLI_FAILED')
     await unlink(binding.alias)
     await rmdir(binding.directory)
@@ -223,7 +225,7 @@ function environmentFrom(value) {
 }
 
 function dependenciesFrom(value) {
-  const defaults = Object.freeze({ repositoryPath: PROJECT_ROOT, output: (line) => console.log(line), createBundle: createClinicImportBundle, writeStage: writeClinicImportStage, applyStage: applyClinicImportStage, fileSystem: DEFAULT_FILE_SYSTEM, createDatabaseClient: createClient })
+  const defaults = Object.freeze({ repositoryPath: PROJECT_ROOT, output: (line) => console.log(line), createBundle: createClinicImportBundle, writeStage: writeClinicImportStage, applyStage: applyClinicImportStage, fileSystem: DEFAULT_FILE_SYSTEM, createDatabaseClient: patientDatabaseClient })
   if (value === undefined) return defaults
   if (value === null || typeof value !== 'object' || Array.isArray(value)) invalid()
   const keys = Reflect.ownKeys(value)
@@ -236,7 +238,7 @@ function dependenciesFrom(value) {
   }
   if (!Object.hasOwn(result, 'repositoryPath') || !Object.hasOwn(result, 'output') || !Object.hasOwn(result, 'createBundle') || !Object.hasOwn(result, 'writeStage') || !Object.hasOwn(result, 'applyStage') || !isAbsolute(result.repositoryPath) || typeof result.output !== 'function' || typeof result.createBundle !== 'function' || typeof result.writeStage !== 'function' || typeof result.applyStage !== 'function') invalid()
   result.fileSystem = Object.hasOwn(result, 'fileSystem') ? fileSystemFrom(result.fileSystem) : DEFAULT_FILE_SYSTEM
-  result.createDatabaseClient = Object.hasOwn(result, 'createDatabaseClient') ? result.createDatabaseClient : createClient
+  result.createDatabaseClient = Object.hasOwn(result, 'createDatabaseClient') ? result.createDatabaseClient : patientDatabaseClient
   if (typeof result.createDatabaseClient !== 'function') invalid()
   return Object.freeze(result)
 }
@@ -326,6 +328,27 @@ async function rejectSqliteSidecars(filePath, code) {
   if (await sidecarExists(`${filePath}-wal`, code) || await sidecarExists(`${filePath}-shm`, code) || await sidecarExists(`${filePath}-journal`, code)) invalid(code)
 }
 
+function patientDatabaseClient(configuration) {
+  return withBusyTimeout(createClient(configuration), BUSY_TIMEOUT_MS)
+}
+
+/**
+ * The database runs in WAL mode and libsql leaves `-wal`/`-shm` next to the private alias on
+ * close, so the CLI checkpoints first; the binding cleanup then removes only an empty WAL and
+ * keeps failing closed on anything else.
+ */
+async function closeCheckpointed(client) {
+  try { await client.execute('PRAGMA wal_checkpoint(TRUNCATE)') } catch { /* a non-SQLite file has no WAL to checkpoint */ }
+  await client.close()
+}
+
+async function removeEmptySidecars(alias) {
+  const wal = await lstat(`${alias}-wal`).catch(() => undefined)
+  if (wal?.isFile() && wal.size === 0) await unlink(`${alias}-wal`)
+  const shm = await lstat(`${alias}-shm`).catch(() => undefined)
+  if (shm?.isFile() && !(await lstat(`${alias}-wal`).catch(() => undefined))) await unlink(`${alias}-shm`)
+}
+
 async function consistentBackup(backup, handle, createDatabaseClient) {
   await reauthorized(backup, 'BACKUP_INVALID')
   await rejectSqliteSidecars(backup.canonicalPath, 'BACKUP_INVALID')
@@ -340,7 +363,7 @@ async function consistentBackup(backup, handle, createDatabaseClient) {
   } catch (error) {
     failure = SAFE_ERRORS.has(error) ? error : new ClinicImportCliError('BACKUP_INVALID')
   }
-  try { await client?.close() } catch { failure = new ClinicImportCliError('BACKUP_INVALID') }
+  try { if (client) await closeCheckpointed(client) } catch { failure = new ClinicImportCliError('BACKUP_INVALID') }
   if (failure === null) try {
     await retainedBinding(binding, handle, backup, 'BACKUP_INVALID')
     await reauthorized(backup, 'BACKUP_INVALID')
@@ -446,7 +469,7 @@ async function applied(argumentsValue, environment, dependencies) {
   } catch (error) {
     failure = SAFE_ERRORS.has(error) ? error : new ClinicImportCliError('CLI_FAILED')
   }
-  try { await client?.close() } catch { failure = new ClinicImportCliError('CLI_FAILED') }
+  try { if (client) await closeCheckpointed(client) } catch { failure = new ClinicImportCliError('CLI_FAILED') }
   if (failure === null) try {
     await retainedBinding(binding, databaseHandle, databaseIdentity)
     await retainedIdentity(databaseHandle, databaseIdentity, 'CLI_FILE_INVALID', false)

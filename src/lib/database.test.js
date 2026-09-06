@@ -66,3 +66,34 @@ describe('lazyDatabase', () => {
     expect(() => database.select().from(AnalyticsSession)).toThrow(/ASTRO_DB_REMOTE_URL/)
   })
 })
+
+describe('withBusyTimeout', () => {
+  it('sets the busy timeout before the first statement runs', async () => {
+    const executed = []
+    const { withBusyTimeout } = await import('./database.js')
+    const client = withBusyTimeout({ execute: async (statement) => { executed.push(statement); return { rows: [] } } }, 5000)
+    await client.execute('SELECT 1')
+    expect(executed).toEqual(['PRAGMA busy_timeout = 5000', 'SELECT 1'])
+  })
+
+  it('sets the busy timeout only once across statements and batches', async () => {
+    const executed = []
+    const { withBusyTimeout } = await import('./database.js')
+    const client = withBusyTimeout({ execute: async (statement) => { executed.push(statement); return { rows: [] } }, batch: async (statements) => { executed.push(...statements); return [] } }, 5000)
+    await client.execute('SELECT 1')
+    await client.batch(['SELECT 2'])
+    expect(executed.filter((statement) => statement.startsWith('PRAGMA'))).toHaveLength(1)
+  })
+
+  it('applies the timeout to the real application client', async () => {
+    const database = createDatabase({ ASTRO_DB_REMOTE_URL: ':memory:' })
+    const result = await database.$client.execute('PRAGMA busy_timeout')
+    expect(Number(result.rows[0].timeout)).toBe(5000)
+  })
+
+  it('keeps non-statement members of the client reachable', async () => {
+    const { withBusyTimeout } = await import('./database.js')
+    const client = withBusyTimeout({ execute: async () => ({ rows: [] }), close: () => 'closed' }, 5000)
+    expect(client.close()).toBe('closed')
+  })
+})

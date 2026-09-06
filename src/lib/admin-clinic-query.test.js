@@ -120,3 +120,9 @@ describe('admin clinic query', () => {
     expect({ accepted, rejected }).toEqual({ accepted: [{ page: 1, pageSize: 50, status: 'ambiguous' }, { page: 1, pageSize: 50, status: 'unmatched' }], rejected: { threw: true, name: 'AdminClinicQueryError', code: 'INVALID_QUERY' } })
   })
 })
+
+describe('page number bound', () => {
+  it('rejects a page beyond the reachable maximum', () => {
+    expect(() => parsePatientQuery(new URLSearchParams('page=10001'))).toThrow(/INVALID_QUERY|query/i)
+  })
+})

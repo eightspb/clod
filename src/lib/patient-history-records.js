@@ -266,7 +266,7 @@ async function visits(configuration, value) {
     const totalRows = rows(await configuration.client.execute({ sql: `SELECT COUNT(*) AS total FROM HistoricalVisit WHERE ${where}`, args }))
     if (totalRows.length !== 1) invalid()
     const total = count(field(totalRows[0], 'total'))
-    const sql = `SELECT id, sourceName, sourceRow, startsAt, endsAt, sourceStatus, linkStatus, linkMethod, evidenceLevel, (SELECT COUNT(*) FROM ImportIssue i WHERE i.historicalVisitId = HistoricalVisit.id) AS issueCount, (SELECT COUNT(*) FROM HistoricalVisitCandidate c WHERE c.historicalVisitId = HistoricalVisit.id) AS candidateCount, CASE WHEN piiDestroyedAt IS NULL AND (appointmentIdCiphertext IS NOT NULL OR doctorCiphertext IS NOT NULL OR detailsCiphertext IS NOT NULL) THEN 1 ELSE 0 END AS protectedDetailsAvailable FROM HistoricalVisit WHERE ${where} ORDER BY COALESCE(startsAt, '') DESC, sourceName, sourceRow, id LIMIT ? OFFSET ?`
+    const sql = `SELECT id, sourceName, sourceRow, startsAt, endsAt, sourceStatus, linkStatus, linkMethod, evidenceLevel, (SELECT COUNT(*) FROM ImportIssue i WHERE i.historicalVisitId = HistoricalVisit.id) AS issueCount, (SELECT COUNT(*) FROM HistoricalVisitCandidate c WHERE c.historicalVisitId = HistoricalVisit.id) AS candidateCount, CASE WHEN piiDestroyedAt IS NULL AND (appointmentIdCiphertext IS NOT NULL OR doctorCiphertext IS NOT NULL OR detailsCiphertext IS NOT NULL) THEN 1 ELSE 0 END AS protectedDetailsAvailable FROM HistoricalVisit WHERE ${where} ORDER BY startsAt DESC NULLS FIRST, sourceName, sourceRow, id LIMIT ? OFFSET ?`
     const items = rows(await configuration.client.execute({ sql, args: [...args, size, (number - 1) * size] })).map(visitRow)
     return pageResult(items, number, size, total)
   })
@@ -330,7 +330,7 @@ async function linkIssues(configuration, value) {
     const totalRows = rows(await configuration.client.execute({ sql: 'SELECT COUNT(*) AS total FROM HistoricalVisit WHERE linkStatus = ?', args: [linkStatus] }))
     if (totalRows.length !== 1) invalid()
     const total = count(field(totalRows[0], 'total'))
-    const result = rows(await configuration.client.execute({ sql: 'SELECT id, sourceName, sourceRow, startsAt, sourceStatus, linkStatus, linkMethod, evidenceLevel FROM HistoricalVisit WHERE linkStatus = ? ORDER BY COALESCE(startsAt, \'\') DESC, sourceName, sourceRow, id LIMIT ? OFFSET ?', args: [linkStatus, size, (number - 1) * size] }))
+    const result = rows(await configuration.client.execute({ sql: 'SELECT id, sourceName, sourceRow, startsAt, sourceStatus, linkStatus, linkMethod, evidenceLevel FROM HistoricalVisit WHERE linkStatus = ? ORDER BY startsAt DESC NULLS FIRST, sourceName, sourceRow, id LIMIT ? OFFSET ?', args: [linkStatus, size, (number - 1) * size] }))
     const ids = result.map((row) => uuid(field(row, 'id'), 'Historical visit ID'))
     const candidates = new Map(ids.map((id) => [id, []]))
     if (ids.length > 0) {
@@ -465,7 +465,7 @@ async function reveal(configuration, value) {
     if (privateData === null || typeof privateData !== 'object' || Array.isArray(privateData)) invalid()
     const consentRows = await selectedRevealRows(transaction, 'SELECT type, status, sourceName, observedAt FROM PatientConsent WHERE patientId = ? ORDER BY type, id LIMIT 1001', id, revealState)
     const attachmentRows = await selectedRevealRows(transaction, 'SELECT id, kind, urlCiphertext, metadataCiphertext, sourceName, createdAt FROM PatientAttachment WHERE patientId = ? AND piiDestroyedAt IS NULL AND deletedAt IS NULL ORDER BY createdAt DESC, id LIMIT 1001', id, revealState)
-    const historicalVisitRows = await selectedRevealRows(transaction, 'SELECT id, appointmentIdCiphertext, doctorCiphertext, detailsCiphertext FROM HistoricalVisit WHERE patientId = ? AND piiDestroyedAt IS NULL ORDER BY COALESCE(startsAt, \'\') DESC, sourceName, sourceRow, id LIMIT 1001', id, revealState)
+    const historicalVisitRows = await selectedRevealRows(transaction, 'SELECT id, appointmentIdCiphertext, doctorCiphertext, detailsCiphertext FROM HistoricalVisit WHERE patientId = ? AND piiDestroyedAt IS NULL ORDER BY startsAt DESC NULLS FIRST, sourceName, sourceRow, id LIMIT 1001', id, revealState)
     const contacts = Object.freeze(contactRows.map((row) => contactRow(configuration, row)))
     const previousLastNames = Object.freeze(nameRows.map((row) => nameRow(configuration, row, patientChronology.lastSeenAt)))
     const externalIdentifiers = Object.freeze(identifierRows.map((row) => identifierRow(configuration, row)))

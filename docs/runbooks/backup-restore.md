@@ -59,7 +59,7 @@ sh /srv/clod/scripts/restore-check.sh /srv/backups/clod/daily/clod-<stamp>.tar.g
    (для `.age`: `age -d -i key.txt clod-<stamp>.tar.gz.age | tar -xzf - -C /srv/restore`).
 4. `sqlite3 /srv/restore/db.sqlite 'PRAGMA integrity_check'` должен вернуть `ok`.
 5. Положить базу в volume: `install -o $(stat -c %u /var/lib/docker/volumes/clod_db-data/_data) -m 600 /srv/restore/db.sqlite /var/lib/docker/volumes/clod_db-data/_data/db.sqlite`
-   (никаких `-wal`/`-shm` рядом быть не должно).
+   (никаких `-wal`/`-shm` рядом быть не должно; база работает в WAL-режиме, поэтому после остановки `app` выполните `sqlite3 db.sqlite 'PRAGMA wal_checkpoint(TRUNCATE)'` и удалите оба sidecar-файла до копирования восстановленного снимка — иначе старый WAL может быть применён поверх восстановленной базы).
 6. Загрузки: `tar -xzf /srv/restore/uploads.tgz -C /var/lib/docker/volumes/clod_uploads/_data`.
 7. Убедиться, что `/srv/clod/.env` содержит те же ключи шифрования, что были на момент бэкапа.
 8. `docker compose up -d app` — entrypoint проверит env и строго проверит схему; затем открыть трафик.
