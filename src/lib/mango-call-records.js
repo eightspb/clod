@@ -460,7 +460,7 @@ async function metrics(configuration, raw) {
   const from = timestamp(input.from, 'MANGO call range start')
   const to = timestamp(input.to, 'MANGO call range end')
   if (from >= to) throw new TypeError('MANGO call range is invalid')
-  const result = await configuration.client.execute({ sql: "SELECT COUNT(*) AS incoming, SUM(CASE WHEN status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status = 'answered' THEN 1 ELSE 0 END) AS answered, SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END) AS missed, AVG(CASE WHEN status IN ('answered', 'missed') THEN waitSeconds END) AS averageWait, AVG(CASE WHEN status IN ('answered', 'missed') THEN talkSeconds END) AS averageTalk FROM MangoCall WHERE startedAt >= ? AND startedAt < ?", args: [from, to] })
+  const result = await configuration.client.execute({ sql: "SELECT COUNT(*) AS incoming, SUM(CASE WHEN status IN ('ringing', 'queued', 'connected', 'on_hold', 'finalizing') THEN 1 ELSE 0 END) AS active, SUM(CASE WHEN status = 'answered' THEN 1 ELSE 0 END) AS answered, SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END) AS missed, AVG(CASE WHEN status IN ('answered', 'missed') THEN waitSeconds END) AS averageWait, AVG(CASE WHEN status IN ('answered', 'missed') THEN talkSeconds END) AS averageTalk, (SELECT MAX(updatedAt) FROM MangoCall) AS lastEventAt FROM MangoCall WHERE startedAt >= ? AND startedAt < ?", args: [from, to] })
   const rows = readRows(result)
   if (rows.length !== 1) throw new MangoCallRecordError('CALL_STORAGE_INVARIANT')
   const incoming = Number(rows[0].incoming ?? 0)
@@ -469,7 +469,7 @@ async function metrics(configuration, raw) {
   const missed = Number(rows[0].missed ?? 0)
   const final = answered + missed
   const rounded = (value) => Math.round(Number(value ?? 0) * 10) / 10
-  return Object.freeze({ active, incoming, answered, missed, answerRate: final === 0 ? 0 : rounded(answered * 100 / final), averageWaitSeconds: rounded(rows[0].averageWait), averageTalkSeconds: rounded(rows[0].averageTalk) })
+  return Object.freeze({ active, incoming, answered, missed, answerRate: final === 0 ? 0 : rounded(answered * 100 / final), averageWaitSeconds: rounded(rows[0].averageWait), averageTalkSeconds: rounded(rows[0].averageTalk), lastEventAt: typeof rows[0].lastEventAt === 'string' ? rows[0].lastEventAt : null })
 }
 
 function actor(value) {

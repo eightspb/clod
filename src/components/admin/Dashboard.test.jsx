@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Dashboard } from './Dashboard.jsx'
 
 const STATS = {
@@ -12,12 +12,38 @@ const STATS = {
   dailyVisits: [],
   recentEvents: [],
   clinic: { todayAppointments: 4, upcomingAppointments: 8, needsReviewAppointments: 2, activePatients: 15 },
-  calls: { active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83 },
+  calls: { active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83, lastEventAt: '2026-08-26T21:55:00.000Z' },
+  monitor: { available: true, checkedAt: '2026-08-26T21:58:00.000Z', stale: false, checks: [{ name: 'health', ok: true, detail: '200' }, { name: 'disk', ok: false, detail: '87%' }], failing: [{ name: 'disk', ok: false, detail: '87%' }] },
 }
 
 describe('Dashboard clinic counters', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ now: new Date('2026-08-26T22:00:00.000Z'), shouldAdvanceTime: true })
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => STATS })))
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('lists failing host monitor checks', async () => {
+    render(<Dashboard />)
+    expect(await screen.findByRole('alert', { name: 'Мониторинг сервера' })).toHaveTextContent('Диск: 87%')
+  })
+
+  it('tells the administrator when the host monitor is not installed', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ ...STATS, monitor: { available: false } }) })))
+    render(<Dashboard />)
+    expect(await screen.findByText(/Монитор сервера не настроен/)).toBeVisible()
+  })
+
+  it('warns when the host monitor stopped reporting', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ ...STATS, monitor: { ...STATS.monitor, stale: true, failing: [] } }) })))
+    render(<Dashboard />)
+    expect(await screen.findByRole('alert', { name: 'Мониторинг сервера' })).toHaveTextContent('не отчитывался')
+  })
+
+  it('shows the telephony silence banner from the stats payload', async () => {
+    vi.setSystemTime(new Date('2026-08-27T12:00:00.000Z'))
+    render(<Dashboard />)
+    expect(await screen.findByText(/Телефония молчит/)).toBeVisible()
   })
 
   it('keeps analytics cards and links the four clinic counters to their journals', async () => {

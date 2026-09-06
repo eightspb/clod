@@ -6,7 +6,7 @@ const PATIENT_ID = 'a68f05c5-8528-4e08-86e5-3bd00cc3a79f'
 const PATIENT_NAME = 'О’Коннор-Сидорова Лёля Алиевна'
 const CALL = Object.freeze({ entryId: 'entry:clinic:1', patientId: PATIENT_ID, patientName: PATIENT_NAME, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
 const ACTIVE_CALL = Object.freeze({ ...CALL, entryId: 'entry:clinic:active', status: 'connected', callerMask: '+7 •••••••• 47', startedAt: '2026-08-26T10:05:00.000Z', forwardedAt: '2026-08-26T10:05:02.000Z', answeredAt: '2026-08-26T10:05:05.000Z', endedAt: null, waitSeconds: 5, talkSeconds: 38, disconnectReason: null, finalizedAt: null, createdAt: '2026-08-26T10:05:00.000Z', updatedAt: '2026-08-26T10:05:43.000Z' })
-const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 })
+const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30, lastEventAt: '2026-08-26T10:05:43.000Z' })
 const PAGE = Object.freeze({ data: Object.freeze([CALL]), page: Object.freeze({ number: 1, size: 50, total: 1, pages: 2 }), activeCalls: Object.freeze([ACTIVE_CALL]), metrics: METRICS })
 
 function json(body, status = 200) {
@@ -33,6 +33,13 @@ afterEach(() => {
 })
 
 describe('Calls admin view', () => {
+  it('shows the telephony silence banner when MANGO events stopped during clinic hours', async () => {
+    vi.useFakeTimers({ now: new Date('2026-08-26T12:00:00.000Z'), shouldAdvanceTime: true })
+    transport([json({ ...PAGE, metrics: { ...METRICS, lastEventAt: '2026-08-26T06:30:00.000Z' } })])
+    render(<Calls />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Телефония молчит')
+  })
+
   it('keeps call filters collapsed until an administrator opens them', async () => {
     transport([json(PAGE)])
     render(<Calls />)

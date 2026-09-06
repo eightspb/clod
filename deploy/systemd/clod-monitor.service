@@ -1,0 +1,8 @@
+[Unit]
+Description=Clinic Odintsova self-hosted availability monitor
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /srv/clod/scripts/monitor.sh
+Nice=10

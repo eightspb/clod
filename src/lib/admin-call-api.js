@@ -4,7 +4,7 @@ import { isMangoCallRecordError } from './mango-call-records.js'
 
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
 const CALL_FIELDS = Object.freeze(['entryId', 'patientId', 'patientName', 'status', 'callerMask', 'repeatCaller', 'lineNumber', 'operatorExtension', 'startedAt', 'forwardedAt', 'answeredAt', 'endedAt', 'waitSeconds', 'talkSeconds', 'disconnectReason', 'finalizedAt', 'createdAt', 'updatedAt', 'piiDestroyedAt'])
-const METRIC_FIELDS = Object.freeze(['active', 'incoming', 'answered', 'missed', 'answerRate', 'averageWaitSeconds', 'averageTalkSeconds'])
+const METRIC_FIELDS = Object.freeze(['active', 'incoming', 'answered', 'missed', 'answerRate', 'averageWaitSeconds', 'averageTalkSeconds', 'lastEventAt'])
 const CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing', 'answered', 'missed'])
 const LIVE_CALL_STATUSES = Object.freeze(['ringing', 'queued', 'connected', 'on_hold', 'finalizing'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
@@ -173,10 +173,11 @@ function safeMetrics(value) {
   const answerRate = input.answerRate
   const averageWaitSeconds = input.averageWaitSeconds
   const averageTalkSeconds = input.averageTalkSeconds
+  const lastEventAt = nullableTimestamp(input.lastEventAt, 'Call metrics')
   const final = answered + missed
   const expectedRate = final === 0 ? 0 : Math.round(answered * 1_000 / final) / 10
   if (active + final !== incoming || !Number.isFinite(answerRate) || answerRate < 0 || answerRate > 100 || answerRate !== expectedRate || !Number.isFinite(averageWaitSeconds) || averageWaitSeconds < 0 || averageWaitSeconds > MAX_DURATION_SECONDS || !oneDecimal(averageWaitSeconds) || !Number.isFinite(averageTalkSeconds) || averageTalkSeconds < 0 || averageTalkSeconds > MAX_DURATION_SECONDS || !oneDecimal(averageTalkSeconds) || (final === 0 && (averageWaitSeconds !== 0 || averageTalkSeconds !== 0))) throw new TypeError('Call metrics are invalid')
-  return Object.freeze({ active, incoming, answered, missed, answerRate, averageWaitSeconds, averageTalkSeconds })
+  return Object.freeze({ active, incoming, answered, missed, answerRate, averageWaitSeconds, averageTalkSeconds, lastEventAt })
 }
 
 function safeReveal(value, expectedEntryId) {

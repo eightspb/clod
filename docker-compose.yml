@@ -19,6 +19,7 @@ services:
     volumes:
       - db-data:/data
       - uploads:/app/dist/client/uploads
+      - /var/lib/clod-monitor:/var/lib/clod-monitor:ro
     expose:
       - "4321"
     depends_on: []

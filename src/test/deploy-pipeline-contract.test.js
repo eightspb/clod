@@ -109,3 +109,31 @@ describe('rollback script', () => {
     expect(pkg.scripts.rollback).toBe('sh scripts/rollback.sh')
   })
 })
+
+describe('self-hosted monitor', () => {
+  it('mounts the host status directory read-only into the app container', async () => {
+    expect(await read('docker-compose.yml')).toContain('/var/lib/clod-monitor:/var/lib/clod-monitor:ro')
+  })
+
+  it('ships a systemd timer that runs the monitor every two minutes', async () => {
+    expect(await read('deploy/systemd/clod-monitor.timer')).toMatch(/OnUnitActiveSec=2min/)
+  })
+
+  it('restarts the app only after repeated health failures with a cooldown', async () => {
+    const source = await read('scripts/monitor.sh')
+    expect(source.includes('HEALTH_FAILURES_BEFORE_RESTART') && source.includes('RESTART_COOLDOWN_SECONDS')).toBe(true)
+  })
+
+  it('keeps certbot under a restart policy', async () => {
+    const source = await read('docker-compose.yml')
+    const certbot = source.slice(source.indexOf('certbot:'))
+    expect(certbot).toMatch(/restart:\s*unless-stopped/)
+  })
+
+  for (const template of ['nginx.https.conf', 'nginx.http.conf']) {
+    it(`${template} writes MANGO callback attempts to a greppable log line`, async () => {
+      const source = await read(template)
+      expect(source.includes("log_format clod_mango '[mango]") && source.includes('access_log /dev/stdout clod_mango;')).toBe(true)
+    })
+  }
+})

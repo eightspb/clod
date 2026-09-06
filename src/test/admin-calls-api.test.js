@@ -10,7 +10,7 @@ const PATIENT_NAME = 'О’Коннор-Сидорова Лёля Алиевна
 const ACTOR = `v1:${'a7'.repeat(32)}`
 const CALL = Object.freeze({ entryId: ENTRY_ID, patientId: PATIENT_ID, patientName: PATIENT_NAME, status: 'answered', callerMask: '+7 •••••••• 29', repeatCaller: true, lineNumber: '78127482210', operatorExtension: '123', startedAt: '2026-08-26T10:00:00.000Z', forwardedAt: '2026-08-26T10:00:05.000Z', answeredAt: '2026-08-26T10:00:10.000Z', endedAt: '2026-08-26T10:01:10.000Z', waitSeconds: 10, talkSeconds: 60, disconnectReason: '1100', finalizedAt: '2026-08-26T10:01:10.000Z', createdAt: '2026-08-26T10:02:00.000Z', updatedAt: '2026-08-26T10:02:00.000Z', piiDestroyedAt: null })
 const ACTIVE_CALL = Object.freeze({ ...CALL, entryId: 'entry:clinic:active', status: 'connected', endedAt: null, disconnectReason: null, finalizedAt: null })
-const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 })
+const METRICS = Object.freeze({ active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30, lastEventAt: '2026-08-26T10:05:43.000Z' })
 
 function calls(overrides = {}) {
   const state = { list: [], active: [], get: [], metrics: [], reveal: [], destroy: [] }

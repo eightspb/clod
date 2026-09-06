@@ -182,6 +182,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `IMAGE_API_KEY` | Ключ Polza.ai для генерации постеров блога в `/admin/blog-images`; без него endpoint отвечает `500` |
 | `NOINDEX` | `true` на staging-поддомене: `X-Robots-Tag: noindex` через nginx и middleware |
 | `SITE_DOMAIN` | Домен для рендера `nginx.conf` и путей сертификата |
+| `MONITOR_STATUS_FILE` | Необязательный путь к `status.json` хостового монитора; по умолчанию `/var/lib/clod-monitor/status.json` |
 
 ### Инфраструктура безопасной онлайн-записи
 
@@ -325,6 +326,12 @@ bun run clinic:import -- \
 
 Дополнительно сумма `linked + ambiguous + unmatched` должна равняться 49 768; две исходные строки с одинаковым appointment ID сохраняются обе. Любое отличие обязательного контроля останавливает пакет до записи или откатывает apply.
 
+### Мониторинг без внешних сервисов
+
+Внешние uptime-сервисы пока не используются, поэтому наблюдение живёт на самом хосте. `scripts/monitor.sh` запускается systemd-таймером `clod-monitor.timer` каждые две минуты (установка: `sh scripts/install-monitor-timer.sh` из `/srv/clod`, конфигурация `/etc/clod-monitor.env`) и проверяет шесть вещей: `GET https://$SITE_DOMAIN/api/health` → 200, срок сертификата TLS не меньше `TLS_WARN_DAYS` (21), заполнение диска Docker ниже `DISK_WARN_PERCENT` (80 %), `MemAvailable` не меньше `MEMORY_MIN_AVAILABLE_MB` (150), все три контейнера `running` без `unhealthy`, и возраст последнего архива в `/srv/backups/clod/daily` не больше `BACKUP_MAX_AGE_HOURS` (26). Результат пишется в `/var/lib/clod-monitor/status.json`; этот каталог смонтирован в контейнер `app` только для чтения, `GET /api/admin/stats` отдаёт его как `monitor` (валидация формы в `src/lib/monitor-status.js`), а дашборд `/admin` показывает зелёную строку, красный список упавших проверок или предупреждение «монитор не отчитывался», если файл старше 10 минут. Смена состояния (норма → сбой и обратно) попадает в journal (`journalctl -t clod-monitor`) и, если задан `ALERT_COMMAND`, передаётся ему первым аргументом — сюда позже подключается Telegram-бот одной строкой без правок кода. После `HEALTH_FAILURES_BEFORE_RESTART` (3) подряд неудачных проверок `/api/health` монитор один раз в `RESTART_COOLDOWN_SECONDS` (3600) выполняет `docker compose restart app`; это единственное автоматическое действие. Ограничение подхода: падение всего хоста монитор с этого же хоста не заметит, для этого нужен внешний сервис (Фаза 1 п.6 аудита закрыта в самохостинговом варианте осознанно).
+
+Свежесть телефонии проверяется отдельно: `metrics.lastEventAt` в `GET /api/admin/calls` и `calls.lastEventAt` в `/api/admin/stats` содержат `MAX(updatedAt)` по `MangoCall`. `src/lib/telephony-freshness.js` считает тишину от начала рабочего дня клиники по Москве (Пн–Пт 9:00, Сб–Вс 10:00) и после 4 часов без событий в рабочее время `/admin/calls` и `/admin` показывают красный баннер «Телефония молчит» — так видна смена IP-адресов API Realtime, которая иначе молча обрывает журнал. Отклонённые nginx попытки callback MANGO пишутся отдельной строкой `[mango] <ip> <status>` в stdout контейнера nginx (`log_format clod_mango`), поэтому `docker compose logs nginx | grep '\[mango\]'` показывает чужие адреса до приложения.
+
 ### Телефония MANGO OFFICE
 
 Server-side интеграция принимает подписанные входящие `events/call` и `events/summary`, хранит защищённый журнал и связывает звонящего только с уже существующим пациентом по `CONTACT_FINGERPRINT_KEY`. Неизвестный звонящий не создаёт профиль пациента автоматически. Dashboard и `/admin/calls` показывают активные, отвеченные и пропущенные звонки, долю ответов, ожидание и длительность разговора по московскому времени. Страница звонков отдельно показывает все текущие звонки независимо от фильтра журнала. Для однозначно связанного пациента номер остаётся отдельной маскированной строкой, а расшифрованное сервером ФИО показывается ниже как ссылка на карточку пациента. Reveal номера отдельно ограничен и журналируется, а уничтожение номера оставляет только обезличенные показатели.
@@ -397,6 +404,7 @@ clod/
 │   ├── dev.sh                     # Освобождает порт, снимает lock Astro, грузит .env, стартует dev
 │   ├── deploy.sh / rollback.sh / smoke.sh # Деплой с бэкапом, smoke-гейтом и откатом
 │   ├── backup.sh / restore-check.sh / install-backup-timer.sh # Ежедневный бэкап и проверка восстановления
+│   ├── monitor.sh / install-monitor-timer.sh # Самохостинговый монитор: health, TLS, диск, память, контейнеры, бэкап
 │   ├── render-nginx.sh            # Генерация nginx.conf из шаблона (https|http|bootstrap)
 │   ├── server.mjs                 # Запуск адаптера с graceful shutdown
 │   ├── check-required-env.mjs     # Fail-fast проверка env при старте контейнера
@@ -445,6 +453,7 @@ clod/
 │   │   │   ├── DoctorList.jsx / DoctorEditForm.jsx / DoctorPhotoUpload.jsx / DoctorCertificates.jsx
 │   │   │   ├── Patients.jsx / PatientDetails.jsx / PatientPrivateData.jsx / PatientVisitDetails.jsx / PatientHistoryIssues.jsx
 │   │   │   ├── Appointments.jsx / Calls.jsx
+│   │   │   ├── MonitorStatusPanel.jsx / TelephonyFreshnessAlert.jsx # Баннеры монитора хоста и тишины MANGO
 │   │   │   ├── FilterPanel.jsx    # Сворачиваемые фильтры списков
 │   │   │   └── dialog-keyboard.js # Escape/focus trap диалогов
 │   │   ├── Header.jsx             # Навигация (client:load, mega-menu, поиск Pagefind)
@@ -642,6 +651,8 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `contact-identity.js` | Нормализация телефона, HMAC-отпечатки и AES-GCM envelope | Пациенты и записи |
 | `mango-call-purge.js` | Очистка номера звонящего и аудит при уничтожении ПДн пациента; перепривязка общего телефона | `patient-records.js`, `patient-history-records.js` |
 | `clinic-time.js` | UTC-границы календарного дня `Europe/Moscow` | Дашборд и фильтры записей |
+| `telephony-freshness.js` | `telephonySilence` — тишина MANGO в рабочие часы клиники | `TelephonyFreshnessAlert` |
+| `monitor-status.js` | `readMonitorStatus` — безопасное чтение `status.json` хостового монитора | `api/admin/stats` |
 | `appointment-schedule.js` | Browser-safe нормализация расписания и повторная серверная проверка слота | API онлайн-записи |
 | `medflex-client.js` | Фиксированный server-only клиент официального API | API онлайн-записи и discovery |
 | `medflex-doctors.js` | Явный allowlist девяти врачей и локальных типов приёма | API онлайн-записи |
@@ -1060,6 +1071,13 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Дизайн**: интегрирован handoff `design_handoff_hero_doctor_carousel` (вариант 1b) — grid `62fr 38fr`, портреты без подложки, плоская белая карточка вместо стеклянной плашки, стрелки и счётчик «1 / N» в шапке карточки, одна звезда рейтинга, кнопки `btn-clay-primary`/`btn-clay-secondary`; подробности в разделе «Адаптивное представление врачей»
 - **Отклонения от макета**: размеры шрифта в карточке не меньше `var(--fs-base)` (нижняя граница размера шрифта, `typography-floor.test.js`), а не 0.8125–0.9375 rem из макета; кнопки-стрелки 36 px получили невидимую зону нажатия 44 px; `photoMobileFit === 'square'` из макета не переносился, потому что портреты уже нормализованы на общий холст
 - **Контракты**: e2e-пороги обновлены под новую геометрию (масштабы `0.78`/`0.6`, фильтры слоёв, отступ слайда `4 %` сцены, радиус карточки 22 px, счётчик «1 / 9»); на `/doctors` mobile-карусель обёрнута в `container-clay`, поэтому страница не переполняется по горизонтали на 320 px
+
+### Самохостинговый мониторинг и свежесть телефонии (6 сентября 2026, Фаза 1 п.6 аудита)
+
+- `scripts/monitor.sh` + `clod-monitor.timer` каждые 2 минуты: health, TLS, диск, память, контейнеры, возраст бэкапа → `/var/lib/clod-monitor/status.json` → баннер на `/admin`; смена состояния в journal и опциональный `ALERT_COMMAND`; авто-`restart app` после трёх подряд провалов health с часовым cooldown
+- `lastEventAt` в метриках звонков и баннер «Телефония молчит» на `/admin/calls` и `/admin` после 4 часов тишины в рабочее время
+- nginx пишет `[mango] <ip> <status>` для каждого callback MANGO, чтобы отклонённые адреса были greppable
+- Осознанное отклонение от рекомендации аудита: внешний Uptime Kuma и Telegram-алерт не подняты по решению владельца; хук `ALERT_COMMAND` готов к подключению
 
 ### Деплой с бэкапом, health-gate и откатом (5 сентября 2026, Фаза 1 п.5 аудита)
 

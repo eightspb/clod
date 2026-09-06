@@ -324,14 +324,16 @@ describe('admin clinic statistics', () => {
       [{ count: 6 }],
       [{ count: 4 }],
       [{ count: 2 }],
-      [{ averageWait: 15.4, averageTalk: 82.6 }]
+      [{ averageWait: 15.4, averageTalk: 82.6 }],
+      [{ updatedAt: '2026-08-26T21:55:00.000Z' }]
     )
     const { GET } = await loadStatsHandler()
     const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
     const body = await response.json()
     expect(response.status).toBe(200)
     expect(body.clinic).toEqual({ todayAppointments: 4, upcomingAppointments: 8, needsReviewAppointments: 2, activePatients: 15 })
-    expect(body.calls).toEqual({ active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83 })
+    expect(body.calls).toEqual({ active: 2, incomingToday: 6, answeredToday: 4, missedToday: 2, answerRate: 66.7, averageWaitSeconds: 15, averageTalkSeconds: 83, lastEventAt: '2026-08-26T21:55:00.000Z' })
+    expect(body.monitor).toEqual({ available: false })
     expect(body.today).toEqual({ sessions: 3, uniqueVisitors: 2 })
     const todayQuery = selectCalls.find((call) => call.table?.startsAt === 'appointment.startsAt' && call.where?.values?.some((condition) => condition.type === 'lt'))
     expect(todayQuery.where).toEqual({
@@ -347,13 +349,13 @@ describe('admin clinic statistics', () => {
   })
 
   it('returns zero clinic defaults for empty aggregate rows', async () => {
-    selectRows.push(...Array.from({ length: 17 }, () => []))
+    selectRows.push(...Array.from({ length: 18 }, () => []))
     const { GET } = await loadStatsHandler()
     const response = await GET({ request: new Request('https://odintsovclinic.ru/api/admin/stats') })
     const body = await response.json()
     expect(response.status).toBe(200)
     expect(body.clinic).toEqual({ todayAppointments: 0, upcomingAppointments: 0, needsReviewAppointments: 0, activePatients: 0 })
-    expect(body.calls).toEqual({ active: 0, incomingToday: 0, answeredToday: 0, missedToday: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0 })
+    expect(body.calls).toEqual({ active: 0, incomingToday: 0, answeredToday: 0, missedToday: 0, answerRate: 0, averageWaitSeconds: 0, averageTalkSeconds: 0, lastEventAt: null })
   })
 
   it('checks authentication before querying clinic statistics', async () => {

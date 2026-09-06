@@ -275,7 +275,14 @@ describe('MANGO call records', () => {
     const detail = await invoke(records, 'get', { entryId: 'entry-1' })
     const metrics = await invoke(records, 'metrics', { from: '2026-08-26T09:00:00.000Z', to: '2026-08-26T11:00:00.000Z' })
     client.close()
-    expect({ detail: { entryId: detail.entryId, callerMask: detail.callerMask, patientId: detail.patientId }, metrics }).toEqual({ detail: { entryId: 'entry-1', callerMask: '+7 •••••••• 29', patientId: null }, metrics: { active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30 } })
+    expect({ detail: { entryId: detail.entryId, callerMask: detail.callerMask, patientId: detail.patientId }, metrics }).toEqual({ detail: { entryId: 'entry-1', callerMask: '+7 •••••••• 29', patientId: null }, metrics: { active: 1, incoming: 3, answered: 1, missed: 1, answerRate: 50, averageWaitSeconds: 20, averageTalkSeconds: 30, lastEventAt: '2026-08-26T12:00:00.000Z' } })
+  })
+
+  it('reports no last telephony event for an empty journal', async () => {
+    const { client, records } = await fixture()
+    const metrics = await invoke(records, 'metrics', { from: '2026-08-26T09:00:00.000Z', to: '2026-08-26T11:00:00.000Z' })
+    client.close()
+    expect(metrics.lastEventAt).toBeNull()
   })
 
   it('rejects an exact caller number stored in the mask column', async () => {

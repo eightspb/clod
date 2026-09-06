@@ -1,5 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
+import { MonitorStatusPanel } from './MonitorStatusPanel.jsx'
+import { TelephonyFreshnessAlert } from './TelephonyFreshnessAlert.jsx'
 
 function StatCard({ title, value, sub, color }) {
   return (
@@ -121,6 +123,8 @@ export function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <MonitorStatusPanel monitor={stats.monitor} />
+      <TelephonyFreshnessAlert lastEventAt={calls.lastEventAt} />
       <section aria-labelledby="clinic-statistics-title">
         <div className="mb-3 flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-mint">Клиника</p><h2 id="clinic-statistics-title" className="mt-1 font-serif text-2xl text-clay-dark">Оперативная сводка</h2></div><span className="text-xs text-clay-admin-muted">Время по Москве</span></div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
