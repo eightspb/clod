@@ -154,14 +154,14 @@ export function Mammology() {
                     Если нужно удалить образование, врач спокойно объяснит показания, возможные альтернативы и дальнейший план наблюдения.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4">
-                  {MAMMOLOGY_STATS.map((s) => (
-                    <div key={s.label} className="border-b border-r border-[color:var(--border-color)] p-4 last:border-r-0 sm:border-b-0">
-                      <div className="flex items-end gap-0.5">
-                        <span className="text-3xl sm:text-4xl font-serif font-light text-clay-mint leading-none">{s.val}</span>
+                <div className="grid grid-cols-2" data-route-stats>
+                  {MAMMOLOGY_STATS.map((s, i) => (
+                    <div key={s.label} className={`p-4 md:p-6 border-[color:var(--border-color)] ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b' : ''}`}>
+                      <div className="flex items-end gap-0.5 mb-3">
+                        <span className="text-2xl sm:text-4xl font-serif font-light text-clay-mint leading-none">{s.val}</span>
                         {s.unit && <span className="text-base font-bold text-clay-mint leading-none pb-0.5">{s.unit}</span>}
                       </div>
-                      <p className="text-xs text-clay-muted mt-2 leading-tight">{s.label}</p>
+                      <p className="text-sm md:text-base text-clay-muted leading-snug break-words">{s.label}</p>
                     </div>
                   ))}
                 </div>

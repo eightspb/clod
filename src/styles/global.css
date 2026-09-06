@@ -797,7 +797,7 @@
 
   .doctor-card-footer {
     display: grid;
-    grid-template-columns: minmax(10rem, 1fr) 7rem;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     gap: 0.5rem;
     align-items: end;
     margin-top: auto;

@@ -209,7 +209,7 @@ export function About() {
                 <div key={s.val} className={`clay ${s.card} p-5`}>
                   <div className={`text-3xl font-extrabold ${s.color} leading-none mb-1`}>{s.val}</div>
                   <p className="font-bold text-clay-dark text-sm mb-1">{s.label}</p>
-                  <p className="text-clay-muted text-xs leading-relaxed">{s.desc}</p>
+                  <p className="text-clay-muted text-xs leading-relaxed break-words hyphens-auto">{s.desc}</p>
                 </div>
               ))}
             </div>

@@ -74,13 +74,13 @@ export function DoctorCard({ doctor }) {
               data-booking-btn="true"
               data-booking-doctor={doctor.slug}
               aria-label={`Записаться на приём к врачу ${doctor.name}`}
-              className="clay btn-clay-primary min-h-11 min-w-0 justify-center px-3 py-2.5"
+              className="clay btn-clay-primary min-h-11 min-w-0 justify-center whitespace-nowrap px-3 py-2.5"
             >
               Записаться
             </button>
             <a
               href={doctor.slug ? `/doctors/${doctor.slug}` : '/doctors'}
-              className="clay btn-clay-secondary min-h-11 min-w-0 justify-center px-3 py-2.5 text-center"
+              className="clay btn-clay-secondary min-h-11 min-w-0 justify-center whitespace-nowrap px-3 py-2.5 text-center"
             >
               Подробнее
             </a>
