@@ -28,6 +28,17 @@ function unavailable() {
   return error(503, 'BOOKING_UNAVAILABLE', 'Запись временно недоступна. Попробуйте позже')
 }
 
+const KNOWN_FAILURE_NAMES = Object.freeze(['TypeError', 'RangeError', 'SyntaxError', 'MedflexError', 'AppointmentRecordError', 'BookingIntentError'])
+
+/**
+ * Only the error class name reaches the log: enough to tell a contract bug from a storage
+ * failure, never the message that could carry patient data.
+ */
+function failureDiscriminator(caught) {
+  const name = caught && typeof caught.name === 'string' ? caught.name : ''
+  return KNOWN_FAILURE_NAMES.includes(name) ? name : 'Error'
+}
+
 function safeLog(stage) {
   console.error('[appointments/book]', stage)
 }
@@ -149,9 +160,9 @@ export function createBookEndpoint(workflow = productionWorkflow, input = {}) {
       const appointment = workflow()
       if (!appointment || typeof appointment.submit !== 'function') throw new TypeError('Appointment booking workflow is invalid')
       const response = await appointment.submit(body.value)
-      return json(response.body, response.status)
-    } catch {
-      safeLog('WORKFLOW_UNEXPECTED_FAILURE')
+      return json(response.body, response.status, response.headers ?? {})
+    } catch (caught) {
+      safeLog(`WORKFLOW_UNEXPECTED_FAILURE:${failureDiscriminator(caught)}`)
       return unavailable()
     }
   }

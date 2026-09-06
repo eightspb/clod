@@ -254,7 +254,12 @@ describe('booking intent acquisition', () => {
     expect(result).toEqual({ action: 'pending', status: 'pending' })
   })
 
-  it.each(['pending', 'confirmed', 'uncertain', 'failed'])('returns one generic duplicate for cross-ID %s matches through acquire and resume', async (status) => {
+  it.each([
+    ['pending', 'pending', 'pending', false],
+    ['confirmed', 'confirmed', 'confirmed', false],
+    ['uncertain', 'reconcile', 'reconcile', true],
+    ['failed', 'validate', 'retry', true],
+  ])('resolves a cross-ID %s match to the stored outcome instead of a generic duplicate', async (status, resumedAction, reacquiredAction, capabilities) => {
     const first = await fixture({})
     const original = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
     if (status === 'confirmed') await first.repository.confirm({ capability: original.capability, claimId: CLAIM_ID })
@@ -263,10 +268,17 @@ describe('booking intent acquisition', () => {
     const crossId = booking({ intentId: SECOND_INTENT_ID })
     const resumed = await first.repository.resume({ booking: crossId })
     const reacquired = await first.repository.acquire({ booking: crossId, slot: slot({}) })
-    const serialized = JSON.stringify([resumed, reacquired])
-    const forbidden = [FIRST_INTENT_ID, CLAIM_ID, FIRST_FENCE, 'odintsov', 'mammologist', '2026-08-27', '4900', '79215550129', 'SLOT_UNAVAILABLE']
-    const result = await closeWith(first.client, { resumed, reacquired, frozen: [resumed, resumed.public, reacquired, reacquired.public].every(Object.isFrozen), capabilities: [resumed, reacquired].some((value) => Object.hasOwn(value, 'capability')), leaks: forbidden.some((value) => serialized.includes(value)), dispatches: [original, resumed, reacquired].filter(({ action }) => action === 'dispatch').length })
-    expect(result).toEqual({ resumed: { action: 'duplicate', public: { status: 'duplicate' } }, reacquired: { action: 'duplicate', public: { status: 'duplicate' } }, frozen: true, capabilities: false, leaks: false, dispatches: 1 })
+    const result = await closeWith(first.client, { resumed: resumed.action, reacquired: reacquired.action, intentId: reacquired.public.intentId, capabilities: Object.hasOwn(reacquired, 'capability'), dispatches: [original, resumed, reacquired].filter((value) => value.action === 'dispatch').length })
+    expect(result).toEqual({ resumed: resumedAction, reacquired: reacquiredAction, intentId: FIRST_INTENT_ID, capabilities, dispatches: 1 })
+  })
+
+  it('returns the claim of a confirmed booking to a re-sent identical request under a new intent identifier', async () => {
+    const first = await fixture({})
+    const original = await first.repository.acquire({ booking: booking({}), slot: slot({}) })
+    await first.repository.confirm({ capability: original.capability, claimId: CLAIM_ID })
+    const reacquired = await first.repository.acquire({ booking: booking({ intentId: SECOND_INTENT_ID }), slot: slot({}) })
+    const result = await closeWith(first.client, reacquired.public.medflexClaimId ?? reacquired.public.claimId)
+    expect(result).toBe(CLAIM_ID)
   })
 
   it('returns a safe mismatch for one intent identifier with changed semantics', async () => {

@@ -436,6 +436,17 @@ describe('POST /api/appointments/book intent flow', () => {
     expect(result).toMatchObject({ first: 201, replay: { status: 200, body: { data: { status: 'confirmed', claimId: CLAIM_ID } } }, schedules: 1, creates: 1 })
   })
 
+  it('answers a re-sent identical request under a new intent identifier with the confirmed booking', async () => {
+    const upstream = upstreamFixture()
+    const result = await withDatabase(async (fixture) => {
+      const { POST } = await loadBook(upstream, fixture.client)
+      await POST({ request: bookRequest({ realIp: '203.0.113.96' }) })
+      const replay = await responseValue(await POST({ request: bookRequest({ body: booking({ intentId: OTHER_INTENT_ID }), realIp: '203.0.113.97' }) }))
+      return { status: replay.status, claimId: replay.body?.data?.claimId, creates: upstream.state.createCalls }
+    })
+    expect(result).toEqual({ status: 200, claimId: CLAIM_ID, creates: 1 })
+  })
+
   it('returns one detail-free conflict for cross-ID duplicate and exact-ID mismatch', async () => {
     const upstream = upstreamFixture()
     const result = await withDatabase(async (fixture) => {
@@ -445,7 +456,7 @@ describe('POST /api/appointments/book intent flow', () => {
       const mismatch = await responseValue(await POST({ request: bookRequest({ body: booking({ comment: 'Другой запрос' }), realIp: '203.0.113.88' }) }))
       return { duplicate, mismatch, creates: upstream.state.createCalls }
     })
-    expect(result).toEqual({ duplicate: { status: 409, cache: 'no-store', retryAfter: null, body: { error: 'BOOKING_REQUEST_CONFLICT', message: 'Эта попытка записи не может быть повторена' } }, mismatch: { status: 409, cache: 'no-store', retryAfter: null, body: { error: 'BOOKING_REQUEST_CONFLICT', message: 'Эта попытка записи не может быть повторена' } }, creates: 1 })
+    expect(result).toEqual({ duplicate: { status: 200, cache: 'no-store', retryAfter: null, body: { data: { status: 'confirmed', claimId: CLAIM_ID, doctor: result.duplicate.body.data.doctor, appointmentType: result.duplicate.body.data.appointmentType, startsAt: result.duplicate.body.data.startsAt, endsAt: result.duplicate.body.data.endsAt, price: result.duplicate.body.data.price } } }, mismatch: { status: 409, cache: 'no-store', retryAfter: null, body: { error: 'BOOKING_REQUEST_CONFLICT', message: 'Эта попытка записи не может быть повторена' } }, creates: 1 })
   })
 
   it('allows at most one paid call for two concurrent requests', async () => {
@@ -570,6 +581,16 @@ describe('POST /api/appointments/book intent flow', () => {
     expect(result).toEqual({ statuses: [201, 200, 200, 200, 200, 429], retry: expect.any(String), creates: 1 })
   })
 
+  it('logs only the error class of an unexpected workflow failure', async () => {
+    const module = await import('../pages/api/appointments/book.js')
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const POST = module.createBookEndpoint(() => ({ submit: async () => { throw new TypeError('patient 79215550129 leaked') } }), { fingerprintKey: SECRET, contactLimit: () => Object.freeze({ allowed: true }) })
+    const response = await POST({ request: bookRequest({ realIp: '203.0.113.99' }) })
+    const logged = errorSpy.mock.calls.map((call) => call.join(' '))
+    errorSpy.mockRestore()
+    expect({ status: response.status, stage: logged.some((line) => line.endsWith('WORKFLOW_UNEXPECTED_FAILURE:TypeError')), leaked: logged.some((line) => line.includes('79215550129')) }).toEqual({ status: 503, stage: true, leaked: false })
+  })
+
   it('limits one normalized contact fingerprint after three attempts across changing IP addresses', async () => {
     const upstream = upstreamFixture()
     const keys = []
@@ -582,7 +603,7 @@ describe('POST /api/appointments/book intent flow', () => {
       return responses
     })
     const serialized = JSON.stringify(keys)
-    expect({ statuses: result.map(({ status }) => status), sameKey: new Set(keys).size, safeKey: keys.every((key) => /^v1:[0-9a-f]{64}$/.test(key)), leaked: serialized.includes('79215550129') || serialized.includes('89215550129'), retry: result.at(-1).headers.get('Retry-After') }).toEqual({ statuses: [201, 409, 409, 429], sameKey: 1, safeKey: true, leaked: false, retry: '317' })
+    expect({ statuses: result.map(({ status }) => status), sameKey: new Set(keys).size, safeKey: keys.every((key) => /^v1:[0-9a-f]{64}$/.test(key)), leaked: serialized.includes('79215550129') || serialized.includes('89215550129'), retry: result.at(-1).headers.get('Retry-After') }).toEqual({ statuses: [201, 200, 200, 429], sameKey: 1, safeKey: true, leaked: false, retry: '317' })
   })
 })
 

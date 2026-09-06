@@ -13,6 +13,7 @@ else
   echo "[entrypoint] Applying analytics and call retention..."
   node /app/scripts/prune-analytics.mjs || echo "[entrypoint] WARNING: analytics retention failed; the server still starts"
   node /app/scripts/prune-calls.mjs || echo "[entrypoint] WARNING: call retention failed; the server still starts"
+  node /app/scripts/sweep-appointments.mjs || echo "[entrypoint] WARNING: booking sweep failed; the server still starts"
 fi
 
 exec node /app/scripts/server.mjs

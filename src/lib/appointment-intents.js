@@ -417,10 +417,6 @@ function mismatch() {
   return Object.freeze({ action: 'mismatch', public: Object.freeze({ status: 'mismatch' }) })
 }
 
-function duplicate() {
-  return Object.freeze({ action: 'duplicate', public: Object.freeze({ status: 'duplicate' }) })
-}
-
 function validateSlot() {
   return Object.freeze({ action: 'validate', public: Object.freeze({ status: 'not_found' }) })
 }
@@ -502,7 +498,6 @@ async function resolveExisting(configuration, identity, requestFingerprint, fenc
   const row = selected[0]
   if (row.requestFingerprint !== requestFingerprint) throw invariant()
   if (!matchesTrustedScope(row, identity)) throw invariant()
-  if (row.id !== identity.booking.intentId) return duplicate()
   if (row.status === 'confirmed') return outcome('confirmed', row)
   if (row.status === 'uncertain') return outcome('reconcile', row, createCapability(row))
   if (row.status === 'failed' && !RETRYABLE_FAILURE_CODES.has(row.failureCode)) return outcome('failed', row)
@@ -605,7 +600,7 @@ async function resume(configuration, input) {
   })
   if (matches.length > 1) throw invariant('BOOKING_INTENT_COLLISION')
   if (matches.length === 0) return validateSlot()
-  return duplicate()
+  return resolveResumed(configuration, matches[0], currentTime(configuration))
 }
 
 async function currentTransition(configuration, capability, applied) {

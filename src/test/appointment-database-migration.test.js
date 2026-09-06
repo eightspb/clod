@@ -132,7 +132,7 @@ const EXPECTED_CLINIC_SCHEMA = Object.freeze({
     indexes: Object.freeze({
       sqlite_autoindex_Appointment_1: Object.freeze({ unique: 1, origin: 'pk', partial: 0, columns: Object.freeze(['id']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
       Appointment_medflexClaimId_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['medflexClaimId']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
-      Appointment_bookingFingerprint_unique: Object.freeze({ unique: 1, origin: 'c', partial: 0, columns: Object.freeze(['bookingFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
+      Appointment_bookingFingerprint_active_unique: Object.freeze({ unique: 1, origin: 'c', partial: 1, columns: Object.freeze(['bookingFingerprint']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
       Appointment_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['startsAt']), collations: Object.freeze(['BINARY']), descending: Object.freeze([0]) }),
       Appointment_patientId_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['patientId', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
       Appointment_status_startsAt_idx: Object.freeze({ unique: 0, origin: 'c', partial: 0, columns: Object.freeze(['status', 'startsAt']), collations: Object.freeze(['BINARY', 'BINARY']), descending: Object.freeze([0, 0]) }),
@@ -364,7 +364,9 @@ describe('booking intent production migration', () => {
     const afterClient = await open(path)
     const after = await clinicSchemaSnapshot(afterClient)
     afterClient.close()
-    expect({ before, after }).toEqual({ before: EXPECTED_CLINIC_SCHEMA, after: EXPECTED_CLINIC_SCHEMA })
+    const { Appointment_bookingFingerprint_active_unique: activeUnique, ...otherAppointmentIndexes } = EXPECTED_CLINIC_SCHEMA.Appointment.indexes
+    const legacyAppointment = { ...EXPECTED_CLINIC_SCHEMA.Appointment, indexes: { ...otherAppointmentIndexes, Appointment_bookingFingerprint_unique: { ...activeUnique, partial: 0 } } }
+    expect({ before, after }).toEqual({ before: { ...EXPECTED_CLINIC_SCHEMA, Appointment: legacyAppointment }, after: EXPECTED_CLINIC_SCHEMA })
   })
 
   it('rolls back all additive schema changes when a legacy Patient table is incompatible', async () => {

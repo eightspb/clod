@@ -100,6 +100,16 @@ describe('appointment records', () => {
     expect({ failure, total: Number(count.rows[0]?.total) }).toEqual({ failure: { threw: true, name: 'AppointmentRecordError', code: 'APPOINTMENT_DUPLICATE' }, total: 1 })
   })
 
+  it('allows the same patient to book the same slot again after the earlier appointment was cancelled', async () => {
+    const { client, records } = await fixture({ clock: sequence([NOW, NOW, NOW, NOW, NOW, NOW, NOW, NOW]) })
+    await invoke(records, 'prepare', prepareInput())
+    await invoke(records, 'project', { id: APPOINTMENT_ID, status: 'confirmed', claimId: CLAIM_ID })
+    await invoke(records, 'cancel', { id: APPOINTMENT_ID })
+    const second = await invoke(records, 'prepare', prepareInput({ id: OTHER_APPOINTMENT_ID }))
+    client.close()
+    expect(second.id).toBe(OTHER_APPOINTMENT_ID)
+  })
+
   it('projects booking intent states into local appointment states idempotently', async () => {
     const { client, records } = await fixture()
     await invoke(records, 'prepare', prepareInput())

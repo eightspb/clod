@@ -17,6 +17,7 @@
     "clinic:import": "node scripts/import-clinic-history.mjs",
     "analytics:prune": "node scripts/prune-analytics.mjs",
     "calls:prune": "node scripts/prune-calls.mjs",
+    "appointments:sweep": "node scripts/sweep-appointments.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
