@@ -45,6 +45,16 @@ describe('HeroDoctorCard', () => {
     expect({ source: picture?.querySelector('source')?.getAttribute('srcset'), media: picture?.querySelector('source')?.getAttribute('media'), fallback: portrait.getAttribute('src') }).toEqual({ source: '/first.png', media: portraitMedia, fallback: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' })
   })
 
+  it('prefers the compact transparent portrait for the hero card', () => {
+    render(<HeroDoctorCard doctors={[{ ...doctors[0], photoFull: '/first-full.webp', photoMobile: '/first-mobile.webp' }]} />)
+    expect(screen.getByRole('img', { name: 'Первый врач' })).toHaveAttribute('src', '/first-mobile.webp')
+  })
+
+  it('does not lazy-load the above-the-fold hero portrait', () => {
+    render(<HeroDoctorCard doctors={doctors} />)
+    expect(screen.getByRole('img', { name: 'Первый врач' })).not.toHaveAttribute('loading', 'lazy')
+  })
+
   it('keeps the media-gated portrait full-sized and bottom-aligned', () => {
     render(<HeroDoctorCard doctors={doctors} portraitMedia="(min-width: 768px)" />)
     const picture = screen.getByRole('img', { name: 'Первый врач' }).closest('picture')

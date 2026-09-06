@@ -5,7 +5,7 @@ import { DoctorPage } from './DoctorPage.jsx'
 const LEFT_PHOTO_DOCTOR = {
   slug: 'odintsov-layout',
   photo: '/images/doctors/odintsov.webp',
-  photoFull: '/images/doctors/odintsov.png',
+  photoFull: '/images/doctors/odintsov-full.webp',
   photoAlign: 'left',
   name: 'Одинцов Владислав Александрович',
   dativeShortName: 'Владиславу Александровичу',
@@ -70,6 +70,11 @@ describe('DoctorPage', () => {
     render(<DoctorPage doctor={RIGHT_PHOTO_DOCTOR} />)
     const grid = screen.getByRole('heading', { level: 1 }).parentElement.parentElement
     expect(grid.querySelector('img').parentElement).toHaveClass('order-1')
+  })
+  it('loads the hero portrait eagerly with high fetch priority', () => {
+    const { container } = render(<DoctorPage doctor={LEFT_PHOTO_DOCTOR} />)
+    const portrait = container.querySelector('img.doctor-photo-shadow')
+    expect({ loading: portrait.getAttribute('loading'), priority: portrait.getAttribute('fetchpriority') }).toEqual({ loading: 'eager', priority: 'high' })
   })
   it('marks both profile booking actions with the public doctor slug', () => {
     const { container } = render(<DoctorPage doctor={LEFT_PHOTO_DOCTOR} />)

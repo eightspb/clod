@@ -76,10 +76,16 @@ describe('DoctorCard', () => {
     expect(img).toHaveAttribute('src', '/images/doctor.webp')
   })
 
-  it('prefers transparent full photo when provided', () => {
-    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp', photoFull: '/images/doctor.png' }} />)
+  it('prefers the compact transparent portrait when provided', () => {
+    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp', photoFull: '/images/doctor-full.webp', photoMobile: '/images/doctor-mobile.webp' }} />)
     const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
-    expect(img).toHaveAttribute('src', '/images/doctor.png')
+    expect(img).toHaveAttribute('src', '/images/doctor-mobile.webp')
+  })
+
+  it('falls back to the transparent full portrait without a compact one', () => {
+    render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp', photoFull: '/images/doctor-full.webp' }} />)
+    const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
+    expect(img).toHaveAttribute('src', '/images/doctor-full.webp')
   })
 
   it('wraps photo in embedded media panel when photo is provided', () => {

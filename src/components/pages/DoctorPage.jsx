@@ -169,7 +169,8 @@ export function DoctorPage({ doctor }) {
                     src={doctorPhoto}
                     alt={doctorAlt}
                     className="max-h-[420px] w-auto object-contain object-bottom doctor-photo-shadow lg:absolute lg:inset-x-6 lg:top-8 lg:h-[calc(100%-2rem)] lg:max-h-none lg:w-[calc(100%-3rem)]"
-                    loading="lazy"
+                    loading="eager"
+                    fetchpriority="high"
                   />
                 </div>
               )}

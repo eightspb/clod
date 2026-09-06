@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { SearchModal } from './SearchModal.jsx'
 
 function delayedPagefind() {
@@ -9,9 +9,24 @@ function delayedPagefind() {
 }
 
 describe('SearchModal', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('runs the query typed before the search index finished loading', async () => {
+    vi.useFakeTimers()
     render(<SearchModal isOpen onClose={() => {}} loadPagefind={delayedPagefind()} />)
     fireEvent.change(screen.getByPlaceholderText('Поиск по сайту...'), { target: { value: 'фиброаденома' } })
-    expect(await screen.findByRole('link', { name: /Фиброаденома: причины и лечение/ }, { timeout: 2000 })).toBeInTheDocument()
+    await act(() => vi.advanceTimersByTimeAsync(50))
+    expect(screen.getByRole('link', { name: /Фиброаденома: причины и лечение/ })).toBeInTheDocument()
+  })
+
+  it('keeps results found after the index loaded when the typing debounce fires later', async () => {
+    vi.useFakeTimers()
+    render(<SearchModal isOpen onClose={() => {}} loadPagefind={delayedPagefind()} />)
+    fireEvent.change(screen.getByPlaceholderText('Поиск по сайту...'), { target: { value: 'фиброаденома' } })
+    await act(() => vi.advanceTimersByTimeAsync(50))
+    await act(() => vi.advanceTimersByTimeAsync(300))
+    expect(screen.getByRole('link', { name: /Фиброаденома: причины и лечение/ })).toBeInTheDocument()
   })
 })

@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import { Home } from '../components/pages/Home.jsx'
-import { DOCTORS } from '../lib/doctors-data.js'
 ---
 
 <Layout
@@ -10,5 +9,5 @@ import { DOCTORS } from '../lib/doctors-data.js'
   keywords="клиника Одинцова, экспертная медицина СПб, маммология Санкт-Петербург, гинекология СПб, эндокринология СПб, нутрициология СПб, ВАБ СПб, Богатырский проспект"
   ogImage="/images/og/index.webp"
 >
-  <Home doctorsData={DOCTORS} client:load />
+  <Home client:load />
 </Layout>

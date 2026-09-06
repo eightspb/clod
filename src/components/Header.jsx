@@ -398,7 +398,8 @@ function MobileDirectionGroup({ direction, currentPath, onCloseMenu }) {
   )
 }
 
-export function Header({ currentPath = '/' }) {
+export function Header({ currentPath = '/', doctorGroups = [] }) {
+  const navItems = NAV_ITEMS.map((item) => (item.mega === 'doctors' ? { ...item, groups: doctorGroups } : item))
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [scrolled, setScrolled] = useState(false)
@@ -515,7 +516,7 @@ export function Header({ currentPath = '/' }) {
       <div className="container-clay flex items-center justify-between gap-4 pb-1 relative z-[80]">
         <a href="/" className="flex-shrink-0">
           <img
-            src="/images/logo.png"
+            src="/images/logo.webp"
             alt="Клиника доктора Одинцова"
             width="220"
             height="48"
@@ -562,7 +563,7 @@ export function Header({ currentPath = '/' }) {
       <div className="hidden lg:block">
         <div className="container-clay">
           <nav className="flex items-center justify-between gap-0.5 py-1">
-            {NAV_ITEMS.map((item) =>
+            {navItems.map((item) =>
               item.mega ? (
                 <div
                   key={item.label}
@@ -680,7 +681,7 @@ export function Header({ currentPath = '/' }) {
                 <Search size={16} />
                 Поиск по сайту
               </button>
-              {NAV_ITEMS.map((item) =>
+              {navItems.map((item) =>
                 (item.children || item.mega) ? (
                   <MobileAccordion
                     key={item.label}

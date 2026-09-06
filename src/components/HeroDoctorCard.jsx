@@ -28,7 +28,7 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
     return () => clearInterval(id)
   }, [shouldRotate, rotate])
   if (!doctor) return null
-  const portraitSource = doctor.photoFull || doctor.photo
+  const portraitSource = doctor.photoMobile || doctor.photoFull || doctor.photo
   return (
     <div className="hero-doctor-card">
       <div className={`clay clay-card hero-doctor-card-inner hero-doctor-fade ${fading ? 'hero-doctor-fade-out' : ''}`}>
@@ -42,7 +42,6 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
                 width={280}
                 height={380}
                 className="hero-doctor-photo"
-                loading="lazy"
               />
             </picture>
           ) : (
@@ -52,7 +51,6 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
               width={280}
               height={380}
               className="hero-doctor-photo"
-              loading="lazy"
             />
           )}
         </a>

@@ -116,13 +116,13 @@ Workflow работает с `permissions: contents: read`, `concurrency` с о�
 API запрос       → src/pages/api/**/*.js (SSR)
 ```
 
-Клиентские React islands используются для интерактивных публичных компонентов и админ-панели. `Layout.astro` монтирует ровно один глобальный `BookingFlow` с `client:load`; все кнопки записи открывают этот общий first-party диалог через публичные атрибуты-триггеры.
+Клиентские React islands используются для интерактивных публичных компонентов и админ-панели. `Layout.astro` монтирует ровно один глобальный `BookingFlow` с `client:idle`; все кнопки записи открывают этот общий first-party диалог через публичные атрибуты-триггеры. Клик по триггеру до гидратации перехватывает inline-скрипт лейаута (`data-booking-pending`), а смонтированный диалог шлёт `clod:booking-ready`, снимает перехват и открывается по отложенному клику. `Header` получает группы врачей mega-menu props из `doctorGroups(DOCTORS)` в лейауте, поэтому его клиентский чанк не тянет `doctors-data.js`.
 
 ### Адаптивное представление врачей
 
 `ResponsiveDoctorHero` и `ResponsiveDoctorCollection` задают единый responsive-контракт для hero-блоков и секций врачей. На мобильных экранах коллекция из двух и более врачей использует `MobileDoctorCarousel`; коллекция из одного врача остаётся обычной `DoctorCard`, а single-doctor hero сохраняет прежнее неинтерактивное представление без карусельных контролов. На desktop сохраняются существующие `HeroDoctorCard` и сетки `DoctorCard`.
 
-Контракт действует на профильных страницах маммологии, гинекологии, эндокринологии, нутрициологии, второго мнения и ВАБ, а также на страницах аденомиоза, эндометриоза, эрозии шейки матки, фиброаденомы, гипотиреоза, кисты молочной железы, мастопатии и тиреоидита Хашимото. Каждая карусель получает контекстную accessibility-метку; кнопка записи и ссылка на профиль всегда относятся к активному врачу.
+Контракт действует на профильных страницах маммологии, гинекологии, эндокринологии, нутрициологии, второго мнения и ВАБ, а также на страницах аденомиоза, эндометриоза, эрозии шейки матки, фиброаденомы, гипотиреоза, кисты молочной железы, мастопатии и тиреоидита Хашимото. Каждая карусель получает контекстную accessibility-метку; кнопка записи и ссылка на профиль всегда относятся к активному врачу. Коллекция из двух врачей показывает соседа только один раз, на позиции `next`, без визуального клона на противоположной стороне.
 
 С сентября 2026 года hero-блок с несколькими врачами на desktop тоже показывает эту карусель (`MobileDoctorCarousel` с `variant="desktop"` и `portraitMedia` из `desktopMedia`) вместо прежней случайной ротации `HeroDoctorCard`; та остаётся только для одного врача. Desktop-вариант ограничен колонкой (`max-width: 24rem`, `height: clamp(30rem, calc(100vh - 17rem), 39.5rem)`, то есть на экране высотой 800 px карусель сжимается до 528 px и весь hero остаётся в кадре) с `overflow: visible`: боковые портреты выходят за края колонки, а не обрезаются ею, поэтому плашка сама несёт полное скругление `2rem` и нижнюю рамку. Плашка выше mobile (`15.75rem`): ФИО `1.5rem`, рейтинг ПроДокторов с числом отзывов отдельной строкой, под ним две равные кнопки «Записаться» и «Профиль» шрифтом `0.9375rem`, чтобы ничего не обрезалось в узкой колонке hero. Общие coverflow-правила вынесены из mobile media query и параметризованы переменными `--mobile-doctor-slide-width`, `--mobile-doctor-near-offset`, `--mobile-doctor-far-offset` и `--mobile-doctor-name-size`. Автопрокрутки нет ни на mobile, ни на desktop: врач меняется стрелками, клавиатурой, перетаскиванием мышью или свайпом.
 
@@ -144,8 +144,8 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 ### Безопасность
 
-- **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`)
-- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается скачивать образ при заполнении диска выше 80 %, делает бэкап до деплоя, проверяет `/api/health` после и откатывается на предыдущий образ при провале smoke
+- **Security headers** - `src/middleware.js` ставит CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy и HSTS на все SSR-ответы, включая ранние `401`/`302` до маршрута; `/api/*` и `/admin*` получают `Cache-Control: no-store, must-revalidate`. Middleware не видит prerendered-статику, поэтому те же заголовки для неё выдаёт nginx (`nginx.https.conf`). Срок кэша статики тоже задаёт nginx: Node-адаптер отвечает `Cache-Control: public, max-age=0` для всего из `dist/client`, а `map $uri $clod_static_expires` в шаблонах выставляет `expires` год для хэшированных `/_astro/` и `/fonts/`, 30 дней для `/images/` (имена без хэша, файл можно заменить на месте) и не трогает HTML и `/api/`
+- **Логи** - API-хендлеры пишут в журнал только стадию и `error.code`/`error.name`, без адресов пациентов и сырых ответов SMTP; docker-логи ротируются (`10m × 5`) через `logging:` в `docker-compose.yml`; `scripts/deploy.sh` отказывается собирать образ при заполнении диска выше 80 %
 - **Rate limiting** - login: 5 попыток / 15 мин; аналитика: 100 req/min (event), 120 req/min (heartbeat)
 - **CSRF-защита** - проверка заголовка `Origin`/`Referer` на всех state-changing API
 - **Санитизация** - валидация и trim всех текстовых полей в admin API; защита от path traversal при загрузке файлов (doctorId, extension)
@@ -357,6 +357,7 @@ clod/
 ├── public/                        # Статические ассеты
 │   ├── tracker.js                 # Клиентский трекер аналитики
 │   ├── robots.txt                 # Ссылается на автогенерируемый sitemap-index.xml
+│   ├── images/                    # logo.webp, портреты врачей (-full/-mobile/-thumb.webp), og/, blog/ — только WebP
 │   └── uploads/                   # Медиафайлы (разбиты по папкам: doctors и т.д.)
 ├── src/
 │   ├── middleware.js              # Security headers (X-Frame-Options, HSTS и т.д.)
@@ -587,8 +588,9 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `slug` | string | URL-идентификатор (`/doctors/odintsov`) |
 | `name` | string | Полное имя |
 | `photo` | string | Сжатое фото для обычных карточек |
-| `photoFull` | string | Исходный PNG-портрет с прозрачным фоном |
-| `photoMobile` | string | Оптимизированный прозрачный WebP-портрет для мобильного coverflow |
+| `photoFull` | string | Прозрачный WebP-портрет `{slug}-full.webp` шириной до 1200 px; используется только в hero страницы `/doctors/[slug]` |
+| `photoMobile` | string | Прозрачный WebP-портрет `{slug}-mobile.webp` шириной 600 px для каруселей, `DoctorCard`, `HeroDoctorCard` и hero-слайдера |
+| `photoThumb` | string | Квадратная миниатюра `{slug}-thumb.webp` 320×320 для mega-menu, диалога записи и подписи автора в блоге |
 | `photoMobileFit` | `'square'` \| `'compact'` | Необязательная настройка масштаба мобильного портрета: усиленная для квадратного исходника или промежуточная для компактного, всегда без обрезки |
 | `degree` | string? | Учёная степень (напр. `д.м.н.`) - используется в `honorificSuffix` Physician JSON-LD |
 | `specialization` | string | Специализация |
@@ -699,7 +701,7 @@ UI построен на CSS-переменных в `:root` (`src/styles/global
 | Текст | `--text-primary`, `--text-secondary`, `--text-muted`, `--text-inverse` | Цвета текста |
 | Акцент | `--accent`, `--accent-hover`, `--accent-light`, `--accent-text` | Основной акцентный цвет (по умолчанию teal #0D9488) |
 | Специализации | `--color-mint`, `--color-peach`, `--color-blue`, `--color-lavender`, `--color-yellow` + `*-rgb`, `*-hover` | Цвета направлений клиники |
-| Шрифты | `--font-body`, `--font-serif`, `--font-nav` | Текст (Golos Text), заголовки (Cormorant Garamond), навигация (наследует body) |
+| Шрифты | `--font-body`, `--font-serif`, `--font-nav` | Текст (Golos Text), заголовки (Lora), навигация (наследует body) |
 | Тени | `--shadow-xs/sm/md/lg/xl`, `--shadow-mint/peach/blue` | Тени с поддержкой акцентных цветов |
 | Скругления | `--radius-sm/md/lg/xl/full` | Радиусы углов |
 | Градиенты | `--gradient-badge-mint/peach/blue`, `--gradient-card-mint/peach/blue`, `--gradient-cta` | Градиенты для бейджей, карточек, CTA |
@@ -714,7 +716,7 @@ UI построен на CSS-переменных в `:root` (`src/styles/global
 Плавающая кнопка (палитра) в правом нижнем углу. Открывает панель с тремя секциями:
 
 1. **Акцент** — 20 цветовых пресетов (emerald, slate-blue, dusty-rose, warm-clay, sage, indigo, teal, amber, plum, crimson, ocean, forest, graphite, copper, midnight, mauve, moss, terracotta, steel, burgundy) + hue-strip для произвольного цвета. При выборе цвета `buildFullPalette()` автоматически рассчитывает всю палитру (peach, blue, lavender, yellow, тени, градиенты).
-2. **Заголовки** — 10 серифных шрифтов (Cormorant Garamond по умолчанию, Playfair Display, Lora, Merriweather, PT Serif, EB Garamond, Libre Baskerville, Spectral, Crimson Pro, DM Serif Display)
+2. **Заголовки** — 10 серифных шрифтов (Lora по умолчанию, Cormorant Garamond, Playfair Display, Merriweather, PT Serif, EB Garamond, Libre Baskerville, Spectral, Crimson Pro, DM Serif Display)
 3. **Меню** — шрифт навигации в хедере и футере. «Как текст» (наследует body font) + те же 10 серифных шрифтов. Применяется через CSS-переменную `--font-nav`.
 4. **Текст** — 10 sans-serif шрифтов (Golos Text по умолчанию, Commissioner, Onest, Manrope, Rubik, Nunito, Inter, PT Sans, Open Sans, Raleway)
 
@@ -823,10 +825,10 @@ integrations: [
 ```
 
 Лейаут (`Layout.astro`) подключает:
-- Шрифт Inter (Google Fonts)
+- Шрифты Golos Text и Lora (self-hosted woff2 в `public/fonts/`, `<link rel="preload">`)
 - `global.css` (Tailwind + CSS-переменные дизайн-системы)
 - `Header` с `client:load` (интерактивный)
-- один глобальный `BookingFlow` с `client:load` для всех CTA записи
+- один глобальный `BookingFlow` с `client:idle` для всех CTA записи (клики до гидратации откладываются inline-скриптом)
 - `Footer` (статический)
 - `<slot />` для контента страниц
 - Open Graph / Twitter Card мета-теги (включая `og:image:width`, `og:image:height`, `og:image:alt`)
@@ -847,7 +849,7 @@ integrations: [
 | A3 - Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
 | A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `sameAs`, полный `PostalAddress`; `aggregateRating` у клиники убран как неподтверждаемый, `logo` ведёт на `/images/logo.png`, `image` и og:image по умолчанию — на `/images/og/index.webp` |
 | A5 - BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
-| A6 - Самохостинг шрифтов | ✅ | Inter woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">` |
+| A6 - Самохостинг шрифтов | ✅ | Golos Text и Lora woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">`; остальные шрифты ThemeSwitcher грузятся с Google Fonts только при выборе. `src/styles/self-hosted-fonts.test.js` не даёт держать в `public/fonts` файлы без `@font-face` |
 | B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
 | B2 - FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
 | B3 - Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
@@ -1046,6 +1048,29 @@ Certbot-контейнер проверяет сертификат каждые 
 - `bun run deploy`: бэкап до `git pull`, smoke-гейт после reload, автоматический откат на `CLOD_PREVIOUS_IMAGE_TAG`, prune только лишних тегов; `bun run rollback` — тот же откат вручную
 - `GET /api/health` для `HEALTHCHECK` и smoke; graceful shutdown через `scripts/server.mjs` + `stop_grace_period: 95s`; nginx переразрешает `app` через `resolver 127.0.0.11`; `SKIP_DB_INIT=true` как запасной выход entrypoint
 - Осознанное отклонение от рекомендации аудита: `restart: unless-stopped` для `app` сохранён вместо `on-failure:5`, потому что без внешнего мониторинга (Фаза 1 п.6) остановленный после пяти падений контейнер не вернулся бы и после планового ночного reboot хоста; crash loop виден в `docker compose ps` и в smoke деплоя
+### Оптимизация изображений и кэша статики (6 сентября 2026)
+
+- **Портреты врачей**: исходные PNG с прозрачностью (0,4–3,3 МБ каждый, всего 11,4 МБ) и неиспользуемые JPEG удалены из `public/images/doctors`; `photoFull` теперь `{slug}-full.webp` (≤1200 px по ширине, 29–95 КБ), добавлен `photoThumb` `{slug}-thumb.webp` (320×320, 4–9 КБ) для mega-menu, диалога записи и автора статьи. `DoctorCard`, `HeroDoctorCard` и hero-слайдер берут `photoMobile` (600 px), `photoFull` остаётся только hero страницы врача. `prikhodko-mobile.webp` пересжат с 832×1248 (210 КБ) до 600×900 (31 КБ), `odintsov.webp` — с 254 до 70 КБ. Контракт `src/lib/doctors-data.test.js` требует, чтобы каждый вариант портрета существовал и был WebP
+- **Логотип и баннер**: `logo.png` 4595×1000 (230 КБ) заменён в шапке и футере на lossless `logo.webp` 660×144 (14 КБ); `logo.png` уменьшен до 1200 px и оставлен только для JSON-LD `logo`; `vab-alternative.png` → `vab-alternative.webp` (88 → 38 КБ)
+- **LCP**: портрет hero на `/doctors/[slug]`, `HeroDoctorCard` и первый слайд главной больше не `loading="lazy"`, первый слайд и портрет врача получили `fetchpriority="high"` (строчными: React 18.3 не знает `fetchPriority` и предупреждает при каждом SSR-рендере); eager-байты главной 1,4 МБ → 41 КБ
+- **HTML главной**: `Home` берёт `DOCTORS` сам вместо 48 КБ props в `astro-island` (те же данные уже были в чанке `doctors-data`)
+- **Итог**: `public/images` 16,1 → 3,5 МБ (−78 %); полный вес главной 11,4 МБ → 0,6 МБ, `/doctors` 11,2 → 0,5 МБ, страницы направлений и заболеваний 5–8 МБ → 0,4 МБ
+- **Кэш**: nginx-шаблоны получили `gzip_comp_level 6`, gzip для `image/svg+xml` и `map $uri $clod_static_expires` (`/_astro/`, `/fonts/` — год, `/images/` — 30 дней); раньше всё, включая хэшированные бандлы, отдавалось с `max-age=0`
+- **JS на каждой странице**: `nav.js` больше не импортирует `doctors-data.js` — группы mega-menu строит `doctorGroups(DOCTORS)` в `Layout.astro` и передаёт в `Header` props (~1 КБ), чанк `doctors-data` (60 КБ) остался только на маршрутах, которым нужны биографии; `BookingFlow` гидратируется `client:idle`, клики до гидратации откладывает inline-скрипт лейаута
+- **LCP mobile**: активный слайд карусели врачей грузится `eager` с `fetchpriority="high"`, соседи остаются `lazy`
+- **Абсолютные URL ассетов** в JSON-LD и OG строятся от `Astro.site` (`absoluteUrl()` в `Layout.astro`, `new URL(..., Astro.site)` в `/contacts`); до переезда домена `odintsovclinic.ru` с Tilda эти URL отвечают 404 — как и canonical, они рассчитаны на cutover
+- **Удалены мёртвые файлы**: `logo-vert.png`, `logo2.png`, `inter-var-*.woff2`, `cormorant-garamond-*.woff2` (270 КБ без `@font-face`)
+- **Поиск**: debounce в `SearchModal` читал индекс Pagefind из устаревшего замыкания и стирал результаты, найденные сразу после загрузки индекса; теперь индекс берётся из ref, а до его загрузки показывается состояние загрузки. Тесты переведены на fake timers
+
+Новые портреты готовятся из исходного PNG с прозрачным фоном; исходники доступны в git-истории (`git show 73c3737:public/images/doctors/<slug>.png > <slug>.png`):
+
+```bash
+cwebp -q 82 -m 6 -sharp_yuv -resize 1200 0 <slug>.png -o public/images/doctors/<slug>-full.webp
+cwebp -q 82 -m 6 -sharp_yuv -resize 600 0 <slug>.png -o public/images/doctors/<slug>-mobile.webp
+cwebp -q 82 -m 6 -sharp_yuv -resize 320 320 public/images/doctors/<slug>.webp -o public/images/doctors/<slug>-thumb.webp
+```
+
+Для исходников уже 1200 px шириной `-resize` не нужен, WebP не увеличивают.
 
 ### Быстрые победы аудита (5 сентября 2026)
 
@@ -1123,7 +1148,7 @@ Certbot-контейнер проверяет сертификат каждые 
 - **Блог (редизайн)**: карусель для видео "Врачи на ТВ", генерация тематических `og:image` (Unsplash) для всех статей, вывод картинок в карточках статей, улучшенные градиенты и тени.
 - **Онлайн-запись**: внешний виджет заменён единым first-party `BookingFlow`; все CTA работают через same-origin API, а страницы и карточки девяти врачей передают только публичный slug.
 - **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
-- **Производительность (Lighthouse)**: загрузка `tracker.js` с `defer` не блокирует отрисовку; уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в middleware — `Cache-Control: public, max-age=31536000, immutable` для `/_astro/`, `/fonts/`, `/images/`; в nginx включено gzip для текстовых ответов.
+- **Производительность (Lighthouse)**: загрузка `tracker.js` с `defer` не блокирует отрисовку; уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в nginx включено gzip для текстовых ответов (правило `immutable` в middleware до статики не доходит, срок кэша задаёт nginx, см. «Безопасность»).
 - **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; бывший post-build скрипт `async-about-css.mjs` удалён — после переноса CSS в общий чанк он ни разу не срабатывал.
 
 ### Редизайн и тематизация (март–апрель 2026)

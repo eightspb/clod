@@ -2,6 +2,7 @@ import { Phone, MessageCircle } from 'lucide-react'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
+import { DOCTORS } from '../../lib/doctors-data.js'
 import { HeroSlider } from '../home/HeroSlider.jsx'
 import { MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
 import { SecondOpinionSection } from '../home/SecondOpinionSection.jsx'
@@ -13,7 +14,7 @@ import { DirectContactSection } from '../home/DirectContactSection.jsx'
 import { ReviewsSection } from '../home/ReviewsSection.jsx'
 import { AppointmentFormSection } from '../home/AppointmentFormSection.jsx'
 
-export function Home({ doctorsData = [] }) {
+export function Home({ doctorsData = DOCTORS }) {
   return (
     <ErrorBoundary>
     <div>

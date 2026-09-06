@@ -3,6 +3,11 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { Header } from './Header.jsx'
 import { BookingFlow } from './booking/BookingFlow.jsx'
 
+const DOCTOR_GROUPS = [
+  { id: 'mammology', label: 'Маммология', to: '/mammology', doctors: [{ name: 'Ёлкина Анна О’Коннор', slug: 'elkina', photo: '/images/doctors/elkina-thumb.webp' }] },
+  { id: 'gynecology', label: 'Гинекология', to: '/gynecology', doctors: [] },
+]
+
 describe('Header', () => {
   it('renders clinic logo link', () => {
     render(<Header />)
@@ -15,6 +20,11 @@ describe('Header', () => {
   it('renders clinic name in logo', () => {
     render(<Header />)
     expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toBeInTheDocument()
+  })
+
+  it('renders the logo as a WebP image', () => {
+    render(<Header />)
+    expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toHaveAttribute('src', '/images/logo.webp')
   })
 
   it('renders mobile menu toggle button', () => {
@@ -119,15 +129,21 @@ describe('Header', () => {
     expect(screen.getByRole('menu', { name: /^доктора$/i })).toBeInTheDocument()
   })
 
+  it('renders doctor groups passed from the layout in the desktop menu', () => {
+    render(<Header doctorGroups={DOCTOR_GROUPS} />)
+    fireEvent.click(screen.getByRole('button', { name: /показать подразделы: доктора/i }))
+    expect(within(screen.getByRole('menu', { name: /^доктора$/i })).getByRole('menuitem', { name: /Ёлкина Анна О’Коннор/ })).toHaveAttribute('href', '/doctors/elkina')
+  })
+
   it('renders desktop doctors menu portraits at 45 pixels', () => {
-    render(<Header />)
+    render(<Header doctorGroups={DOCTOR_GROUPS} />)
     fireEvent.click(screen.getByRole('button', { name: /показать подразделы: доктора/i }))
     const portrait = within(screen.getByRole('menu', { name: /^доктора$/i })).getAllByRole('img')[0]
     expect({ width: portrait.getAttribute('width'), height: portrait.getAttribute('height'), sized: portrait.classList.contains('h-[45px]') && portrait.classList.contains('w-[45px]') }).toEqual({ width: '45', height: '45', sized: true })
   })
 
   it('moves focus into the doctors menu when its separate control receives ArrowDown', async () => {
-    render(<Header />)
+    render(<Header doctorGroups={DOCTOR_GROUPS} />)
     const doctorsMenuButton = screen.getByRole('button', { name: /показать подразделы: доктора/i })
     fireEvent.keyDown(doctorsMenuButton, { key: 'ArrowDown' })
     const doctorsMenu = screen.getByRole('menu', { name: /^доктора$/i })

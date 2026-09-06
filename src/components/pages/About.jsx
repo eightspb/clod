@@ -174,7 +174,6 @@ export function About() {
                     alt="Владислав Александрович Одинцов"
                     className="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover"
                     loading="eager"
-                    // eslint-disable-next-line react/no-unknown-property
                     fetchpriority="high"
                     width="256"
                     height="256"

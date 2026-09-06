@@ -1,4 +1,3 @@
-import { DOCTORS } from './doctors-data.js'
 import { matchesFilter } from './filters.js'
 
 export const DIRECTIONS = [
@@ -30,17 +29,25 @@ export const DIRECTIONS = [
 
 export const VAB_ITEM = { label: 'ВАБ — основное направление', to: '/vab' }
 
-const DOCTOR_GROUPS = [
+const DOCTOR_GROUP_SEEDS = [
   { id: 'mammology', label: 'Маммология', to: '/mammology' },
   { id: 'gynecology', label: 'Гинекология', to: '/gynecology' },
   { id: 'endocrinology', label: 'Эндокринология', to: '/endocrinology' },
   { id: 'nutrition', label: 'Нутрициология', to: '/nutrition' },
-].map((group) => ({
-  ...group,
-  doctors: DOCTORS
-    .filter((d) => matchesFilter(d, group.id))
-    .map((d) => ({ name: d.name, slug: d.slug, photo: d.photo })),
-}))
+]
+
+/**
+ * Builds the «Доктора» mega-menu groups on the server; the hydrated Header receives them as
+ * props so its client chunk does not bundle the full doctor biographies from doctors-data.js.
+ */
+export function doctorGroups(doctors) {
+  return DOCTOR_GROUP_SEEDS.map((group) => ({
+    ...group,
+    doctors: doctors
+      .filter((d) => matchesFilter(d, group.id))
+      .map((d) => ({ name: d.name, slug: d.slug, photo: d.photoThumb || d.photo })),
+  }))
+}
 
 export const NAV_ITEMS = [
   {
@@ -53,7 +60,7 @@ export const NAV_ITEMS = [
     ]
   },
   { label: 'Направления', mega: true, children: DIRECTIONS, vab: VAB_ITEM },
-  { label: 'Доктора', mega: 'doctors', to: '/doctors', groups: DOCTOR_GROUPS },
+  { label: 'Доктора', mega: 'doctors', to: '/doctors', groups: [] },
   {
     label: 'Пациентам',
     children: [

@@ -29,14 +29,14 @@ function deserializeProps(raw) {
 
 async function renderLayout(pageDoctorSlug) {
   const renderers = await loadRenderers([getContainerRenderer()])
-  const container = await AstroContainer.create({ renderers })
+  const container = await AstroContainer.create({ renderers, astroConfig: { site: 'https://odintsovclinic.ru' } })
   container.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' })
   return container.renderToString(Layout, { props: { pageDoctorSlug }, request: new Request(`https://odintsovclinic.ru/doctors/${pageDoctorSlug}`), slots: { default: '<p>Профиль врача</p>' }, partial: false })
 }
 
 async function renderDoctorRoute(slug) {
   const renderers = await loadRenderers([getContainerRenderer()])
-  const container = await AstroContainer.create({ renderers })
+  const container = await AstroContainer.create({ renderers, astroConfig: { site: 'https://odintsovclinic.ru' } })
   container.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' })
   return container.renderToString(DoctorRoute, { params: { slug }, request: new Request(`https://odintsovclinic.ru/doctors/${slug}`), partial: false })
 }

@@ -62,7 +62,7 @@ export function Footer() {
             <div>
               <div className="mb-4">
                 <img
-                  src="/images/logo.png"
+                  src="/images/logo.webp"
                   alt="Клиника доктора Одинцова"
                   width="184"
                   height="40"

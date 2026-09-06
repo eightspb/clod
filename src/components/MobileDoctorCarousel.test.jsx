@@ -124,9 +124,15 @@ describe('MobileDoctorCarousel', () => {
     expect(container.querySelectorAll('img')).toHaveLength(4)
   })
 
-  it('media-gates every lazy portrait source to mobile viewports', () => {
+  it('loads the active portrait eagerly and the neighbours lazily', () => {
     const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Специалисты" />)
-    expect(screen.getAllByRole('img').every((portrait) => portrait.getAttribute('loading') === 'lazy')).toBe(true)
+    const active = container.querySelector('[aria-current="true"] img')
+    const others = Array.from(container.querySelectorAll('[aria-current="true"] ~ article img, article:has(~ [aria-current="true"]) img'))
+    expect({ active: [active.getAttribute('loading'), active.getAttribute('fetchpriority')], others: others.map((portrait) => portrait.getAttribute('loading')) }).toEqual({ active: ['eager', 'high'], others: ['lazy', 'lazy', 'lazy'] })
+  })
+
+  it('media-gates every portrait source to mobile viewports', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Специалисты" />)
     expect(container.querySelectorAll('source[media="(max-width: 767px)"]')).toHaveLength(4)
     expect(screen.getAllByRole('img').every((portrait) => portrait.getAttribute('src').startsWith('data:image/gif'))).toBe(true)
   })
@@ -223,10 +229,10 @@ describe('MobileDoctorCarousel', () => {
     expect(positions).toEqual(['current', 'next', 'next-far', 'previous'])
   })
 
-  it('mirrors the only neighbour across both sides for a two-doctor collection', () => {
+  it('shows each doctor of a two-doctor collection exactly once', () => {
     const { container } = render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 2)} label="Два врача" />)
     const positions = Array.from(container.querySelectorAll('[data-coverflow-position]'), (slide) => slide.dataset.coverflowPosition)
-    expect(positions).toEqual(['current', 'next', 'previous'])
+    expect(positions).toEqual(['current', 'next'])
   })
 
   it('moves to the next doctor after a horizontal pointer swipe', () => {

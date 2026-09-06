@@ -8,6 +8,11 @@ describe('Footer', () => {
     expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toBeInTheDocument()
   })
 
+  it('renders the logo as a WebP image', () => {
+    render(<Footer />)
+    expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toHaveAttribute('src', '/images/logo.webp')
+  })
+
   it('renders phone links', () => {
     render(<Footer />)
     const phoneLinks = screen.getAllByRole('link').filter(

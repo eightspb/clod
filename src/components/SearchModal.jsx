@@ -49,6 +49,7 @@ export function SearchModal({ isOpen, onClose, loadPagefind = loadPagefindModule
   const inputRef = useRef(null)
   const debounceRef = useRef(null)
   const queryRef = useRef('')
+  const pagefindRef = useRef(null)
 
   useEffect(() => {
     if (!isOpen) {
@@ -75,17 +76,18 @@ export function SearchModal({ isOpen, onClose, loadPagefind = loadPagefindModule
       return
     }
     let cancelled = false
-    loadPagefind().then((pf) => { if (!cancelled) setPagefind(pf) }).catch(() => { if (!cancelled) setInitError(true) })
+    loadPagefind().then((pf) => { if (cancelled) return; pagefindRef.current = pf; setPagefind(pf) }).catch(() => { if (cancelled) return; setInitError(true); setIsLoading(false) })
     return () => { cancelled = true }
   }, [isOpen, pagefind, initError, loadPagefind])
 
   const runSearch = useCallback(async (value, pf) => {
-    if (!value.trim() || !pf) {
+    if (!value.trim()) {
       setResults([])
       setIsLoading(false)
       return
     }
     setIsLoading(true)
+    if (!pf) return
     try {
       const searchResult = await pf.search(value)
       const data = await Promise.all(
@@ -111,7 +113,7 @@ export function SearchModal({ isOpen, onClose, loadPagefind = loadPagefindModule
       clearTimeout(debounceRef.current)
     }
     debounceRef.current = setTimeout(() => {
-      runSearch(value, pagefind)
+      runSearch(value, pagefindRef.current)
     }, DEBOUNCE_MS)
   }
 

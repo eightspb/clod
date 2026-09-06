@@ -308,11 +308,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
     setLiveMessage('Загружаем расписание')
     setStep('loading')
   }, [])
-  useEffect(() => {
-    function open(event) {
-      const trigger = event.target instanceof Element ? event.target.closest('[data-booking-btn]') : undefined
-      if (!trigger) return
-      event.preventDefault()
+  const openFrom = useCallback((trigger) => {
       const explicit = trigger.getAttribute('data-booking-doctor')?.trim() ?? ''
       const slug = explicit || pageDoctorSlug
       const selected = slug ? doctors.find((candidate) => candidate.slug === slug) : undefined
@@ -341,10 +337,28 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
       submittedPhoneRef.current = ''
       setStep(slug ? (selected ? 'loading' : 'unavailable') : 'doctor')
       setIsOpen(true)
+  }, [clock, doctors, pageDoctorSlug])
+  useEffect(() => {
+    function open(event) {
+      const trigger = event.target instanceof Element ? event.target.closest('[data-booking-btn]') : undefined
+      if (!trigger) return
+      event.preventDefault()
+      openFrom(trigger)
     }
     document.addEventListener('click', open)
     return () => document.removeEventListener('click', open)
-  }, [clock, doctors, pageDoctorSlug])
+  }, [openFrom])
+  /**
+   * The island hydrates on idle, so Layout.astro parks clicks made before mount on the trigger
+   * as data-booking-pending; announcing readiness stops that capture and replays the parked click.
+   */
+  useEffect(() => {
+    document.dispatchEvent(new Event('clod:booking-ready'))
+    const pending = document.querySelector('[data-booking-btn][data-booking-pending]')
+    if (!pending) return
+    pending.removeAttribute('data-booking-pending')
+    openFrom(pending)
+  }, [openFrom])
   useEffect(() => {
     if (isOpen) {
       openedRef.current = true

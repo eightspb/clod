@@ -34,7 +34,7 @@ export function SecondOpinionSection() {
               </a>
             </div>
             <img
-              src="/images/vab-alternative.png"
+              src="/images/vab-alternative.webp"
               alt="Второе мнение врача-онколога-маммолога"
               width={400}
               height={400}

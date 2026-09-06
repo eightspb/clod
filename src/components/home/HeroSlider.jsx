@@ -136,12 +136,13 @@ export function HeroSlider() {
                     <div className="clay clay-card hero-doctor-card-inner">
                       <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
                         <img
-                          src={doctor.photoFull || `/images/doctors/${doctor.slug}.webp`}
+                          src={doctor.photoMobile || doctor.photoFull || doctor.photo}
                           alt={doctor.name}
                           width={280}
                           height={380}
                           className="hero-doctor-photo"
                           loading={idx === 0 ? 'eager' : 'lazy'}
+                          fetchpriority={idx === 0 ? 'high' : undefined}
                         />
                       </a>
                       <div className="hero-doctor-info">

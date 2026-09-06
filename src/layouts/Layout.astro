@@ -5,6 +5,7 @@ import { StickyCTA } from '../components/StickyCTA.jsx'
 import { ThemeSwitcher } from '../components/ThemeSwitcher.jsx'
 import { BookingFlow } from '../components/booking/BookingFlow.jsx'
 import { DOCTORS } from '../lib/doctors-data.js'
+import { doctorGroups } from '../lib/nav.js'
 import '../styles/global.css'
 
 interface Props {
@@ -30,7 +31,9 @@ const {
 } = Astro.props
 
 const currentPath = Astro.url.pathname
-const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => ({ slug, name, specialization, photo }))
+const absoluteUrl = (path) => new URL(path, Astro.site).href
+const NAV_DOCTOR_GROUPS = doctorGroups(DOCTORS)
+const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoThumb }) => ({ slug, name, specialization, photo: photoThumb || photo }))
 ---
 
 <!doctype html>
@@ -53,7 +56,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => (
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : `https://odintsovclinic.ru${ogImage}`} />
+    <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : absoluteUrl(ogImage)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogImageAlt || title} />
@@ -66,7 +69,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => (
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage.startsWith('http') ? ogImage : `https://odintsovclinic.ru${ogImage}`} />
+    <meta name="twitter:image" content={ogImage.startsWith('http') ? ogImage : absoluteUrl(ogImage)} />
 
     <!-- hreflang -->
     <link rel="alternate" hreflang="ru" href={canonicalUrl} />
@@ -147,8 +150,8 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => (
       "name": "Клиника Одинцова",
       "alternateName": "Клиника доктора Одинцова",
       "url": "https://odintsovclinic.ru",
-      "logo": "https://odintsovclinic.ru/images/logo.png",
-      "image": "https://odintsovclinic.ru/images/og/index.webp",
+      "logo": absoluteUrl('/images/logo.png'),
+      "image": absoluteUrl('/images/og/index.webp'),
       "telephone": "+78127482210",
       "email": "info@odintsovclinic.ru",
       "priceRange": "$$",
@@ -208,7 +211,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => (
     <a href="#main-content" class="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-[9999] focus-visible:px-4 focus-visible:py-2 focus-visible:bg-clay-mint-dark focus-visible:text-white focus-visible:rounded-xl focus-visible:font-semibold focus-visible:shadow-lg">
       Перейти к содержимому
     </a>
-    <Header currentPath={currentPath} client:load />
+    <Header currentPath={currentPath} doctorGroups={NAV_DOCTOR_GROUPS} client:load />
     <main id="main-content" class="relative" style="z-index:1" data-pagefind-body>
       <slot />
     </main>
@@ -217,7 +220,22 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo }) => (
     </div>
     <StickyCTA client:idle />
     <ThemeSwitcher client:idle />
-    <BookingFlow doctors={BOOKING_DOCTORS} pageDoctorSlug={pageDoctorSlug} client:load />
+    <!-- BookingFlow hydrates on idle; clicks on booking triggers made before that are parked on the trigger and replayed once the island mounts -->
+    <script is:inline>
+      (function () {
+        function rememberBookingClick(event) {
+          var trigger = event.target && event.target.closest ? event.target.closest('[data-booking-btn]') : null
+          if (!trigger) return
+          event.preventDefault()
+          trigger.setAttribute('data-booking-pending', '')
+        }
+        document.addEventListener('click', rememberBookingClick, true)
+        document.addEventListener('clod:booking-ready', function () {
+          document.removeEventListener('click', rememberBookingClick, true)
+        }, { once: true })
+      })()
+    </script>
+    <BookingFlow doctors={BOOKING_DOCTORS} pageDoctorSlug={pageDoctorSlug} client:idle />
 
     <div id="font-size-controls" class="hidden md:fixed md:bottom-6 md:right-6 md:z-50 md:flex md:flex-col md:gap-2">
       <button

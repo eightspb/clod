@@ -61,22 +61,21 @@ function useFingerSwipe(trackRef, gesture, onStep) {
   })
 }
 
-function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia, visualClone = false }) {
+function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) {
   const isActive = position === 'current'
   const shouldLoadPortrait = position !== 'hidden'
   const specialty = doctor.specialization.split(',')[0].trim()
   return (
     <article
       className="mobile-doctor-slide"
-      role={visualClone ? undefined : 'group'}
-      aria-roledescription={visualClone ? undefined : 'slide'}
-      aria-label={visualClone ? undefined : `${doctor.name}, ${index + 1} из ${count}`}
-      aria-current={!visualClone && isActive ? 'true' : undefined}
-      aria-hidden={visualClone || !isActive}
+      role="group"
+      aria-roledescription="slide"
+      aria-label={`${doctor.name}, ${index + 1} из ${count}`}
+      aria-current={isActive ? 'true' : undefined}
+      aria-hidden={!isActive}
       data-doctor-index={index}
       data-coverflow-position={position}
       data-photo-fit={doctor.photoMobileFit}
-      data-visual-clone={visualClone ? 'true' : undefined}
     >
       <div className="mobile-doctor-portrait-wrap">
         {shouldLoadPortrait ? (
@@ -88,7 +87,8 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia, vi
               className="mobile-doctor-portrait object-contain object-bottom"
               width="900"
               height="1200"
-              loading="lazy"
+              loading={isActive ? 'eager' : 'lazy'}
+              fetchpriority={isActive ? 'high' : undefined}
               decoding="async"
             />
           </picture>
@@ -203,17 +203,6 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
             />
           )
         })}
-        {doctors.length === 2 && (
-          <DoctorPortraitSlide
-            key={`${doctors[(currentIndex + 1) % 2].slug}-previous-clone`}
-            doctor={doctors[(currentIndex + 1) % 2]}
-            index={(currentIndex + 1) % 2}
-            count={doctors.length}
-            position="previous"
-            portraitMedia={portraitMedia}
-            visualClone
-          />
-        )}
       </div>
       <div className="mobile-doctor-plinth">
         <div className="mobile-doctor-info">

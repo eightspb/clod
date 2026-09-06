@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { DOCTORS, getDoctorBySlug } from './doctors-data.js'
 
@@ -21,6 +23,11 @@ describe('doctors-data.js', () => {
         expect(doc.photoMobile).toMatch(/-mobile\.webp$/)
         expect(typeof doc.experienceYears).toBe('number')
       }
+    })
+
+    it('points every portrait variant at an existing WebP file', () => {
+      const missing = DOCTORS.flatMap((doc) => [doc.photo, doc.photoFull, doc.photoMobile, doc.photoThumb].filter((file) => !/\.webp$/.test(file || '') || !existsSync(join(process.cwd(), 'public', file))))
+      expect(missing).toEqual([])
     })
 
     it('all slugs are unique', () => {

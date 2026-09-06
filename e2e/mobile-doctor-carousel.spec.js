@@ -126,7 +126,7 @@ async function visiblePortraitTopGap(page) {
 
 async function cycleDoctors(page, measurement) {
   await page.evaluate(() => document.fonts.ready)
-  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide:not([data-visual-clone="true"])`).count()
+  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide`).count()
   const measurements = []
   for (let index = 0; index < doctorCount; index += 1) {
     measurements.push(await page.locator(CAROUSEL_SELECTOR).evaluate(measurement))
@@ -250,7 +250,7 @@ test('uses warm gold stars in both doctor collection presentations', async ({ pa
 
 test('keeps every visible doctor head close to the carousel top', async ({ page }) => {
   await gotoHydratedDoctors(page)
-  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide:not([data-visual-clone="true"])`).count()
+  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide`).count()
   const gaps = []
   for (let index = 0; index < doctorCount; index += 1) {
     gaps.push(await visiblePortraitTopGap(page))
@@ -320,7 +320,7 @@ test('keeps receding portraits in a flat frontal projection', async ({ page }) =
 
 test('does not paint a white contour around transparent portraits', async ({ page }) => {
   await gotoHydratedDoctors(page)
-  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide:not([data-visual-clone="true"])`).count()
+  const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide`).count()
   const filters = []
   for (let index = 0; index < doctorCount; index += 1) {
     filters.push(await page.locator(`${CAROUSEL_SELECTOR} [aria-current="true"] .mobile-doctor-portrait`)

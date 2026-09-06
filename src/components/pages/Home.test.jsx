@@ -240,6 +240,13 @@ describe('Home hero slider', () => {
     expect(wrapper.className.split(' ')).toEqual(expect.arrayContaining(['hidden', 'md:block']))
   })
 
+  it('renders the clinic doctors when no doctorsData is passed', async () => {
+    await act(async () => {
+      render(<Home />)
+    })
+    expect(screen.getAllByRole('heading', { level: 3, name: /Одинцов Владислав Александрович/ }).length).toBeGreaterThan(0)
+  })
+
   it('uses a general booking CTA instead of the simulated contact form', async () => {
     await act(async () => {
       render(<Home doctorsData={[]} />)

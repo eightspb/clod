@@ -14,7 +14,7 @@ export function DoctorCard({ doctor }) {
   const specializationParts = doctor.specialization.split(',').map((part) => part.trim()).filter(Boolean)
   const primarySpecialty = specializationParts[0]
   const secondarySpecialty = specializationParts.slice(1).join(', ')
-  const photoSource = doctor.photoFull || doctor.photo
+  const photoSource = doctor.photoMobile || doctor.photoFull || doctor.photo
   return (
     <article className={`doctor-card ${colors.tone} clay clay-card card-interactive ${colors.line} flex flex-col relative overflow-hidden h-full`}>
       <div className="doctor-card-media">

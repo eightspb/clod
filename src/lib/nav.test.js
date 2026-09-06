@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { DIRECTIONS, VAB_ITEM, NAV_ITEMS, FOOTER_LINKS } from './nav.js'
+import { DIRECTIONS, VAB_ITEM, NAV_ITEMS, FOOTER_LINKS, doctorGroups } from './nav.js'
+import { DOCTORS } from './doctors-data.js'
 
 describe('nav.js', () => {
   describe('DIRECTIONS', () => {
@@ -18,6 +19,18 @@ describe('nav.js', () => {
     it('includes mammology, gynecology, endocrinology, nutrition', () => {
       const toPaths = DIRECTIONS.map((d) => d.to)
       expect(toPaths).toEqual(['/mammology', '/gynecology', '/endocrinology', '/nutrition'])
+    })
+
+    it('uses thumbnail portraits for mega-menu doctors', () => {
+      expect(doctorGroups(DOCTORS).flatMap((group) => group.doctors.map((doctor) => doctor.photo)).every((photo) => /-thumb\.webp$/.test(photo))).toBe(true)
+    })
+
+    it('keeps doctor biographies out of the static menu so the Header chunk stays small', () => {
+      expect(NAV_ITEMS.find((item) => item.mega === 'doctors').groups).toEqual([])
+    })
+
+    it('lists every clinic doctor under at least one direction', () => {
+      expect(new Set(doctorGroups(DOCTORS).flatMap((group) => group.doctors.map((doctor) => doctor.slug)))).toEqual(new Set(DOCTORS.map((doctor) => doctor.slug)))
     })
 
     it('mammology has condition pages with label and to', () => {

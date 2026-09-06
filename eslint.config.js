@@ -29,6 +29,8 @@ export default [
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // React 18.3 renders only the lowercase attribute without warning; switch back to fetchPriority on React 19
+      'react/no-unknown-property': ['error', { ignore: ['fetchpriority'] }],
       'no-use-before-define': ['error', { functions: false, classes: false, variables: true }],
       'no-restricted-syntax': [
         'error',

@@ -219,7 +219,7 @@ const breadcrumbItems = [
               {author ? (
                 <a href={`/doctors/${author.slug}`} class="flex items-center gap-2.5 hover:text-clay-teal transition-colors no-underline">
                   <img
-                    src={author.photo}
+                    src={author.photoThumb || author.photo}
                     alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
                     width="36"
                     height="36"
@@ -309,7 +309,7 @@ const breadcrumbItems = [
             <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
               <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0 w-fit`}>
                 <img
-                  src={author.photo}
+                  src={author.photoThumb || author.photo}
                   alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
                   width="144"
                   height="144"

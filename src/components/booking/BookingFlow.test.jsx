@@ -92,6 +92,25 @@ function renderFlow({ explicitDoctor, pageDoctorSlug = '', responseDoctor = 'odi
   return { ...request, trigger, unmount: view.unmount }
 }
 
+describe('BookingFlow hydration handoff', () => {
+  it('opens the dialog for a trigger clicked before the island hydrated', async () => {
+    render(
+      <>
+        <button type="button" data-booking-btn="" data-booking-pending="">Открыть запись</button>
+        <BookingFlow doctors={PUBLIC_DOCTORS} fetcher={transport([json(emptySchedule())]).fetcher} />
+      </>
+    )
+    expect(await screen.findByRole('dialog', { name: 'Онлайн-запись' })).toBeInTheDocument()
+  })
+
+  it('announces readiness so the inline click capture can stop', () => {
+    const ready = vi.fn()
+    document.addEventListener('clod:booking-ready', ready, { once: true })
+    render(<BookingFlow doctors={PUBLIC_DOCTORS} fetcher={transport([]).fetcher} />)
+    expect(ready).toHaveBeenCalledTimes(1)
+  })
+})
+
 async function waitForCalls(request, count) {
   await waitFor(() => {
     if (request.calls.length !== count) throw new Error(`Expected ${count} booking request calls`)
