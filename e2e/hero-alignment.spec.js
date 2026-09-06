@@ -45,6 +45,19 @@ test.describe('Выравнивание текста в hero-блоках', () =
     })
   }
 
+  test('/: текст слайда закреплён у верхнего края hero независимо от высоты карусели врачей', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto('/')
+    const heading = page.locator('h1').first()
+    await expect(heading).toBeVisible()
+    const offset = await heading.evaluate((element) => {
+      const copy = element.parentElement
+      const heroGrid = copy.closest('[aria-live]').parentElement
+      return copy.getBoundingClientRect().top - heroGrid.getBoundingClientRect().top
+    })
+    expect(Math.abs(offset)).toBeLessThanOrEqual(1)
+  })
+
   test('/doctors: текст редакционного hero начинается от верхнего левого края', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     await page.goto('/doctors')
