@@ -2341,6 +2341,34 @@
   .booking-dialog-body[data-booking-summary="false"] .booking-dialog-footer {
     grid-column: 1 / -1;
   }
+  .booking-doctor-picker {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 18rem);
+    align-items: center;
+    column-gap: 1.5rem;
+  }
+  .booking-doctor-picker .booking-doctor-search {
+    margin-block-start: 0;
+  }
+  .booking-doctor-picker .booking-doctor-list,
+  .booking-doctor-picker > p {
+    grid-column: 1 / -1;
+  }
+  .booking-doctor-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .booking-doctor-option {
+    align-content: start;
+    row-gap: 0.5rem;
+    padding: 1rem;
+  }
+  .booking-doctor-option img {
+    grid-row: 1;
+    border-radius: var(--radius-md);
+  }
+  .booking-doctor-option > span:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 640px) {

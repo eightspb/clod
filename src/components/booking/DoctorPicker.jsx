@@ -29,13 +29,11 @@ export function DoctorPicker({ doctors, query, onQueryChange, onSelect }) {
             type="button"
             data-doctor={doctor.slug}
             onClick={() => onSelect(doctor)}
-            className="booking-doctor-option flex min-h-11 w-full items-center gap-4 rounded-2xl border border-clay-bg bg-white p-3 text-left text-clay-dark hover:border-clay-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint"
+            className="booking-doctor-option grid min-h-11 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-1 rounded-2xl border border-clay-bg bg-white p-3 text-left text-clay-dark hover:border-clay-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay-mint"
           >
-            <img src={doctor.photo} alt="" width="56" height="56" loading="lazy" className="h-14 w-14 rounded-full object-cover" />
-            <span className="grid gap-1">
-              <span className="font-semibold">{doctor.name}</span>
-              <span className="text-sm text-clay-muted">{doctor.specialization}</span>
-            </span>
+            <img src={doctor.photo} alt="" width="56" height="56" loading="lazy" className="row-span-2 h-14 w-14 rounded-full object-cover" />
+            <span className="font-semibold">{doctor.name}</span>
+            <span className="text-sm text-clay-muted">{doctor.specialization}</span>
           </button>
         ))}
       </div>
