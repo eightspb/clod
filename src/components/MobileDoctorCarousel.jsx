@@ -106,8 +106,9 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) 
 /**
  * Presents doctors as an accessible circular coverflow above a flat information
  * card; the mobile variant is hidden on desktop, the desktop variant fits a hero column.
+ * An optional autoplayMs interval rotates doctors silently, without selection feedback.
  */
-export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portraitMedia = MOBILE_PORTRAIT_MEDIA }) {
+export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portraitMedia = MOBILE_PORTRAIT_MEDIA, autoplayMs }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const trackRef = useRef(null)
   const pointerIdRef = useRef(undefined)
@@ -122,6 +123,11 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
   }, [doctorKey, gesture])
   useEffect(() => () => selectionFeedbackRef.current?.close(), [])
   const currentIndex = activeIndex < doctors.length ? activeIndex : 0
+  useEffect(() => {
+    if (!autoplayMs || doctors.length < 2) return undefined
+    const timer = setInterval(() => setActiveIndex((index) => (index + 1) % doctors.length), autoplayMs)
+    return () => clearInterval(timer)
+  }, [autoplayMs, doctors.length])
   function moveTo(index) {
     const nextIndex = (index + doctors.length) % doctors.length
     if (nextIndex === currentIndex) return

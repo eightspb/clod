@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MobileDoctorCarousel } from './MobileDoctorCarousel.jsx'
 
 const DOCTORS = Object.freeze([
@@ -429,5 +429,32 @@ describe('MobileDoctorCarousel', () => {
   it('renders nothing for an empty doctor collection', () => {
     const { container } = render(<MobileDoctorCarousel doctors={[]} label="Пустой список" />)
     expect(container.firstChild).toBeNull()
+  })
+})
+
+describe('MobileDoctorCarousel autoplay', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('advances to the next doctor after the autoplay interval', () => {
+    vi.useFakeTimers()
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Автопрокрутка" autoplayMs={5000} />)
+    act(() => vi.advanceTimersByTime(5000))
+    expect(screen.getByRole('region', { name: 'Автопрокрутка' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 3')
+  })
+
+  it('stays on the current doctor without an autoplay interval', () => {
+    vi.useFakeTimers()
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Без автопрокрутки" />)
+    act(() => vi.advanceTimersByTime(60000))
+    expect(screen.getByRole('region', { name: 'Без автопрокрутки' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('1 / 3')
+  })
+
+  it('does not play selection feedback when autoplay switches the doctor', () => {
+    vi.useFakeTimers()
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Тихая автопрокрутка" autoplayMs={5000} />)
+    act(() => vi.advanceTimersByTime(5000))
+    expect(vibrate).not.toHaveBeenCalled()
   })
 })
