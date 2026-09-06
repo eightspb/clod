@@ -13,7 +13,6 @@ alwaysApply: true
 - **Database**: SQLite (libsql) through `drizzle-orm`; schema lives in `src/lib/database-schema.js`, DDL in `scripts/init-db.mjs`
 - **Styling**: Tailwind CSS 3 + custom clay utilities in `src/styles/global.css`
 - **Icons**: Lucide React
-- **CSS library**: `claymorphism-css` (npm package, imported in global.css)
 - **Testing**: Vitest + Testing Library + Playwright
 - **Deployment**: Docker + Docker Compose + Nginx
 - **CI/CD**: GitHub Actions (lint, test, build, e2e)

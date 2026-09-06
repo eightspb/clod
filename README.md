@@ -54,7 +54,7 @@ bun run build          # production-сборка в dist/ + индекс Pagefin
 bun run preview        # превью собранного билда
 ```
 
-После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
+После клонирования один раз включите git-хуки репозитория: `git config core.hooksPath scripts/hooks`. Для Claude Code в `.claude/settings.json` подключён Stop-хук `scripts/hooks/docs-guard.sh`: если в рабочем дереве изменён код (`src/`, `scripts/`, `public/`, `e2e/`, конфиги сборки и деплоя), а `README.md`, `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, `docs/`, `.cursor/rules/` или `.env.example` не тронуты, агент не может завершить задачу, пока не обновит документацию или не объяснит, почему правки не нужны. Хук `scripts/hooks/pre-commit` отклоняет коммит, если в индекс попали `.env*`, `*.sqlite`, `*.stage`, резервные копии или выгрузки пациентов; `.gitignore` по умолчанию запрещает те же файлы, а также `public/uploads/*`.
 
 `bun run dev` и `bun run deploy` вызывают shell-скрипты в `scripts/` (macOS/Linux). Dev-launcher освобождает порт, затем выполняет `astro dev stop`, потому что Astro 7 держит глобальный lock и отказывается стартовать, пока жив другой dev-сервер даже на другом порту (например, поднятый Playwright на 4322); после этого он явно загружает корневой `.env` до старта Astro, поэтому после изменения server-only переменных окружения dev-сервер нужно полностью перезапустить. Локальная база больше не создаётся автоматически: укажите в `.env` локальный файл, например `ASTRO_DB_REMOTE_URL=file:.astro/content.db`, и один раз выполните `node scripts/init-db.mjs`. Playwright сам создаёт временную базу в `os.tmpdir()` и запускает `init-db` перед сервером; под AI-агентом (`CLAUDECODE`) Astro 7 уводит `dev`/`preview` в фон, поэтому `playwright.config.js` снимает эту переменную для webServer.
 
@@ -406,7 +406,8 @@ clod/
 │   ├── audit-dependencies.sh      # bun audit с allowlist из docs/dependency-exposure.ignore
 │   ├── generate-og-images.mjs     # Генерация OG-изображений
 │   ├── normalize-portraits.swift  # Единый холст портретов врачей (Vision + cwebp)
-│   └── hooks/pre-commit           # Отклоняет .env*, *.sqlite, *.stage, бэкапы и выгрузки
+│   ├── hooks/pre-commit           # Отклоняет .env*, *.sqlite, *.stage, бэкапы и выгрузки
+│   └── hooks/docs-guard.sh        # Stop-хук Claude Code: код изменён → документация обязана обновиться
 ├── src/
 │   ├── middleware.js              # Security headers, no-store для /api и /admin, noindex
 │   ├── content.config.ts          # Схема коллекции blog (Content Layer, glob-loader)

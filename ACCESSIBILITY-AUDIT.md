@@ -1,3 +1,5 @@
+> **Исторический документ** (последнее изменение 2026-04-01). Актуальное состояние проекта — в `README.md`; стек с сентября 2026 года — Astro 7, `@astrojs/db` заменён на drizzle + libsql.
+
 # Accessibility Audit: Клиника Одинцова
 
 **Medical website accessibility audit for WCAG 2.1 AA compliance**

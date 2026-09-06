@@ -1,7 +1,7 @@
 ---
 name: seo-audit
 description: >
-  Comprehensive SEO audit for Astro 4 medical clinic site.
+  Comprehensive SEO audit for Astro 7 medical clinic site.
   Analyzes technical SEO, content quality, E-E-A-T signals,
   structured data (JSON-LD), Core Web Vitals factors,
   local/GEO SEO, and accessibility.
@@ -12,7 +12,7 @@ allowed-tools: Bash, Read, Glob, Grep, Agent, Write, Edit
 
 # SEO Audit Skill
 
-Perform a deep, programmatic SEO audit of the Astro 4 medical clinic site by reading source files. Produce a structured report with severity ratings and actionable fixes. Optionally auto-fix issues when safe.
+Perform a deep, programmatic SEO audit of the Astro 7 medical clinic site by reading source files. Produce a structured report with severity ratings and actionable fixes. Optionally auto-fix issues when safe.
 
 ## When to Use
 

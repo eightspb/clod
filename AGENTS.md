@@ -1,7 +1,7 @@
 # AI Agent Instructions
 
 **Project:** Клиника Одинцова (`clod`)
-**Last Updated:** 2026-03-30
+**Last Updated:** 2026-09-06
 
 ## Context Loading Order
 
@@ -47,6 +47,7 @@ For purely editorial content or non-behavioral styling tweaks, use judgment and 
 - Update `README.md` after meaningful changes to features, structure, commands, environment variables, or architectural conventions
 - If a new environment variable is introduced, update `.env.example` in the same change
 - If a new project rule is introduced, keep `.cursor/rules/`, `AGENTS.md`, and `CLAUDE.md` aligned
+- The Stop hook `scripts/hooks/docs-guard.sh` (wired in `.claude/settings.json`) blocks task completion while code is changed and no documentation file is touched; update docs or state explicitly why none are needed
 - Be verbose and direct in README.md and code documentation
 - Keep documentation as short as possible, no code duplication in docs
 - End every task report with `Что сделано`, `Что нужно от вас`, and `Как увидеть результат`.

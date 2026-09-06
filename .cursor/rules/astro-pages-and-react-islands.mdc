@@ -58,6 +58,6 @@ alwaysApply: false
 
 - Blog uses Astro Content Collections (`src/content/blog/`)
 - Articles in Markdown with frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
-- Schema: `src/content/config.ts`
+- Schema: `src/content.config.ts` (Content Layer, `glob`-loader; статьи адресуются по `post.id`)
 - Blog styles: `.prose-clay` class in `global.css`
 - When adding a new article: create `.md` file, fill frontmatter, include GEO keywords (СПб, Санкт-Петербург)

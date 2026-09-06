@@ -1,3 +1,5 @@
+> **Исторический документ** (последнее изменение 2026-04-01). Актуальное состояние проекта — в `README.md`; стек с сентября 2026 года — Astro 7, `@astrojs/db` заменён на drizzle + libsql.
+
 # User Research Plan: Клиника Одинцова
 
 **Project:** Expert Medical Clinic Website Redesign

@@ -1,5 +1,5 @@
 ---
-description: Comprehensive SEO audit for Astro 4 medical clinic site (technical SEO, E-E-A-T, JSON-LD, Core Web Vitals, local/GEO SEO, Yandex SEO)
+description: Comprehensive SEO audit for Astro 7 medical clinic site (technical SEO, E-E-A-T, JSON-LD, Core Web Vitals, local/GEO SEO, Yandex SEO)
 allowed-tools: Bash, Read, Glob, Grep, Agent, Write, Edit
 ---
 

@@ -1,4 +1,4 @@
-# SEO Checklist Reference -- Astro 4 Medical Clinic
+# SEO Checklist Reference -- Astro 7 Medical Clinic
 
 Detailed checklist with severity levels for programmatic SEO audit.
 Total: ~90 checks across 9 categories.

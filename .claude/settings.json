@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/docs-guard.sh",
+            "timeout": 15,
+            "statusMessage": "Проверяю, обновлена ли документация"
+          }
+        ]
+      }
+    ]
+  }
+}
