@@ -29,13 +29,13 @@ async function runDevScript(directory, binDirectory) {
 }
 
 describe('development launcher', () => {
-  it('loads the local dotenv file before starting Astro', async () => {
+  it('stops any lock-holding Astro dev server and loads the local dotenv file before starting', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'clod-dev-script-'))
     const binDirectory = join(directory, 'bin')
     await mkdir(binDirectory)
     await Promise.all([createExecutable(binDirectory, 'bun'), createExecutable(binDirectory, 'bunx')])
     await writeFile(join(directory, '.env'), 'MEDFLEX_CLINIC_TOKEN=local-fixture-token\n')
     const result = await runDevScript(directory, binDirectory)
-    expect(result).toEqual({ status: 0, stdout: ['bun', '--env-file=.env', 'run', 'astro', 'dev', '--port', TEST_PORT], stderr: '' })
+    expect(result).toEqual({ status: 0, stdout: ['bunx', 'astro', 'dev', 'stop', 'bun', '--env-file=.env', 'run', 'astro', 'dev', '--port', TEST_PORT], stderr: '' })
   })
 })

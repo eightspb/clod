@@ -92,7 +92,7 @@ const NUTRITION_STATS = [
   { val: 'План', label: 'подбираем рацион под образ жизни и цели' },
   { val: 'Без диет', label: 'жёстких ограничений как основы подхода' },
   { val: '2-3', label: 'приёма для старта и корректировки плана' },
-  { val: 'Наука', label: 'опираемся только на клинические рекомендации' },
+  { val: 'Доказательно', label: 'опираемся на клинические рекомендации' },
 ]
 
 const NUTRITION_PLAN_POINTS = [
@@ -163,7 +163,7 @@ export function Nutrition() {
                 <div className="grid grid-cols-2" data-route-stats>
                   {NUTRITION_STATS.map((s, i) => (
                     <div key={s.label} className={`p-5 md:p-6 border-[color:var(--border-color)] ${i % 2 === 0 ? 'border-r' : ''} ${i < 2 ? 'border-b' : ''}`}>
-                      <div className="text-3xl sm:text-4xl font-serif font-light text-clay-mint leading-none mb-3">{s.val}</div>
+                      <div className="text-xl sm:text-2xl xl:text-3xl font-serif font-light text-clay-mint leading-none mb-3">{s.val}</div>
                       <p className="text-sm md:text-base text-clay-muted leading-snug break-words">{s.label}</p>
                     </div>
                   ))}

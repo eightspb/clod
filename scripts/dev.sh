@@ -38,6 +38,8 @@ if [ -n "${occupying_pids}" ]; then
   fi
 fi
 
+bunx astro dev stop 2>/dev/null | grep -v "No dev server is running" || true
+
 if [ -f .env ]; then
   exec bun --env-file=.env run astro dev --port "${port}"
 fi
