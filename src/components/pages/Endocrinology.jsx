@@ -136,7 +136,7 @@ export function Endocrinology() {
                 </a>
               </div>
             </div>
-            <ResponsiveDoctorHero doctors={SPECIALTY_DOCTORS} label="Карусель эндокринологов в начале страницы" ctaHref="/second-opinion" desktopClassName="block lg:[&_.hero-doctor-card-inner]:overflow-hidden lg:[&_.hero-doctor-photo-link]:max-h-[260px] lg:[&_.hero-doctor-photo-link]:overflow-hidden lg:[&_.hero-doctor-photo]:max-h-[260px] lg:[&_.hero-doctor-photo]:object-contain lg:[&_.hero-doctor-info]:p-4" />
+            <ResponsiveDoctorHero doctors={SPECIALTY_DOCTORS} label="Карусель эндокринологов в начале страницы" ctaHref="/second-opinion" desktopClassName="block lg:[&_.hero-doctor-card-inner]:overflow-hidden lg:[&_.hero-doctor-photo-link]:max-h-[312px] lg:[&_.hero-doctor-photo-link]:overflow-hidden lg:[&_.hero-doctor-photo]:max-h-[312px] lg:[&_.hero-doctor-photo]:object-contain lg:[&_.hero-doctor-info]:p-4" />
           </div>
         </div>
       </section>
@@ -334,7 +334,7 @@ export function Endocrinology() {
                 </div>
                 <ArrowRight size={16} className="hidden text-clay-peach transition-transform duration-200 group-hover:translate-x-0.5 md:block" />
               </a>
-              <button type="button" data-booking-btn="true" className="group grid w-full gap-3 border-t border-[color:var(--border-color)] px-5 py-5 text-left transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
+              <button type="button" data-booking-btn="true" data-booking-specialty="endocrinology" className="group grid w-full gap-3 border-t border-[color:var(--border-color)] px-5 py-5 text-left transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
                 <MessageCircle size={20} className="text-clay-blue mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-blue transition-colors">Записаться на приём</p>

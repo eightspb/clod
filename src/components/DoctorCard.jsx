@@ -59,11 +59,11 @@ export function DoctorCard({ doctor }) {
         )}
         <div className="doctor-card-footer">
           <div className="doctor-card-specialty clay">
-            <p className="font-semibold text-clay-dark leading-tight truncate">
+            <p className="font-semibold text-clay-dark leading-tight">
               {primarySpecialty}
             </p>
             {secondarySpecialty && (
-              <p className="text-clay-muted leading-tight truncate mt-1">
+              <p className="text-clay-muted leading-tight mt-1">
                 {secondarySpecialty}
               </p>
             )}

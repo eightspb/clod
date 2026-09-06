@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Loader2, Phone, X } from 'lucide-react'
 import { validateBookingPayload } from '../../lib/appointment-validation.js'
 import { PHONE_DISPLAY, PHONE_NUMBER } from '../../lib/contacts.js'
+import { matchesFilter } from '../../lib/filters.js'
 import { AppointmentTypePicker } from './AppointmentTypePicker.jsx'
 import { BookingDialogFooter } from './BookingDialogFooter.jsx'
 import { BookingResult } from './BookingResult.jsx'
@@ -249,6 +250,7 @@ function retryAfterDelay(response, now) {
 export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFetch, uuid = defaultUuid, clock = defaultClock }) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [specialty, setSpecialty] = useState('all')
   const [doctor, setDoctor] = useState(undefined)
   const [step, setStep] = useState('doctor')
   const [windowStart, setWindowStart] = useState('')
@@ -314,6 +316,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
       const selected = slug ? doctors.find((candidate) => candidate.slug === slug) : undefined
       triggerRef.current = trigger
       setQuery('')
+      setSpecialty(trigger.getAttribute('data-booking-specialty')?.trim() || 'all')
       setWindowStart(clinicDate(clock()))
       setDoctor(selected)
       setSchedule(undefined)
@@ -723,7 +726,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
           <div className="booking-dialog-scroll">
             {showSummary && <DoctorSummary doctor={doctor} location={schedule.doctor.location} appointmentType={selectedType} slot={selectedSlot} />}
             <div className="booking-dialog-content min-w-0" aria-busy={isSubmitting}>
-            {step === 'doctor' && <DoctorPicker doctors={doctors} query={query} onQueryChange={setQuery} onSelect={selectDoctor} />}
+            {step === 'doctor' && <DoctorPicker doctors={doctors.filter((candidate) => matchesFilter(candidate, specialty))} query={query} onQueryChange={setQuery} onSelect={selectDoctor} />}
             {step === 'loading' && <div className="booking-loading flex min-h-52 items-center justify-center gap-3 text-clay-muted"><Loader2 aria-hidden="true" className="animate-spin motion-reduce:animate-none" size={20} />Загружаем расписание</div>}
             {step === 'type' && schedule && <AppointmentTypePicker types={schedule.appointmentTypes} selectedKey={selectedType?.key ?? ''} onSelect={chooseType} />}
             {step === 'schedule' && schedule && <SchedulePicker dates={schedule.dates} selectedDate={selectedDate} selectedSlot={selectedSlot} actionsTarget={actionsTarget} onSelectDate={chooseDate} onSelectSlot={chooseSlot} onContinue={continueSchedule} />}
