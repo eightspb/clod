@@ -324,3 +324,19 @@ test('styles alternative and retry actions through their booking hooks', async (
   const retry = await interactionStyle(page, '.booking-retry')
   expect({ alternative, retry }).toEqual({ alternative: { minHeight: '44px', cursor: 'pointer', shadowed: true, outlineWidth: '3px', outlineOffset: '3px', hoverChanged: true }, retry: { minHeight: '44px', cursor: 'pointer', shadowed: true, outlineWidth: '3px', outlineOffset: '3px', hoverChanged: true } })
 })
+
+test('lays out the nine doctors as a three-by-three card grid on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 800 })
+  await isolateBookingNetwork(page)
+  await page.goto('/')
+  await page.locator('astro-island[component-export="BookingFlow"]:not([ssr])').waitFor({ state: 'attached' })
+  await page.locator('header [data-booking-btn]').first().click()
+  const dialog = page.getByRole('dialog', { name: 'Онлайн-запись' })
+  await dialog.getByRole('heading', { name: 'Выберите врача' }).waitFor()
+  const grid = await dialog.locator('.booking-doctor-list').evaluate((list) => {
+    const scroll = list.closest('.booking-dialog-scroll').getBoundingClientRect()
+    const options = [...list.querySelectorAll('.booking-doctor-option')].map((option) => option.getBoundingClientRect())
+    return { columns: getComputedStyle(list).gridTemplateColumns.split(' ').length, rows: new Set(options.map((rect) => Math.round(rect.top))).size, visible: options.filter((rect) => rect.top >= scroll.top && rect.bottom <= scroll.bottom).length }
+  })
+  expect(grid).toEqual({ columns: 3, rows: 3, visible: 9 })
+})
