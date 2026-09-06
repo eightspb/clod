@@ -7,7 +7,7 @@
  *   bun run scripts/generate-og-images.mjs --force     # regenerate all
  *   bun run scripts/generate-og-images.mjs index vab   # generate specific slugs
  */
-import { writeFile, mkdir, readFile } from 'node:fs/promises'
+import { writeFile, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { OG_PROMPTS, buildOgPrompt } from '../src/lib/og-prompts.js'
@@ -109,7 +109,7 @@ async function pollUntilDone(mediaId, slug, maxAttempts = 60) {
   return { status: 'timeout' }
 }
 
-async function generateOne(slug) {
+async function generateOne(slug, force) {
   const prompt = buildOgPrompt(slug)
   if (!prompt) {
     console.log(`  [skip] No prompt for: ${slug}`)
@@ -162,7 +162,7 @@ let failed = 0
 
 for (const slug of slugs) {
   try {
-    const ok = await generateOne(slug)
+    const ok = await generateOne(slug, force)
     if (ok) generated++
     else skipped++
   } catch (err) {

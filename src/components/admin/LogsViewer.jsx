@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useAdminFetch } from '../../lib/useAdminFetch.js'
 
 const EVENT_TYPES = ['', 'click', 'navigation', 'page_enter', 'page_leave', 'form_submit', 'heartbeat']
@@ -184,9 +184,8 @@ export function LogsViewer() {
             </thead>
             <tbody>
               {logs.map((log) => (
-                <>
+                <Fragment key={log.id}>
                   <tr
-                    key={log.id}
                     onClick={() => setExpanded(expanded === log.id ? null : log.id)}
                     style={{
                       borderBottom: '1px solid #f1f5f9',
@@ -213,7 +212,7 @@ export function LogsViewer() {
                     </td>
                   </tr>
                   {expanded === log.id && (
-                    <tr key={`${log.id}-detail`} style={{ background: '#f8fafc' }}>
+                    <tr style={{ background: '#f8fafc' }}>
                       <td colSpan={6} style={{ padding: '10px 14px 14px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '6px', fontSize: '12px' }}>
                           <div><span style={{ color: '#94a3b8' }}>Log ID: </span><span style={{ fontFamily: 'monospace', color: '#374151' }}>{log.id}</span></div>
@@ -230,7 +229,7 @@ export function LogsViewer() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
