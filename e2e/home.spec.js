@@ -46,7 +46,7 @@ test.describe('Главная страница', () => {
   test('на десктопе стрелки находятся по сторонам hero-контента', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     await page.goto('/')
-    const slide = await page.getByRole('group', { name: /слайд 1 из 3/i }).boundingBox()
+    const slide = await page.getByRole('group', { name: /слайд 1 из 6/i }).boundingBox()
     const previous = await page.getByRole('button', { name: /предыдущий слайд/i }).boundingBox()
     const next = await page.getByRole('button', { name: /следующий слайд/i }).boundingBox()
     const positions = {
@@ -59,7 +59,7 @@ test.describe('Главная страница', () => {
   test('на десктопе текст начинается от верхнего левого края hero-слайда', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 })
     await page.goto('/')
-    const slide = page.getByRole('group', { name: /слайд 1 из 3/i })
+    const slide = page.getByRole('group', { name: /слайд 1 из 6/i })
     const offset = await slide.evaluate((element) => {
       const slideBox = element.getBoundingClientRect()
       const textBox = element.querySelector('.max-w-3xl').getBoundingClientRect()
@@ -84,11 +84,25 @@ test.describe('Главная страница', () => {
     const hero = page.getByRole('region', { name: /главный слайдер/i })
     const next = page.getByRole('button', { name: /следующий слайд/i })
     const heights = [await hero.evaluate((element) => element.getBoundingClientRect().height)]
-    for (let index = 0; index < 3; index += 1) {
+    for (let index = 0; index < 6; index += 1) {
       await next.click()
       await page.waitForTimeout(900)
       heights.push(await hero.evaluate((element) => element.getBoundingClientRect().height))
     }
     expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1)
+  })
+})
+
+test.describe('Карусель врачей в hero главной', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('продолжает менять врача, пока посетитель сам листает слайды', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto('/')
+    const count = page.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).locator('.mobile-doctor-carousel-count')
+    await count.waitFor()
+    await page.getByRole('button', { name: /следующий слайд/i }).click()
+    const afterSlideSwitch = await count.textContent()
+    await expect(count).not.toHaveText(afterSlideSwitch, { timeout: 10_000 })
   })
 })

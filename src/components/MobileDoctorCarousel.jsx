@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import { StarRating } from './StarRating.jsx'
 import { createSelectionFeedback } from '../lib/selection-feedback.js'
 import { createSwipeGesture } from '../lib/swipe-gesture.js'
+import { useReducedMotion } from '../lib/use-reduced-motion.js'
 
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
 const MOBILE_PORTRAIT_MEDIA = '(max-width: 767px)'
+export const DOCTOR_AUTOPLAY_INTERVAL = 4000
 
 function coverflowPosition(index, activeIndex, length) {
   if (index === activeIndex) return 'current'
@@ -106,7 +108,8 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) 
 /**
  * Presents doctors as an accessible circular coverflow above a flat information
  * card; the mobile variant is hidden on desktop, the desktop variant fits a hero column.
- * An optional autoplayMs interval rotates doctors silently, without selection feedback.
+ * An optional autoplayMs interval rotates doctors silently, without selection feedback,
+ * independently of manual switching and stoppable through its own pause control (WCAG 2.2.2).
  */
 export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portraitMedia = MOBILE_PORTRAIT_MEDIA, autoplayMs }) {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -114,6 +117,9 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
   const pointerIdRef = useRef(undefined)
   const gestureRef = useRef(undefined)
   const selectionFeedbackRef = useRef(null)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const isAutoplayRunning = Boolean(autoplayMs) && !isAutoplayPaused && !prefersReducedMotion && doctors.length > 1
   const doctorKey = useMemo(() => doctors.map((doctor) => doctor.slug).join('|'), [doctors])
   gestureRef.current ||= createSwipeGesture()
   const gesture = gestureRef.current
@@ -124,10 +130,10 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
   useEffect(() => () => selectionFeedbackRef.current?.close(), [])
   const currentIndex = activeIndex < doctors.length ? activeIndex : 0
   useEffect(() => {
-    if (!autoplayMs || doctors.length < 2) return undefined
+    if (!isAutoplayRunning) return undefined
     const timer = setInterval(() => setActiveIndex((index) => (index + 1) % doctors.length), autoplayMs)
     return () => clearInterval(timer)
-  }, [autoplayMs, doctors.length])
+  }, [isAutoplayRunning, autoplayMs, doctors.length])
   function moveTo(index) {
     const nextIndex = (index + doctors.length) % doctors.length
     if (nextIndex === currentIndex) return
@@ -176,6 +182,17 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
       data-mobile-doctor-carousel
       data-variant={variant}
     >
+      {Boolean(autoplayMs) && doctors.length > 1 && !prefersReducedMotion && (
+        <button
+          type="button"
+          className="mobile-doctor-autoplay-toggle"
+          onClick={() => setIsAutoplayPaused((paused) => !paused)}
+          aria-pressed={isAutoplayPaused}
+          aria-label={isAutoplayPaused ? 'Возобновить смену врачей' : 'Приостановить смену врачей'}
+        >
+          {isAutoplayPaused ? <Play size={14} strokeWidth={1.8} aria-hidden="true" /> : <Pause size={14} strokeWidth={1.8} aria-hidden="true" />}
+        </button>
+      )}
       <div
         ref={trackRef}
         className="mobile-doctor-carousel-track"

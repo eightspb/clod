@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { ArrowRight, CheckCircle, ChevronRight, ChevronLeft, Pause, Play } from 'lucide-react'
-import { MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
+import { DOCTOR_AUTOPLAY_INTERVAL, MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
+import { useReducedMotion } from '../../lib/use-reduced-motion.js'
 
 const HERO_AUTOPLAY_INTERVAL = 6000
-const HERO_DOCTOR_AUTOPLAY_INTERVAL = 4000
 const HERO_CAROUSEL_LABEL = 'Карусель врачей в главном слайдере'
 const HERO_PORTRAIT_MEDIA = '(min-width: 1024px)'
 
@@ -30,31 +30,32 @@ const heroSlides = [
     primaryBtn: { label: 'Проверить операцию', href: '/second-opinion' },
     secondaryBtn: { label: 'Как это работает', href: '/second-opinion' },
   },
+  {
+    trustBadge: 'Гинекология',
+    title: <>Бережный приём гинеколога <br /><span className="heading-accent">без лишних назначений</span></>,
+    desc: 'Осмотр, кольпоскопия и УЗИ по показаниям. Лечим только то, что действительно требует лечения.',
+    primaryBtn: { label: 'Записаться', href: '#appointment-form' },
+    secondaryBtn: { label: 'Подробнее о гинекологии', href: '/gynecology' },
+  },
+  {
+    trustBadge: 'Эндокринология',
+    title: <>Щитовидная железа, гормоны и вес <br /><span className="heading-accent">по шагам</span></>,
+    desc: 'Разбираем жалобы и анализы, назначаем только нужные исследования и объясняем следующий шаг.',
+    primaryBtn: { label: 'Записаться', href: '#appointment-form' },
+    secondaryBtn: { label: 'Подробнее об эндокринологии', href: '/endocrinology' },
+  },
+  {
+    trustBadge: 'Нутрициология',
+    title: <>Питание с опорой на анализы <br /><span className="heading-accent">без жёстких диет</span></>,
+    desc: 'Персональный план питания с учётом дефицитов и привычного ритма жизни, добавки — по показаниям.',
+    primaryBtn: { label: 'Записаться', href: '#appointment-form' },
+    secondaryBtn: { label: 'Подробнее о нутрициологии', href: '/nutrition' },
+  },
 ]
 
 export function HeroSlider() {
   const [activeSlide, setActiveSlide] = useState(0)
-  const [isAutoplayDisabled, setIsAutoplayDisabled] = useState(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const updateAutoplay = (event) => setIsAutoplayDisabled(event.matches)
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', updateAutoplay)
-    } else if (typeof mediaQuery.addListener === 'function') {
-      mediaQuery.addListener(updateAutoplay)
-    }
-    return () => {
-      if (typeof mediaQuery.removeEventListener === 'function') {
-        mediaQuery.removeEventListener('change', updateAutoplay)
-      } else if (typeof mediaQuery.removeListener === 'function') {
-        mediaQuery.removeListener(updateAutoplay)
-      }
-    }
-  }, [])
+  const isAutoplayDisabled = useReducedMotion()
   const [isPaused, setIsPaused] = useState(false)
   const [isEngaged, setIsEngaged] = useState(false)
   const isAutoplayActive = !isAutoplayDisabled && !isPaused && !isEngaged
@@ -139,14 +140,14 @@ export function HeroSlider() {
             })}
           </div>
           <div className="hidden lg:block">
-            <MobileDoctorCarousel doctors={DOCTORS} label={HERO_CAROUSEL_LABEL} variant="desktop" portraitMedia={HERO_PORTRAIT_MEDIA} autoplayMs={isAutoplayActive ? HERO_DOCTOR_AUTOPLAY_INTERVAL : undefined} />
+            <MobileDoctorCarousel doctors={DOCTORS} label={HERO_CAROUSEL_LABEL} variant="desktop" portraitMedia={HERO_PORTRAIT_MEDIA} autoplayMs={DOCTOR_AUTOPLAY_INTERVAL} />
           </div>
         </div>
         <div className="flex justify-center items-center gap-3 mt-8 lg:mt-0">
           <button
             type="button"
             onClick={prevSlide}
-            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:left-0 lg:-translate-y-1/2 xl:-left-3"
+            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:left-0 lg:-translate-y-1/2 xl:left-[calc(2rem-46px)]"
             style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
             aria-label="Предыдущий слайд"
           >
@@ -155,7 +156,7 @@ export function HeroSlider() {
           <button
             type="button"
             onClick={nextSlide}
-            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:-translate-y-1/2 xl:-right-3"
+            className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:-translate-y-1/2 xl:right-[calc(2rem-46px)]"
             style={{ width: '44px', height: '44px', flexShrink: 0, top: '50%', background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
             aria-label="Следующий слайд"
           >
@@ -165,7 +166,7 @@ export function HeroSlider() {
             <button
               type="button"
               onClick={() => setIsPaused((current) => !current)}
-              className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:bottom-0 xl:-right-3"
+              className="rounded-full flex items-center justify-center transition-colors lg:absolute lg:right-0 lg:bottom-0 xl:right-[calc(2rem-46px)]"
               style={{ width: '44px', height: '44px', flexShrink: 0, background: 'rgb(var(--color-mint-rgb) / 0.10)', border: '1px solid rgb(var(--color-mint-rgb) / 0.16)' }}
               aria-pressed={isPaused}
               aria-label={isPaused ? 'Возобновить автопрокрутку слайдов' : 'Приостановить автопрокрутку слайдов'}

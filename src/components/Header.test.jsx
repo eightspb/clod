@@ -87,6 +87,40 @@ describe('Header', () => {
     expect(screen.queryByRole('menuitem', { name: /маммология/i })).toBeNull()
   })
 
+  it('lets the pointer pass through the invisible full-width wrapper of the directions panel', () => {
+    render(<Header />)
+    fireEvent.focus(screen.getByRole('button', { name: /направления/i }))
+    const wrapper = screen.getByRole('menu', { name: /^направления$/i }).closest('[data-dropdown-panel]')
+    expect(wrapper.className).toContain('pointer-events-none')
+  })
+
+  it('keeps the directions card column interactive inside the pass-through wrapper', () => {
+    render(<Header />)
+    fireEvent.focus(screen.getByRole('button', { name: /направления/i }))
+    expect(screen.getByRole('menu', { name: /^направления$/i }).parentElement.className).toContain('pointer-events-auto')
+  })
+
+  it('bridges the gap between the trigger and the directions card inside the interactive column', () => {
+    render(<Header />)
+    fireEvent.focus(screen.getByRole('button', { name: /направления/i }))
+    expect(screen.getByRole('menu', { name: /^направления$/i }).parentElement.className).toContain('pt-2')
+  })
+
+  it('lets the pointer pass through the invisible full-width wrapper of the doctors panel', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByRole('button', { name: /показать подразделы: доктора/i }))
+    const wrapper = screen.getByRole('menu', { name: /^доктора$/i }).closest('[data-dropdown-panel]')
+    expect(wrapper.className).toContain('pointer-events-none')
+  })
+
+  it('closes the desktop mega-menu when the pointer leaves its root', async () => {
+    render(<Header />)
+    const dropdownButton = screen.getByRole('button', { name: /направления/i })
+    fireEvent.mouseEnter(dropdownButton.closest('[data-nav-dropdown-root]'))
+    fireEvent.mouseLeave(dropdownButton.closest('[data-nav-dropdown-root]'))
+    await waitFor(() => expect(screen.queryByRole('menu', { name: /^направления$/i })).toBeNull())
+  })
+
   it('renders ВАБ link inside mega-menu when Направления is open', () => {
     render(<Header />)
     const dropdownButton = screen.getByRole('button', { name: /направления/i })

@@ -3,9 +3,7 @@ import { isAuthenticated } from './lib/auth.js'
 import { throttleUnauthenticatedAdmin } from './lib/admin-api.js'
 
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
-// Primary fonts are self-hosted (/fonts/); Google Fonts are loaded dynamically
-// by ThemeSwitcher for alternative font selection — fonts.googleapis.com (CSS)
-// and fonts.gstatic.com (woff2 files) must be allowed.
+// Fonts are self-hosted (/fonts/), so no external font host is allowed.
 // tracker.js makes fetch calls only to same-origin /api/* endpoints.
 // Astro SSG hydration and JSON-LD scripts require 'unsafe-inline' for script-src.
 // NOTE: 'require-trusted-types-for' is intentionally omitted — it conflicts with
@@ -19,8 +17,8 @@ function getCspDirectives() {
   return [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: https:",
     "frame-src https://yandex.ru",
     `connect-src ${connectSrc}`,

@@ -10,8 +10,8 @@ import {
 } from './font-size.js'
 
 describe('font size settings', () => {
-  it('keeps the browser default size as the baseline', () => {
-    expect(FONT_SIZE_DEFAULT).toBe(100)
+  it('keeps one step below the browser default as the baseline', () => {
+    expect(FONT_SIZE_DEFAULT).toBe(95)
   })
 
   it('keeps five percent as the font size step', () => {
@@ -27,11 +27,11 @@ describe('font size settings', () => {
   })
 
   it('increases the size by one step', () => {
-    expect(increaseFontSize(FONT_SIZE_DEFAULT)).toBe(105)
+    expect(increaseFontSize(FONT_SIZE_DEFAULT)).toBe(100)
   })
 
   it('decreases the size by one step', () => {
-    expect(decreaseFontSize(FONT_SIZE_DEFAULT)).toBe(95)
+    expect(decreaseFontSize(FONT_SIZE_DEFAULT)).toBe(90)
   })
 
   it('falls back to the default size for invalid storage values', () => {

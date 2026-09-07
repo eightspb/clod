@@ -35,6 +35,11 @@ describe('ResponsiveDoctorCollection', () => {
     expect({ carousel: screen.queryByRole('region'), mobile: { article: mobileCard.tagName, heading: within(mobileCard).getByRole('heading', { level: 3, name: doctor.name }).textContent, booking: within(mobileCard).getByRole('button', { name: `Записаться на приём к врачу ${doctor.name}` }).getAttribute('data-booking-doctor'), profile: within(mobileCard).getByRole('link', { name: 'Подробнее' }).getAttribute('href') }, desktop: within(desktopWrapper).getAllByRole('article').map((card) => within(card).getByRole('heading', { level: 3 }).textContent), previous: screen.queryByRole('button', { name: 'Предыдущий врач' }), next: screen.queryByRole('button', { name: 'Следующий врач' }) }).toEqual({ carousel: null, mobile: { article: 'ARTICLE', heading: doctor.name, booking: doctor.slug, profile: `/doctors/${doctor.slug}` }, desktop: [doctor.name], previous: null, next: null })
   })
 
+  it('rotates the mobile collection automatically with a pause control', () => {
+    render(<ResponsiveDoctorCollection doctors={createDoctors()} label="Карусель врачей направления" mobileClassName="md:hidden" desktopClassName="hidden md:grid" />)
+    expect(screen.getByRole('button', { name: 'Приостановить смену врачей' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('renders no doctor presentation for an empty collection', () => {
     const { container } = render(<ResponsiveDoctorCollection doctors={[]} label="Пустая карусель" mobileClassName="md:hidden" desktopClassName="hidden md:grid" />)
     expect(container.firstChild).toBeNull()

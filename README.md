@@ -38,7 +38,7 @@
 | База данных | **SQLite** через `@libsql/client` + `drizzle-orm` (`src/lib/database.js`); схема создаётся `scripts/init-db.mjs` |
 | Стилизация | **Tailwind CSS 3** + CSS-переменные дизайн-системы в `src/styles/global.css` |
 | Иконки | **Lucide React** |
-| Тема | Skinnable CSS-архитектура (~87 CSS-переменных в `:root`), `ThemeSwitcher.jsx` (20 цветовых пресетов, 3 шрифтовых селектора) |
+| Тема | Skinnable CSS-архитектура (~87 CSS-переменных в `:root`), одна зафиксированная тема без переключателя |
 | Язык | JavaScript (`.jsx` файлы), контент на русском |
 | Роутинг | File-based routing Astro (не React Router) |
 
@@ -96,7 +96,7 @@ Workflow работает с `permissions: contents: read`, `concurrency` с о�
 |------|------------|
 | `vitest.config.mjs` | Vitest + Astro getViteConfig, jsdom |
 | `eslint.config.js` | ESLint 9 flat config + Astro (TS-frontmatter), React; ignores только для сборочных артефактов и `public/**` (копия трекера линтуется в `src/lib`) |
-| `playwright.config.js` | Playwright, webServer: dev/preview |
+| `playwright.config.js` | Playwright, webServer: dev/preview; `use.reducedMotion: 'reduce'` глобально, чтобы карусели врачей не крутились под геометрическими спеками — спеки автопрокрутки снимают его через `test.use({ reducedMotion: 'no-preference' })` |
 | `.github/workflows/ci.yml` | GitHub Actions pipeline |
 
 ---
@@ -118,15 +118,19 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 Клиентские React islands используются для интерактивных публичных компонентов и админ-панели. `Layout.astro` монтирует ровно один глобальный `BookingFlow` с `client:idle`; все кнопки записи открывают этот общий first-party диалог через публичные атрибуты-триггеры. Клик по триггеру до гидратации перехватывает inline-скрипт лейаута (`data-booking-pending`), а смонтированный диалог шлёт `clod:booking-ready`, снимает перехват и открывается по отложенному клику. `Header` получает группы врачей mega-menu props из `doctorGroups(DOCTORS)` в лейауте, поэтому его клиентский чанк не тянет `doctors-data.js`.
 
+### Desktop mega-menu
+
+Пункты `Направления`, `Доктора`, `О клинике` и `Пациентам` раскрываются наведением мыши на корень пункта (`data-nav-dropdown-root`) и закрываются через 150 мс после ухода указателя; клик, `ArrowDown` и `Escape` работают как раньше. Выпадающая панель растянута на всю ширину экрана (`width: 100vw`), поэтому её внешняя обёртка `data-dropdown-panel` имеет `pointer-events-none`: иначе невидимые поля панели слева и справа от карточки перехватывали указатель, и меню не закрывалось при уводе мыши вбок. Интерактивна только колонка `container-clay` с карточкой; в ней же лежит отступ `pt-2`, который служит мостом между кнопкой и карточкой, иначе переход к пунктам меню пересекал бы мёртвую зону и закрывал панель. Контракты — `src/components/Header.test.jsx`.
+
 ### Адаптивное представление врачей
 
 `ResponsiveDoctorHero` и `ResponsiveDoctorCollection` задают единый responsive-контракт для hero-блоков и секций врачей. На мобильных экранах коллекция из двух и более врачей использует `MobileDoctorCarousel`; коллекция из одного врача остаётся обычной `DoctorCard`, а single-doctor hero сохраняет прежнее неинтерактивное представление без карусельных контролов. На desktop сохраняются существующие `HeroDoctorCard` и сетки `DoctorCard`.
 
 Контракт действует на профильных страницах маммологии, гинекологии, эндокринологии, нутрициологии, второго мнения и ВАБ, а также на страницах аденомиоза, эндометриоза, эрозии шейки матки, фиброаденомы, гипотиреоза, кисты молочной железы, мастопатии и тиреоидита Хашимото. Каждая карусель получает контекстную accessibility-метку; кнопка записи и ссылка на профиль всегда относятся к активному врачу. Коллекция из двух врачей показывает соседа только один раз, на позиции `next`, без визуального клона на противоположной стороне.
 
-С сентября 2026 года hero-блок с несколькими врачами на desktop тоже показывает эту карусель (`MobileDoctorCarousel` с `variant="desktop"` и `portraitMedia` из `desktopMedia`) вместо прежней случайной ротации `HeroDoctorCard`; та остаётся только для одного врача. Desktop-вариант ограничен колонкой (`max-width: 24rem`, `height: clamp(30rem, calc(100vh - 17rem), 39.5rem)`, то есть на экране высотой 800 px карусель сжимается до 528 px и весь hero остаётся в кадре) с `overflow: visible`: боковые портреты выходят за края колонки, а не обрезаются ею. Автопрокрутки нет ни на mobile, ни на desktop (исключение — карусель в hero-слайдере главной, см. «Hero-слайдер»): врач меняется стрелками, клавиатурой, перетаскиванием мышью или свайпом.
+С сентября 2026 года hero-блок с несколькими врачами на desktop тоже показывает эту карусель (`MobileDoctorCarousel` с `variant="desktop"` и `portraitMedia` из `desktopMedia`) вместо прежней случайной ротации `HeroDoctorCard`; та остаётся только для одного врача. Desktop-вариант ограничен колонкой (`max-width: 24rem`, `height: clamp(30rem, calc(100vh - 17rem), 39.5rem)`, то есть на экране высотой 800 px карусель сжимается до 528 px и весь hero остаётся в кадре) с `overflow: visible`: боковые портреты выходят за края колонки, а не обрезаются ею. Врач меняется стрелками, клавиатурой, перетаскиванием мышью или свайпом, а там, где карусель получает prop `autoplayMs`, ещё и сам. С 6 сентября 2026 года автопрокрутку получают обе карусели `ResponsiveDoctorHero`, mobile-карусель `ResponsiveDoctorCollection` и карусель в hero-слайдере главной: единый интервал `DOCTOR_AUTOPLAY_INTERVAL` (4 секунды) экспортируется из `MobileDoctorCarousel.jsx`. Автопрокрутка идёт тихо (без звука и вибрации `selection-feedback`) и не зависит ни от ручного переключения врача, ни от того, чем посетитель занят на странице: раньше карусель главной вставала, как только указатель или фокус попадали в слайдер, поэтому после первого же клика по стрелке слайда врачи замирали. Останавливают её только две вещи: `prefers-reduced-motion` и собственная кнопка карусели «Приостановить/Возобновить смену врачей» (`aria-pressed`, WCAG 2.2.2) — круглая кнопка 36 px в правом верхнем углу сцены поверх портретов, она же скрыта при `prefers-reduced-motion` и без `autoplayMs`. Карусели `/doctors` и mobile-секции «Наши доктора» на главной `autoplayMs` не получают: там врач выбирается фильтрами вручную. Контракты — `src/components/MobileDoctorCarousel.test.jsx`, `src/components/ResponsiveDoctorHero.test.jsx`, `src/components/ResponsiveDoctorCollection.test.jsx` и e2e «меняет врача в hero /mammology без участия посетителя и останавливает смену кнопкой паузы».
 
-С 6 сентября 2026 года карусель использует дизайн «Открытая сцена» (handoff `design_handoff_hero_doctor_carousel`, вариант 1b) в обоих вариантах. Корень — CSS grid `62fr 38fr`: верхние 62 % занимает сцена с портретами без подложки на фоне hero, нижние 38 % — плоская белая карточка (`.mobile-doctor-plinth`: `border 1px var(--border-color)`, радиус 22 px, `--shadow-sm` плюс мягкая тень вверх на портреты). Стеклянная плашка с градиентами, псевдоэлементами, `backdrop-filter`, металлический градиент ФИО, анимация звёзд и плавающие стеклянные стрелки над сценой удалены. Стрелки и счётчик «1 / 5» стоят в шапке карточки напротив ФИО (кнопки 36 px с невидимой зоной нажатия 44 px); ниже — все специальности из `specialization` в две строки фиксированной высоты (`-webkit-line-clamp: 2`, `block-size: 2.5em`), строка «Стаж N лет · ★ 5.0 (отзывов)» с одной звездой в обоих вариантах и две равные кнопки `btn-clay-primary` «Записаться» и `btn-clay-secondary` «Профиль →». В desktop-варианте блоки карточки идут сверху вниз с единым шагом (`justify-content: flex-start`, `gap 0.75rem`, внутри info `0.5rem`), а не растягиваются `space-between` по высоте плашки: с зарезервированными второй строкой ФИО и специальности растяжка давала неровные просветы. Mobile-вариант сохраняет `space-between` и `gap 0.5rem`, иначе на 320×568 кнопки выходят за плашку (контракт reachable в `e2e/mobile-doctor-carousel.spec.js`). Слайд: `top: 4%`, `bottom: -3%`, ширина `76cqw` от карусели (`container-type: inline-size`), позиции coverflow `∓40 %`/`0.78` для соседей с `brightness(1.12) contrast(0.85) blur(0.6px)` и `∓70 %`/`0.6`/`opacity 0.65` для дальних с `brightness(1.2) contrast(0.75) blur(1.2px)`, easing `var(--ease-spring)` 560 ms. Mobile-вариант больше не выезжает на всю ширину экрана отрицательными margin: карусель высотой `35rem` стоит внутри обычных отступов контейнера (на `/doctors` она обёрнута в `container-clay`), а на всю ширину viewport с `overflow-x: clip` выходит только дорожка портретов. Все размеры шрифта в карточке равны `var(--fs-base)` из-за нижней границы размера шрифта, ФИО — Lora 400 `clamp(1rem, 5.4cqw, 1.3rem)` от ширины карусели в обоих вариантах, счётчик фиксированной ширины `2.75rem`, чтобы ширина ФИО не менялась с цифрами (Golos Text без `tnum`); на viewport уже 360 px стрелки 32 px и счётчик `2.5rem`, но самые длинные «Фамилия Имя» (Одинцов, Приходько, Егорова) на 320 px всё равно получают ellipsis при полном ФИО в `aria-label`. Контракты: `src/components/MobileDoctorCarousel.test.jsx`, `e2e/mobile-doctor-carousel.spec.js`, `e2e/sitewide-mobile-doctor-carousel.spec.js`.
+С 6 сентября 2026 года карусель использует дизайн «Открытая сцена» (handoff `design_handoff_hero_doctor_carousel`, вариант 1b) в обоих вариантах. Корень — CSS grid `62fr 38fr`: верхние 62 % занимает сцена с портретами без подложки на фоне hero, нижние 38 % — плоская белая карточка. Доля `38fr` — предпочтительная, а не жёсткая: у `.mobile-doctor-plinth` нет `min-height: 0`, поэтому при увеличении шрифта строка карточки растёт до `min-content` и забирает высоту у сцены вместо того, чтобы обрезать кнопки. На desktop это обязательно: высота карусели частично задана `calc(100vh - 17rem)` и растёт медленнее содержимого (контракт `keeps the desktop doctor card padding intact at every font size step`) (`.mobile-doctor-plinth`: `border 1px var(--border-color)`, радиус 22 px, `--shadow-sm` плюс мягкая тень вверх на портреты). Стеклянная плашка с градиентами, псевдоэлементами, `backdrop-filter`, металлический градиент ФИО, анимация звёзд и плавающие стеклянные стрелки над сценой удалены. Стрелки и счётчик «1 / 5» стоят в шапке карточки напротив ФИО (кнопки 36 px с невидимой зоной нажатия 44 px); ниже — все специальности из `specialization` в две строки фиксированной высоты (`-webkit-line-clamp: 2`, `block-size: 2.5em`), строка «Стаж N лет · ★ 5.0 (отзывов)» с одной звездой в обоих вариантах и две равные кнопки `btn-clay-primary` «Записаться» и `btn-clay-secondary` «Профиль →». В desktop-варианте блоки карточки идут сверху вниз с единым шагом (`justify-content: flex-start`, `gap 0.75rem`, внутри info `0.5rem`), а не растягиваются `space-between` по высоте плашки: с зарезервированными второй строкой ФИО и специальности растяжка давала неровные просветы. Mobile-вариант сохраняет `space-between` и `gap 0.5rem`, иначе на 320×568 кнопки выходят за плашку (контракт reachable в `e2e/mobile-doctor-carousel.spec.js`). Слайд: `top: 4%`, `bottom: -3%`, ширина `76cqw` от карусели (`container-type: inline-size`), позиции coverflow `∓40 %`/`0.78` для соседей с `brightness(1.12) contrast(0.85) blur(0.6px)` и `∓70 %`/`0.6`/`opacity 0.65` для дальних с `brightness(1.2) contrast(0.75) blur(1.2px)`, easing `var(--ease-spring)` 560 ms. Mobile-вариант больше не выезжает на всю ширину экрана отрицательными margin: карусель высотой `35rem` стоит внутри обычных отступов контейнера (на `/doctors` она обёрнута в `container-clay`), а на всю ширину viewport с `overflow-x: clip` выходит только дорожка портретов. Все размеры шрифта в карточке равны `var(--fs-base)` из-за нижней границы размера шрифта, ФИО — Georgia 400 `clamp(1rem, 5.4cqw, 1.3rem)` от ширины карусели в обоих вариантах, счётчик фиксированной ширины `2.75rem`, чтобы ширина ФИО не менялась с цифрами (Golos Text без `tnum`); на viewport уже 360 px стрелки 32 px и счётчик `2.5rem`, но самые длинные «Фамилия Имя» (Одинцов, Приходько, Егорова) на 320 px всё равно получают ellipsis при полном ФИО в `aria-label`. Контракты: `src/components/MobileDoctorCarousel.test.jsx`, `e2e/mobile-doctor-carousel.spec.js`, `e2e/sitewide-mobile-doctor-carousel.spec.js`.
 
 Свайп пальцем обрабатывается нативными `touchstart`/`touchmove` слушателями (`passive: false`) через `src/lib/swipe-gesture.js`: ось жеста фиксируется после первых 10 px, горизонтальный жест вызывает `preventDefault` и переключает врача уже во время движения после 48 px. Это нужно для iOS Safari, который при `touch-action: pan-y` шлёт `pointercancel` на любой горизонтальный свайп с вертикальным дрейфом, поэтому решение по `pointerup` на реальном iPhone не срабатывало. Pointer-события с `pointerType: 'touch'` игнорируются, чтобы жест не обрабатывался дважды; мышь и стилус по-прежнему идут через pointer-события.
 
@@ -419,7 +423,7 @@ clod/
 ├── public/                        # Статические ассеты
 │   ├── tracker.js                 # Клиентский трекер аналитики
 │   ├── robots.txt                 # Ссылается на автогенерируемый sitemap-index.xml
-│   ├── fonts/                     # Self-hosted Golos Text и Lora (woff2)
+│   ├── fonts/                     # Self-hosted Golos Text (woff2); заголовки — системная Georgia
 │   ├── images/                    # logo.webp, портреты врачей (-full/-mobile/-thumb.webp), og/, blog/ — только WebP
 │   └── uploads/                   # Медиафайлы админки (не в git)
 ├── scripts/
@@ -501,7 +505,6 @@ clod/
 │   │   ├── SecondOpinionForm.jsx  # Форма «Второе мнение» с файлами
 │   │   ├── TaxFormRequestForm.jsx # Форма справки для налогового вычета
 │   │   ├── CtaSection.jsx         # Переиспользуемый CTA-блок
-│   │   ├── ThemeSwitcher.jsx      # Переключатель темы (20 цветов, 3 шрифтовых селектора, client:idle)
 │   │   ├── ErrorBoundary.jsx      # React Error Boundary для page-level компонентов
 │   │   └── PageWrapper.jsx        # Обёртка страницы с ErrorBoundary
 │   ├── layouts/
@@ -516,7 +519,7 @@ clod/
 │   │   ├── mango-*.js             # Телефония MANGO OFFICE (события, записи, ретеншен, expiry зависших звонков)
 │   │   ├── admin-*-api.js / admin-clinic-query.js / admin-filter-date.js # Admin API
 │   │   ├── doctors-data.js / nav.js / filters.js / contacts.js / clinic-info.js / price-list.js / constants.js
-│   │   ├── theme-config.js / font-size.js / swipe-gesture.js / selection-feedback.js / useAdminFetch.js
+│   │   ├── font-size.js / swipe-gesture.js / selection-feedback.js / use-reduced-motion.js / useAdminFetch.js
 │   │   ├── analytics-privacy.js / analytics-retention.js / mango-call-retention.js / retention-schedule.js # Минимизация и ретеншен
 │   │   ├── upload-utils.js / upload-validation.js / file-constraints.js
 │   │   ├── blog-prompts.js / og-prompts.js # Allowlist промптов генерации постеров
@@ -560,7 +563,7 @@ clod/
 │   │           └── generate-image.js # POST - AI-постер для статьи блога
 │   ├── test/                      # API-тесты, миграции, контракты деплоя, setup.js, fixtures/
 │   ├── styles/
-│   │   ├── global.css             # Tailwind + ~87 CSS-переменных + theme-switcher + prose-clay
+│   │   ├── global.css             # Tailwind + ~87 CSS-переменных + prose-clay
 │   │   └── *.test.js              # typography-floor, self-hosted-fonts контракты
 │   └── env.d.ts                   # Astro type references
 ├── Dockerfile                     # Multi-stage (deps → prod-deps → builder → runner); образ публикует CI в GHCR
@@ -662,11 +665,11 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `graceful-shutdown.js` | `createGracefulShutdown(server, {timeoutMs})` — drain по SIGTERM: закрыть listener, дождаться in-flight, выйти 0, по таймауту 1 | `scripts/server.mjs` |
 | `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `swipe-gesture.js` | `createSwipeGesture` — фиксация оси жеста и один шаг за свайп для touch и pointer | `MobileDoctorCarousel` |
+| `use-reduced-motion.js` | `useReducedMotion` — единый источник `prefers-reduced-motion` для автопрокруток | `MobileDoctorCarousel`, `HeroSlider` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
 | `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `ServicesSection`, `WhyUsSection` |
 | `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
-| `theme-config.js` | `COLOR_THEMES`, `HEADING_FONTS`, `BODY_FONTS`, `NAV_FONTS`, `STORAGE_KEY`, `buildFullPalette`, `hexToHsl`, `hslToHex` | `ThemeSwitcher`, `Layout.astro` (FOUC script) |
 | `rate-limit.js` | `checkRateLimit`, `resetRateLimit` | Все API endpoints (admin, analytics, forms, auth) |
 | `appointment-validation.js` | Валидация и нормализация расписания, пациента и opaque intent ID | API онлайн-записи |
 | `appointment-history.js` | Изолированный строгий parser history-контракта; не подключён к recovery clinic-token при наблюдаемом `404` | Контрактные unit-тесты |
@@ -710,7 +713,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 | Компонент | Строк | Содержимое |
 |---|---|---|
-| `HeroSlider.jsx` | — | Трёхслайдовый desktop-hero: слева меняются слайды, справа независимая карусель врачей (`MobileDoctorCarousel` desktop variant); на mobile заменён каруселью врачей |
+| `HeroSlider.jsx` | — | Шестислайдовый desktop-hero: слева меняются слайды, справа независимая карусель врачей (`MobileDoctorCarousel` desktop variant); на mobile заменён каруселью врачей |
 | `SecondOpinionSection.jsx` | 53 | Баннер «Второе мнение» |
 | `VabSection.jsx` | 57 | Блок ВАБ |
 | `ServicesSection.jsx` | 64 | Editorial-список направлений + featured routes |
@@ -722,7 +725,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 
 ### Hero-слайдер
 
-Трёхслайдовый hero показывается только на desktop (`hidden md:block`). Слайды меняют только левую текстовую колонку; правая колонка (`lg:grid-cols-[minmax(0,1fr)_24rem]`, видна от `lg`) — одна `MobileDoctorCarousel` с `variant="desktop"` и всеми девятью врачами (метка «Карусель врачей в главном слайдере»), которая стоит вне слайдов и вне `aria-live`-области, поэтому не скрывается `aria-hidden` и переключает врача независимо от слайда: смена слайда не сбрасывает выбранного врача, а листание врачей не меняет слайд (контракт в `HeroSlider.test.jsx`). Врачи в этой карусели тоже переключаются автоматически каждые 4 секунды через prop `autoplayMs` (`MobileDoctorCarousel`, тихо — без звука и вибрации selection-feedback); интервал берёт то же состояние, что и слайды: отключается при `prefers-reduced-motion`, кнопкой «Приостановить автопрокрутку слайдов» и пока указатель или фокус находятся внутри слайдера. Остальные карусели сайта `autoplayMs` не передают и остаются без автопрокрутки. Прежняя привязка «слайд → фиксированный врач» и карточка `.hero-doctor-card` в слайдере удалены; `HeroDoctorCard` остаётся на страницах с одним врачом. На mobile вместо слайдера первым блоком под шапкой идёт `MobileDoctorCarousel` со всеми девятью врачами (метка «Карусель врачей в начале страницы»), затем быстрый выбор 4 направлений в `ServicesSection`; нижняя секция «Наши доктора» с фильтрами по специальностям скрыта на mobile (`hidden md:block`), чтобы не дублировать hero-карусель, и остаётся только на desktop. Строка под названием направления в `ServicesSection` описывает, с какими жалобами приходят, а не перечисляет ключевые слова. `h1` остаётся внутри скрытого на mobile слайдера, поэтому на странице по-прежнему один `h1`. Первый слайд позиционирует клинику как многопрофильную. Карточка врача внутри слайдера остаётся только на desktop. Текст начинается от верхнего левого края слайда; на desktop стрелки вынесены по сторонам, а на mobile остаются снизу. Нижние точки не отображаются. Автопереключение выполняется каждые 6 секунд, отключается при `prefers-reduced-motion`, приостанавливается, пока указатель или фокус находятся внутри слайдера, и управляется кнопкой «Приостановить/Возобновить автопрокрутку слайдов» рядом со стрелками (`aria-pressed`; WCAG 2.2.2, Фаза 1 п.16 аудита, контракт в `HeroSlider.test.jsx`). Все слайды наложены в одной CSS-grid ячейке, поэтому hero сразу получает высоту самого высокого слайда и не меняет её при переключении.
+Шестислайдовый hero показывается только на desktop (`hidden md:block`). Слайды меняют только левую текстовую колонку; правая колонка (`lg:grid-cols-[minmax(0,1fr)_24rem]`, видна от `lg`) — одна `MobileDoctorCarousel` с `variant="desktop"` и всеми девятью врачами (метка «Карусель врачей в главном слайдере»), которая стоит вне слайдов и вне `aria-live`-области, поэтому не скрывается `aria-hidden` и переключает врача независимо от слайда: смена слайда не сбрасывает выбранного врача, а листание врачей не меняет слайд (контракт в `HeroSlider.test.jsx`). Врачи в этой карусели переключаются автоматически каждые 4 секунды (`DOCTOR_AUTOPLAY_INTERVAL`) полностью независимо от слайдов: пауза слайдов, наведение указателя и фокус внутри слайдера её не останавливают, потому что посетитель, который сам листает слайды стрелками, всё равно должен видеть смену врачей. Отдельно её выключают `prefers-reduced-motion` и собственная кнопка карусели «Приостановить смену врачей»; кнопка «Приостановить автопрокрутку слайдов» управляет только слайдами (контракты в `HeroSlider.test.jsx` и e2e «продолжает менять врача, пока посетитель сам листает слайды»). Прежняя привязка «слайд → фиксированный врач» и карточка `.hero-doctor-card` в слайдере удалены; `HeroDoctorCard` остаётся на страницах с одним врачом. На mobile вместо слайдера первым блоком под шапкой идёт `MobileDoctorCarousel` со всеми девятью врачами (метка «Карусель врачей в начале страницы»), затем быстрый выбор 4 направлений в `ServicesSection`; нижняя секция «Наши доктора» с фильтрами по специальностям скрыта на mobile (`hidden md:block`), чтобы не дублировать hero-карусель, и остаётся только на desktop. Строка под названием направления в `ServicesSection` описывает, с какими жалобами приходят, а не перечисляет ключевые слова. `h1` остаётся внутри скрытого на mobile слайдера, поэтому на странице по-прежнему один `h1`. Первый слайд позиционирует клинику как многопрофильную. Карточка врача внутри слайдера остаётся только на desktop. Текст начинается от верхнего левого края слайда; на desktop стрелки вынесены по сторонам, а на mobile остаются снизу. От `xl` их смещение задано `calc(2rem-46px)`, а не фиксированным `-0.75rem`: кнопка шириной 44 px должна оставаться левее текстовой колонки при любом масштабе шрифта, а отступ `lg:px-8` контейнера масштабируется вместе с root font-size (контракт «на десктопе стрелки находятся по сторонам hero-контента» в `e2e/home.spec.js`). Нижние точки не отображаются. Автопереключение выполняется каждые 6 секунд, отключается при `prefers-reduced-motion`, приостанавливается, пока указатель или фокус находятся внутри слайдера, и управляется кнопкой «Приостановить/Возобновить автопрокрутку слайдов» рядом со стрелками (`aria-pressed`; WCAG 2.2.2, Фаза 1 п.16 аудита, контракт в `HeroSlider.test.jsx`). Все слайды наложены в одной CSS-grid ячейке, поэтому hero сразу получает высоту самого высокого слайда и не меняет её при переключении.
 
 Блоки статистики под hero на `/mammology`, `/nutrition` и `/gynecology` используют одну сетку `2×2` (`data-route-stats`) в правой половине карточки: четыре колонки в половине контейнера обрезали словесные значения вроде «Гистология». На `/nutrition` значение «Доказательно» длиннее числа, поэтому значения там идут ступенями `text-xl sm:text-2xl xl:text-3xl`. Футер `DoctorCard` раскладывается `repeat(auto-fit, minmax(9rem, 1fr))` (минимум `9.5rem`: при `9rem` неразрывное «Эндокринолог» полужирным выходило за плитку на 2 px под Linux-шрифтами CI): в карточке шире ~304 px плашка специальности и кнопки стоят рядом, в узкой (страницы заболеваний на `xl`) — в столбик, поэтому «Записаться»/«Подробнее» не режутся. Контракт отсутствия обрезанного текста на 21 публичном маршруте и четырёх viewport — `e2e/text-overflow.spec.js`; намеренный `text-overflow: ellipsis` из проверки исключён.
 
@@ -735,6 +738,11 @@ Hero-секция каждой публичной страницы на desktop 
 1. **Клиника целиком** — все ключевые направления и понятный маршрут пациента
 2. **ВАБ** — акцент на малоинвазивной процедуре, длительности и амбулаторном формате
 3. **Второе мнение** — сценарий для пациентов с уже назначенной операцией
+4. **Гинекология** — бережный приём без лишних назначений, ссылка на `/gynecology`
+5. **Эндокринология** — щитовидная железа, гормоны и вес по шагам, ссылка на `/endocrinology`
+6. **Нутрициология** — питание с опорой на анализы, ссылка на `/nutrition`
+
+Слайды 4–6 добавлены 6 сентября 2026 года: раньше hero показывал только маммологические сценарии, поэтому три из четырёх направлений клиники не были представлены в первом экране. Заголовок каждого нового слайда занимает не больше трёх строк на 1280 px, иначе hero перестал бы помещаться в viewport (`e2e/hero-viewport-fit.spec.js`). Полный цикл автопрокрутки теперь 36 секунд; контракты счётчика слайдов — `HeroSlider.test.jsx` и `e2e/home.spec.js`.
 
 ---
 
@@ -748,9 +756,9 @@ UI построен на CSS-переменных в `:root` (`src/styles/global
 |---|---|---|
 | Поверхности | `--surface-page`, `--surface-card`, `--surface-accent`, `--surface-mint/peach/blue/lavender/yellow` | Фоны страницы, карточек, акцентных блоков |
 | Текст | `--text-primary`, `--text-secondary`, `--text-muted`, `--text-inverse` | Цвета текста |
-| Акцент | `--accent`, `--accent-hover`, `--accent-light`, `--accent-text` | Основной акцентный цвет (по умолчанию teal #0D9488) |
+| Акцент | `--accent`, `--accent-hover`, `--accent-light`, `--accent-text` | Основной акцентный цвет (по умолчанию фирменный #1C89A1 — цвет логотипа клиники) |
 | Специализации | `--color-mint`, `--color-peach`, `--color-blue`, `--color-lavender`, `--color-yellow` + `*-rgb`, `*-hover` | Цвета направлений клиники |
-| Шрифты | `--font-body`, `--font-serif`, `--font-nav` | Текст (Golos Text), заголовки (Lora), навигация (наследует body) |
+| Шрифты | `--font-body`, `--font-serif`, `--font-nav` | Текст (self-hosted Golos Text), заголовки (системная Georgia), навигация (наследует body) |
 | Тени | `--shadow-xs/sm/md/lg/xl`, `--shadow-mint/peach/blue` | Тени с поддержкой акцентных цветов |
 | Скругления | `--radius-sm/md/lg/xl/full` | Радиусы углов |
 | Градиенты | `--gradient-badge-mint/peach/blue`, `--gradient-card-mint/peach/blue`, `--gradient-cta` | Градиенты для бейджей, карточек, CTA |
@@ -760,25 +768,28 @@ UI построен на CSS-переменных в `:root` (`src/styles/global
 
 С сентября 2026 года на публичном сайте нет текста мельче основного (`--fs-base`: 1rem на mobile, 1.1rem от 1024 px). Шаги `--fs-xs` и `--fs-sm` в `global.css` равны `--fs-base` вместе с `--lh-*`, поэтому существующие `text-xs`/`text-sm` в JSX уже не уменьшают текст, а иерархия строится весом, цветом и отступами. Все ручные `font-size` меньше 1rem в публичных стилях заменены на `var(--fs-base)`; arbitrary-классы вроде `text-[14px]` в публичных компонентах не используются. Контракт закреплён в `src/styles/typography-floor.test.js`: тест сверяет шкалу, ищет `font-size` меньше 1rem/16px в `global.css` (кроме `.blog-gen-*`) и arbitrary text-классы меньше 16px в публичных `.jsx`/`.astro`. Админка (`src/components/admin/**`, `AdminLayout.astro`, `.blog-gen-*`) в контракт не входит и сохраняет плотные inline-размеры. В карусели врачей рейтинг на карточке показывает одну звезду, оценку и число отзывов в обоих вариантах.
 
-### ThemeSwitcher (`src/components/ThemeSwitcher.jsx`)
+### Зафиксированная тема
 
-Плавающая кнопка (палитра) в правом нижнем углу. Открывает панель с тремя секциями:
+Переключателя темы больше нет. Акцент, шрифты и вся производная палитра заданы один раз в `:root` (`global.css`) и не меняются во время выполнения:
 
-1. **Акцент** — 20 цветовых пресетов (emerald, slate-blue, dusty-rose, warm-clay, sage, indigo, teal, amber, plum, crimson, ocean, forest, graphite, copper, midnight, mauve, moss, terracotta, steel, burgundy) + hue-strip для произвольного цвета. При выборе цвета `buildFullPalette()` автоматически рассчитывает всю палитру (peach, blue, lavender, yellow, тени, градиенты).
-2. **Заголовки** — 10 серифных шрифтов (Lora по умолчанию, Cormorant Garamond, Playfair Display, Merriweather, PT Serif, EB Garamond, Libre Baskerville, Spectral, Crimson Pro, DM Serif Display)
-3. **Меню** — шрифт навигации в хедере и футере. «Как текст» (наследует body font) + те же 10 серифных шрифтов. Применяется через CSS-переменную `--font-nav`.
-4. **Текст** — 10 sans-serif шрифтов (Golos Text по умолчанию, Commissioner, Onest, Manrope, Rubik, Nunito, Inter, PT Sans, Open Sans, Raleway)
+- Акцент — `#1C89A1`, цвет логотипа клиники; производные токены (`--accent-hover`, `--surface-mint`, `--shadow-mint`, `--focus-ring`, `--gradient-badge-mint`) рассчитаны от него
+- Заголовки — `Georgia, 'Times New Roman', serif`. Georgia системная, поэтому сетевого запроса нет; на Android и части Linux Georgia отсутствует и подставляется системный `serif` (обычно Noto Serif)
+- Текст и навигация — self-hosted `Golos Text`; `--font-nav` наследует `--font-body`
 
-Настройки сохраняются в `localStorage` (`clod-theme-settings`). FOUC предотвращается inline-скриптом в `Layout.astro`, который восстанавливает тему до первой отрисовки.
+Удалены `ThemeSwitcher.jsx`, `theme-config.js`, pre-paint скрипт восстановления темы из `localStorage` (`clod-theme-settings`), self-hosted Lora и разрешения `fonts.googleapis.com` / `fonts.gstatic.com` в CSP (`middleware.js` и оба шаблона nginx). Ключ `clod-theme-settings` у прежних посетителей больше не читается ни одной строкой кода. Кнопки размера шрифта `A+ / A / A−` — отдельная функция доступности, они остались.
+
+Контракты: `src/styles/brand-accent.test.js` (токены акцента), `src/styles/locked-theme.test.js` (шрифты, отсутствие переключателя, его стилей и e2e-спек, отсутствие внешних шрифтовых хостов), `src/middleware.test.js` (CSP).
 
 ### Font Size Controls (`src/layouts/Layout.astro`)
 
 Фиксированные кнопки `A+ / A / A−` в правом нижнем углу управляют базовым размером текста на всём публичном сайте через `document.documentElement.style.fontSize`.
 
 - Шаг изменения: `5%`
-- Базовое значение: `100%`
-- Диапазон: от `65%` до `135%` (`7` шагов вниз и `7` шагов вверх)
+- Базовое значение: `95%` (сентябрь 2026: прежний нулевой шаг `100%` давал слишком крупный текст в карточке карусели врачей; базой стала ступень `A−`)
+- Диапазон: от `60%` до `130%` (`7` шагов вниз и `7` шагов вверх)
 - Значение сохраняется в `localStorage` (`clod-font-size`)
+
+Базовые `95%` означают, что все размеры, критичные для доступности, задаются с абсолютным полом, а не одним `rem`: отступ между ФИО и стрелками карусели на экранах уже 360 px — `max(0.5rem, 8px)`, safe-area отступы диалога записи — `max(1rem, 16px, env(safe-area-inset-*))`. Контракты: `src/lib/font-size.test.js`, `e2e/mobile-doctor-carousel.spec.js`, `e2e/booking-layout.spec.js`.
 
 ### Tailwind fontFamily
 
@@ -874,7 +885,7 @@ integrations: [
 ```
 
 Лейаут (`Layout.astro`) подключает:
-- Шрифты Golos Text и Lora (self-hosted woff2 в `public/fonts/`, `<link rel="preload">`)
+- Шрифт Golos Text (self-hosted woff2 в `public/fonts/`, `<link rel="preload">`); заголовки — системная Georgia без сетевого запроса
 - `global.css` (Tailwind + CSS-переменные дизайн-системы)
 - `Header` с `client:load` (интерактивный)
 - один глобальный `BookingFlow` с `client:idle` для всех CTA записи (клики до гидратации откладываются inline-скриптом)
@@ -898,7 +909,7 @@ integrations: [
 | A3 - Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
 | A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `sameAs`, полный `PostalAddress`; `aggregateRating` у клиники убран как неподтверждаемый, `logo` ведёт на `/images/logo.png`, `image` и og:image по умолчанию — на `/images/og/index.webp` |
 | A5 - BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
-| A6 - Самохостинг шрифтов | ✅ | Golos Text и Lora woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">`; остальные шрифты ThemeSwitcher грузятся с Google Fonts только при выборе. `src/styles/self-hosted-fonts.test.js` не даёт держать в `public/fonts` файлы без `@font-face` |
+| A6 - Самохостинг шрифтов | ✅ | Golos Text woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">`; заголовки — системная Georgia, внешних шрифтовых хостов в CSP больше нет. `src/styles/self-hosted-fonts.test.js` не даёт держать в `public/fonts` файлы без `@font-face`, `src/styles/locked-theme.test.js` — preload на несуществующий файл |
 | B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
 | B2 - FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
 | B3 - Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
@@ -1092,6 +1103,32 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ## Последние изменения (сентябрь 2026)
 
+### Фиксация темы: удалён переключатель, заголовки на Georgia (6 сентября 2026)
+
+- **Причина**: сохранённая в `localStorage` тема перебивала `:root` через pre-paint скрипт, поэтому новый фирменный акцент не применялся у посетителей, которые хоть раз открывали палитру
+- **Удалено**: `ThemeSwitcher.jsx`, `theme-config.js`, pre-paint скрипт темы и монтирование острова в `Layout.astro` (−62 строки), self-hosted Lora (4 woff2, 121 КБ) и её `@font-face`, preload Lora в `Layout.astro` и `AdminLayout.astro`
+- **Шрифты зафиксированы**: `--font-serif: Georgia, 'Times New Roman', serif`, `--font-body` — self-hosted Golos Text, `--font-nav` наследует body. Libre Baskerville, который был выбран в палитре, не имеет кириллицы — русские заголовки и так рендерила системная Georgia, поэтому она закреплена явно
+- **CSP ужат**: `fonts.googleapis.com` и `fonts.gstatic.com` убраны из `style-src`/`font-src` в `middleware.js`, `nginx.https.conf` и `nginx.http.conf` — внешних шрифтовых запросов больше нет
+- **Фавикон и OG-заглушки**: `favicon.png` (192×192) вырезан из эмблемы логотипа, `favicon.svg` перерисован под фирменный диск с бесконечностью, `og/index.webp` и `og/blog.webp` пересобраны как фирменные карточки 1200×630
+- **Мёртвый CSS и спека**: вместе с компонентом удалены 22 селектора `.theme-switcher-*` (168 строк в `global.css`), media-правило, прятавшее переключатель на mobile `/doctors`, и спека `hides the theme switcher only on the mobile doctors page` в `e2e/mobile-doctor-carousel.spec.js` вместе с осиротевшим хелпером `computedDisplay`
+- **Контракты**: `src/styles/locked-theme.test.js` — шрифты, отсутствие `ThemeSwitcher`/`theme-config`/`clod-theme-settings`, отсутствие правил `.theme-switcher-*` в CSS и ссылок на них в `e2e/`, отсутствие внешних шрифтовых хостов в CSP и nginx, отсутствие preload на удалённый файл
+
+### Новый логотип и фирменный цвет (6 сентября 2026)
+
+- **Логотип**: `public/images/logo.webp` заменён на новый знак клиники (lossless 908×198, 8,7 КБ вместо 13,8 КБ); `logo.png` для JSON-LD `logo` пересобран из того же исходника. Пропорции 4,59 совпали с прежними, поэтому `width`/`height` в `Header.jsx` и `Footer.jsx` не менялись
+- **Фирменный цвет**: `#1C89A1` из логотипа стал акцентом по умолчанию вместо teal `#0D9488`. Токены `--accent`, `--accent-hover`, `--accent-light`, `--color-mint`, `--surface-accent`, `--surface-mint`, `--shadow-mint`, `--focus-ring` и `--gradient-badge-mint` в `:root` пересчитаны через `buildFullPalette('#1C89A1')`; контраст белого текста на акценте вырос с 3,74 до 4,08
+- **Промпты постеров**: `blog-prompts.js` и `og-prompts.js` описывают акцент как `#1C89A1`
+- **Контракт**: `src/styles/brand-accent.test.js` сверяет токены `:root`, наличие пресета и разрешение `brand` в pre-paint скрипте
+
+### Автопрокрутка врачей на главной и страницах направлений (6 сентября 2026)
+
+- **Проблема**: карусель врачей в hero главной вставала, как только указатель или фокус попадали в слайдер, поэтому у посетителя, который сам листал слайды стрелками, врачи замирали навсегда; на страницах направлений автопрокрутки не было вовсе
+- **Решение**: `autoplayMs` карусели больше не зависит от состояния слайдера — `HeroSlider` передаёт постоянный `DOCTOR_AUTOPLAY_INTERVAL` (4 секунды), тот же интервал получают обе карусели `ResponsiveDoctorHero` и mobile-карусель `ResponsiveDoctorCollection`, то есть все направления, заболевания, `/vab` и `/second-opinion`
+- **WCAG 2.2.2**: `MobileDoctorCarousel` рендерит собственную кнопку «Приостановить/Возобновить смену врачей» (36 px, правый верхний угол сцены) всегда, когда получает `autoplayMs`; без неё автопрокрутка на страницах без слайдера осталась бы без механизма остановки. Кнопка паузы слайдера теперь управляет только слайдами
+- **Общий хук**: `src/lib/use-reduced-motion.js` заменил локальную обвязку `matchMedia` в `HeroSlider` и обслуживает обе автопрокрутки
+- **Не изменены**: карусели `/doctors` и mobile-секции «Наши доктора» на главной — там врач выбирается фильтрами
+- **e2e**: `playwright.config.js` получил глобальный `reducedMotion: 'reduce'`, иначе спеки геометрии снимали бы движущуюся карусель; две новые спеки снимают его точечно и проверяют автопрокрутку на `/` и `/mammology`
+
 ### Карусель врачей «Открытая сцена» (6 сентября 2026)
 
 - **Дизайн**: интегрирован handoff `design_handoff_hero_doctor_carousel` (вариант 1b) — grid `62fr 38fr`, портреты без подложки, плоская белая карточка вместо стеклянной плашки, стрелки и счётчик «1 / N» в шапке карточки, одна звезда рейтинга, кнопки `btn-clay-primary`/`btn-clay-secondary`; подробности в разделе «Адаптивное представление врачей»
@@ -1266,6 +1303,6 @@ cwebp -q 82 -m 6 -sharp_yuv -resize 320 320 public/images/doctors/<slug>.webp -o
 - Добавление новой страницы → обновить таблицу роутинга и структуру файлов
 - Добавление нового компонента → обновить структуру файлов
 - Новые CSS-переменные в `global.css` → обновить раздел дизайн-системы
-- Новые цвета/шрифты в ThemeSwitcher → обновить раздел дизайн-системы
+- Изменение `--accent` или шрифтовых переменных → обновить раздел дизайн-системы и контракты `brand-accent.test.js` / `locked-theme.test.js`
 - Изменение стека (зависимости в `package.json`) → обновить таблицу стека
 - Изменение правил в `.cursor/rules/` → синхронизировать разделы паттернов

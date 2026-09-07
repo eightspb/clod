@@ -41,6 +41,11 @@ describe('ResponsiveDoctorHero', () => {
     expect({ carousel: screen.queryByRole('region'), controls: screen.queryAllByRole('button', { name: /предыдущий врач|следующий врач/i }).length, heading: within(wrapper).getByRole('heading', { name: doctor.name }).textContent }).toEqual({ carousel: null, controls: 0, heading: doctor.name })
   })
 
+  it('rotates the doctors of both variants automatically with a pause control', () => {
+    render(<ResponsiveDoctorHero doctors={createDoctors()} label="Карусель маммологов" ctaHref="/second-opinion" />)
+    expect(screen.getAllByRole('button', { name: 'Приостановить смену врачей' })).toHaveLength(2)
+  })
+
   it('renders no doctor presentation for an empty collection', () => {
     const { container } = render(<ResponsiveDoctorHero doctors={[]} label="Пустая карусель" ctaHref="/second-opinion" desktopClassName="md:block" desktopMedia="(min-width: 768px)" />)
     expect(container.firstChild).toBeNull()

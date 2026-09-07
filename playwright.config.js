@@ -20,6 +20,8 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
+    /** Layout specs assert a settled page; the doctor carousels rotate on their own unless motion is reduced */
+    reducedMotion: 'reduce',
   },
   projects: [
     {
