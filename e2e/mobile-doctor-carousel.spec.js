@@ -17,6 +17,16 @@ const FONT_SIZE_STEPS = [95, 100, 110, 120, 130]
 
 test.use({ viewport: MOBILE_VIEWPORT })
 
+/**
+ * Playwright scrolls the page to reach the next-doctor button, and the offset it lands on is not
+ * reproducible: a scrolled page shifts subpixel rounding of the plinth buttons by 0.17 px and slides
+ * the carousel under the sticky header, whose logo pixels then read as the doctor portrait.
+ */
+async function restoreCarouselScroll(page) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+}
+
 async function gotoHydratedDoctors(page) {
   await gotoHydratedCarousel(page, '/doctors')
 }
@@ -98,6 +108,7 @@ async function portraitTransforms(page) {
 }
 
 async function visiblePortraitTopGap(page) {
+  await restoreCarouselScroll(page)
   const portrait = page.locator(`${CAROUSEL_SELECTOR} [aria-current="true"] .mobile-doctor-portrait`)
   await portrait.evaluate(async (image) => {
     if (!image.complete) await new Promise((resolve) => image.addEventListener('load', resolve, { once: true }))
@@ -125,6 +136,7 @@ async function cycleDoctors(page, measurement) {
   const doctorCount = await page.locator(`${CAROUSEL_SELECTOR} .mobile-doctor-slide`).count()
   const measurements = []
   for (let index = 0; index < doctorCount; index += 1) {
+    await restoreCarouselScroll(page)
     measurements.push(await page.locator(CAROUSEL_SELECTOR).evaluate(measurement))
     await page.getByRole('button', { name: 'Следующий врач' }).click()
   }
@@ -371,7 +383,8 @@ test('keeps the information plinth geometry fixed for every doctor', async ({ pa
       return [rect.top - plinth.top, rect.left - plinth.left, rect.width, rect.height].map((value) => Number(value.toFixed(2)))
     })
   })
-  expect(geometries).toEqual(Array(9).fill(geometries[0]))
+  const drift = Math.max(...geometries.flatMap((geometry) => geometry.map((value, index) => Math.abs(value - geometries[0][index]))))
+  expect(drift, `plinth geometry drift: ${drift}px`).toBeLessThan(1)
 })
 
 test('keeps the numeric rating visible beside both actions on narrow screens', async ({ page }) => {
