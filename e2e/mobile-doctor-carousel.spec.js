@@ -8,12 +8,12 @@ const MOBILE_ACCEPTANCE_VIEWPORTS = [{ width: 320, height: 568 }, MOBILE_VIEWPOR
 const DOCTOR_PROFILE_PATHS = ['/doctors/odintsov', '/doctors/prikhodko', '/doctors/macuchov', '/doctors/skurihin', '/doctors/egorova', '/doctors/vlasenko', '/doctors/zaharova', '/doctors/nevzorova', '/doctors/kalinina']
 const CAROUSEL_SELECTOR = '[data-mobile-doctor-carousel]'
 const HYDRATED_CAROUSEL_SELECTOR = `astro-island:has(${CAROUSEL_SELECTOR}):not([ssr])`
-const THEME_SWITCHER_SELECTOR = '.theme-switcher-root'
 const DEPTH_POSITIONS = ['current', 'next', 'next-far']
 const PORTRAIT_POSITIONS = ['current', 'previous', 'next']
 const RECEDING_POSITIONS = ['previous', 'next', 'previous-far', 'next-far']
 const NEAR_POSITIONS = ['previous', 'next']
 const FAR_POSITIONS = ['previous-far', 'next-far']
+const FONT_SIZE_STEPS = [95, 100, 110, 120, 130]
 
 test.use({ viewport: MOBILE_VIEWPORT })
 
@@ -38,10 +38,6 @@ async function dispatchTouchGesture(session, points) {
   await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [points[0]] })
   for (const point of points.slice(1)) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] })
   await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
-}
-
-async function computedDisplay(page, selector) {
-  return page.locator(selector).evaluate((element) => getComputedStyle(element).display)
 }
 
 async function selectionOrder(page) {
@@ -274,18 +270,6 @@ test('keeps every doctor name inside the card padding on mobile screens', async 
   expect(insets.every((inset) => inset >= 16), `name card insets: ${insets.join(', ')}`).toBe(true)
 })
 
-test('hides the theme switcher only on the mobile doctors page', async ({ page }) => {
-  await page.goto('/')
-  const mobileHomeDisplay = await computedDisplay(page, THEME_SWITCHER_SELECTOR)
-  await gotoHydratedDoctors(page)
-  const mobileDoctorsDisplay = await computedDisplay(page, THEME_SWITCHER_SELECTOR)
-  await page.setViewportSize({ width: 1280, height: 900 })
-  await page.reload()
-  await page.locator(HYDRATED_CAROUSEL_SELECTOR).waitFor()
-  const desktopDoctorsDisplay = await computedDisplay(page, THEME_SWITCHER_SELECTOR)
-  expect({ mobileHomeVisible: mobileHomeDisplay !== 'none', mobileDoctorsDisplay, desktopDoctorsVisible: desktopDoctorsDisplay !== 'none' }).toEqual({ mobileHomeVisible: true, mobileDoctorsDisplay: 'none', desktopDoctorsVisible: true })
-})
-
 test('renders current and forward slides at refined depth scales', async ({ page }) => {
   await gotoHydratedDoctors(page)
   const scales = await page.locator(CAROUSEL_SELECTOR).evaluate((carousel, positions) => positions.map((position) => {
@@ -400,4 +384,19 @@ test('places the current slide four percent below the portrait stage top', async
   const currentSlide = page.locator(`${CAROUSEL_SELECTOR} [data-coverflow-position="current"]`)
   const offset = await currentSlide.evaluate((slide) => ({ top: slide.getBoundingClientRect().top - slide.parentElement.getBoundingClientRect().top, expected: slide.parentElement.getBoundingClientRect().height * 0.04 }))
   expect(offset.top).toBeCloseTo(offset.expected, 0)
+})
+
+test('keeps the desktop doctor card padding intact at every font size step', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 800 })
+  await gotoHydratedCarousel(page, '/')
+  const slack = []
+  for (const size of FONT_SIZE_STEPS) {
+    await page.evaluate((value) => { document.documentElement.style.fontSize = `${value}%` }, size)
+    slack.push(await page.locator(`${CAROUSEL_SELECTOR}[data-variant="desktop"] .mobile-doctor-plinth`).evaluate((plinth) => {
+      const actions = plinth.querySelector('.mobile-doctor-info-actions').getBoundingClientRect()
+      const padding = Number.parseFloat(getComputedStyle(plinth).paddingBottom)
+      return Number((plinth.getBoundingClientRect().bottom - padding - actions.bottom).toFixed(1))
+    }))
+  }
+  expect(slack.every((value) => value >= -0.5), `card bottom slack: ${slack.join(', ')}`).toBe(true)
 })

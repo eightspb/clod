@@ -38,7 +38,7 @@ describe('security middleware', () => {
     const response = await responseFor()
     const directives = parseCsp(response.headers.get('Content-Security-Policy'))
     const headers = Object.fromEntries(['Cross-Origin-Opener-Policy', 'X-Content-Type-Options', 'X-Frame-Options', 'X-XSS-Protection', 'Referrer-Policy', 'Permissions-Policy', 'Strict-Transport-Security'].map((name) => [name, response.headers.get(name)]))
-    expect(directives).toEqual({ 'default-src': ["'self'"], 'script-src': ["'self'", "'unsafe-inline'"], 'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'], 'font-src': ["'self'", 'https://fonts.gstatic.com'], 'img-src': ["'self'", 'data:', 'https:'], 'frame-src': ['https://yandex.ru'], 'connect-src': ["'self'"], 'object-src': ["'none'"], 'base-uri': ["'self'"], 'form-action': ["'self'"] })
+    expect(directives).toEqual({ 'default-src': ["'self'"], 'script-src': ["'self'", "'unsafe-inline'"], 'style-src': ["'self'", "'unsafe-inline'"], 'font-src': ["'self'"], 'img-src': ["'self'", 'data:', 'https:'], 'frame-src': ['https://yandex.ru'], 'connect-src': ["'self'"], 'object-src': ["'none'"], 'base-uri': ["'self'"], 'form-action': ["'self'"] })
     expect(headers).toEqual({ 'Cross-Origin-Opener-Policy': 'same-origin-allow-popups', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'X-XSS-Protection': null, 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' })
   })
 

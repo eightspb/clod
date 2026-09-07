@@ -251,3 +251,17 @@ for (const { route, sectionHeading, heroDoctor } of SINGLE_DOCTOR_ROUTES) {
     expect(state).toEqual({ carouselHooks: 0, semanticCarousels: 0, controls: 0, heroDoctor, sectionDoctors: 1, sectionHeadings: [KALININA.name], bookingSlugs: [KALININA.slug], profileHrefs: [KALININA.profile], horizontalOverflow: [null] })
   })
 }
+
+test.describe('автоматическая смена врача', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('меняет врача в hero /mammology без участия посетителя и останавливает смену кнопкой паузы', async ({ page }) => {
+    await visitCarouselRoute(page, '/mammology', MOBILE_VIEWPORT)
+    const { hero } = mammologyCarousels(page)
+    await hero.locator(`.mobile-doctor-name[aria-label="${MAMMOLOGY_DOCTORS[1].name}"]`).waitFor({ timeout: IDLE_HYDRATION_TIMEOUT_MS })
+    await hero.getByRole('button', { name: 'Приостановить смену врачей' }).click()
+    const paused = await carouselDoctorState(hero)
+    await page.waitForTimeout(5_000)
+    expect(await carouselDoctorState(hero)).toEqual(paused)
+  })
+})

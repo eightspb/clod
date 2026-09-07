@@ -1,4 +1,4 @@
-const STYLE_PREFIX = 'Premium editorial medical illustration for a luxury healthcare clinic magazine cover. Minimalist composition, soft diffused natural lighting, muted sophisticated earth tones with deep teal (#0D9488) accents. Clean white or light cream background with elegant depth. No text, no logos, no watermarks, no letters, no words. Photorealistic with subtle artistic touch, high-end aesthetic.'
+const STYLE_PREFIX = 'Premium editorial medical illustration for a luxury healthcare clinic magazine cover. Minimalist composition, soft diffused natural lighting, muted sophisticated earth tones with deep cerulean-teal (#1C89A1) accents. Clean white or light cream background with elegant depth. No text, no logos, no watermarks, no letters, no words. Photorealistic with subtle artistic touch, high-end aesthetic.'
 
 const PROMPTS = {
   '15-pravil-grudnogo-vskarmlivaniya': {

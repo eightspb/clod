@@ -66,8 +66,8 @@ function MegaMenuPanel({ item, currentPath }) {
     }
   }, [])
   return (
-    <div ref={panelRef} data-dropdown-panel className="absolute top-full z-50 pt-2" style={{ left: `${leftOffset}px`, width: '100vw' }}>
-      <div className="container-clay">
+    <div ref={panelRef} data-dropdown-panel className="pointer-events-none absolute top-full z-50" style={{ left: `${leftOffset}px`, width: '100vw' }}>
+      <div className="container-clay pointer-events-auto pt-2">
         <div className="clay clay-card p-6 rounded-3xl" role="menu" aria-label={item.label}>
           <div className="grid grid-cols-4 gap-6">
             {item.children.map((direction) => (
@@ -151,8 +151,8 @@ function DoctorsMegaMenuPanel({ item, currentPath }) {
     }
   }, [])
   return (
-    <div ref={panelRef} data-dropdown-panel className="absolute top-full z-50 pt-2" style={{ left: `${leftOffset}px`, width: '100vw' }}>
-      <div className="container-clay">
+    <div ref={panelRef} data-dropdown-panel className="pointer-events-none absolute top-full z-50" style={{ left: `${leftOffset}px`, width: '100vw' }}>
+      <div className="container-clay pointer-events-auto pt-2">
         <div className="clay clay-card p-6 rounded-3xl" role="menu" aria-label={item.label}>
           <div className="grid grid-cols-4 gap-6">
             {item.groups.map((group) => (

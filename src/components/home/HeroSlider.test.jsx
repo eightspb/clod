@@ -13,7 +13,7 @@ describe('HeroSlider autoplay control', () => {
     vi.useFakeTimers()
     render(<HeroSlider />)
     act(() => vi.advanceTimersByTime(6_000))
-    expect(activeSlideLabel()).toBe('Слайд 2 из 3')
+    expect(activeSlideLabel()).toBe('Слайд 2 из 6')
   })
 
   it('stops advancing after the pause control is pressed', () => {
@@ -21,7 +21,7 @@ describe('HeroSlider autoplay control', () => {
     render(<HeroSlider />)
     fireEvent.click(screen.getByRole('button', { name: 'Приостановить автопрокрутку слайдов' }))
     act(() => vi.advanceTimersByTime(30_000))
-    expect(activeSlideLabel()).toBe('Слайд 1 из 3')
+    expect(activeSlideLabel()).toBe('Слайд 1 из 6')
   })
 
   it('exposes the pause state through aria-pressed and offers to resume', () => {
@@ -35,7 +35,29 @@ describe('HeroSlider autoplay control', () => {
     render(<HeroSlider />)
     fireEvent.mouseEnter(screen.getByRole('region', { name: 'Главный слайдер' }))
     act(() => vi.advanceTimersByTime(30_000))
-    expect(activeSlideLabel()).toBe('Слайд 1 из 3')
+    expect(activeSlideLabel()).toBe('Слайд 1 из 6')
+  })
+})
+
+describe('HeroSlider direction slides', () => {
+  it('offers one slide for every clinic direction and route', () => {
+    const { container } = render(<HeroSlider />)
+    expect(container.querySelectorAll('[aria-label^="Слайд "]')).toHaveLength(6)
+  })
+
+  it('sends the gynecology slide to the gynecology page', () => {
+    const { container } = render(<HeroSlider />)
+    expect(container.querySelector('a[href="/gynecology"]')).toHaveTextContent('Подробнее о гинекологии')
+  })
+
+  it('sends the endocrinology slide to the endocrinology page', () => {
+    const { container } = render(<HeroSlider />)
+    expect(container.querySelector('a[href="/endocrinology"]')).toHaveTextContent('Подробнее об эндокринологии')
+  })
+
+  it('sends the nutrition slide to the nutrition page', () => {
+    const { container } = render(<HeroSlider />)
+    expect(container.querySelector('a[href="/nutrition"]')).toHaveTextContent('Подробнее о нутрициологии')
   })
 })
 
@@ -43,7 +65,7 @@ describe('HeroSlider doctor carousel', () => {
   it('switches the doctor without changing the active slide', () => {
     render(<HeroSlider />)
     fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
-    expect(activeSlideLabel()).toBe('Слайд 1 из 3')
+    expect(activeSlideLabel()).toBe('Слайд 1 из 6')
   })
 
   it('keeps the chosen doctor while the slide advances', () => {
@@ -73,11 +95,36 @@ describe('HeroSlider doctor autoplay', () => {
     expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 9')
   })
 
-  it('stops rotating doctors after the pause control is pressed', () => {
+  it('stops rotating doctors through the pause control of the carousel itself', () => {
+    vi.useFakeTimers()
+    render(<HeroSlider />)
+    fireEvent.click(screen.getByRole('button', { name: 'Приостановить смену врачей' }))
+    act(() => vi.advanceTimersByTime(30_000))
+    expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('1 / 9')
+  })
+
+  it('keeps rotating doctors while the slides stay paused', () => {
     vi.useFakeTimers()
     render(<HeroSlider />)
     fireEvent.click(screen.getByRole('button', { name: 'Приостановить автопрокрутку слайдов' }))
-    act(() => vi.advanceTimersByTime(30_000))
-    expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('1 / 9')
+    act(() => vi.advanceTimersByTime(4_000))
+    expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 9')
+  })
+
+  it('keeps rotating doctors while the pointer rests on the slider', () => {
+    vi.useFakeTimers()
+    render(<HeroSlider />)
+    fireEvent.mouseEnter(screen.getByRole('region', { name: 'Главный слайдер' }))
+    act(() => vi.advanceTimersByTime(4_000))
+    expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 9')
+  })
+
+  it('keeps rotating doctors after the visitor switches a slide by hand', () => {
+    vi.useFakeTimers()
+    render(<HeroSlider />)
+    fireEvent.focus(screen.getByRole('button', { name: 'Следующий слайд' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий слайд' }))
+    act(() => vi.advanceTimersByTime(4_000))
+    expect(screen.getByRole('region', { name: 'Карусель врачей в главном слайдере' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 9')
   })
 })

@@ -433,7 +433,10 @@ describe('MobileDoctorCarousel', () => {
 })
 
 describe('MobileDoctorCarousel autoplay', () => {
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
 
   it('advances to the next doctor after the autoplay interval', () => {
     vi.useFakeTimers()
@@ -456,5 +459,48 @@ describe('MobileDoctorCarousel autoplay', () => {
     render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Тихая автопрокрутка" autoplayMs={5000} />)
     act(() => vi.advanceTimersByTime(5000))
     expect(vibrate).not.toHaveBeenCalled()
+  })
+
+  it('offers a pause control while the doctors rotate automatically', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Управляемая автопрокрутка" autoplayMs={5000} />)
+    expect(screen.getByRole('button', { name: 'Приостановить смену врачей' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('offers no pause control without an autoplay interval', () => {
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Ручная карусель" />)
+    expect(screen.queryByRole('button', { name: /смену врачей/ })).toBeNull()
+  })
+
+  it('stops the rotation after the pause control is pressed', () => {
+    vi.useFakeTimers()
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Остановленная автопрокрутка" autoplayMs={5000} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Приостановить смену врачей' }))
+    act(() => vi.advanceTimersByTime(60000))
+    expect(screen.getByRole('region', { name: 'Остановленная автопрокрутка' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('1 / 3')
+  })
+
+  it('resumes the rotation after the paused control is pressed again', () => {
+    vi.useFakeTimers()
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Возобновлённая автопрокрутка" autoplayMs={5000} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Приостановить смену врачей' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Возобновить смену врачей' }))
+    act(() => vi.advanceTimersByTime(5000))
+    expect(screen.getByRole('region', { name: 'Возобновлённая автопрокрутка' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('2 / 3')
+  })
+
+  it('keeps rotating after the visitor switches a doctor by hand', () => {
+    vi.useFakeTimers()
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Непрерывная автопрокрутка" autoplayMs={5000} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
+    act(() => vi.advanceTimersByTime(5000))
+    expect(screen.getByRole('region', { name: 'Непрерывная автопрокрутка' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('3 / 3')
+  })
+
+  it('never rotates for a visitor who asked for reduced motion', () => {
+    vi.useFakeTimers()
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true, media: '(prefers-reduced-motion: reduce)', addEventListener: () => {}, removeEventListener: () => {} })
+    render(<MobileDoctorCarousel doctors={DOCTORS.slice(0, 3)} label="Спокойная карусель" autoplayMs={5000} />)
+    act(() => vi.advanceTimersByTime(60000))
+    expect(screen.getByRole('region', { name: 'Спокойная карусель' }).querySelector('.mobile-doctor-carousel-count')).toHaveTextContent('1 / 3')
   })
 })

@@ -3,7 +3,7 @@
  */
 export const FONT_SIZE_STORAGE_KEY = 'clod-font-size'
 export const FONT_SIZE_STEP = 5
-export const FONT_SIZE_DEFAULT = 100
+export const FONT_SIZE_DEFAULT = 95
 export const FONT_SIZE_MIN = FONT_SIZE_DEFAULT - FONT_SIZE_STEP * 7
 export const FONT_SIZE_MAX = FONT_SIZE_DEFAULT + FONT_SIZE_STEP * 7
 
