@@ -4,7 +4,7 @@ import { FadeInSection } from '../FadeInSection.jsx'
 import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { HeroSlider } from '../home/HeroSlider.jsx'
-import { MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
+import { DOCTOR_AUTOPLAY_INTERVAL, MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
 import { SecondOpinionSection } from '../home/SecondOpinionSection.jsx'
 import { VabSection } from '../home/VabSection.jsx'
 import { ServicesSection } from '../home/ServicesSection.jsx'
@@ -21,7 +21,7 @@ export function Home({ doctorsData = DOCTORS }) {
       <section className="relative overflow-hidden md:hidden">
         <div className="absolute inset-0 hero-gradient pointer-events-none" />
         <div className="container-clay relative z-10 py-4">
-          <MobileDoctorCarousel doctors={doctorsData} label="Карусель врачей в начале страницы" />
+          <MobileDoctorCarousel doctors={doctorsData} label="Карусель врачей в начале страницы" autoplayMs={DOCTOR_AUTOPLAY_INTERVAL} />
         </div>
       </section>
       <div className="hidden md:block">

@@ -224,6 +224,15 @@ describe('Home hero slider', () => {
     expect(carousel.compareDocumentPosition(slider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  it('rotates the doctors of the mobile carousel without the visitor', async () => {
+    Object.defineProperty(window, 'matchMedia', { writable: true, value: mockMatchMedia(false) })
+    await act(async () => {
+      render(<Home doctorsData={[{ slug: 'elkina', name: 'Ёлкина Анна О’Коннор', specialization: 'Эндокринолог', photoMobile: '/images/doctors/elkina-mobile.webp' }, { slug: 'tsoy', name: 'Цой Юрий Альбертович', specialization: 'Онколог-маммолог', photoMobile: '/images/doctors/tsoy-mobile.webp' }]} />)
+    })
+    const carousel = screen.getByRole('region', { name: 'Карусель врачей в начале страницы' })
+    expect(within(carousel).getByRole('button', { name: 'Приостановить смену врачей' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('hides the hero slider below the tablet breakpoint', async () => {
     await act(async () => {
       render(<Home doctorsData={[]} />)
