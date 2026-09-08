@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MobileDoctorCarousel } from './MobileDoctorCarousel.jsx'
+import { getDoctorBySlug } from '../lib/doctors-data.js'
 
 const DOCTORS = Object.freeze([
   {
@@ -143,6 +144,28 @@ describe('MobileDoctorCarousel', () => {
     const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Специалисты" />)
     const sources = Array.from(container.querySelectorAll('source'), (source) => source.getAttribute('srcset'))
     expect(sources).toEqual(DOCTORS.map((doctor) => doctor.photoMobile))
+  })
+
+  it('offers smaller transparent files before the original active portrait', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={[getDoctorBySlug('odintsov')]} label="Размер портрета" />)
+    expect(container.querySelector('source')).toHaveAttribute('srcset', '/images/doctors/odintsov-mobile-240.webp 240w, /images/doctors/odintsov-mobile-360.webp 360w, /images/doctors/odintsov-mobile-480.webp 480w, /images/doctors/odintsov-mobile.webp 600w')
+  })
+
+  it('sizes each mobile portrait for its visible coverflow scale', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Глубина портретов" />)
+    const sizes = Array.from(container.querySelectorAll('source'), (source) => source.getAttribute('sizes'))
+    expect(sizes).toEqual(['min(calc(76vw - 1.52rem), 16.125rem)', 'min(calc(59.28vw - 1.1856rem), 12.5775rem)', 'min(calc(45.6vw - 0.912rem), 9.675rem)', 'min(calc(59.28vw - 1.1856rem), 12.5775rem)'])
+  })
+
+  it('sizes desktop portraits for the height constrained hero stage', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Размер desktop" variant="desktop" portraitMedia="(min-width: 768px)" />)
+    expect(container.querySelector('[aria-current="true"] source')).toHaveAttribute('sizes', 'clamp(13.82rem, calc(46.04vh - 7.83rem), 18.19rem)')
+  })
+
+  it('promotes the next portrait to its full display size when selected', () => {
+    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Смена разрешения" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
+    expect(container.querySelector('[data-doctor-index="1"] source')).toHaveAttribute('sizes', 'min(calc(76vw - 1.52rem), 16.125rem)')
   })
 
   it('keeps every mobile portrait fully visible and anchored to the podium', () => {

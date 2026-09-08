@@ -26,6 +26,8 @@ export function DoctorCard({ doctor }) {
           ? (
             <img
               src={photoSource}
+              srcSet={doctor.photoMobileSrcSet}
+              sizes={doctor.photoMobileSrcSet ? 'clamp(11.8125rem, calc(15.75vw + 0.5625rem), 13.875rem)' : undefined}
               alt={`${doctor.specialization ? doctor.specialization.split(',')[0].toLowerCase() + ' ' : ''}${doctor.name}, клиника Одинцова, СПб`}
               className="doctor-card-photo"
               loading="lazy"

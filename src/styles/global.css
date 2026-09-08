@@ -93,6 +93,9 @@
 
     /* ── Accent ── */
     --accent: #1C89A1;
+    --accent-ink: #166B7E;
+    --accent-ink-rgb: 22 107 126;
+    --accent-fill: #18768B;
     --accent-hover: #166B7E;
     --accent-light: #F2F7F8;
     --accent-text: #FFFFFF;
@@ -131,7 +134,7 @@
     --radius-full: 9999px;
 
     /* ── Focus ── */
-    --focus-ring: rgba(28, 137, 161, 0.5);
+    --focus-ring: #1C89A1;
     --focus-ring-glow: rgba(28, 137, 161, 0.14);
 
     /* ── Decorations toggle ── */
@@ -304,7 +307,7 @@
   ───────────────────────────── */
   .btn-clay-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold px-7 py-3.5 cursor-pointer transition-all duration-200 select-none;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--accent-text);
     box-shadow: var(--shadow-sm);
     border: none;
@@ -797,7 +800,7 @@
     @apply inline-flex items-center justify-center gap-1.5 rounded-full font-semibold cursor-pointer transition-all duration-200 select-none;
     font-size: var(--fs-base);
     padding: 10px 20px;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--accent-text);
     border: none;
     box-shadow: var(--shadow-xs);
@@ -836,7 +839,7 @@
      SPECIALTY BUTTONS (for inline style replacement)
   ───────────────────────────── */
   .btn-specialty-mint {
-    background: var(--accent) !important;
+    background: var(--accent-fill) !important;
     color: var(--accent-text) !important;
     box-shadow: var(--shadow-sm) !important;
   }
@@ -863,7 +866,7 @@
 
   .badge-specialty-mint {
     background: var(--surface-mint);
-    color: var(--color-mint);
+    color: var(--accent-ink);
   }
   .badge-specialty-peach {
     background: var(--surface-peach);
@@ -894,7 +897,7 @@
 
   /* Accent-colored text */
   .text-accent {
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   /* Accent-colored dot */
@@ -2763,4 +2766,3 @@
     transition: none !important;
   }
 }
-

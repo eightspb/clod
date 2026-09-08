@@ -11,7 +11,7 @@ export function StarRating({ score, reviewCount, url, size = 14, variant = 'comp
   ]
   const content = (
     <span className="inline-flex items-center gap-1">
-      <span className="inline-flex items-center gap-0.5">
+      <span className="inline-flex items-center gap-0.5" aria-hidden="true">
         {stars.map((type, i) => (
           <Star
             key={i}
@@ -25,6 +25,7 @@ export function StarRating({ score, reviewCount, url, size = 14, variant = 'comp
       {variant !== 'stars' && (
         <span className="font-semibold text-clay-dark">{score.toFixed(1)}</span>
       )}
+      {' '}
       {variant === 'full' && (
         <span className="text-clay-muted">· {reviewCount} отзывов</span>
       )}
@@ -40,9 +41,10 @@ export function StarRating({ score, reviewCount, url, size = 14, variant = 'comp
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center hover:opacity-80 transition-opacity"
-      aria-label={`${score.toFixed(1)} (${reviewCount}) - рейтинг на ПроДокторов`}
     >
       {content}
+      {' '}
+      <span className="sr-only">{variant === 'stars' ? `Оценка ${score.toFixed(1)} из 5 — ` : '— '}рейтинг на ПроДокторов</span>
     </a>
   )
 }

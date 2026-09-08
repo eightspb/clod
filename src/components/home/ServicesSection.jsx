@@ -15,14 +15,14 @@ export function ServicesSection() {
         <nav aria-label="Быстрый выбор направления" className="overflow-hidden rounded-[22px] border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-sm)]">
           {HOME_DIRECTIONS.map((direction, index) => (
             <FadeInSection key={direction.href} staggerIndex={index}>
-            <a href={direction.href} aria-label={direction.title} className={`group block ${index === HOME_DIRECTIONS.length - 1 ? '' : 'border-b border-[color:var(--border-color)]'}`}>
+            <a href={direction.href} className={`group block ${index === HOME_DIRECTIONS.length - 1 ? '' : 'border-b border-[color:var(--border-color)]'}`}>
               <div className="grid gap-3 px-5 py-5 transition-colors duration-200 group-hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)_auto] md:items-center md:gap-6 md:px-6">
                 <div className="flex items-center gap-3">
                   <span className="h-10 w-1.5 rounded-full bg-[color:var(--accent-light)] transition-colors duration-200 group-hover:bg-[color:var(--accent)]" aria-hidden="true" />
                   <h3 className="text-xl font-semibold text-clay-dark sm:text-2xl">{direction.title}</h3>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[color:var(--accent)]">{direction.summary}</p>
+                  <p className="text-sm font-medium text-accent">{direction.summary}</p>
                   <p className="mt-1 text-sm leading-relaxed text-clay-muted">{direction.description}</p>
                 </div>
                 <div className="inline-flex items-center gap-1 text-sm font-semibold text-clay-dark md:justify-self-end">

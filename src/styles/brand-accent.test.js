@@ -18,7 +18,7 @@ describe('brand accent', () => {
     expect(GLOBAL_CSS).toMatch(/--color-mint-rgb:\s*28 137 161;/)
   })
 
-  it('tints the default focus ring with the clinic logo colour', () => {
-    expect(GLOBAL_CSS).toMatch(/--focus-ring:\s*rgba\(28, 137, 161, 0\.5\);/)
+  it('keeps the default focus ring opaque in the clinic logo colour', () => {
+    expect(GLOBAL_CSS).toMatch(new RegExp(`--focus-ring:\\s*${BRAND_ACCENT};`))
   })
 })

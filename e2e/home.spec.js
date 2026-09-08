@@ -24,10 +24,10 @@ test.describe('Главная страница', () => {
     const quickNav = page.getByRole('navigation', { name: /быстрый выбор направления/i })
 
     await expect(quickNav).toBeVisible()
-    await expect(quickNav.getByRole('link', { name: /^маммология$/i })).toBeVisible()
-    await expect(quickNav.getByRole('link', { name: /^гинекология$/i })).toBeVisible()
-    await expect(quickNav.getByRole('link', { name: /^эндокринология$/i })).toBeVisible()
-    await expect(quickNav.getByRole('link', { name: /^нутрициология$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^маммология .* перейти$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^гинекология .* перейти$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^эндокринология .* перейти$/i })).toBeVisible()
+    await expect(quickNav.getByRole('link', { name: /^нутрициология .* перейти$/i })).toBeVisible()
   })
 
   test('на мобильном сразу видна карусель врачей вместо hero-слайдера', async ({ page }) => {

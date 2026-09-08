@@ -1,5 +1,5 @@
 import { SITE_URL } from './constants.js'
-import { PHONE_NUMBER, TELEGRAM_URL, VK_URL } from './contacts.js'
+import { PHONE_NUMBER, TELEGRAM_URL, VK_URL, PRODOCTOROV_CLINIC_URL, YANDEX_CLINIC_URL } from './contacts.js'
 
 export function canonicalUrl(value) {
   const url = new URL(value, `${SITE_URL}/`)
@@ -46,7 +46,7 @@ export const CLINIC_SCHEMA = Object.freeze({
     { '@type': 'City', name: 'Санкт-Петербург' },
     { '@type': 'AdministrativeArea', name: 'Ленинградская область' },
   ],
-  sameAs: [TELEGRAM_URL, VK_URL, 'https://prodoctorov.ru/spb/lpu/34871-klinika-doktora-odincova/', 'https://2gis.ru/spb/firm/70000001007194493', 'https://yandex.ru/maps/org/klinika_doktora_odintsova/35323232817/'],
+  sameAs: [TELEGRAM_URL, VK_URL, PRODOCTOROV_CLINIC_URL, 'https://2gis.ru/spb/firm/70000001007194493', YANDEX_CLINIC_URL],
 })
 
 export const WEBSITE_SCHEMA = Object.freeze({

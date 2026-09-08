@@ -4,6 +4,7 @@ import { StarRating } from './StarRating.jsx'
 
 const ROTATE_INTERVAL = 5000
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+const PORTRAIT_SIZES = '(max-width: 639px) calc(65vw - 1.3rem), (max-width: 1023px) 180px, 16.875rem'
 
 function pickRandom(arr, exclude) {
   if (arr.length <= 1) return arr[0]
@@ -35,7 +36,7 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
         <a href={`/doctors/${doctor.slug}`} className="hero-doctor-photo-link group">
           {portraitMedia ? (
             <picture className="hero-doctor-picture flex h-full w-full items-end">
-              <source media={portraitMedia} srcSet={portraitSource} />
+              <source media={portraitMedia} srcSet={doctor.photoMobileSrcSet || portraitSource} sizes={doctor.photoMobileSrcSet ? PORTRAIT_SIZES : undefined} />
               <img
                 src={TRANSPARENT_PIXEL}
                 alt={doctor.name}
@@ -47,6 +48,8 @@ export function HeroDoctorCard({ doctors, ctaHref = '/second-opinion', portraitM
           ) : (
             <img
               src={portraitSource}
+              srcSet={doctor.photoMobileSrcSet}
+              sizes={doctor.photoMobileSrcSet ? PORTRAIT_SIZES : undefined}
               alt={doctor.name}
               width={280}
               height={380}

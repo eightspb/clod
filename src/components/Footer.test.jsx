@@ -3,6 +3,16 @@ import { render, screen } from '@testing-library/react'
 import { Footer } from './Footer.jsx'
 
 describe('Footer', () => {
+  it('introduces the footer heading hierarchy at the section level', () => {
+    render(<Footer />)
+    expect(screen.getAllByRole('heading').map((heading) => heading.tagName)).toEqual(['H2', 'H3', 'H3', 'H3', 'H3', 'H3', 'H3', 'H3', 'H3'])
+  })
+
+  it('places the VAB fact directly under the footer section heading', () => {
+    render(<Footer />)
+    expect(screen.getByRole('heading', { name: 'ВАБ как щадящая технология', level: 3 })).toBeInTheDocument()
+  })
+
   it('renders clinic name', () => {
     render(<Footer />)
     expect(screen.getByRole('img', { name: /клиника.*одинцова/i })).toBeInTheDocument()

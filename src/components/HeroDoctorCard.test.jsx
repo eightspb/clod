@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HeroDoctorCard } from './HeroDoctorCard.jsx'
+import { getDoctorBySlug } from '../lib/doctors-data.js'
 
 const doctors = [
   {
@@ -48,6 +49,18 @@ describe('HeroDoctorCard', () => {
   it('prefers the compact transparent portrait for the hero card', () => {
     render(<HeroDoctorCard doctors={[{ ...doctors[0], photoFull: '/first-full.webp', photoMobile: '/first-mobile.webp' }]} />)
     expect(screen.getByRole('img', { name: 'Первый врач' })).toHaveAttribute('src', '/first-mobile.webp')
+  })
+
+  it('offers responsive files for an ungated single doctor hero', () => {
+    render(<HeroDoctorCard doctors={[getDoctorBySlug('vlasenko')]} />)
+    const portrait = screen.getByRole('img')
+    expect({ srcSet: portrait.getAttribute('srcset'), sizes: portrait.getAttribute('sizes') }).toEqual({ srcSet: '/images/doctors/vlasenko-mobile-240.webp 240w, /images/doctors/vlasenko-mobile-360.webp 360w, /images/doctors/vlasenko-mobile-480.webp 480w, /images/doctors/vlasenko-mobile.webp 600w', sizes: '(max-width: 639px) calc(65vw - 1.3rem), (max-width: 1023px) 180px, 16.875rem' })
+  })
+
+  it('keeps responsive hero sources behind their media query', () => {
+    const { container } = render(<HeroDoctorCard doctors={[getDoctorBySlug('egorova')]} portraitMedia="(min-width: 1024px)" />)
+    const source = container.querySelector('source')
+    expect({ srcSet: source.getAttribute('srcset'), sizes: source.getAttribute('sizes'), media: source.getAttribute('media') }).toEqual({ srcSet: '/images/doctors/egorova-mobile-240.webp 240w, /images/doctors/egorova-mobile-360.webp 360w, /images/doctors/egorova-mobile-480.webp 480w, /images/doctors/egorova-mobile.webp 600w', sizes: '(max-width: 639px) calc(65vw - 1.3rem), (max-width: 1023px) 180px, 16.875rem', media: '(min-width: 1024px)' })
   })
 
   it('does not lazy-load the above-the-fold hero portrait', () => {

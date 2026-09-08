@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { DoctorCard } from './DoctorCard.jsx'
+import { getDoctorBySlug } from '../lib/doctors-data.js'
 
 describe('DoctorCard', () => {
   const baseDoctor = {
@@ -90,6 +91,12 @@ describe('DoctorCard', () => {
     render(<DoctorCard doctor={{ ...baseDoctor, photo: '/images/doctor.webp', photoFull: '/images/doctor-full.webp', photoMobile: '/images/doctor-mobile.webp' }} />)
     const img = screen.getByRole('img', { name: 'онколог-маммолог Иванов Иван Иванович, клиника Одинцова, СПб' })
     expect(img).toHaveAttribute('src', '/images/doctor-mobile.webp')
+  })
+
+  it('offers responsive files sized to the contained card portrait', () => {
+    render(<DoctorCard doctor={getDoctorBySlug('kalinina')} />)
+    const portrait = screen.getByRole('img')
+    expect({ srcSet: portrait.getAttribute('srcset'), sizes: portrait.getAttribute('sizes') }).toEqual({ srcSet: '/images/doctors/kalinina-mobile-240.webp 240w, /images/doctors/kalinina-mobile-360.webp 360w, /images/doctors/kalinina-mobile-480.webp 480w, /images/doctors/kalinina-mobile.webp 600w', sizes: 'clamp(11.8125rem, calc(15.75vw + 0.5625rem), 13.875rem)' })
   })
 
   it('falls back to the transparent full portrait without a compact one', () => {

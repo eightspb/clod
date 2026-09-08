@@ -47,6 +47,23 @@ describe('doctors-data.js', () => {
       expect(offCanvas).toEqual([])
     })
 
+    it('offers verified responsive portrait widths for every doctor', () => {
+      const widths = DOCTORS.map((doctor) => doctor.photoMobileSrcSet?.split(', ').map((source) => Number.parseInt(source.split(' ')[1], 10)))
+      expect(widths).toEqual(DOCTORS.map(() => [240, 360, 480, 600]))
+    })
+
+    it('ships each responsive portrait at its declared width on the same canvas', () => {
+      const candidates = DOCTORS.flatMap((doctor) => (doctor.photoMobileSrcSet || '').split(', ').filter(Boolean))
+      const incorrect = candidates.filter((candidate) => {
+        const [file, descriptor] = candidate.split(' ')
+        const location = join(process.cwd(), 'public', file)
+        if (!existsSync(location)) return true
+        const size = webpDimensions(readFileSync(location))
+        return size.width !== Number.parseInt(descriptor, 10) || size.height * 3 !== size.width * 4
+      })
+      expect(incorrect).toEqual([])
+    })
+
     it('ships every full portrait on the shared 1024×1365 canvas', () => {
       const offCanvas = DOCTORS.map((doc) => [doc.slug, webpDimensions(readFileSync(join(process.cwd(), 'public', doc.photoFull)))]).filter(([, size]) => size.width !== 1024 || size.height !== 1365)
       expect(offCanvas).toEqual([])

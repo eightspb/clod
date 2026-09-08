@@ -21,7 +21,18 @@ function coverflowPosition(index, activeIndex, length) {
 }
 
 function portraitSource(doctor) {
-  return doctor.photoMobile || doctor.photoFull || doctor.photo
+  return doctor.photoMobileSrcSet || doctor.photoMobile || doctor.photoFull || doctor.photo
+}
+
+/**
+ * Matches the contained 3:4 image in the 62% stage and its flat coverflow scale.
+ * Sizes describe visible image pixels rather than the wider object-fit box.
+ */
+function portraitSizes(position, variant) {
+  const scale = position === 'current' ? 1 : position.endsWith('-far') ? 0.6 : 0.78
+  const scaled = (value) => Number((value * scale).toFixed(4))
+  if (variant === 'desktop') return `clamp(${scaled(13.82)}rem, calc(${scaled(46.04)}vh - ${scaled(7.83)}rem), ${scaled(18.19)}rem)`
+  return `min(calc(${scaled(76)}vw - ${scaled(1.52)}rem), ${scaled(16.125)}rem)`
 }
 
 function primarySpecialty(doctor) {
@@ -67,7 +78,7 @@ function useFingerSwipe(trackRef, gesture, onStep) {
   })
 }
 
-function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) {
+function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia, variant }) {
   const isActive = position === 'current'
   const shouldLoadPortrait = position !== 'hidden'
   const specialty = primarySpecialty(doctor)
@@ -85,7 +96,7 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia }) 
       <div className="mobile-doctor-portrait-wrap">
         {shouldLoadPortrait ? (
           <picture className="mobile-doctor-picture">
-            <source media={portraitMedia} srcSet={portraitSource(doctor)} />
+            <source media={portraitMedia} srcSet={portraitSource(doctor)} sizes={portraitSizes(position, variant)} />
             <img
               src={TRANSPARENT_PIXEL}
               alt={`${specialty.toLowerCase()} ${doctor.name}, клиника Одинцова, СПб`}
@@ -214,6 +225,7 @@ export function MobileDoctorCarousel({ doctors, label, variant = 'mobile', portr
               count={doctors.length}
               position={position}
               portraitMedia={portraitMedia}
+              variant={variant}
             />
           )
         })}

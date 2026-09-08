@@ -27,7 +27,7 @@ export default {
           card: '#FFFFFF',
           dark: '#111827',
           text: '#374151',
-          muted: '#6B7280',
+          muted: 'var(--text-muted)',
           'admin-bg': '#F7F3EE',
           'admin-card': '#FFFCF8',
           'admin-dark': '#2D3A34',
@@ -36,6 +36,11 @@ export default {
           border: '#E5E7EB',
           teal: 'rgb(var(--color-mint-rgb) / <alpha-value>)',
         },
+      },
+      textColor: {
+        'clay-mint': 'rgb(var(--accent-ink-rgb) / <alpha-value>)',
+        'clay-mint-600': 'rgb(var(--accent-ink-rgb) / <alpha-value>)',
+        'clay-teal': 'rgb(var(--accent-ink-rgb) / <alpha-value>)',
       },
       borderRadius: {
         '4xl': '2rem',

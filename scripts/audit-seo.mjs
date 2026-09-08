@@ -5,6 +5,53 @@ import { pathToFileURL } from 'node:url'
 import { canonicalUrl } from '../src/lib/seo.js'
 import { SITE_URL } from '../src/lib/constants.js'
 
+function blocksIndexing(value) {
+  return value.split(',').some((rule) => /^(?:(?:googlebot|yandex(?:bot)?)\s*:\s*)?(?:noindex|none)(?:\s|$)/i.test(rule.trim()))
+}
+
+function robotsGroups(content) {
+  const groups = []
+  let group = { agents: [], rules: [] }
+  for (const line of content.split(/\r?\n/)) {
+    const match = line.split('#')[0].trim().match(/^(user-agent|allow|disallow):\s*(.*)$/i)
+    if (!match) continue
+    const [, field, value] = match
+    if (field.toLowerCase() === 'user-agent') {
+      if (group.rules.length) group = { agents: [], rules: [] }
+      if (!group.agents.length) groups.push(group)
+      group.agents.push(value === '*' ? value : value.toLowerCase().split(/[*/]/)[0])
+    } else if (group.agents.length) group.rules.push({ allow: field.toLowerCase() === 'allow', value })
+  }
+  return groups
+}
+
+function crawlerRules(groups, crawler) {
+  const matches = groups.map((group) => ({ ...group, specificity: Math.max(-1, ...group.agents.map((agent) => agent === '*' ? 0 : crawler.startsWith(agent) ? agent.length : -1)) }))
+  const specificity = Math.max(-1, ...matches.map((group) => group.specificity))
+  return matches.filter((group) => group.specificity === specificity && specificity >= 0).flatMap((group) => group.rules)
+}
+
+function robotsAllows(rules, pathname) {
+  const matches = rules.filter(({ value }) => {
+    if (!value) return false
+    const ending = value.endsWith('$') ? '$' : ''
+    const pattern = (ending ? value.slice(0, -1) : value).split('*').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')
+    return new RegExp(`^${pattern}${ending}`).test(pathname)
+  }).sort((left, right) => right.value.replace(/\*+$/, '').length - left.value.replace(/\*+$/, '').length || Number(right.allow) - Number(left.allow))
+  return matches.length === 0 || matches[0].allow
+}
+
+function inspectRobots(content, urls) {
+  const errors = []
+  const groups = robotsGroups(content)
+  if (!content.split(/\r?\n/).some((line) => line.split('#')[0].trim().match(/^sitemap:\s*(\S+)$/i)?.[1] === `${SITE_URL}/sitemap-index.xml`)) errors.push('robots.txt does not declare the canonical sitemap index')
+  for (const crawler of ['googlebot', 'yandexbot']) {
+    const rules = crawlerRules(groups, crawler)
+    for (const url of urls) if (!robotsAllows(rules, new URL(url).pathname)) errors.push(`${url}: robots.txt blocks ${crawler}`)
+  }
+  return errors
+}
+
 function structuredImages(value, images = []) {
   if (!value || typeof value !== 'object') return images
   for (const [key, entry] of Object.entries(value)) {
@@ -30,7 +77,7 @@ export function inspectSeoPage({ html, url, knownUrls, hasAsset }) {
   if (h1.length !== 1) errors.push(`Expected one H1, found ${h1.length}`)
   if (canonical !== url || $('link[rel="canonical"]').length !== 1) errors.push('Canonical differs from sitemap URL')
   if ($('html').attr('lang') !== 'ru') errors.push('Missing Russian document language')
-  if (/noindex/i.test($('meta[name="robots"]').attr('content') || '')) errors.push('Sitemap contains a noindex page')
+  if ($('meta[name]').toArray().some((node) => /^(robots|googlebot|yandex(?:bot)?)$/i.test($(node).attr('name')) && blocksIndexing($(node).attr('content') || ''))) errors.push('Sitemap contains a noindex page')
   if (title.length > 80) warnings.push(`Long title: ${title.length} characters`)
   if (description.length > 190) warnings.push(`Long description: ${description.length} characters`)
   $('script[type="application/ld+json"]').each((_index, node) => {
@@ -57,8 +104,8 @@ function argument(name) {
 }
 
 async function fetchPage(baseUrl, pathname, fetcher) {
-  const response = await fetcher(new URL(pathname, baseUrl), { signal: AbortSignal.timeout(20000) })
-  if (!response.ok) throw new Error(`Page ${pathname} returned HTTP ${response.status}`)
+  const response = await fetcher(new URL(pathname, baseUrl), { redirect: 'manual', signal: AbortSignal.timeout(20000) })
+  if (response.status !== 200) throw new Error(`Page ${pathname} returned HTTP ${response.status}`)
   return { html: await response.text(), status: response.status, robotsHeader: response.headers.get('x-robots-tag') || '' }
 }
 
@@ -82,6 +129,7 @@ async function inspectLivePage(options, baseUrl, fetcher, assets) {
 
 export async function auditSeo({ root = resolve('dist/client'), baseUrl = '', live = false, fetcher = fetch } = {}) {
   if (live && !baseUrl) throw new Error('Live audit requires --base-url')
+  const indexabilityChecked = live && new URL(baseUrl).origin === SITE_URL
   const readSitemap = async (pathname) => live ? (await fetchPage(baseUrl, pathname, fetcher)).html : readFileSync(join(root, pathname), 'utf8')
   const index = load(await readSitemap('/sitemap-index.xml'), { xmlMode: true })
   const maps = index('loc').map((_i, node) => new URL(index(node).text()).pathname).get()
@@ -94,7 +142,7 @@ export async function auditSeo({ root = resolve('dist/client'), baseUrl = '', li
   const hasAsset = (pathname) => existsSync(join(root, pathname))
   const assets = new Map()
   const pages = []
-  const errors = []
+  const errors = indexabilityChecked ? inspectRobots((await fetchPage(baseUrl, '/robots.txt', fetcher)).html, urls) : []
   for (const url of urls) {
     if (canonicalUrl(url) !== url) errors.push(`Noncanonical sitemap URL: ${url}`)
     const pathname = new URL(url).pathname
@@ -103,6 +151,7 @@ export async function auditSeo({ root = resolve('dist/client'), baseUrl = '', li
     const response = live || !existsSync(filename) ? await fetchPage(baseUrl, pathname, fetcher) : { html: readFileSync(filename, 'utf8') }
     const options = { html: response.html, url, knownUrls, hasAsset }
     const page = live ? await inspectLivePage(options, baseUrl, fetcher, assets) : inspectSeoPage(options)
+    if (indexabilityChecked && blocksIndexing(response.robotsHeader)) page.errors.push('HTTP X-Robots-Tag blocks indexing')
     pages.push({ ...page, ...(response.status ? { status: response.status, robotsHeader: response.robotsHeader } : {}) })
   }
   for (const field of ['title', 'description']) {
@@ -110,13 +159,13 @@ export async function auditSeo({ root = resolve('dist/client'), baseUrl = '', li
     for (const page of pages) groups.set(page[field], [...(groups.get(page[field]) || []), page.url])
     for (const duplicates of groups.values()) if (duplicates.length > 1) errors.push(`Duplicate ${field}: ${duplicates.join(', ')}`)
   }
-  return { checkedAt: new Date().toISOString(), mode: live ? 'live' : 'build-and-ssr', baseUrl, pagesChecked: pages.length, errors: [...errors, ...pages.flatMap((page) => page.errors.map((error) => `${page.url}: ${error}`))], warnings: pages.flatMap((page) => page.warnings.map((warning) => `${page.url}: ${warning}`)), pages }
+  return { checkedAt: new Date().toISOString(), mode: live ? 'live' : 'build-and-ssr', baseUrl, indexabilityChecked, pagesChecked: pages.length, errors: [...errors, ...pages.flatMap((page) => page.errors.map((error) => `${page.url}: ${error}`))], warnings: pages.flatMap((page) => page.warnings.map((warning) => `${page.url}: ${warning}`)), pages }
 }
 
 async function audit() {
   const report = await auditSeo({ baseUrl: argument('--base-url'), live: process.argv.includes('--live') })
   if (argument('--output')) writeFileSync(argument('--output'), `${JSON.stringify(report, null, 2)}\n`)
-  console.log(JSON.stringify({ pages: report.pagesChecked, errors: report.errors, warnings: report.warnings }, null, 2))
+  console.log(JSON.stringify({ pages: report.pagesChecked, indexabilityChecked: report.indexabilityChecked, errors: report.errors, warnings: report.warnings }, null, 2))
   if (report.errors.length) process.exitCode = 1
 }
 

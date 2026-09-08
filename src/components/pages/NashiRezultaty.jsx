@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
+import { PHONE_NUMBER, PHONE_DISPLAY, PRODOCTOROV_CLINIC_URL, YANDEX_CLINIC_URL } from '../../lib/contacts.js'
 import { FadeInSection } from '../FadeInSection.jsx'
 
 const KEY_STATS = [
@@ -37,7 +37,7 @@ const KEY_STATS = [
   {
     icon: Users,
     iconBg: 'icon-circle-blue',
-    value: 50,
+    value: 150,
     suffix: '+',
     label: 'врачей из других клиник прошли обучение',
     card: 'clay-card',
@@ -78,7 +78,7 @@ const RATING_CARDS = [
     subLabel: 'Профиль клиники',
     reviewCount: 156,
     rating: 4.8,
-    url: 'https://prodoctorov.ru/spb/lpu/72209-klinika-odntsova/',
+    url: PRODOCTOROV_CLINIC_URL,
     color: 'clay-card-soft-mint',
     starColor: 'var(--color-mint)',
     linkLabel: 'Читать на ПроДокторов',
@@ -88,7 +88,7 @@ const RATING_CARDS = [
     subLabel: 'Профиль клиники',
     reviewCount: 247,
     rating: 5.0,
-    url: 'https://yandex.ru/maps/org/klinika_doktora_odintsova/124591604873/',
+    url: YANDEX_CLINIC_URL,
     color: 'clay-card-soft-peach',
     starColor: 'var(--color-peach)',
     linkLabel: 'Читать на Яндекс Картах',
@@ -96,7 +96,7 @@ const RATING_CARDS = [
 ]
 
 function useCountUp(target, duration = 2000) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(target)
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef(null)
   const hasAnimated = useRef(false)

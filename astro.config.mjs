@@ -15,7 +15,7 @@ export default defineConfig({
   redirects: {
     '/napravleniya': '/',
     '/procedures': '/prices',
-    '/usd': '/mammology',
+    '/usd': '/prices/full#ultrasound',
     '/lab': '/prices',
     '/action': '/prices',
     '/opinion2': '/second-opinion',
@@ -41,11 +41,6 @@ export default defineConfig({
     '/exams/fnbiopsy': '/blog/tonkoigolnaya-punktsionnaya-biopsiya',
     '/exams/priem-ginekolog-endokrinolog': '/gynecology',
     '/exam/pervichny-priem-gynecolog': '/gynecology',
-    '/exams/pervichny-priem-proctolog': '/',
-    '/exams/diagnostika-proctolog': '/',
-    '/exams/polipectomia': '/',
-    '/exams/priem-proctolog': '/',
-    '/exams/pervichny-priem-urolog': '/'
   },
   vite: {
     resolve: {

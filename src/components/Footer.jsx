@@ -35,6 +35,7 @@ export function Footer() {
   return (
     <footer className="pt-16 pb-8">
       <div className="container-clay">
+        <h2 className="sr-only">Информация о клинике</h2>
         {/* Key facts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {FOOTER_FACTS.map((fact) => {
@@ -47,7 +48,7 @@ export function Footer() {
                       <Icon size={22} className="text-clay-ink" />
                     </div>
                   </div>
-                  <h4 className="font-bold text-clay-ink text-sm mb-1.5">{fact.title}</h4>
+                  <h3 className="font-bold text-clay-ink text-sm mb-1.5">{fact.title}</h3>
                   <p className="text-clay-text text-xs leading-relaxed">{fact.desc}</p>
                 </div>
               </div>
@@ -103,7 +104,7 @@ export function Footer() {
             <div className="md:col-span-2">
               <nav aria-label="Навигация по сайту" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
-                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Направления</h4>
+                  <h3 className="font-bold text-clay-dark mb-3 text-sm">Направления</h3>
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.directions.map((link) => (
                       <li key={link.to}>
@@ -115,7 +116,7 @@ export function Footer() {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Клиника</h4>
+                  <h3 className="font-bold text-clay-dark mb-3 text-sm">Клиника</h3>
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.clinic.map((link) => (
                       <li key={link.to}>
@@ -127,7 +128,7 @@ export function Footer() {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-bold text-clay-dark mb-3 text-sm">Пациентам</h4>
+                  <h3 className="font-bold text-clay-dark mb-3 text-sm">Пациентам</h3>
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.patients.map((link) => (
                       <li key={link.to}>
@@ -143,7 +144,7 @@ export function Footer() {
 
             {/* Contact */}
             <div>
-              <h4 className="font-bold text-clay-dark mb-4 text-sm">Контакты</h4>
+              <h3 className="font-bold text-clay-dark mb-4 text-sm">Контакты</h3>
               <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-3">
                   <div className="icon-circle-mint w-9 h-9 text-sm shrink-0 mt-0.5">
