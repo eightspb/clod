@@ -326,85 +326,83 @@ const breadcrumbItems = [
         </footer>
       </article>
 
-      <aside class="blog-article-sidebar" aria-label="Боковая панель статьи">
-        <div class="blog-article-sidebar-scroll" tabindex="0" role="region" aria-label="Информация о статье">
-          {author && (
-            <article class="clay clay-card p-5 flex flex-col group mb-5">
-              <p class="text-sm font-semibold text-clay-dark mb-4">Автор статьи</p>
-              <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
-                <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0 w-fit`}>
-                  <img
-                    src={author.photoThumb || author.photo}
-                    alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
-                    width="144"
-                    height="144"
-                    loading="lazy"
-                    class="rounded-full object-cover w-44 h-44"
-                  />
-                </div>
-                <h4 class="font-bold text-clay-dark text-base leading-snug mt-3 group-hover:text-clay-teal transition-colors">{author.name}</h4>
-                <p class="text-xs text-clay-muted leading-tight mt-1">{author.specialization.split(',')[0]}</p>
-              </a>
-
-              <a
-                href={`/doctors/${author.slug}`}
-                class="clay btn-clay-primary text-xs py-2 px-4 gap-1 inline-flex no-underline w-fit"
-              >
-                Профиль врача
-                <Stethoscope size={13} aria-hidden="true" />
-              </a>
-            </article>
-          )}
-
-          <div class="clay-card p-5 mb-5">
-            <p class="text-sm font-semibold text-clay-dark mb-3">Тема материала</p>
-            <span class="blog-category-badge inline-flex gap-1.5">
-              <Tags size={13} aria-hidden="true" />
-              {post.data.category}
-            </span>
-            <div class="mt-3">
-              <PillarPageLink category={post.data.category} />
-            </div>
-            {post.data.tags.length > 0 && (
-              <div class="flex flex-wrap gap-1.5 mt-3">
-                {post.data.tags.map((tag) => (
-                  <span class="text-xs text-clay-muted bg-gray-100 px-2 py-0.5 rounded-full">#{tag}</span>
-                ))}
+      <aside class="blog-article-sidebar">
+        {author && (
+          <article class="clay clay-card p-5 flex flex-col group mb-5">
+            <p class="text-sm font-semibold text-clay-dark mb-4">Автор статьи</p>
+            <a href={`/doctors/${author.slug}`} class="no-underline block mb-4">
+              <div class={`${RING_COLOR_MAP[author.ringColor] || 'avatar-ring-mint'} flex-shrink-0 w-fit`}>
+                <img
+                  src={author.photoThumb || author.photo}
+                  alt={`${author.specialization ? author.specialization.split(',')[0].toLowerCase() + ' ' : ''}${author.name}, клиника Одинцова, СПб`}
+                  width="144"
+                  height="144"
+                  loading="lazy"
+                  class="rounded-full object-cover w-44 h-44"
+                />
               </div>
-            )}
-          </div>
+              <h4 class="font-bold text-clay-dark text-base leading-snug mt-3 group-hover:text-clay-teal transition-colors">{author.name}</h4>
+              <p class="text-xs text-clay-muted leading-tight mt-1">{author.specialization.split(',')[0]}</p>
+            </a>
 
-          {relatedPosts.length > 0 && (
-            <div class="clay-card p-5">
-              <p class="text-sm font-semibold text-clay-dark mb-4">Читайте также</p>
-              <div class="flex flex-col gap-4">
-                {relatedPosts.map((related) => (
-                  <a href={`/blog/${related.id}`} class="group no-underline block">
-                    <h4 class="text-sm font-bold text-clay-text group-hover:text-clay-teal transition-colors leading-snug mb-1.5 line-clamp-2">
-                      {related.data.title}
-                    </h4>
-                    <time class="text-xs text-clay-muted block">
-                      {related.data.publishDate.toLocaleDateString('ru-RU', {
-                        timeZone: 'UTC',
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      }).replace(/\s*г\.$/u, '')}
-                    </time>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            <a
+              href={`/doctors/${author.slug}`}
+              class="clay btn-clay-primary text-xs py-2 px-4 gap-1 inline-flex no-underline w-fit"
+            >
+              Профиль врача
+              <Stethoscope size={13} aria-hidden="true" />
+            </a>
+          </article>
+        )}
 
-        <div class="clay-card clay-card-soft-mint p-5 shrink-0">
+        <div class="clay-card clay-card-soft-mint p-5 mb-5">
           <p class="text-sm font-semibold text-clay-dark mb-3">Запись на приём</p>
           <p class="text-sm text-clay-muted mb-4 leading-relaxed">Если нужен очный маршрут в Санкт-Петербурге, поможем подобрать специалиста и формат визита.</p>
           <a href="/#appointment" data-booking-btn="true" class="btn-clay-primary block text-center text-sm py-2.5">
             Уточнить очный приём
           </a>
         </div>
+
+        <div class="clay-card p-5 mb-5">
+          <p class="text-sm font-semibold text-clay-dark mb-3">Тема материала</p>
+          <span class="blog-category-badge inline-flex gap-1.5">
+            <Tags size={13} aria-hidden="true" />
+            {post.data.category}
+          </span>
+          <div class="mt-3">
+            <PillarPageLink category={post.data.category} />
+          </div>
+          {post.data.tags.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              {post.data.tags.map((tag) => (
+                <span class="text-xs text-clay-muted bg-gray-100 px-2 py-0.5 rounded-full">#{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {relatedPosts.length > 0 && (
+          <div class="clay-card p-5">
+            <p class="text-sm font-semibold text-clay-dark mb-4">Читайте также</p>
+            <div class="flex flex-col gap-4">
+              {relatedPosts.map((related) => (
+                <a href={`/blog/${related.id}`} class="group no-underline block">
+                  <h4 class="text-sm font-bold text-clay-text group-hover:text-clay-teal transition-colors leading-snug mb-1.5 line-clamp-2">
+                    {related.data.title}
+                  </h4>
+                  <time class="text-xs text-clay-muted block">
+                    {related.data.publishDate.toLocaleDateString('ru-RU', {
+                      timeZone: 'UTC',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    }).replace(/\s*г\.$/u, '')}
+                  </time>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
 
     </div>
