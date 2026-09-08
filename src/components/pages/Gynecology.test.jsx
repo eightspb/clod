@@ -3,6 +3,13 @@ import { render, screen } from '@testing-library/react'
 import { Gynecology } from './Gynecology.jsx'
 
 describe('Gynecology', () => {
+  it('links our gynecologists to the specialty doctor collection on this page', () => {
+    render(<Gynecology />)
+    const link = screen.getByRole('link', { name: /Наши гинекологи/ })
+    const section = screen.getByRole('heading', { name: 'Гинекологи клиники' }).closest('section')
+    expect({ href: link.getAttribute('href'), target: section.id }).toEqual({ href: '#gynecologists', target: 'gynecologists' })
+  })
+
   it('styles every booking call to action with the shared accent button only', () => {
     render(<Gynecology />)
     const buttons = screen.getAllByRole('button', { name: /^Записаться на приём$/ })

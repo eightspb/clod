@@ -1,6 +1,16 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Навигация', () => {
+  for (const width of [390, 1440]) {
+    test(`opens the gynecologist collection from useful sections at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto('/gynecology')
+      await page.getByRole('link', { name: /Наши гинекологи/ }).click()
+      await expect(page).toHaveURL(/\/gynecology#gynecologists$/)
+      await expect(page.getByRole('heading', { name: 'Гинекологи клиники' })).toBeInViewport()
+    })
+  }
+
   test('переход на страницу О клинике', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('link', { name: /о клинике/i }).first().click()

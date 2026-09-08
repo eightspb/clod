@@ -275,7 +275,7 @@ export function Gynecology({ servicesData = [] }) {
 
       {/* DOCTORS */}
       <FadeInSection>
-        <section className="section">
+        <section id="gynecologists" className="section scroll-mt-24">
           <div className="container-clay">
             <div className="max-w-3xl mb-8">
               <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Гинекологи клиники</h2>
@@ -343,7 +343,7 @@ export function Gynecology({ servicesData = [] }) {
           <div className="container-clay">
             <h2 className="text-xl heading-serif text-clay-dark mb-5">Полезные разделы</h2>
             <div className="overflow-hidden rounded-[22px] border border-[color:var(--border-color)] bg-white shadow-[var(--shadow-sm)]">
-              <a href="/doctors" className="group grid gap-3 px-5 py-5 transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
+              <a href="#gynecologists" className="group grid gap-3 px-5 py-5 transition-colors duration-200 hover:bg-[color:var(--surface-card-hover)] md:grid-cols-[32px_minmax(0,1fr)_auto] md:items-center">
                 <Users size={20} className="text-clay-peach mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-clay-dark text-sm mb-1 group-hover:text-clay-peach transition-colors">Наши гинекологи</p>
