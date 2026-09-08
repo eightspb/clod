@@ -1787,8 +1787,7 @@
   outline-offset: 3px;
 }
 .booking-dialog-header {
-  position: sticky;
-  inset-block-start: 0;
+  position: relative;
   z-index: 3;
   align-items: center;
   padding: 1.125rem 1.5rem;
