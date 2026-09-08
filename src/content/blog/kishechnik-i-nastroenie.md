@@ -6,7 +6,7 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Нутрициология"
 tags: ["нутрициология", "микробиом", "стресс", "пробиотики"]
-image: "/images/blog/kishechnik-i-nastroenie.webp"
+image: "/images/blog/kishechnik-i-nastroenie.webp?v=turquoise-20260908"
 imageAlt: "Здоровое питание и микробиом — связь кишечника и настроения"
 readingTime: 4
 ctaType: appointment

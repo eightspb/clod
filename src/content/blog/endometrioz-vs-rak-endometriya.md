@@ -6,7 +6,7 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "эндометриоз", "онкология", "диагностика", "биопсия"]
-image: "/images/blog/endometrioz-vs-rak-endometriya.webp"
+image: "/images/blog/endometrioz-vs-rak-endometriya.webp?v=turquoise-20260908"
 imageAlt: "Гинекологическая диагностика — эндометриоз и рак эндометрия"
 readingTime: 5
 ---

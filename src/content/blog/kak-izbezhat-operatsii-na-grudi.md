@@ -8,7 +8,7 @@ authorSlug: "prikhodko"
 category: "Маммология"
 tags: ["ВАБ", "лечение без операции", "маммология", "киста", "фиброаденома"]
 ctaType: second-opinion
-image: "/images/blog/kak-izbezhat-operatsii-na-grudi.webp"
+image: "/images/blog/kak-izbezhat-operatsii-na-grudi.webp?v=turquoise-20260908"
 imageAlt: "Врач консультирует пациентку — альтернативы операции на молочной железе"
 readingTime: 6
 ---

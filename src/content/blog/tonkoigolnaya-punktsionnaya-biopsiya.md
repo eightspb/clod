@@ -7,8 +7,8 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Маммология"
 tags: ["биопсия", "УЗИ", "диагностика", "маммология"]
-image: "/images/blog/tonkoigolnaya-punktsionnaya-biopsiya.webp"
-imageAlt: "Процедура биопсии — тонкоигольная пункция молочной железы"
+image: "/images/blog/tonkoigolnaya-punktsionnaya-biopsiya.webp?v=turquoise-20260908"
+imageAlt: "Инструменты для тонкоигольной биопсии: шприц, датчик УЗИ и предметные стёкла"
 readingTime: 2
 ---
 

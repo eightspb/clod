@@ -6,7 +6,7 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "ВПЧ", "кольпоскопия", "скрининг", "шейка матки"]
-image: "/images/blog/abnormalnyy-mazok-chto-delat.webp"
+image: "/images/blog/abnormalnyy-mazok-chto-delat.webp?v=turquoise-20260908"
 imageAlt: "Гинекологический осмотр и цитологический скрининг шейки матки"
 readingTime: 4
 ---

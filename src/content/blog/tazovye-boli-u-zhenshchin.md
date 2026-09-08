@@ -6,7 +6,7 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "тазовая боль", "эндометриоз", "аденомиоз"]
-image: "/images/blog/tazovye-boli-u-zhenshchin.webp"
+image: "/images/blog/tazovye-boli-u-zhenshchin.webp?v=turquoise-20260908"
 imageAlt: "Женщина с тазовой болью — причины и диагностика"
 readingTime: 4
 ctaType: appointment

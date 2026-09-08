@@ -6,7 +6,7 @@ publishDate: 2026-04-01
 author: "Редакция клиники"
 category: "Эндокринология"
 tags: [эндокринология, щитовидная железа, гипотиреоз, Хашимото]
-image: "/images/blog/zabolevaniya-schitovidnoy-zhelezy.webp"
+image: "/images/blog/zabolevaniya-schitovidnoy-zhelezy.webp?v=turquoise-20260908"
 imageAlt: "Щитовидная железа — гипотиреоз и тиреоидит Хашимото"
 readingTime: 5
 ctaType: appointment

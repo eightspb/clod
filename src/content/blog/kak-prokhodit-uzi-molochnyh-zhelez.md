@@ -7,8 +7,8 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Диагностика"
 tags: ["УЗИ", "диагностика", "маммология", "BI-RADS", "подготовка"]
-image: "/images/blog/kak-prokhodit-uzi-molochnyh-zhelez.webp"
-imageAlt: "УЗИ молочных желёз — как проходит процедура"
+image: "/images/blog/kak-prokhodit-uzi-molochnyh-zhelez.webp?v=turquoise-20260908"
+imageAlt: "Аппарат УЗИ, линейный датчик и гель для обследования молочных желёз"
 readingTime: 4
 ---
 

@@ -7,7 +7,7 @@ author: "Калинина Ирина Аркадьевна"
 authorSlug: "kalinina"
 category: "Эндокринология"
 tags: ["щитовидная железа", "гормоны", "эндокринология", "симптомы"]
-image: "/images/blog/simptomy-gipotireoza-i-gipertireoza.webp"
+image: "/images/blog/simptomy-gipotireoza-i-gipertireoza.webp?v=turquoise-20260908"
 imageAlt: "Симптомы гипотиреоза и гипертиреоза — когда проверить щитовидную железу"
 readingTime: 3
 ---

@@ -6,7 +6,7 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Диагностика"
 tags: ["диагностика", "женское здоровье", "профилактика", "врач"]
-image: "/images/blog/pervichnaya-medpomoshch-zhenshchinam.webp"
+image: "/images/blog/pervichnaya-medpomoshch-zhenshchinam.webp?v=turquoise-20260908"
 imageAlt: "Врач и пациентка на доверительном приёме"
 readingTime: 4
 ctaType: appointment

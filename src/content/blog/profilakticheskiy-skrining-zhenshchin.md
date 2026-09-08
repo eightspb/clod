@@ -6,7 +6,7 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Диагностика"
 tags: ["диагностика", "профилактика", "скрининг", "женское здоровье"]
-image: "/images/blog/profilakticheskiy-skrining-zhenshchin.webp"
+image: "/images/blog/profilakticheskiy-skrining-zhenshchin.webp?v=turquoise-20260908"
 imageAlt: "Профилактический скрининг — обследования для женщин по возрастам"
 readingTime: 5
 ctaType: appointment

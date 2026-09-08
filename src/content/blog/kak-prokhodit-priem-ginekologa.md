@@ -7,7 +7,7 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Гинекология"
 tags: ["гинекология", "прием врача", "эндокринология", "осмотр"]
-image: "/images/blog/kak-prokhodit-priem-ginekologa.webp"
+image: "/images/blog/kak-prokhodit-priem-ginekologa.webp?v=turquoise-20260908"
 imageAlt: "Как проходит приём гинеколога — осмотр и консультация"
 readingTime: 3
 ---

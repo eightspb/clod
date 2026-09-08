@@ -6,7 +6,7 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Диагностика"
 tags: [диагностика, менопауза, гормоны, анализы]
-image: "/images/blog/testirovaniye-gormonov-menopauza.webp"
+image: "/images/blog/testirovaniye-gormonov-menopauza.webp?v=turquoise-20260908"
 imageAlt: "Гормональные анализы при менопаузе — что показывают результаты"
 readingTime: 4
 ctaType: appointment

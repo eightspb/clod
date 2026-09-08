@@ -7,7 +7,7 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Маммология"
 tags: ["грудное вскармливание", "материнство", "лактация"]
-image: "/images/blog/15-pravil-grudnogo-vskarmlivaniya.webp"
+image: "/images/blog/15-pravil-grudnogo-vskarmlivaniya.webp?v=turquoise-20260908"
 imageAlt: "Мама и малыш — грудное вскармливание"
 readingTime: 4
 ---

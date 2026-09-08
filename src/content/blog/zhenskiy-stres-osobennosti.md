@@ -6,7 +6,7 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Женское здоровье"
 tags: [женское здоровье, стресс, психоэмоциональное здоровье, гормоны]
-image: "/images/blog/zhenskiy-stres-osobennosti.webp"
+image: "/images/blog/zhenskiy-stres-osobennosti.webp?v=turquoise-20260908"
 imageAlt: "Женщина в медицинском кабинете на консультации"
 readingTime: 5
 ctaType: appointment

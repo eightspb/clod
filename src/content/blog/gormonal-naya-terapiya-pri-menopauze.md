@@ -6,7 +6,7 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "менопауза", "гормональная терапия", "ГЗТ"]
-image: "/images/blog/gormonal-naya-terapiya-pri-menopauze.webp"
+image: "/images/blog/gormonal-naya-terapiya-pri-menopauze.webp?v=turquoise-20260908"
 imageAlt: "Гормональная терапия при менопаузе — консультация врача"
 readingTime: 5
 ctaType: appointment

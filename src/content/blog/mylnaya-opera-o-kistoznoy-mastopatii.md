@@ -7,7 +7,7 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["мастопатия", "киста", "маммология"]
-image: "/images/blog/mylnaya-opera-o-kistoznoy-mastopatii.webp"
+image: "/images/blog/mylnaya-opera-o-kistoznoy-mastopatii.webp?v=turquoise-20260908"
 imageAlt: "Медицинская консультация по вопросам кистозной мастопатии"
 readingTime: 6
 ---

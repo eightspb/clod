@@ -6,7 +6,7 @@ publishDate: 2026-04-01
 author: "Редакция клиники"
 category: "Нутрициология"
 tags: [нутрициология, СПКЯ, гинекология, питание, гормоны]
-image: "/images/blog/pitaniye-pri-spkya.webp"
+image: "/images/blog/pitaniye-pri-spkya.webp?v=turquoise-20260908"
 imageAlt: "Тарелка с полезной едой — овощи, зерновые, белковые продукты"
 readingTime: 5
 ctaType: appointment

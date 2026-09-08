@@ -6,7 +6,7 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Гинекология"
 tags: [гинекология, аденомиоз, болезненные менструации, лечение]
-image: "/images/blog/adenomioz-prichiny-simptomy-lechenie.webp"
+image: "/images/blog/adenomioz-prichiny-simptomy-lechenie.webp?v=turquoise-20260908"
 imageAlt: "Женщина с болезненными менструациями — диагностика аденомиоза"
 readingTime: 5
 ---

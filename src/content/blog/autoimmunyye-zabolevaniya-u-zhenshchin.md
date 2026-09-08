@@ -6,7 +6,7 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Эндокринология"
 tags: [эндокринология, аутоиммунные заболевания, щитовидная железа, диагностика]
-image: "/images/blog/autoimmunyye-zabolevaniya-u-zhenshchin.webp"
+image: "/images/blog/autoimmunyye-zabolevaniya-u-zhenshchin.webp?v=turquoise-20260908"
 imageAlt: "Лабораторная диагностика аутоиммунных заболеваний у женщин"
 readingTime: 5
 ctaType: appointment

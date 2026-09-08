@@ -6,7 +6,7 @@ publishDate: 2026-04-03
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "менопауза", "перименопауза", "гормоны", "возраст"]
-image: "/images/blog/perimenopauza-vs-menopauza.webp"
+image: "/images/blog/perimenopauza-vs-menopauza.webp?v=turquoise-20260908"
 imageAlt: "Женщина средних лет — перименопауза и менопауза"
 readingTime: 4
 ctaType: appointment

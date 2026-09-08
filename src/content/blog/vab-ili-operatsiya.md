@@ -8,7 +8,7 @@ authorSlug: "odintsov"
 category: "Маммология"
 tags: ["ВАБ", "фиброаденома", "операция", "маммология"]
 ctaType: second-opinion
-image: "/images/blog/vab-ili-operatsiya.webp"
+image: "/images/blog/vab-ili-operatsiya.webp?v=turquoise-20260908"
 imageAlt: "Хирургическое оборудование — сравнение ВАБ и операции при фиброаденоме"
 readingTime: 7
 ---

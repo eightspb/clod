@@ -7,7 +7,7 @@ author: "Егорова А. М."
 authorSlug: "egorova"
 category: "Гинекология"
 tags: ["эрозия", "гинекология", "мифы", "женское здоровье"]
-image: "/images/blog/eroziya-sheyki-matki.webp"
+image: "/images/blog/eroziya-sheyki-matki.webp?v=turquoise-20260908"
 imageAlt: "Эрозия шейки матки"
 readingTime: 4
 ---

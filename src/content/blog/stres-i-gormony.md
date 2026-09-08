@@ -6,7 +6,7 @@ publishDate: 2026-04-04
 author: "Редакция клиники"
 category: "Женское здоровье"
 tags: [женское здоровье, стресс, гормоны, цикл, кортизол]
-image: "/images/blog/stres-i-gormony.webp"
+image: "/images/blog/stres-i-gormony.webp?v=turquoise-20260908"
 imageAlt: "Стресс и гормональный баланс — влияние на менструальный цикл"
 readingTime: 4
 ctaType: appointment

@@ -7,7 +7,7 @@ author: "Одинцов Владислав Александрович"
 authorSlug: "odintsov"
 category: "Маммология"
 tags: ["фиброаденома", "маммология", "диагностика"]
-image: "/images/blog/fibroadenoma-chastye-voprosy.webp"
+image: "/images/blog/fibroadenoma-chastye-voprosy.webp?v=turquoise-20260908"
 imageAlt: "Маммолог отвечает на частые вопросы о фиброаденоме"
 readingTime: 3
 ---

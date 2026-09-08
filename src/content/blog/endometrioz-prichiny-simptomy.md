@@ -6,7 +6,7 @@ publishDate: 2026-04-02
 author: "Редакция клиники"
 category: "Гинекология"
 tags: ["гинекология", "эндометриоз", "тазовая боль", "бесплодие"]
-image: "/images/blog/endometrioz-prichiny-simptomy.webp"
+image: "/images/blog/endometrioz-prichiny-simptomy.webp?v=turquoise-20260908"
 imageAlt: "Женщина на приёме у гинеколога — эндометриоз и тазовая боль"
 readingTime: 5
 ---

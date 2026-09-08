@@ -7,7 +7,7 @@ author: "Клиника Одинцова"
 authorSlug: "clinic"
 category: "Статьи"
 tags: ["маммология", "гинекология", "эндокринология", "статистика", "второе мнение"]
-image: "/images/blog/top-5-obrashcheniy-2025.webp"
+image: "/images/blog/top-5-obrashcheniy-2025.webp?v=turquoise-20260908"
 imageAlt: "Клиника — топ-5 причин обращений пациентов"
 readingTime: 5
 ---
