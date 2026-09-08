@@ -223,7 +223,7 @@ const itemListSchema = {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
-            })
+            }).replace(/\s*г\.$/u, '')
             
             return (
               <a

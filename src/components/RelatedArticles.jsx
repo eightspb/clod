@@ -31,7 +31,7 @@ function formatDate(dateString) {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
+  }).replace(/\s*г\.$/u, '')
 }
 
 function RelatedCard({ article }) {

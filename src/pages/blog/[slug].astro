@@ -78,7 +78,7 @@ const formattedDate = post.data.publishDate.toLocaleDateString('ru-RU', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
-})
+}).replace(/\s*г\.$/u, '')
 
 const updatedDate = post.data.updatedDate
   ? post.data.updatedDate.toLocaleDateString('ru-RU', {
@@ -86,7 +86,7 @@ const updatedDate = post.data.updatedDate
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    })
+    }).replace(/\s*г\.$/u, '')
   : null
 
 // SEO: blog pages keep a nationwide informational intent by default.
@@ -396,7 +396,7 @@ const breadcrumbItems = [
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric'
-                    })}
+                    }).replace(/\s*г\.$/u, '')}
                   </time>
                 </a>
               ))}
