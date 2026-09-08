@@ -3,6 +3,7 @@ import react from '@astrojs/react'
 import node from '@astrojs/node'
 import sitemap from '@astrojs/sitemap'
 import { unified } from '@astrojs/markdown-remark'
+import { canonicalUrl, sitemapPage } from './src/lib/seo.js'
 
 export default defineConfig({
   site: 'https://odintsovclinic.ru',
@@ -19,7 +20,7 @@ export default defineConfig({
     '/action': '/prices',
     '/opinion2': '/second-opinion',
     '/doc': '/licenses',
-    '/patients': '/',
+    '/patients': '/blog',
     '/patients/taxform': '/tax-form',
     '/otzyv': '/about',
     '/mission': '/about',
@@ -30,9 +31,13 @@ export default defineConfig({
     '/doctors/ovchinnicova': '/doctors',
     '/bc': '/blog/rannyaya-diagnostika-raka-grudi',
     '/breastfeeding-rules': '/blog/15-pravil-grudnogo-vskarmlivaniya',
-    '/cyst': '/blog/kista-molochnoy-zhelezy',
+    '/cyst': '/blog/mylnaya-opera-o-kistoznoy-mastopatii',
+    '/ozonecyst': '/kista-molochnoy-zhelezy',
+    '/esm': '/blog/eroziya-sheyki-matki',
     '/terios': '/blog/gipotireoz-simptomy-lechenie',
-    '/news/170328': '/blog',
+    '/news/170328': '/contacts',
+    '/exams/programma-pitaniya': '/nutrition',
+    '/exam/pervichny-priem-endocrinolog': '/endocrinology',
     '/exams/fnbiopsy': '/blog/tonkoigolnaya-punktsionnaya-biopsiya',
     '/exams/priem-ginekolog-endokrinolog': '/gynecology',
     '/exam/pervichny-priem-gynecolog': '/gynecology',
@@ -55,44 +60,9 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      changefreq: 'monthly',
-      priority: 0.7,
-      lastmod: new Date(),
-      filter(page) {
-        return !page.includes('/admin') && !page.includes('/blog-images')
-      },
+      filter: sitemapPage,
       serialize(item) {
-        const priorities = {
-          'https://odintsovclinic.ru/': 1.0,
-          'https://odintsovclinic.ru/vab/': 0.9,
-          'https://odintsovclinic.ru/mammology/': 0.9,
-          'https://odintsovclinic.ru/gynecology/': 0.9,
-          'https://odintsovclinic.ru/endocrinology/': 0.9,
-          'https://odintsovclinic.ru/nutrition/': 0.9,
-          'https://odintsovclinic.ru/fibroadenoma/': 0.8,
-          'https://odintsovclinic.ru/mastopatiya/': 0.8,
-          'https://odintsovclinic.ru/kista-molochnoy-zhelezy/': 0.8,
-          'https://odintsovclinic.ru/eroziya-sheyki-matki/': 0.8,
-          'https://odintsovclinic.ru/gipotireoz/': 0.8,
-          'https://odintsovclinic.ru/adenomioz/': 0.8,
-          'https://odintsovclinic.ru/endometrioz/': 0.8,
-          'https://odintsovclinic.ru/tireoidit-khashimoto/': 0.8,
-          'https://odintsovclinic.ru/second-opinion/': 0.8,
-          'https://odintsovclinic.ru/prices/': 0.8,
-          'https://odintsovclinic.ru/doctors/': 0.8,
-          'https://odintsovclinic.ru/contacts/': 0.8,
-          'https://odintsovclinic.ru/blog/': 0.7,
-        }
-        const changefreqs = {
-          'https://odintsovclinic.ru/': 'weekly',
-          'https://odintsovclinic.ru/prices/': 'weekly',
-          'https://odintsovclinic.ru/privacy-policy/': 'yearly',
-        }
-        return {
-          ...item,
-          priority: priorities[item.url] ?? 0.7,
-          changefreq: changefreqs[item.url] ?? 'monthly',
-        }
+        return { ...item, url: canonicalUrl(item.url) }
       },
     }),
   ],

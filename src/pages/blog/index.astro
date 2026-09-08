@@ -219,6 +219,7 @@ const itemListSchema = {
             const accentClass = CATEGORY_ACCENT[post.data.category] ?? 'text-clay-teal bg-teal-50/90'
             const isFeatured = index === 0
             const formattedDate = post.data.publishDate.toLocaleDateString('ru-RU', {
+              timeZone: 'UTC',
               day: 'numeric',
               month: 'long',
               year: 'numeric',

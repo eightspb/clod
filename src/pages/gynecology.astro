@@ -1,6 +1,7 @@
 ---
 export const prerender = false
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Gynecology, GYNECOLOGY_FAQ } from '../components/pages/Gynecology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -11,35 +12,21 @@ const services = await db.select().from(Service).where(eq(Service.direction, 'Г
 
 const specialtySchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова - Гинекология',
-  medicalSpecialty: 'Gynecology',
-  availableService: {
-    '@type': 'MedicalProcedure',
-    name: 'Гинекологический осмотр и УЗИ малого таза',
-  },
-  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
+  '@type': 'Service',
+  '@id': 'https://odintsovclinic.ru/gynecology#service',
+  name: 'Приём гинеколога в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/gynecology',
+  provider: { '@id': 'https://odintsovclinic.ru/#clinic' },
+  areaServed: { '@type': 'City', name: 'Санкт-Петербург' },
 }
 
 const faqSchema = generateFaqSchema(GYNECOLOGY_FAQ)
 ---
 
 <Layout
-  title="Гинекология в СПб - Клиника Одинцова"
-  description="Гинеколог в Приморском районе СПб: осмотр, УЗИ, кольпоскопия и план наблюдения. Клиника Одинцова, м. Комендантский проспект."
+  pageType="MedicalWebPage"
+  title="Гинеколог в СПб — приём и цены | Клиника Одинцова"
+  description="Приём гинеколога в Приморском районе СПб: осмотр, УЗИ малого таза, кольпоскопия по показаниям. Врачи, цены и запись. Богатырский проспект, 22 к. 1."
   keywords="гинекология Санкт-Петербург, гинеколог Приморский район, УЗИ малого таза, бережный приём, Клиника Одинцова"
   ogImage="/images/og/gynecology.webp"
 >
@@ -47,4 +34,9 @@ const faqSchema = generateFaqSchema(GYNECOLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология' }]} />
   <Gynecology servicesData={services} client:idle />
+  <ServiceArticles articles={[
+    { slug: 'kak-podgotovitsya-k-priemu-ginekologa', title: 'Как подготовиться к приёму гинеколога' },
+    { slug: 'kak-prokhodit-priem-ginekologa', title: 'Как проходит приём гинеколога' },
+    { slug: 'abnormalnyy-mazok-chto-delat', title: 'Аномальный результат мазка: что делать дальше' },
+  ]} />
 </Layout>

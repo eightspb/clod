@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { KistaMolochnoyZhelezy, KISTA_FAQ } from '../components/pages/KistaMolochnoyZhelezy.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/kista-molochnoy-zhelezy#condition',
+  url: 'https://odintsovclinic.ru/kista-molochnoy-zhelezy',
   name: 'Киста молочной железы',
   alternateName: 'Breast cyst',
   description: 'Округлая полость, заполненная жидкостью, внутри молочной железы. Образуется при расширении молочных протоков. Бывает простой и сложной формы.',
@@ -20,38 +23,28 @@ const conditionSchema = {
       name: 'Динамическое наблюдение',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Аспирация кисты под контролем УЗИ',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Склерозирование кисты',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Вакуумная аспирационная биопсия (ВАБ)',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(KISTA_FAQ)
 ---
 
 <Layout
-  title="Киста молочной железы: лечение в СПб | Клиника Одинцова"
-  description="Маммолог при кисте молочной железы в СПб: УЗИ, аспирация, ВАБ по показаниям. Клиника Одинцова, Приморский район."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/kista-molochnoy-zhelezy#condition"
+  title="Киста молочной железы — лечение в СПб | Клиника Одинцова"
+  description="Маммолог при кисте молочной железы в Санкт-Петербурге: УЗИ, наблюдение и лечение по показаниям. Стоимость консультации и запись в клинику Одинцова."
   keywords="киста молочной железы, лечение кисты СПб, маммолог Санкт-Петербург, аспирация кисты, УЗИ молочных желёз, Приморский район"
   ogImage="/images/og/kista-molochnoy-zhelezy.webp"
 >
@@ -59,4 +52,9 @@ const faqSchema = generateFaqSchema(KISTA_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Киста молочной железы' }]} />
   <KistaMolochnoyZhelezy client:idle />
+  <ServiceArticles articles={[
+    { slug: 'kista-molochnoy-zhelezy', title: 'Киста молочной железы: причины, симптомы и лечение' },
+    { slug: 'mylnaya-opera-o-kistoznoy-mastopatii', title: 'Кистозная мастопатия: что важно понимать' },
+    { slug: 'kak-prokhodit-uzi-molochnyh-zhelez', title: 'Как проходит УЗИ молочных желёз' },
+  ]} />
 </Layout>

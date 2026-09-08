@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Mastopatiya, MASTOPATIYA_FAQ } from '../components/pages/Mastopatiya.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/mastopatiya#condition',
+  url: 'https://odintsovclinic.ru/mastopatiya',
   name: 'Мастопатия',
   alternateName: 'Фиброзно-кистозная болезнь молочной железы',
   description: 'Доброкачественное изменение структуры молочной железы с нарушением соотношения железистой, соединительной и жировой ткани. Встречается у 30-50% женщин репродуктивного возраста.',
@@ -24,30 +27,20 @@ const conditionSchema = {
       name: 'Медикаментозная коррекция',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Вакуумная аспирационная биопсия (ВАБ) при узловых формах',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(MASTOPATIYA_FAQ)
 ---
 
 <Layout
-  title="Мастопатия: лечение в СПб | Клиника Одинцова"
-  description="Маммолог при мастопатии в СПб: УЗИ, консультация и подбор тактики лечения. Клиника Одинцова, Приморский район."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/mastopatiya#condition"
+  title="Мастопатия — приём маммолога в СПб | Клиника Одинцова"
+  description="Боль и изменения в молочных железах: консультация маммолога в Санкт-Петербурге, разбор обследований и план наблюдения. Врачи и цены клиники Одинцова."
   keywords="мастопатия лечение СПб, фиброзно-кистозная болезнь, маммолог Санкт-Петербург, мастопатия симптомы, лечение мастопатии, Приморский район СПб"
   ogImage="/images/og/mastopatiya.webp"
 >
@@ -55,4 +48,9 @@ const faqSchema = generateFaqSchema(MASTOPATIYA_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Мастопатия' }]} />
   <Mastopatiya client:idle />
+  <ServiceArticles articles={[
+    { slug: 'mylnaya-opera-o-kistoznoy-mastopatii', title: 'Кистозная мастопатия: что важно понимать' },
+    { slug: 'bol-v-grudi-i-risk-raka', title: 'Боль в груди и риск онкологии: что важно знать' },
+    { slug: 'mammografiya-ili-uzi', title: 'Маммография или УЗИ молочных желёз: что выбрать' },
+  ]} />
 </Layout>

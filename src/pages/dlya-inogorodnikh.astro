@@ -1,16 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { DlyaInogorodnikh } from '../components/pages/DlyaInogorodnikh.jsx'
 ---
 
 <Layout
-  title="Для иногородних пациентов - Клиника Одинцова, СПб"
-  description="Как спланировать визит в клинику из другого города. Помощь с логистикой для пациентов из России и СНГ."
+  title="Иногородним пациентам — приём и ВАБ в Санкт-Петербурге"
+  description="Как спланировать поездку в клинику Одинцова из другого города: документы, предварительное обращение, консультация маммолога и ВАБ по показаниям."
   keywords="клиника одинцова для иногородних, маммолог спб из другого города, ВАБ спб приехать, лечение в спб иногородним"
   canonicalUrl="https://odintsovclinic.ru/dlya-inogorodnikh"
   ogImage="/images/og/dlya-inogorodnikh.webp"
 >
   <BreadcrumbNav items={[{ label: 'Для иногородних' }]} />
   <DlyaInogorodnikh client:idle />
+  <ServiceArticles articles={[
+    { slug: 'kak-podgotovitsya-k-vab', title: 'Как подготовиться к ВАБ' },
+    { slug: 'vab-ili-operatsiya', title: 'ВАБ или операция при фиброаденоме: как выбрать' },
+    { slug: 'kak-prokhodit-uzi-molochnyh-zhelez', title: 'Как проходит УЗИ молочных желёз' },
+  ]} />
 </Layout>

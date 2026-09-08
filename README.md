@@ -902,20 +902,36 @@ integrations: [
 
 ## SEO & GEO оптимизация
 
+### Аудит и подготовка к переносу — 8 сентября 2026
+
+SEO, локальная видимость и GEO в генеративном поиске рассмотрены отдельно. Полный отчёт — [docs/seo/audit-2026-09-08.md](docs/seo/audit-2026-09-08.md), анализ конкурентов — [docs/seo/competitors-2026-09-08.md](docs/seo/competitors-2026-09-08.md), поисковая стратегия — [docs/seo/search-strategy-2026-09-08.md](docs/seo/search-strategy-2026-09-08.md). [Wordstat](docs/seo/wordstat-2026-09-08.md) содержит 115 строк региональной семантики, [снимок выдачи](docs/seo/yandex-serp-2026-09-08.md) — 14 запросов, [карта страниц](docs/seo/page-keywords-2026-09-08.md) — все 76 публичных URL. Ключи исследования не нужны приложению и хранятся вне репозитория.
+
+- `src/lib/seo.js` задаёт единый canonical, стабильные идентификаторы клиники и сайта, проверенные внешние карточки и безопасную сериализацию JSON-LD. `Layout.astro` связывает страницу с `WebSite` и `MedicalBusiness`; контакты больше не создают три независимых объекта клиники. Направления описываются как `Service`, врач — как `Person` на `ProfilePage`, статья — как `BlogPosting` на `MedicalWebPage`.
+- Sitemap использует тот же формат URL без завершающего слеша, кроме `/`. Дата сборки не выдаётся за дату изменения каждой страницы. `/404`, API и административные маршруты исключены; 404 имеет явный `noindex`.
+- Для 17 длинных заголовков блога используется отдельный `seoTitle`, редакционный H1 сохраняется. `seoTitle` необязателен. На странице статьи есть содержание из H2 и исправлены боковые ссылки на `post.id`. `ServiceArticles.astro` добавляет ссылки на материалы по теме на 15 страницах без клиентского JavaScript.
+- OG-размеры `1200×630` указываются только для изображений `/images/og/`; портретам и обложкам статей эти размеры не приписываются. Текущие обложки статей имеют размер `1200×675`.
+- ВАБ и восемь заболеваний связаны с `MedicalWebPage.mainEntity`; неподдерживаемые свойства и утверждение о формальном признании заболевания самой клиникой удалены. Календарные даты блога форматируются в UTC, чтобы день публикации не зависел от часового пояса сборки.
+- Второе мнение описано как `Service` с общим поставщиком и бесплатным `Offer`, соответствующим видимым условиям. [GEO-протокол](docs/seo/geo-baseline-2026-09-08.md) сохраняет пять фактических ответов генеративного поиска и панель из 25 вопросов для следующего измерения.
+- По [карте переноса Tilda](docs/seo/migration-2026-09-08.md) добавлены четыре релевантных редиректа и исправлены три старых назначения; HTTP 301 и доступность целей проверяет `e2e/seo-migration.spec.js`. Неподтверждённые услуги и отсутствующие врачи требуют отдельного решения до переноса.
+
+После `bun run build` команда `bun run audit:seo --base-url http://localhost:4322 --output /tmp/clod-seo.json` проверяет все URL sitemap: title/description, один H1, canonical, JSON-LD, внутренние ссылки и SEO-изображения. Сервер нужен для SSR-страницы `/gynecology`; остальные HTML читаются из `dist/client`. Флаг `--live` загружает sitemap и каждую страницу с указанного хоста и проверяет внутренние SEO-изображения по HTTP, например `bun run audit:seo --base-url https://new.odintsovclinic.ru --live --output /tmp/clod-seo-live.json`; локальная сборка для этого режима не требуется. Скрипт завершается с ошибкой при нарушениях; предупреждения о длине метаданных носят редакционный характер. Это техническая проверка, не замена данным Search Console/Вебмастера или медицинскому рецензированию.
+
+**Перенос домена:** `new.odintsovclinic.ru` остаётся staging с `X-Robots-Tag: noindex, nofollow`, основной canonical — `odintsovclinic.ru`. До DNS-переноса изображения в абсолютной разметке основного домена могут отсутствовать на Tilda. Не отключать `NOINDEX` на поддомене для получения SEO-оценки; запуск индексации, перенос старых URL и проверку основного домена выполнять по плану из отчёта.
+
 ### Реализованные улучшения
 
 | Задача | Статус | Описание |
 |---|---|---|
 | A1 - Sitemap | ✅ | `@astrojs/sitemap` автогенерация, удалён хардкодный `public/sitemap.xml` |
-| A2 - GEO-метатеги | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
-| A3 - Keywords | ✅ | `keywords` prop в `Layout.astro`, заполнен на всех страницах |
+| A2 - Локальные метатеги (legacy) | ✅ | `geo.region`, `geo.placename`, `geo.position`, `ICBM` в `Layout.astro` |
+| A3 - Keywords | ✅ | Справочные ключи в `Layout.astro`; не считаются самостоятельным фактором ранжирования или GEO |
 | A4 - JSON-LD расширен | ✅ | `priceRange`, `hasMap`, `sameAs`, полный `PostalAddress`; `aggregateRating` у клиники убран как неподтверждаемый, `logo` ведёт на `/images/logo.png`, `image` и og:image по умолчанию — на `/images/og/index.webp` |
 | A5 - BreadcrumbNav | ✅ | `BreadcrumbNav.jsx` с `BreadcrumbList` JSON-LD на всех внутренних страницах |
 | A6 - Самохостинг шрифтов | ✅ | Golos Text woff2 в `public/fonts/`, `@font-face` в `global.css`, `<link rel="preload">`; заголовки — системная Georgia, внешних шрифтовых хостов в CSP больше нет. `src/styles/self-hosted-fonts.test.js` не даёт держать в `public/fonts` файлы без `@font-face`, `src/styles/locked-theme.test.js` — preload на несуществующий файл |
 | B1 - Страница /vab | ✅ | `MedicalProcedure` + `FAQPage` JSON-LD, полный контент |
 | B2 - FaqSection + /contacts | ✅ | `FaqSection.jsx` с FAQPage schema, страница контактов |
 | B3 - Углубление специализаций | ✅ | H2/H3 структура, цены, FAQ на всех страницах специализаций |
-| B4 - Блог | ✅ | 40 статей, `ItemList` + `MedicalWebPage` JSON-LD |
+| B4 - Блог | ✅ | 40 статей, `ItemList` + `MedicalWebPage`/`BlogPosting` JSON-LD |
 | B5 - Страницы врачей E-E-A-T | ✅ | Публикации, TV-ссылки, proDoctorovUrl, расширенный Physician JSON-LD |
 | C1 - ogImage на страницах врачей | ✅ | Фото врача передаётся как `ogImage` в `Layout.astro` для страниц `/doctors/[slug]` |
 | C2 - ogImage на страницах блога | ✅ | Изображение статьи из frontmatter передаётся как `ogImage` для `/blog/[slug]` |
@@ -962,16 +978,16 @@ integrations: [
 - `kak-podgotovitsya-k-priemu-endokrinologa` - Как подготовиться к приёму эндокринолога
 
 **SEO/GEO на страницах блога:**
-- Meta: title, description, keywords, canonical URL
-- GEO: `geo.region`, `geo.placename`, `geo.position`, `ICBM` (из Layout)
+- Meta: seoTitle (или title), description, keywords, canonical URL
+- Локальные метаданные: `geo.region`, `geo.placename`, `geo.position`, `ICBM` (из Layout); не механизм цитирования в ИИ
 - Open Graph: og:type=article, og:image, article:published_time, article:modified_time, article:author, article:section, article:tag
-- JSON-LD: MedicalWebPage с keywords, spatialCoverage (Санкт-Петербург), author=Physician
-- Fallback: при отсутствии keywords - автогенерация из category + title + «СПб, Санкт-Петербург»
+- JSON-LD: BlogPosting, отдельная MedicalWebPage, author=Person с профилем врача или организация; пространственная привязка только при локальном содержании
+- Fallback: при отсутствии keywords — category + title + «Клиника Одинцова»; информационным статьям не добавляется искусственный региональный интент
 
 **Добавление новой статьи:**
 1. Создать файл `src/content/blog/slug-statyi.md`
 2. Заполнить frontmatter (title, description, keywords, publishDate, author, authorSlug, category, tags)
-3. Для GEO: включить в keywords «СПб» и «Санкт-Петербург» (при отсутствии - fallback сработает автоматически)
+3. Указывать город там, где материал отвечает на локальный запрос; для длинного заголовка можно задать seoTitle. authorSlug должен соответствовать фактическому автору, updatedDate — существенному обновлению материала; не обозначает медицинское рецензирование.
 4. Написать контент в Markdown
 5. Статья автоматически появится на `/blog` и `/blog/slug-statyi`
 
@@ -1289,7 +1305,7 @@ cwebp -q 82 -m 6 -sharp_yuv -resize 320 320 public/images/doctors/<slug>.webp -o
 - **Нутрициология**: переименован маршрут и файлы с `/neurology` на `/nutrition`, полностью переписан контент под нутрициологию.
 - **Блог (редизайн)**: карусель для видео "Врачи на ТВ", генерация тематических `og:image` (Unsplash) для всех статей, вывод картинок в карточках статей, улучшенные градиенты и тени.
 - **Онлайн-запись**: внешний виджет заменён единым first-party `BookingFlow`; все CTA работают через same-origin API, а страницы и карточки девяти врачей передают только публичный slug.
-- **SEO/Редиректы**: настроены 301-редиректы для всех старых адресов сайта (изменения зафиксированы в `astro.config.mjs`).
+- **SEO/Редиректы**: правила 301 перечислены в `astro.config.mjs`; полная карта старых адресов и оставшиеся решения до переноса находятся в [docs/seo/migration-2026-09-08.md](docs/seo/migration-2026-09-08.md).
 - **Производительность (Lighthouse)**: загрузка `tracker.js` с `defer` не блокирует отрисовку; уменьшено число декоративных орбов в DOM (18→10); для орбов добавлен `will-change: transform` (композированные анимации); в nginx включено gzip для текстовых ответов (правило `immutable` в middleware до статики не доходит, срок кэша задаёт nginx, см. «Безопасность»).
 - **Lighthouse (доп.)**: неиспользуемый JS снижен за счёт `client:idle` для StickyCTA и About (отдельные чанки, загрузка при idle); LCP на странице «О клинике» — фото главврача с `loading="eager"` и `fetchPriority="high"`; бывший post-build скрипт `async-about-css.mjs` удалён — после переноса CSS в общий чанк он ни разу не срабатывал.
 

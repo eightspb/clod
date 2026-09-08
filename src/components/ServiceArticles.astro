@@ -1,0 +1,19 @@
+---
+interface Props {
+  articles: { slug: string; title: string }[]
+}
+const { articles } = Astro.props
+---
+
+<section class="container-clay py-8 md:py-12" aria-label="Материалы по теме приёма">
+  <h2 class="heading-serif text-2xl md:text-3xl text-clay-dark mb-5">Полезно перед приёмом</h2>
+  <ul class="grid gap-3 md:grid-cols-3">
+    {articles.map((article) => (
+      <li>
+        <a href={`/blog/${article.slug}`} class="clay-card block h-full p-5 text-clay-teal font-medium hover:underline">
+          {article.title}
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>

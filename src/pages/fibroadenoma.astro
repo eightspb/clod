@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Fibroadenoma, FIBROADENOMA_FAQ } from '../components/pages/Fibroadenoma.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/fibroadenoma#condition',
+  url: 'https://odintsovclinic.ru/fibroadenoma',
   name: 'Фиброаденома молочной железы',
   alternateName: 'Fibroadenoma',
   description: 'Доброкачественное опухолевидное образование молочной железы из железистой и соединительной ткани. Чаще встречается у женщин 15-35 лет.',
@@ -20,34 +23,24 @@ const conditionSchema = {
       name: 'Динамическое наблюдение',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Вакуумная аспирационная биопсия (ВАБ)',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Хирургическое удаление',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(FIBROADENOMA_FAQ)
 ---
 
 <Layout
-  title="Фиброаденома: лечение в СПб | Клиника Одинцова"
-  description="Маммолог при фиброаденоме в СПб: консультация, УЗИ, ВАБ и второе мнение. Клиника Одинцова, Приморский район."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/fibroadenoma#condition"
+  title="Фиброаденома молочной железы: лечение и удаление в СПб"
+  description="Консультация маммолога при фиброаденоме в Санкт-Петербурге. Разбор УЗИ, наблюдение или удаление по показаниям, ВАБ и второе мнение. Клиника Одинцова."
   keywords="фиброаденома молочной железы, лечение фиброаденомы СПб, ВАБ фиброаденома, маммолог Санкт-Петербург, удаление фиброаденомы, Приморский район"
   ogImage="/images/og/fibroadenoma.webp"
 >
@@ -55,4 +48,9 @@ const faqSchema = generateFaqSchema(FIBROADENOMA_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология', href: '/mammology' }, { label: 'Фиброаденома' }]} />
   <Fibroadenoma client:idle />
+  <ServiceArticles articles={[
+    { slug: 'chto-takoe-fibroadenoma', title: 'Фиброаденома молочной железы: что важно знать' },
+    { slug: 'fibroadenoma-chastye-voprosy', title: 'Фиброаденома: ответы на частые вопросы' },
+    { slug: 'vab-ili-operatsiya', title: 'ВАБ или операция при фиброаденоме: как выбрать' },
+  ]} />
 </Layout>

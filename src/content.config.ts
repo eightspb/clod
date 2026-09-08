@@ -5,8 +5,9 @@ const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
   schema: z.object({
     title: z.string(),
+    seoTitle: z.string().optional(),
     description: z.string(),
-    keywords: z.string().optional(), // Рекомендуется: ключевые слова + «СПб, Санкт-Петербург» для GEO
+    keywords: z.string().optional(),
     publishDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     author: z.string().default('Редакция клиники'),

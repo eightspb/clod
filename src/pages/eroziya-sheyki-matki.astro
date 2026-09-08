@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { EroziyaSheykyMatki, EROZIYA_FAQ } from '../components/pages/EroziyaSheykyMatki.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/eroziya-sheyki-matki#condition',
+  url: 'https://odintsovclinic.ru/eroziya-sheyki-matki',
   name: 'Эрозия шейки матки',
   alternateName: 'Эктопия шейки матки',
   description: 'Изменение эпителия шейки матки. Чаще речь идёт об эктопии: смещении цилиндрического эпителия цервикального канала на наружную поверхность шейки. При простой эктопии без атипии это вариант нормы у молодых женщин.',
@@ -20,34 +23,24 @@ const conditionSchema = {
       name: 'Динамическое наблюдение',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Радиоволновое воздействие',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Лазерная коагуляция',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(EROZIYA_FAQ)
 ---
 
 <Layout
-  title="Эрозия шейки матки: лечение в СПб | Клиника Одинцова"
-  description="Гинеколог при эрозии шейки матки в СПб: кольпоскопия, ПАП-тест, радиоволновое лечение. Клиника Одинцова, Приморский район."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/eroziya-sheyki-matki#condition"
+  title="Эрозия шейки матки — гинеколог в СПб | Клиника Одинцова"
+  description="Консультация гинеколога при изменениях шейки матки в Санкт-Петербурге. Осмотр, кольпоскопия, наблюдение или лечение по показаниям. Цены и запись."
   keywords="эрозия шейки матки лечение СПб, гинеколог Санкт-Петербург, кольпоскопия, ПАП-тест, прижигание эрозии, радиоволновое лечение, Приморский район СПб"
   ogImage="/images/og/eroziya-sheyki-matki.webp"
 >
@@ -55,4 +48,9 @@ const faqSchema = generateFaqSchema(EROZIYA_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эрозия шейки матки' }]} />
   <EroziyaSheykyMatki client:idle />
+  <ServiceArticles articles={[
+    { slug: 'eroziya-sheyki-matki', title: 'Эрозия шейки матки: мифы и правда' },
+    { slug: 'abnormalnyy-mazok-chto-delat', title: 'Аномальный результат мазка: что делать дальше' },
+    { slug: 'kak-podgotovitsya-k-priemu-ginekologa', title: 'Как подготовиться к приёму гинеколога' },
+  ]} />
 </Layout>

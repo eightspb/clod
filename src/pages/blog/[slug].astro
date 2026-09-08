@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro'
 import { BreadcrumbNav } from '../../components/BreadcrumbNav.jsx'
 import { RelatedArticles, PillarPageLink } from '../../components/RelatedArticles.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
+import { CLINIC_SCHEMA, serializeJsonLd } from '../../lib/seo.js'
 import { RING_COLOR_MAP } from '../../lib/constants.js'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Stethoscope, Tags } from 'lucide-react'
 
@@ -38,7 +39,8 @@ if (!post) {
   throw new Error(`Missing blog post entry for slug "${slug}".`)
 }
 
-const { Content } = await render(post)
+const { Content, headings } = await render(post)
+const tableOfContents = headings.filter((heading) => heading.depth === 2)
 
 function findRelatedPosts(currentPost, allEntries, limit = 3) {
   const candidates = allEntries.filter((p) => p.id !== currentPost.id)
@@ -72,6 +74,7 @@ const author = post.data.authorSlug
   : null
 
 const formattedDate = post.data.publishDate.toLocaleDateString('ru-RU', {
+  timeZone: 'UTC',
   day: 'numeric',
   month: 'long',
   year: 'numeric',
@@ -79,6 +82,7 @@ const formattedDate = post.data.publishDate.toLocaleDateString('ru-RU', {
 
 const updatedDate = post.data.updatedDate
   ? post.data.updatedDate.toLocaleDateString('ru-RU', {
+      timeZone: 'UTC',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -98,7 +102,9 @@ const hasLocalSignals = /санкт-петербург|спб|приморски
 
 const articleSchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalWebPage',
+  '@type': 'BlogPosting',
+  '@id': `${canonicalUrl}#article`,
+  mainEntityOfPage: { '@id': `${canonicalUrl}#webpage` },
   headline: post.data.title,
   description: post.data.description,
   url: canonicalUrl,
@@ -107,31 +113,35 @@ const articleSchema = {
   keywords: seoKeywords,
   author: author
     ? {
-        '@type': 'Physician',
+        '@type': 'Person',
+        '@id': `https://odintsovclinic.ru/doctors/${author.slug}#person`,
         name: author.name,
         url: `https://odintsovclinic.ru/doctors/${author.slug}`,
         jobTitle: author.specialization,
         worksFor: {
+          '@id': CLINIC_SCHEMA['@id'],
           '@type': 'MedicalBusiness',
           name: 'Клиника Одинцова',
           url: 'https://odintsovclinic.ru',
         },
       }
     : {
+        '@id': CLINIC_SCHEMA['@id'],
         '@type': 'Organization',
         name: 'Клиника Одинцова',
         url: 'https://odintsovclinic.ru',
       },
   publisher: {
+    '@id': CLINIC_SCHEMA['@id'],
     '@type': 'MedicalBusiness',
     name: 'Клиника Одинцова',
     url: 'https://odintsovclinic.ru',
     logo: {
       '@type': 'ImageObject',
-      url: 'https://odintsovclinic.ru/images/logo.svg',
+      url: CLINIC_SCHEMA.logo,
     },
   },
-  medicalAudience: {
+  audience: {
     '@type': 'MedicalAudience',
     audienceType: 'Patient',
   },
@@ -157,6 +167,7 @@ const articleSchema = {
   inLanguage: 'ru',
   isPartOf: {
     '@type': 'Blog',
+    '@id': 'https://odintsovclinic.ru/blog#blog',
     name: 'Блог Клиники Одинцова',
     url: 'https://odintsovclinic.ru/blog',
   },
@@ -169,11 +180,13 @@ const breadcrumbItems = [
 ---
 
 <Layout
-  title={`${post.data.title} | Клиника Одинцова`}
+  title={`${post.data.seoTitle || post.data.title} | Клиника Одинцова`}
   description={post.data.description}
   keywords={seoKeywords}
   canonicalUrl={canonicalUrl}
   ogType="article"
+  pageType="MedicalWebPage"
+  mainEntityId={`${canonicalUrl}#article`}
   ogImage={ogImageUrl}
   ogImageAlt={post.data.imageAlt || post.data.title}
 >
@@ -189,7 +202,7 @@ const breadcrumbItems = [
     ))}
   </Fragment>
 
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <script type="application/ld+json" set:html={serializeJsonLd(articleSchema)} />
 
   <BreadcrumbNav items={breadcrumbItems} />
 
@@ -257,11 +270,22 @@ const breadcrumbItems = [
               src={ogImageUrl}
               alt={post.data.imageAlt || post.data.title}
               width="1200"
-              height="630"
+              height="675"
               loading="eager"
               class="h-auto w-full object-cover"
             />
           </figure>
+        )}
+
+        {tableOfContents.length > 1 && (
+          <nav aria-label="Содержание статьи" class="clay-card p-5 md:p-7 mb-8">
+            <p class="font-semibold text-clay-dark mb-3">Содержание статьи</p>
+            <ol class="list-decimal pl-5 space-y-2 text-sm text-clay-teal">
+              {tableOfContents.map((heading) => (
+                <li><a href={`#${heading.slug}`} class="hover:underline">{heading.text}</a></li>
+              ))}
+            </ol>
+          </nav>
         )}
 
         <div class="prose-clay">
@@ -362,12 +386,13 @@ const breadcrumbItems = [
             <p class="text-sm font-semibold text-clay-dark mb-4">Читайте также</p>
             <div class="flex flex-col gap-4">
               {relatedPosts.map((related) => (
-                <a href={`/blog/${related.slug}`} class="group no-underline block">
+                <a href={`/blog/${related.id}`} class="group no-underline block">
                   <h4 class="text-sm font-bold text-clay-text group-hover:text-clay-teal transition-colors leading-snug mb-1.5 line-clamp-2">
                     {related.data.title}
                   </h4>
                   <time class="text-xs text-clay-muted block">
                     {related.data.publishDate.toLocaleDateString('ru-RU', {
+                      timeZone: 'UTC',
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric'

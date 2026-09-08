@@ -1,40 +1,27 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Nutrition, NUTRITION_FAQ } from '../components/pages/Nutrition.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова - Нутрициология',
-  medicalSpecialty: 'Dietetics',
-  availableService: {
-    '@type': 'MedicalProcedure',
-    name: 'Нутрициология, персональный план питания, коррекция нутритивного статуса',
-  },
-  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
+  '@type': 'Service',
+  '@id': 'https://odintsovclinic.ru/nutrition#service',
+  name: 'Консультация нутрициолога в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/nutrition',
+  provider: { '@id': 'https://odintsovclinic.ru/#clinic' },
+  areaServed: { '@type': 'City', name: 'Санкт-Петербург' },
 }
 
 const faqSchema = generateFaqSchema(NUTRITION_FAQ)
 ---
 
 <Layout
-  title="Нутрициология в СПб - Клиника Одинцова"
-  description="Нутрициолог в Приморском районе СПб: разбор привычек, анализов и дефицитов, персональный план питания. Клиника Одинцова."
+  pageType="MedicalWebPage"
+  title="Нутрициолог в СПб — консультация | Клиника Одинцова"
+  description="Консультация нутрициолога в Санкт-Петербурге: разбор рациона, пищевых привычек и персональный план питания. Цены и запись. Приморский район, Богатырский проспект."
   keywords="нутрициология Санкт-Петербург, нутрициолог Приморский район, персональный план питания, коррекция рациона, Клиника Одинцова"
   ogImage="/images/og/nutrition.webp"
 >
@@ -42,4 +29,9 @@ const faqSchema = generateFaqSchema(NUTRITION_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Нутрициология' }]} />
   <Nutrition client:idle />
+  <ServiceArticles articles={[
+    { slug: 'pitaniye-i-gormony', title: 'Питание и гормональный баланс: что есть, чтобы чувствовать себя лучше' },
+    { slug: 'pitaniye-pri-spkya', title: 'Питание при СПКЯ: как диета помогает справиться с синдромом поликистозных яичников' },
+    { slug: 'metabolicheskoe-zdorovye-i-ves', title: 'Метаболическое здоровье женщины: почему вес — это не только калории' },
+  ]} />
 </Layout>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { TireoiditKhashimoto, TIREOIDIT_FAQ } from '../components/pages/TireoiditKhashimoto.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/tireoidit-khashimoto#condition',
+  url: 'https://odintsovclinic.ru/tireoidit-khashimoto',
   name: 'Тиреоидит Хашимото',
   alternateName: 'Hashimoto thyroiditis',
   description: 'Аутоиммунное заболевание щитовидной железы, при котором иммунная система вырабатывает антитела против клеток железы, вызывая хроническое воспаление и постепенное снижение функции (гипотиреоз).',
@@ -35,26 +38,16 @@ const conditionSchema = {
       name: 'Коррекция микронутриентов (селен, витамин D)',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(TIREOIDIT_FAQ)
 ---
 
 <Layout
-  title="Тиреоидит Хашимото: лечение в СПб | Клиника Одинцова"
-  description="Эндокринолог при тиреоидите Хашимото в СПб: антитела, ТТГ, УЗИ щитовидной железы, подбор терапии. Клиника Одинцова."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/tireoidit-khashimoto#condition"
+  title="Тиреоидит Хашимото — эндокринолог в СПб"
+  description="Консультация эндокринолога при аутоиммунном тиреоидите Хашимото в Санкт-Петербурге. Анализы, УЗИ по показаниям и план наблюдения. Клиника Одинцова."
   keywords="тиреоидит Хашимото лечение СПб, аутоиммунный тиреоидит, эндокринолог Санкт-Петербург, антитела к ТПО, щитовидная железа, гипотиреоз лечение, Приморский район СПб"
   ogImage="/images/og/tireoidit-khashimoto.webp"
 >
@@ -62,4 +55,9 @@ const faqSchema = generateFaqSchema(TIREOIDIT_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология', href: '/endocrinology' }, { label: 'Тиреоидит Хашимото' }]} />
   <TireoiditKhashimoto client:idle />
+  <ServiceArticles articles={[
+    { slug: 'zabolevaniya-schitovidnoy-zhelezy', title: 'Заболевания щитовидной железы у женщин: гипотиреоз и тиреоидит Хашимото' },
+    { slug: 'gipotireoz-simptomy-lechenie', title: 'Гипотиреоз: симптомы, диагностика и лечение' },
+    { slug: 'kak-podgotovitsya-k-priemu-endokrinologa', title: 'Как подготовиться к приёму эндокринолога' },
+  ]} />
 </Layout>

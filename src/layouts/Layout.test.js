@@ -9,6 +9,10 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import DoctorRoute from '../pages/doctors/[slug].astro'
 import Layout from './Layout.astro'
+import ContactsRoute from '../pages/contacts.astro'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { RelatedArticles } from '../components/RelatedArticles.jsx'
 
 const PUBLIC_DOCTOR_KEYS = Object.freeze(['name', 'photo', 'slug', 'specialization'])
 const PUBLIC_DOCTOR_SLUGS = Object.freeze(['odintsov', 'prikhodko', 'macuchov', 'skurihin', 'egorova', 'vlasenko', 'zaharova', 'nevzorova', 'kalinina'])
@@ -61,6 +65,47 @@ describe('Layout booking flow', () => {
 })
 
 describe('Layout structured data', () => {
+  it('preserves the publication calendar date in related article cards', () => {
+    const html = renderToStaticMarkup(createElement(RelatedArticles, { articles: [{ slug: 'kak-podgotovitsya-k-vab', title: 'Подготовка к ВАБ', publishDate: '2026-04-01T00:00:00.000Z' }] }))
+    expect(load(html)('section').text()).toContain('1 апреля 2026 г.')
+  })
+
+  it('identifies the doctor as the main entity of the profile page', async () => {
+    const $ = load(await renderDoctorRoute('kalinina'))
+    const nodes = $('script[type="application/ld+json"]').map((_index, node) => JSON.parse($(node).html())).get()
+    const profile = nodes.find((node) => node['@type'] === 'ProfilePage')
+    const person = nodes.find((node) => node['@type'] === 'Person')
+    expect(profile?.mainEntity).toEqual({ '@id': person['@id'] })
+  })
+
+  it('does not assign landscape dimensions to a doctor portrait', async () => {
+    const $ = load(await renderDoctorRoute('odintsov'))
+    expect($('meta[property="og:image:height"]').attr('content')).toBeUndefined()
+  })
+
+  it('links the clinic, website and current page through stable identities', async () => {
+    const $ = load(await renderLayout('prikhodko'))
+    const nodes = $('script[type="application/ld+json"]').map((_index, node) => JSON.parse($(node).html())).get()
+    const website = nodes.find((node) => node['@type'] === 'WebSite')
+    const page = nodes.find((node) => node['@type'] === 'WebPage')
+    expect({ publisher: website?.publisher, site: page?.isPartOf }).toEqual({ publisher: { '@id': 'https://odintsovclinic.ru/#clinic' }, site: { '@id': 'https://odintsovclinic.ru/#website' } })
+  })
+
+  it('describes a doctor as a person employed by the clinic', async () => {
+    const $ = load(await renderDoctorRoute('kalinina'))
+    const person = $('script[type="application/ld+json"]').map((_index, node) => JSON.parse($(node).html())).get().find((node) => node['@type'] === 'Person')
+    expect({ id: person?.['@id'], employer: person?.worksFor?.['@id'] }).toEqual({ id: 'https://odintsovclinic.ru/doctors/kalinina#person', employer: 'https://odintsovclinic.ru/#clinic' })
+  })
+
+  it('renders only one clinic entity on the contacts route', async () => {
+    const renderers = await loadRenderers([getContainerRenderer()])
+    const container = await AstroContainer.create({ renderers, astroConfig: { site: 'https://odintsovclinic.ru' } })
+    container.addClientRenderer({ name: '@astrojs/react', entrypoint: '@astrojs/react/client.js' })
+    const $ = load(await container.renderToString(ContactsRoute, { request: new Request('https://odintsovclinic.ru/contacts'), partial: false }))
+    const businesses = $('script[type="application/ld+json"]').map((_index, node) => JSON.parse($(node).html())).get().filter((node) => ['MedicalClinic', 'MedicalBusiness'].includes(node['@type']))
+    expect(businesses.map((node) => node['@id'])).toEqual(['https://odintsovclinic.ru/#clinic'])
+  })
+
   it('publishes MedicalBusiness without a self-declared rating and with assets that exist', async () => {
     const html = await renderLayout('')
     const $ = load(html)

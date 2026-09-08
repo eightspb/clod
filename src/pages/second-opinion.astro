@@ -1,42 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { SecondOpinion, SECOND_OPINION_FAQ } from '../components/pages/SecondOpinion.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
 
 const secondOpinionSchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalProcedure',
+  '@type': 'Service',
+  '@id': 'https://odintsovclinic.ru/second-opinion#service',
   name: 'Бесплатное второе мнение онколога-маммолога',
   description: 'Бесплатная проверка диагноза и снимков онкологом-маммологом для пациентов из любого региона России. Помогает спокойно перепроверить показания к операции и обсудить возможные варианты лечения.',
-  procedureType: 'https://schema.org/DiagnosticProcedure',
   url: 'https://odintsovclinic.ru/second-opinion',
-  bodyLocation: 'Молочная железа',
-  followup: 'Консультация по результатам, при необходимости - направление на ВАБ',
-  howPerformed: 'Анализ снимков, УЗИ и медицинской документации пациента специалистом-маммологом',
-  preparation: 'Принесите имеющиеся снимки, результаты УЗИ и медицинские заключения',
+  provider: { '@id': 'https://odintsovclinic.ru/#clinic' },
+  areaServed: { '@type': 'Country', name: 'Россия' },
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'RUB',
-    description: 'Бесплатно',
-    seller: {
-      '@type': 'MedicalClinic',
-      name: 'Клиника Одинцова',
-      url: 'https://odintsovclinic.ru',
-      telephone: '+78127482210',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'пр. Богатырский, д. 22, к. 1',
-        addressLocality: 'Санкт-Петербург',
-        postalCode: '197374',
-        addressCountry: 'RU',
-      },
-    },
-  },
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
+    url: 'https://odintsovclinic.ru/second-opinion',
   },
 }
 
@@ -44,8 +26,10 @@ const faqSchema = generateFaqSchema(SECOND_OPINION_FAQ)
 ---
 
 <Layout
-  title="Второе мнение врача-онколога-маммолога бесплатно | Клиника Одинцова"
-  description="Пациентам из любого региона России: онколог-маммолог бесплатно проверит снимки и заключение, а при необходимости пригласит на очный приём в Санкт-Петербурге."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/second-opinion#service"
+  title="Второе мнение маммолога в СПб | Клиника Одинцова"
+  description="Получите второе мнение по диагнозу и предложенному лечению молочной железы. Какие документы подготовить и как обратиться в клинику Одинцова в Санкт-Петербурге."
   keywords="второе мнение маммолог, проверить диагноз, онколог-маммолог, Санкт-Петербург, Приморский район, бесплатная консультация"
   ogImage="/images/og/second-opinion.webp"
 >
@@ -53,4 +37,9 @@ const faqSchema = generateFaqSchema(SECOND_OPINION_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Бесплатное второе мнение' }]} />
   <SecondOpinion client:idle />
+  <ServiceArticles articles={[
+    { slug: 'vab-ili-operatsiya', title: 'ВАБ или операция при фиброаденоме: как выбрать' },
+    { slug: 'fibroadenoma-chastye-voprosy', title: 'Фиброаденома: ответы на частые вопросы' },
+    { slug: 'tonkoigolnaya-punktsionnaya-biopsiya', title: 'Тонкоигольная пункционная биопсия молочной железы: как проходит процедура' },
+  ]} />
 </Layout>

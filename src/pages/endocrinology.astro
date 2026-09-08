@@ -1,40 +1,27 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Endocrinology, ENDOCRINOLOGY_FAQ } from '../components/pages/Endocrinology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова - Эндокринология',
-  medicalSpecialty: 'Endocrinology',
-  availableService: {
-    '@type': 'MedicalProcedure',
-    name: 'Диагностика и лечение эндокринных заболеваний',
-  },
-  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
+  '@type': 'Service',
+  '@id': 'https://odintsovclinic.ru/endocrinology#service',
+  name: 'Приём эндокринолога в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/endocrinology',
+  provider: { '@id': 'https://odintsovclinic.ru/#clinic' },
+  areaServed: { '@type': 'City', name: 'Санкт-Петербург' },
 }
 
 const faqSchema = generateFaqSchema(ENDOCRINOLOGY_FAQ)
 ---
 
 <Layout
-  title="Эндокринология в СПб - Клиника Одинцова"
-  description="Эндокринолог в Приморском районе СПб: разбор жалоб, анализы, УЗИ щитовидной железы и план лечения. Клиника Одинцова."
+  pageType="MedicalWebPage"
+  title="Эндокринолог в СПб — приём и цены | Клиника Одинцова"
+  description="Приём эндокринолога в Приморском районе Санкт-Петербурга: заболевания щитовидной железы, разбор анализов и план наблюдения. Врачи, цены и запись."
   keywords="эндокринология Санкт-Петербург, эндокринолог Приморский район, щитовидная железа, гормоны, Клиника Одинцова"
   ogImage="/images/og/endocrinology.webp"
 >
@@ -42,4 +29,9 @@ const faqSchema = generateFaqSchema(ENDOCRINOLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Эндокринология' }]} />
   <Endocrinology />
+  <ServiceArticles articles={[
+    { slug: 'kak-podgotovitsya-k-priemu-endokrinologa', title: 'Как подготовиться к приёму эндокринолога' },
+    { slug: 'simptomy-gipotireoza-i-gipertireoza', title: 'Симптомы гипотиреоза и гипертиреоза: когда проверить щитовидную железу' },
+    { slug: 'zabolevaniya-schitovidnoy-zhelezy', title: 'Заболевания щитовидной железы у женщин: гипотиреоз и тиреоидит Хашимото' },
+  ]} />
 </Layout>

@@ -1,40 +1,27 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Mammology, MAMMOLOGY_FAQ } from '../components/pages/Mammology.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
 
 const specialtySchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова - маммология',
-  medicalSpecialty: 'Oncology',
-  availableService: {
-    '@type': 'MedicalProcedure',
-    name: 'Вакуумная аспирационная биопсия (ВАБ)',
-  },
-  isPartOf: { '@type': 'MedicalBusiness', name: 'Клиника Одинцова' },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
+  '@type': 'Service',
+  '@id': 'https://odintsovclinic.ru/mammology#service',
+  name: 'Приём маммолога в Санкт-Петербурге',
+  url: 'https://odintsovclinic.ru/mammology',
+  provider: { '@id': 'https://odintsovclinic.ru/#clinic' },
+  areaServed: { '@type': 'City', name: 'Санкт-Петербург' },
 }
 
 const faqSchema = generateFaqSchema(MAMMOLOGY_FAQ)
 ---
 
 <Layout
-  title="Маммология в СПб - ВАБ и консультация | Клиника Одинцова"
-  description="Маммолог-онколог в Приморском районе СПб. Консультация, УЗИ, ВАБ и второе мнение. Клиника Одинцова, Богатырский пр."
+  pageType="MedicalWebPage"
+  title="Маммолог в СПб — приём, УЗИ, цены | Клиника Одинцова"
+  description="Приём онколога-маммолога в Приморском районе Санкт-Петербурга: осмотр, УЗИ, биопсия и второе мнение. Врачи, цены и запись в клинику Одинцова."
   keywords="маммолог Санкт-Петербург, маммология СПб, ВАБ Санкт-Петербург, фиброаденома, киста молочной железы, Приморский район, Богатырский проспект"
   ogImage="/images/og/mammology.webp"
 >
@@ -42,4 +29,9 @@ const faqSchema = generateFaqSchema(MAMMOLOGY_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Маммология' }]} />
   <Mammology client:idle />
+  <ServiceArticles articles={[
+    { slug: 'kak-prokhodit-uzi-molochnyh-zhelez', title: 'Как проходит УЗИ молочных желёз' },
+    { slug: 'mammografiya-ili-uzi', title: 'Маммография или УЗИ молочных желёз: что выбрать' },
+    { slug: 'zdorovye-grudi-samoosmotr', title: 'Как заботиться о здоровье молочной железы: самоосмотр и скрининг' },
+  ]} />
 </Layout>

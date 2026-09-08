@@ -6,6 +6,7 @@ import { BookingFlow } from '../components/booking/BookingFlow.jsx'
 import { DOCTORS } from '../lib/doctors-data.js'
 import { doctorGroups } from '../lib/nav.js'
 import '../styles/global.css'
+import { canonicalUrl as normalizeCanonical, CLINIC_SCHEMA, WEBSITE_SCHEMA, serializeJsonLd } from '../lib/seo.js'
 
 interface Props {
   title?: string
@@ -16,6 +17,9 @@ interface Props {
   ogType?: string
   canonicalUrl?: string
   pageDoctorSlug?: string
+  pageType?: string
+  mainEntityId?: string
+  robots?: string
 }
 
 const {
@@ -25,10 +29,14 @@ const {
   ogImage = '/images/og/index.webp',
   ogImageAlt = '',
   ogType = 'website',
-  canonicalUrl = `https://odintsovclinic.ru${Astro.url.pathname}`,
+  canonicalUrl: requestedCanonical = Astro.url.pathname,
   pageDoctorSlug = '',
+  pageType = 'WebPage',
+  mainEntityId = '',
+  robots = 'index, follow, max-image-preview:large',
 } = Astro.props
 
+const canonicalUrl = normalizeCanonical(requestedCanonical)
 const currentPath = Astro.url.pathname
 const absoluteUrl = (path) => new URL(path, Astro.site).href
 const NAV_DOCTOR_GROUPS = doctorGroups(DOCTORS)
@@ -43,6 +51,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
     <link rel="canonical" href={canonicalUrl} />
+    <meta name="robots" content={robots} />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
     <title>{title}</title>
 
@@ -56,8 +65,8 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage.startsWith('http') ? ogImage : absoluteUrl(ogImage)} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {ogImage.startsWith('/images/og/') && <meta property="og:image:width" content="1200" />}
+    {ogImage.startsWith('/images/og/') && <meta property="og:image:height" content="630" />}
     <meta property="og:image:alt" content={ogImageAlt || title} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content={ogType} />
@@ -81,68 +90,19 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
   <slot name="head" />
 
 
-    <!-- JSON-LD: MedicalBusiness -->
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "MedicalBusiness",
-      "name": "Клиника Одинцова",
-      "alternateName": "Клиника доктора Одинцова",
-      "url": "https://odintsovclinic.ru",
-      "logo": absoluteUrl('/images/logo.png'),
-      "image": absoluteUrl('/images/og/index.webp'),
-      "telephone": "+78127482210",
-      "email": "info@odintsovclinic.ru",
-      "priceRange": "$$",
-      "currenciesAccepted": "RUB",
-      "paymentAccepted": "Наличные, банковская карта, ДМС",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "пр. Богатырский, д. 22, к. 1",
-        "addressLocality": "Санкт-Петербург",
-        "postalCode": "197374",
-        "addressRegion": "Санкт-Петербург",
-        "addressCountry": "RU"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 60.001014,
-        "longitude": 30.251746
-      },
-      "hasMap": "https://yandex.ru/maps/?pt=30.251746,60.001014&z=16&l=map",
-      "openingHours": ["Mo-Fr 09:00-20:00", "Sa-Su 10:00-18:00"],
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
-          "opens": "09:00",
-          "closes": "20:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Saturday","Sunday"],
-          "opens": "10:00",
-          "closes": "18:00"
-        }
-      ],
-      "medicalSpecialty": ["Oncology", "Gynecology", "Endocrinology", "Nutrition"],
-      "areaServed": [
-        {"@type": "City", "name": "Санкт-Петербург"},
-        {"@type": "AdministrativeArea", "name": "Ленинградская область"},
-        {"@type": "AdministrativeArea", "name": "Приморский район"},
-        {"@type": "AdministrativeArea", "name": "Выборгский район"},
-        {"@type": "AdministrativeArea", "name": "Петроградский район"}
-      ],
-      "sameAs": [
-        "https://t.me/odintsovclinic",
-        "https://vk.com/odintsovclinic",
-        "https://prodoctorov.ru/spb/lpu/130932-klinika-odincova/",
-        "https://2gis.ru/spb/firm/70000001062793440",
-        "https://yandex.ru/maps/org/klinika_odincova/1127907054/"
-      ],
-      "speakable": {
-        "@type": "SpeakableSpecification",
-        "cssSelector": ["h1", ".speakable"]
-      }
+    <script type="application/ld+json" set:html={serializeJsonLd(CLINIC_SCHEMA)} />
+    <script type="application/ld+json" set:html={serializeJsonLd(WEBSITE_SCHEMA)} />
+    <script type="application/ld+json" set:html={serializeJsonLd({
+      '@context': 'https://schema.org',
+      '@type': pageType,
+      '@id': `${canonicalUrl}#webpage`,
+      url: canonicalUrl,
+      name: title,
+      description,
+      inLanguage: 'ru-RU',
+      isPartOf: { '@id': WEBSITE_SCHEMA['@id'] },
+      ...(mainEntityId ? { mainEntity: { '@id': mainEntityId } } : {}),
+      about: { '@id': CLINIC_SCHEMA['@id'] },
     })} />
   </head>
   <body class="relative min-h-screen bg-clay-bg">

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Vab, FAQ_ITEMS } from '../components/pages/Vab.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,59 +8,26 @@ import { generateFaqSchema } from '../utils/schema.js'
 const medicalProcedureSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalProcedure",
+  "@id": "https://odintsovclinic.ru/vab#procedure",
+  "url": "https://odintsovclinic.ru/vab",
   "name": "Вакуумная аспирационная биопсия (ВАБ)",
   "alternateName": "ВАБ, VAB, Vacuum-Assisted Biopsy",
   "description": "Малоинвазивная процедура удаления доброкачественных образований молочной железы через прокол 2 мм под контролем УЗИ. Решение о проведении ВАБ принимается после очной консультации.",
-  "procedureType": "Surgical",
+  "procedureType": "https://schema.org/PercutaneousProcedure",
   "bodyLocation": "Молочная железа",
-  "preparation": "Специальной подготовки не требуется. Рекомендуется не принимать антикоагулянты за 3-5 дней до процедуры.",
+  "preparation": "Подготовку определяет врач на консультации. Сообщите обо всех лекарствах, влияющих на свёртываемость крови; не отменяйте их самостоятельно.",
   "followup": "Наблюдение 1-2 часа после процедуры. Контрольное УЗИ через 3-6 месяцев.",
   "howPerformed": "Под местной анестезией через прокол 2 мм вводится игла устройства Xishan DK-B-MS. Под контролем УЗИ образование полностью удаляется вакуумным механизмом. Материал отправляется на гистологию.",
-  "location": {
-    "@type": "Place",
-    "name": "Клиника Одинцова",
-    "address": {
-      "@type": "PostalAddress",
-      streetAddress: "пр. Богатырский, д. 22, к. 1",
-      addressLocality: "Санкт-Петербург",
-      postalCode: "197374",
-      addressRegion: "Санкт-Петербург",
-      addressCountry: "RU",
-    },
-  },
-  "status": "ActiveActionStatus",
-  "medicineSystem": "Western",
-  "recognizingAuthority": {
-    "@type": "Organization",
-    "name": "Клиника Одинцова",
-    "url": "https://odintsovclinic.ru"
-  },
-  "usesDevice": {
-    "@type": "MedicalDevice",
-    "name": "Xishan DK-B-MS",
-    "manufacturer": {
-      "@type": "Organization",
-      "name": "Xishan Sience & Technology Co.",
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "CN"
-      }
-    }
-  },
-  "relevantSpecialty": "Senology",
-  "cost": {
-    "@type": "MonetaryAmount",
-    "currency": "RUB",
-    "minValue": 80000
-  }
 }
 
 const faqSchema = generateFaqSchema(FAQ_ITEMS)
 ---
 
 <Layout
-  title="ВАБ в СПб - вакуумная биопсия | Клиника Одинцова"
-  description="ВАБ в СПб: удаление образований молочной железы через прокол 2 мм под УЗИ-контролем. От 80 000 ₽. Клиника Одинцова."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/vab#procedure"
+  title="ВАБ молочной железы в СПб — цены | Клиника Одинцова"
+  description="Вакуумная аспирационная биопсия молочной железы в Санкт-Петербурге. Показания, подготовка, врачи и состав стоимости ВАБ. Запись на консультацию в клинику Одинцова."
   keywords="ВАБ Санкт-Петербург, вакуумная аспирационная биопсия СПб, удаление фиброаденомы, удаление кисты молочной железы, Приморский район, Богатырский проспект"
   canonicalUrl="https://odintsovclinic.ru/vab"
   ogImage="/images/og/vab.webp"
@@ -68,4 +36,9 @@ const faqSchema = generateFaqSchema(FAQ_ITEMS)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'ВАБ - вакуумная аспирационная биопсия' }]} />
   <Vab client:idle />
+  <ServiceArticles articles={[
+    { slug: 'kak-podgotovitsya-k-vab', title: 'Как подготовиться к ВАБ' },
+    { slug: 'vab-ili-operatsiya', title: 'ВАБ или операция при фиброаденоме: как выбрать' },
+    { slug: 'fibroadenoma-chastye-voprosy', title: 'Фиброаденома: ответы на частые вопросы' },
+  ]} />
 </Layout>

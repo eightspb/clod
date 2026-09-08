@@ -27,6 +27,7 @@ function truncateDescription(text, maxLength = 100) {
 function formatDate(dateString) {
   const date = new Date(dateString)
   return date.toLocaleDateString('ru-RU', {
+    timeZone: 'UTC',
     day: 'numeric',
     month: 'long',
     year: 'numeric',

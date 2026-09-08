@@ -1,43 +1,6 @@
 import { Bus, Car, Clock, ExternalLink, Mail, MapPin, MessageCircle, Navigation, Phone, Train } from 'lucide-react'
 import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
 
-const localBusinessSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'MedicalBusiness',
-  name: 'Клиника Одинцова',
-  url: 'https://odintsovclinic.ru',
-  telephone: '+78127482210',
-  email: 'info@odintsovclinic.ru',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
-  hasMap: 'https://yandex.ru/maps/?pt=30.251746,60.001014&z=16&l=map',
-  openingHoursSpecification: [
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      opens: '09:00',
-      closes: '20:00',
-    },
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Saturday', 'Sunday'],
-      opens: '10:00',
-      closes: '18:00',
-    },
-  ],
-}
-
 const METRO_STATIONS = [
   { name: 'Комендантский проспект', line: 'Фиолетовая', walk: '12 мин' },
   { name: 'Старая Деревня', line: 'Фиолетовая', walk: '15 мин' },
@@ -47,10 +10,6 @@ const METRO_STATIONS = [
 export function Contacts() {
   return (
     <div className="container-clay pb-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
 
       <section className="pt-6 pb-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">

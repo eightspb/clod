@@ -3,71 +3,17 @@ import Layout from '../layouts/Layout.astro'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { Contacts } from '../components/pages/Contacts.jsx'
 
-const contactsSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: 'Клиника Одинцова',
-  alternateName: 'Клиника доктора Одинцова',
-  url: 'https://odintsovclinic.ru',
-  logo: new URL('/images/logo.png', Astro.site).href,
-  image: new URL('/images/og/contacts.webp', Astro.site).href,
-  telephone: '+78127482210',
-  email: 'info@odintsovclinic.ru',
-  priceRange: '$$',
-  currenciesAccepted: 'RUB',
-  paymentAccepted: 'Наличные, банковская карта, ДМС',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'пр. Богатырский, д. 22, к. 1',
-    addressLocality: 'Санкт-Петербург',
-    postalCode: '197374',
-    addressRegion: 'Санкт-Петербург',
-    addressCountry: 'RU',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 60.001014,
-    longitude: 30.251746,
-  },
-  hasMap: 'https://yandex.ru/maps/?pt=30.251746,60.001014&z=16&l=map',
-  openingHours: ['Mo-Fr 09:00-20:00', 'Sa-Su 10:00-18:00'],
-  openingHoursSpecification: [
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      opens: '09:00',
-      closes: '20:00',
-    },
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Saturday', 'Sunday'],
-      opens: '10:00',
-      closes: '18:00',
-    },
-  ],
-  medicalSpecialty: ['Oncology', 'Gynecology', 'Endocrinology', 'Nutrition'],
-  areaServed: {
-    '@type': 'City',
-    name: 'Санкт-Петербург',
-    '@id': 'https://www.wikidata.org/wiki/Q656',
-  },
-  sameAs: [
-    'https://t.me/odintsovclinic',
-    'https://prodoctorov.ru/spb/lpu/130932-klinika-odincova/',
-    'https://2gis.ru/spb/firm/70000001062793440',
-    'https://yandex.ru/maps/org/klinika_odincova/1127907054/',
-  ],
-}
+
 ---
 
 <Layout
-  title="Контакты клиники в Санкт-Петербурге - Приморский район | Клиника Одинцова"
-  description="Адрес: СПб, Приморский район, пр. Богатырский 22 к.1. Рядом с м. Комендантский проспект и м. Старая Деревня. Телефон и режим работы."
+  title="Контакты клиники Одинцова — адрес и телефон в СПб"
+  description="Клиника Одинцова: Санкт-Петербург, Богатырский проспект, 22 к. 1. Телефон +7 (812) 748-22-10. Часы работы, маршрут от метро и запись на приём."
   keywords="контакты клиника Одинцова, Приморский район СПб, Богатырский проспект 22, маммолог Комендантский проспект, маммолог Старая Деревня, как добраться клиника Одинцова"
+  pageType="ContactPage"
   canonicalUrl="https://odintsovclinic.ru/contacts"
   ogImage="/images/og/contacts.webp"
 >
-  <script type="application/ld+json" set:html={JSON.stringify(contactsSchema)} />
   <BreadcrumbNav items={[{ label: 'Контакты' }]} />
   <Contacts />
 </Layout>

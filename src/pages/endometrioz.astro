@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro'
+import ServiceArticles from '../components/ServiceArticles.astro'
 import { Endometrioz, ENDOMETRIOZ_FAQ } from '../components/pages/Endometrioz.jsx'
 import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
 import { generateFaqSchema } from '../utils/schema.js'
@@ -7,6 +8,8 @@ import { generateFaqSchema } from '../utils/schema.js'
 const conditionSchema = {
   '@context': 'https://schema.org',
   '@type': 'MedicalCondition',
+  '@id': 'https://odintsovclinic.ru/endometrioz#condition',
+  url: 'https://odintsovclinic.ru/endometrioz',
   name: 'Эндометриоз',
   alternateName: 'Endometriosis',
   description: 'Заболевание, при котором ткань, подобная эндометрию, разрастается за пределами полости матки: на яичниках, маточных трубах, брюшине. Вызывает хроническую тазовую боль и может приводить к бесплодию.',
@@ -26,30 +29,20 @@ const conditionSchema = {
       name: 'Гормональная терапия (КОК, прогестины, агонисты ГнРГ)',
     },
     {
-      '@type': 'MedicalProcedure',
+      '@type': 'MedicalTherapy',
       name: 'Лапароскопическое удаление очагов эндометриоза',
     },
   ],
-  recognizingAuthority: {
-    '@type': 'MedicalOrganization',
-    name: 'Клиника Одинцова',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'пр. Богатырский, д. 22, к. 1',
-      addressLocality: 'Санкт-Петербург',
-      postalCode: '197374',
-      addressRegion: 'Санкт-Петербург',
-      addressCountry: 'RU',
-    },
-  },
 }
 
 const faqSchema = generateFaqSchema(ENDOMETRIOZ_FAQ)
 ---
 
 <Layout
-  title="Эндометриоз: лечение в СПб | Клиника Одинцова"
-  description="Гинеколог при эндометриозе в СПб: УЗИ, МРТ, гормональная терапия, лапароскопия. Клиника Одинцова, Приморский район."
+  pageType="MedicalWebPage"
+  mainEntityId="https://odintsovclinic.ru/endometrioz#condition"
+  title="Эндометриоз — консультация гинеколога в СПб"
+  description="Приём гинеколога при эндометриозе в Санкт-Петербурге. Разбор симптомов и результатов обследования, обсуждение тактики лечения. Врачи и цены клиники Одинцова."
   keywords="эндометриоз лечение СПб, гинеколог Санкт-Петербург, эндометриоз симптомы, тазовая боль, лапароскопия эндометриоз, Приморский район СПб"
   ogImage="/images/og/endometrioz.webp"
 >
@@ -57,4 +50,9 @@ const faqSchema = generateFaqSchema(ENDOMETRIOZ_FAQ)
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbNav items={[{ label: 'Гинекология', href: '/gynecology' }, { label: 'Эндометриоз' }]} />
   <Endometrioz client:idle />
+  <ServiceArticles articles={[
+    { slug: 'endometrioz-prichiny-simptomy', title: 'Эндометриоз: причины, симптомы и современные подходы к лечению' },
+    { slug: 'endometrioz-vs-rak-endometriya', title: 'Эндометриоз или рак эндометрия: в чём разница и как не пропустить опасное' },
+    { slug: 'tazovye-boli-u-zhenshchin', title: 'Тазовые боли у женщин: 6 причин, которые нельзя игнорировать' },
+  ]} />
 </Layout>

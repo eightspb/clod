@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "deploy": "sh scripts/deploy.sh",
     "rollback": "sh scripts/rollback.sh",
+    "audit:seo": "bun scripts/audit-seo.mjs",
     "medflex:discover": "bun scripts/medflex-discover.mjs",
     "medflex:sync-doctors": "bun scripts/sync-medflex-doctors.mjs",
     "clinic:import": "node scripts/import-clinic-history.mjs",
