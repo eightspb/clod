@@ -12,7 +12,9 @@ const SURFACES = ['--surface-page', '--surface-card-hover', '--surface-accent', 
 
 function declaration(selector, property) {
   let value
-  CSS.walkRules(selector, (rule) => rule.walkDecls(property, (decl) => { value = decl.value }))
+  CSS.walkRules((rule) => {
+    if (rule.selectors.includes(selector)) rule.walkDecls(property, (decl) => { value = decl.value })
+  })
   return value
 }
 
@@ -57,5 +59,11 @@ describe('accessible palette', () => {
 
   it('preserves the legacy fractional opacity utility when generating mint text', () => {
     expect(declaration('.text-clay-mint\\/70', 'color')).toBeDefined()
+  })
+
+  it.each(['.booking-primary-action', '.booking-submit', '.booking-result-action'])('keeps the disabled %s background unchanged on hover', (selector) => {
+    const resting = channels(declaration('.btn-clay-primary', 'background'))
+    const hovered = channels(declaration(`${selector}:disabled:hover`, 'background'))
+    expect(hovered).toEqual(resting)
   })
 })

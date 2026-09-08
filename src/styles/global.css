@@ -1971,7 +1971,7 @@
 .booking-primary-action:disabled:hover,
 .booking-submit:disabled:hover,
 .booking-result-action:disabled:hover {
-  background: var(--accent);
+  background: var(--accent-fill);
   box-shadow: var(--shadow-sm);
   transform: none;
 }
