@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
-async function openScrolledArticle(page) {
-  await page.goto('/blog/testirovaniye-gormonov-menopauza')
+async function openScrolledArticle(page, route = '/blog/testirovaniye-gormonov-menopauza') {
+  await page.goto(route)
   await page.evaluate(() => document.fonts.ready)
   await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }))
   await page.waitForFunction(() => {
@@ -14,15 +14,21 @@ async function openScrolledArticle(page) {
 test('scrolls the desktop sidebar without moving the article', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 800 })
   await openScrolledArticle(page)
-  const sidebar = page.locator('.blog-article-sidebar')
+  const sidebar = page.getByRole('region', { name: 'Информация о статье' })
   const articleScroll = await page.evaluate(() => window.scrollY)
   const bounds = await sidebar.boundingBox()
-  await page.mouse.move(bounds.x + bounds.width / 2, 400)
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
   await page.mouse.wheel(0, 360)
   await expect.poll(async () => ({ sidebarMoved: await sidebar.evaluate((node) => node.scrollTop > 0), articleScroll: await page.evaluate(() => window.scrollY) })).toEqual({ sidebarMoved: true, articleScroll })
 })
 
 for (const viewport of [{ width: 1440, height: 800 }, { width: 1024, height: 600 }]) {
+  test(`shows the entire appointment button without scrolling the sidebar at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport)
+    await openScrolledArticle(page, '/blog/eroziya-sheyki-matki')
+    await expect(page.getByRole('link', { name: 'Уточнить очный приём' })).toBeInViewport({ ratio: 1 })
+  })
+
   test(`keeps the sidebar between the header and viewport bottom at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport)
     await openScrolledArticle(page)
@@ -37,7 +43,7 @@ for (const viewport of [{ width: 1440, height: 800 }, { width: 1024, height: 600
 test('reaches the last sidebar link with the keyboard without moving the article', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 800 })
   await openScrolledArticle(page)
-  const sidebar = page.getByRole('complementary', { name: 'Информация о статье' })
+  const sidebar = page.getByRole('region', { name: 'Информация о статье' })
   await sidebar.focus()
   await page.keyboard.press('End')
   await expect.poll(async () => sidebar.evaluate((node) => node.scrollTop > 0 && Math.abs(node.scrollHeight - node.clientHeight - node.scrollTop) < 2 && window.scrollY === 900)).toBe(true)
