@@ -151,10 +151,10 @@ describe('MobileDoctorCarousel', () => {
     expect(container.querySelector('source')).toHaveAttribute('srcset', '/images/doctors/odintsov-mobile-240.webp 240w, /images/doctors/odintsov-mobile-360.webp 360w, /images/doctors/odintsov-mobile-480.webp 480w, /images/doctors/odintsov-mobile.webp 600w')
   })
 
-  it('sizes each mobile portrait for its visible coverflow scale', () => {
+  it('sizes every visible mobile portrait for its eventual active position', () => {
     const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Глубина портретов" />)
     const sizes = Array.from(container.querySelectorAll('source'), (source) => source.getAttribute('sizes'))
-    expect(sizes).toEqual(['min(calc(76vw - 1.52rem), 16.125rem)', 'min(calc(59.28vw - 1.1856rem), 12.5775rem)', 'min(calc(45.6vw - 0.912rem), 9.675rem)', 'min(calc(59.28vw - 1.1856rem), 12.5775rem)'])
+    expect(sizes).toEqual(Array(4).fill('min(calc(76vw - 1.52rem), 16.125rem)'))
   })
 
   it('sizes desktop portraits for the height constrained hero stage', () => {
@@ -162,10 +162,19 @@ describe('MobileDoctorCarousel', () => {
     expect(container.querySelector('[aria-current="true"] source')).toHaveAttribute('sizes', 'clamp(13.82rem, calc(46.04vh - 7.83rem), 18.19rem)')
   })
 
-  it('promotes the next portrait to its full display size when selected', () => {
-    const { container } = render(<MobileDoctorCarousel doctors={DOCTORS} label="Смена разрешения" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
-    expect(container.querySelector('[data-doctor-index="1"] source')).toHaveAttribute('sizes', 'min(calc(76vw - 1.52rem), 16.125rem)')
+  it.each([
+    ['mobile', 'min(calc(76vw - 1.52rem), 16.125rem)'],
+    ['desktop', 'clamp(13.82rem, calc(46.04vh - 7.83rem), 18.19rem)'],
+  ])('keeps responsive candidates stable through far, near and active positions on %s', (variant, sizes) => {
+    const doctor = getDoctorBySlug('kalinina')
+    const { container } = render(<MobileDoctorCarousel doctors={[DOCTORS[0], DOCTORS[1], doctor, DOCTORS[3]]} label="Смена разрешения" variant={variant} />)
+    const candidates = Array.from({ length: 4 }, () => {
+      const source = container.querySelector('[data-doctor-index="2"] source')
+      const attributes = { sizes: source.getAttribute('sizes'), srcSet: source.getAttribute('srcset') }
+      fireEvent.click(screen.getByRole('button', { name: 'Следующий врач' }))
+      return attributes
+    })
+    expect(candidates).toEqual(Array(4).fill({ sizes, srcSet: doctor.photoMobileSrcSet }))
   })
 
   it('keeps every mobile portrait fully visible and anchored to the podium', () => {

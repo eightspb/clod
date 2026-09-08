@@ -25,14 +25,12 @@ function portraitSource(doctor) {
 }
 
 /**
- * Matches the contained 3:4 image in the 62% stage and its flat coverflow scale.
- * Sizes describe visible image pixels rather than the wider object-fit box.
+ * Uses the active 3:4 portrait size for every layer so rotation does not download
+ * a second candidate when a receding doctor moves to the front.
  */
-function portraitSizes(position, variant) {
-  const scale = position === 'current' ? 1 : position.endsWith('-far') ? 0.6 : 0.78
-  const scaled = (value) => Number((value * scale).toFixed(4))
-  if (variant === 'desktop') return `clamp(${scaled(13.82)}rem, calc(${scaled(46.04)}vh - ${scaled(7.83)}rem), ${scaled(18.19)}rem)`
-  return `min(calc(${scaled(76)}vw - ${scaled(1.52)}rem), ${scaled(16.125)}rem)`
+function portraitSizes(variant) {
+  if (variant === 'desktop') return 'clamp(13.82rem, calc(46.04vh - 7.83rem), 18.19rem)'
+  return 'min(calc(76vw - 1.52rem), 16.125rem)'
 }
 
 function primarySpecialty(doctor) {
@@ -96,7 +94,7 @@ function DoctorPortraitSlide({ doctor, index, count, position, portraitMedia, va
       <div className="mobile-doctor-portrait-wrap">
         {shouldLoadPortrait ? (
           <picture className="mobile-doctor-picture">
-            <source media={portraitMedia} srcSet={portraitSource(doctor)} sizes={portraitSizes(position, variant)} />
+            <source media={portraitMedia} srcSet={portraitSource(doctor)} sizes={portraitSizes(variant)} />
             <img
               src={TRANSPARENT_PIXEL}
               alt={`${specialty.toLowerCase()} ${doctor.name}, клиника Одинцова, СПб`}
