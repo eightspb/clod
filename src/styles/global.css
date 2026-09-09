@@ -1893,7 +1893,8 @@
   scrollbar-gutter: stable;
 }
 .booking-date-option {
-  flex: 0 0 4.75rem;
+  flex: 0 0 7rem;
+  white-space: nowrap;
   scroll-snap-align: start;
 }
 .booking-doctor-option > span,
