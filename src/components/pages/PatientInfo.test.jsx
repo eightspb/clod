@@ -19,3 +19,10 @@ describe('PatientInfo authorities', () => {
     expect(screen.getAllByRole('link', { name: /^8 \(812\)/ }).map((link) => link.getAttribute('href'))).toEqual(['tel:+78122466986', 'tel:+78126796004', 'tel:+78126796707'])
   })
 })
+
+describe('PatientInfo accessibility link', () => {
+  it('is the only place that links to the accessibility page', () => {
+    render(<PatientInfo />)
+    expect(screen.getByRole('link', { name: /доступной среде/i })).toHaveAttribute('href', '/accessibility')
+  })
+})

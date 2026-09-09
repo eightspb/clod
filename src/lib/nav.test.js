@@ -115,9 +115,10 @@ describe('nav.js', () => {
 })
 
 describe('patient and clinic service pages', () => {
-  it('links the promotions, patient information and accessibility pages from the Пациентам menu', () => {
+  it('links the promotions and patient information pages from the Пациентам menu but keeps accessibility out of every menu', () => {
     const patients = NAV_ITEMS.find((item) => item.label === 'Пациентам').children.map((child) => child.to)
-    expect(patients).toEqual(expect.arrayContaining(['/promotions', '/patient-info', '/accessibility']))
+    const everywhere = [...NAV_ITEMS.flatMap((item) => item.children || []), ...Object.values(FOOTER_LINKS).flat()].map((link) => link.to)
+    expect({ promotions: patients.includes('/promotions'), info: patients.includes('/patient-info'), accessibility: everywhere.includes('/accessibility') }).toEqual({ promotions: true, info: true, accessibility: false })
   })
   it('links the vacancies page from the О клинике menu and the footer', () => {
     const clinic = NAV_ITEMS.find((item) => item.label === 'О клинике').children.map((child) => child.to)

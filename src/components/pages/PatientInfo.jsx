@@ -1,4 +1,4 @@
-import { BookOpen, Building2, CalendarClock, ExternalLink, FileText, Scale, ShieldCheck } from 'lucide-react'
+import { Accessibility, ArrowRight, BookOpen, Building2, CalendarClock, ExternalLink, FileText, Scale, ShieldCheck } from 'lucide-react'
 import { ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND, PHONE_DISPLAY } from '../../lib/contacts.js'
 
 const PATIENT_RIGHTS = [
@@ -150,6 +150,27 @@ export function PatientInfo() {
               Обращения и жалобы принимает руководство клиники по телефону {PHONE_DISPLAY} и на электронную почту, указанную на странице <a href="/contacts" className="text-clay-dark underline-offset-4 hover:underline">«Контакты»</a>.
             </p>
           </article>
+        </div>
+      </section>
+      <section className="section pt-0">
+        <div className="container-clay">
+          <div className="clay clay-card-soft-mint p-6 md:p-8">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+              <div>
+                <h2 className="mb-3 flex items-center gap-3 text-2xl sm:text-3xl heading-serif text-clay-dark">
+                  <span className="icon-circle-mint flex-shrink-0"><Accessibility size={18} className="text-white" aria-hidden="true" /></span>
+                  Доступная среда
+                </h2>
+                <p className="text-clay-muted leading-relaxed max-w-3xl">
+                  Как клиника принимает пациентов с инвалидностью и ограниченной мобильностью: кнопка вызова персонала у входа, сопровождение администратором, помощь при нарушениях зрения и слуха.
+                </p>
+              </div>
+              <a href="/accessibility" className="clay btn-clay-primary inline-flex items-center gap-2">
+                Подробнее о доступной среде
+                <ArrowRight size={16} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </main>

@@ -71,7 +71,6 @@ export const NAV_ITEMS = [
       { label: 'Цены', to: '/prices' },
       { label: 'Форма для налоговой', to: '/tax-form' },
       { label: 'Информация для пациентов', to: '/patient-info' },
-      { label: 'Доступная среда', to: '/accessibility' },
     ]
   },
   { label: 'Блог', to: '/blog' },
@@ -100,6 +99,5 @@ export const FOOTER_LINKS = {
     { label: 'Цены', to: '/prices' },
     { label: 'Форма для налоговой', to: '/tax-form' },
     { label: 'Информация для пациентов', to: '/patient-info' },
-    { label: 'Доступная среда', to: '/accessibility' },
   ],
 }
