@@ -88,6 +88,11 @@ async function createAstroHistorySchema(client) {
   for (const statement of astroGeneratedSchemaFor(['Patient', 'PatientExternalIdentifier', 'PatientContact', 'PatientNameHistory', 'PatientPrivateData', 'PatientConsent', 'PatientAttachment', 'ImportBatch', 'ImportSourceRow', 'ImportIssue', 'HistoricalVisit', 'HistoricalVisitCandidate', 'HistoricalInvoice'])) await client.execute(statement)
 }
 
+async function seedPatients(client) {
+  const now = '2026-08-27T12:00:00.000Z'
+  for (const id of [LEGACY_PATIENT_ID, SECOND_PATIENT_ID]) await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [id, 'protected-profile', null, null, null, null, now, now, null] })
+}
+
 async function schemaObjects(client) {
   const result = await client.execute("SELECT type, name, tbl_name AS tableName, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name")
   return result.rows
@@ -123,7 +128,14 @@ describe('clinic history production migration', () => {
     const verified = open(databasePathname)
     const after = await schemaObjects(verified)
     verified.close()
-    expect(after.filter(({ tableName }) => HISTORY_SCHEMA_TABLES.includes(tableName))).toEqual(before)
+    const freshPathname = await databasePath('clod-history-fresh-')
+    await migrate(freshPathname)
+    const fresh = open(freshPathname)
+    const canonical = await schemaObjects(fresh)
+    fresh.close()
+    const canonicalSql = (value) => (typeof value === 'string' ? value.replaceAll('"', '').replace(/\s+/g, ' ').replace(/\s*([(),])\s*/g, '$1').trim().toUpperCase() : value)
+    const historyOnly = (objects) => objects.filter(({ tableName }) => HISTORY_SCHEMA_TABLES.includes(tableName)).map(({ type, name, tableName, sql }) => ({ type, name, tableName, sql: canonicalSql(sql) }))
+    expect({ accepted: before.length > 0, after: historyOnly(after) }).toEqual({ accepted: true, after: historyOnly(canonical) })
   })
 
   it('replaces legacy phone uniqueness and preserves populated patients on repeated migration', async () => {
@@ -203,6 +215,7 @@ describe('clinic history production migration', () => {
     const databasePathname = await databasePath('clod-history-ehr-unique-')
     await migrate(databasePathname)
     const client = open(databasePathname)
+    await seedPatients(client)
     const now = '2026-08-27T12:00:00.000Z'
     await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier (id, patientId, system, ciphertext, fingerprint, globalFingerprint, identityKey, sourceName, sourceRow, isPrimary, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [EXTERNAL_IDENTIFIER_ID, LEGACY_PATIENT_ID, 'medesk_ehr', 'protected-ehr-A', 'hmac:ehr-A', 'hmac:global-A', 'medesk_ehr:hmac:ehr-A', 'PD.csv', 17, true, now, now] })
     const duplicate = await rejects(() => client.execute({ sql: 'INSERT INTO PatientExternalIdentifier (id, patientId, system, ciphertext, fingerprint, globalFingerprint, identityKey, sourceName, sourceRow, isPrimary, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['2b871ceb-70ce-4a2a-8550-1cc4ad4bc7a6', SECOND_PATIENT_ID, 'medesk_ehr', 'protected-ehr-B', 'hmac:ehr-B', 'hmac:global-A', 'medesk_ehr:hmac:ehr-B', 'PD.csv', 29, true, now, now] }))
@@ -226,6 +239,7 @@ describe('clinic history production migration', () => {
     const databasePathname = await databasePath('clod-history-card-shared-')
     await migrate(databasePathname)
     const client = open(databasePathname)
+    await seedPatients(client)
     const now = '2026-08-27T12:00:00.000Z'
     await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [EXTERNAL_IDENTIFIER_ID, LEGACY_PATIENT_ID, 'clinic_card', 'protected-card-A', 'hmac:shared-card', null, 'clinic_card:hmac:shared-card', 'PD.csv', 41, true, now, now] })
     await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['4bda1a50-1ac6-4dbd-b313-a4c46eef5541', SECOND_PATIENT_ID, 'clinic_card', 'protected-card-B', 'hmac:shared-card', null, 'clinic_card:hmac:shared-card', 'PD.csv', 73, true, now, now] })
@@ -238,6 +252,7 @@ describe('clinic history production migration', () => {
     const databasePathname = await databasePath('clod-history-consent-date-')
     await migrate(databasePathname)
     const client = open(databasePathname)
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [LEGACY_PATIENT_ID, 'protected-profile', null, null, null, null, '2026-08-27T12:00:00.000Z', '2026-08-27T12:00:00.000Z', null] })
     const now = '2026-08-27T12:00:00.000Z'
     await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [SECOND_PATIENT_ID, 'protected-profile', null, null, null, null, now, now, null] })
     await client.execute({ sql: 'INSERT INTO PatientContact VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['e215e04b-1441-4785-b66e-99429200fa40', SECOND_PATIENT_ID, 'email', 'protected-contact', 'hmac:email', 's•••@example.test', true, 'medesk.csv', null, null, null] })
@@ -255,6 +270,7 @@ describe('clinic history production migration', () => {
     const databasePathname = await databasePath('clod-history-identity-unique-')
     await migrate(databasePathname)
     const client = open(databasePathname)
+    await seedPatients(client)
     const now = '2026-08-27T12:00:00.000Z'
     await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [EXTERNAL_IDENTIFIER_ID, LEGACY_PATIENT_ID, 'clinic_card', 'protected-card-A', 'hmac:card-A', null, 'clinic_card:hmac:card-A', 'PD.csv', 101, true, now, now] })
     const duplicate = await rejects(() => client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['a4626455-69cd-4e6a-81ab-ce0a2c73c44a', LEGACY_PATIENT_ID, 'clinic_card', 'other-protected-card', 'hmac:card-B', null, 'clinic_card:hmac:card-A', 'PD.csv', 102, false, now, now] }))
@@ -266,6 +282,7 @@ describe('clinic history production migration', () => {
     const databasePathname = await databasePath('clod-history-child-preservation-')
     await migrate(databasePathname)
     const client = open(databasePathname)
+    await seedPatients(client)
     await client.execute({ sql: 'INSERT INTO PatientContact VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['e5642652-da57-45f0-a590-a193a70ffb99', LEGACY_PATIENT_ID, 'phone', 'protected-contact', 'hmac:contact-A', '***-47-19', true, 'PD.csv', '2023-05-17T09:00:00.000Z', '2026-08-27T12:00:00.000Z', null] })
     await client.execute({ sql: 'INSERT INTO PatientNameHistory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['2a5873cd-c5c0-4321-9674-69642cdf6d6c', LEGACY_PATIENT_ID, 'protected-surname', 'hmac:surname-A', 'PD.csv', 'protected-source-id', '2025-11-06T08:30:00.000Z', 'surname_change', null] })
     await client.execute({ sql: 'INSERT INTO PatientPrivateData VALUES (?, ?, ?, ?, ?, ?)', args: ['ed767daa-77d0-4147-b65e-f05631aed18b', LEGACY_PATIENT_ID, 'protected-private-profile', '2026-08-27T12:00:00.000Z', '2026-08-27T12:00:00.000Z', null] })

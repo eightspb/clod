@@ -8,6 +8,7 @@ import { createClinicImportBundle } from '../src/lib/clinic-import-bundle.js'
 import { CLINIC_IMPORT_STAGE_LIMITS } from '../src/lib/clinic-import-stage-limits.js'
 import { writeClinicImportStage } from '../src/lib/clinic-import-stage.js'
 import { applyClinicImportStage } from '../src/lib/clinic-import-store.js'
+import { STORAGE_ERROR_CODES, classifyStorageError } from '../src/lib/clinic-import-cli-errors.js'
 
 const PROJECT_ROOT = resolve(fileURLToPath(import.meta.url), '../..')
 const HASH_PATTERN = /^[a-f0-9]{64}$/
@@ -17,7 +18,7 @@ const SOURCE_FLAGS = Object.freeze({ '--pd': 'pd', '--patients': 'patients', '--
 const VALUE_FLAGS = new Set([...Object.keys(SOURCE_FLAGS), '--database', '--stage', '--manifest', '--backup', '--confirm-production'])
 const BOOLEAN_FLAGS = new Set(['--apply', '--dry-run'])
 const SAFE_ERRORS = new WeakSet()
-const ERROR_CODES = new Set(['BACKUP_INVALID', 'CLI_FAILED', 'CLI_FILE_INVALID', 'CLI_INPUT_INVALID', 'MANIFEST_MISMATCH', 'PRODUCTION_CONFIRMATION_REQUIRED', 'TARGET_INTEGRITY_FAILED'])
+const ERROR_CODES = new Set(['BACKUP_INVALID', 'CLI_FAILED', 'CLI_FILE_INVALID', 'CLI_INPUT_INVALID', 'MANIFEST_MISMATCH', 'PRODUCTION_CONFIRMATION_REQUIRED', 'TARGET_INTEGRITY_FAILED', ...STORAGE_ERROR_CODES])
 const DEFAULT_FILE_SYSTEM = Object.freeze({ open })
 const CHECKPOINT_ATTEMPTS = 3
 const CHECKPOINT_RETRY_MS = 25
@@ -481,7 +482,7 @@ async function applied(argumentsValue, environment, dependencies) {
     const integrity = await client.execute('PRAGMA integrity_check')
     if (!Array.isArray(integrity.rows) || integrity.rows.length !== 1 || integrity.rows[0].integrity_check !== 'ok') invalid('TARGET_INTEGRITY_FAILED')
   } catch (error) {
-    failure = SAFE_ERRORS.has(error) ? error : new ClinicImportCliError('CLI_FAILED')
+    failure = SAFE_ERRORS.has(error) ? error : new ClinicImportCliError(classifyStorageError(error) ?? 'CLI_FAILED')
   }
   try { if (client) await closeCheckpointed(client) } catch { failure = new ClinicImportCliError('CLI_FAILED') }
   if (failure === null) try {

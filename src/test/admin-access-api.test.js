@@ -28,6 +28,7 @@ function request(path, cookie) {
 
 async function seed(rows) {
   const { db } = await import('../lib/database.js')
+  await db.$client.execute({ sql: 'INSERT OR IGNORE INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [PATIENT_ID, null, null, null, null, null, '2026-09-09T09:00:00.000Z', '2026-09-09T09:00:00.000Z', null] })
   for (const row of rows) await db.$client.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt, reason) VALUES (?, ?, ?, ?, ?, ?)', args: row })
 }
 

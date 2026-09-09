@@ -156,6 +156,7 @@ describe('admin sessions bound to named users', () => {
 
   it('revokes only the sessions of one user', async () => {
     const { client, sessions } = await fixture()
+    for (const [id, login] of [['11111111-1111-4111-8111-111111111111', 'olga'], ['22222222-2222-4222-8222-222222222222', 'nina']]) await client.execute({ sql: "INSERT INTO AdminUser (id, login, displayName, role, passwordHash, createdAt, disabledAt, passwordChangedAt) VALUES (?, ?, ?, 'staff', 'x', '2026-09-06T10:00:00.000Z', NULL, '2026-09-06T10:00:00.000Z')", args: [id, login, login] })
     const olga = await sessions.issue({ userId: '11111111-1111-4111-8111-111111111111' })
     const other = await sessions.issue({ userId: '22222222-2222-4222-8222-222222222222' })
     await sessions.revokeUser('11111111-1111-4111-8111-111111111111')
