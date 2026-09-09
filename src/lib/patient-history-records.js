@@ -16,7 +16,7 @@ const LINK_KEYS = Object.freeze(['page', 'pageSize', 'status'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const SAFE_TEXT_PATTERN = /^[^\p{Cc}\p{Cf}]{1,255}$/u
-const ACTOR_PATTERN = /^v1:[0-9a-f]{64}$/
+const ACTOR_PATTERN = /^(v1:[0-9a-f]{64}|u:[0-9a-f-]{36})$/
 const ENCRYPTION_KEY_PATTERN = /^[A-Za-z0-9+/]{43}=$/
 const PHONE_PATTERN = /^[1-9][0-9]{7,14}$/
 const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/u

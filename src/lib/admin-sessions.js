@@ -39,11 +39,12 @@ export function createAdminSessions({ client, secret, clock = () => new Date(), 
     const match = typeof token === 'string' ? TOKEN_PATTERN.exec(token) : null
     return match ? match[1] : undefined
   }
-  async function issue() {
+  async function issue(input = {}) {
     const now = clock()
     const id = uuid()
     const issuedAt = now.getTime()
-    await storage.execute({ sql: 'INSERT INTO AdminSession (id, issuedAt, lastSeenAt, revokedAt) VALUES (?, ?, ?, NULL)', args: [id, now.toISOString(), now.toISOString()] })
+    const userId = typeof input.userId === 'string' && input.userId.length > 0 ? input.userId : null
+    await storage.execute({ sql: 'INSERT INTO AdminSession (id, issuedAt, lastSeenAt, revokedAt, userId) VALUES (?, ?, ?, NULL, ?)', args: [id, now.toISOString(), now.toISOString(), userId] })
     return `${id}.${issuedAt}.${sign(key, `${id}.${issuedAt}`)}`
   }
   async function verify(token) {
@@ -53,17 +54,23 @@ export function createAdminSessions({ client, secret, clock = () => new Date(), 
     if (!constantTimeEqual(sign(key, `${id}.${issuedAt}`), signature)) return INVALID
     const now = clock()
     if (now.getTime() - Number(issuedAt) > SESSION_TTL_MS || Number(issuedAt) > now.getTime() + 5 * 60_000) return INVALID
-    const result = await storage.execute({ sql: 'SELECT issuedAt, lastSeenAt, revokedAt FROM AdminSession WHERE id = ? LIMIT 1', args: [id] })
+    const result = await storage.execute({ sql: 'SELECT s.issuedAt, s.lastSeenAt, s.revokedAt, s.userId, u.disabledAt AS userDisabledAt FROM AdminSession s LEFT JOIN AdminUser u ON u.id = s.userId WHERE s.id = ? LIMIT 1', args: [id] })
     const row = result.rows[0]
     if (!row || row.revokedAt !== null || Date.parse(row.issuedAt) !== Number(issuedAt)) return INVALID
+    if (row.userId !== null && row.userDisabledAt !== null) return INVALID
     const lastSeen = Date.parse(row.lastSeenAt)
     if (now.getTime() - lastSeen > SESSION_IDLE_MS) return INVALID
     if (now.getTime() - lastSeen >= TOUCH_INTERVAL_MS) await storage.execute({ sql: 'UPDATE AdminSession SET lastSeenAt = ? WHERE id = ? AND revokedAt IS NULL', args: [now.toISOString(), id] })
-    return Object.freeze({ valid: true, sessionId: id })
+    return Object.freeze({ valid: true, sessionId: id, userId: row.userId ?? undefined })
   }
   async function revoke(id) {
     if (typeof id !== 'string' || id.length === 0) return
     await storage.execute({ sql: 'UPDATE AdminSession SET revokedAt = ? WHERE id = ? AND revokedAt IS NULL', args: [clock().toISOString(), id] })
+  }
+  async function revokeUser(userId) {
+    if (typeof userId !== 'string' || userId.length === 0) return 0
+    const result = await storage.execute({ sql: 'UPDATE AdminSession SET revokedAt = ? WHERE userId = ? AND revokedAt IS NULL', args: [clock().toISOString(), userId] })
+    return Number(result.rowsAffected ?? 0)
   }
   async function revokeAll() {
     const result = await storage.execute({ sql: 'UPDATE AdminSession SET revokedAt = ? WHERE revokedAt IS NULL', args: [clock().toISOString()] })
@@ -79,5 +86,5 @@ export function createAdminSessions({ client, secret, clock = () => new Date(), 
     const result = await storage.execute({ sql: "SELECT COUNT(*) AS total FROM AdminAuthEvent WHERE ip = ? AND kind = 'login_failure' AND createdAt > ?", args: [ip, since] })
     return Number(result.rows[0]?.total ?? 0)
   }
-  return Object.freeze({ issue, verify, revoke, revokeAll, record, recentFailures, sessionId })
+  return Object.freeze({ issue, verify, revoke, revokeUser, revokeAll, record, recentFailures, sessionId })
 }

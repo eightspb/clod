@@ -20,9 +20,11 @@ async function loadHandlers() {
   return import('../pages/api/admin/generate-image.js')
 }
 
-async function sessionCookie() {
+async function sessionCookie(role = 'admin') {
   process.env.TOKEN_SECRET = 'generate-image-test-secret-with-enough-entropy'
-  return `__Host-admin_session=${await createToken()}`
+  const { adminUsers } = await import('../lib/auth.js')
+  const user = await adminUsers().create({ login: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, displayName: 'Тест', role, password: 'пароль-для-теста-Ω-2026' })
+  return `__Host-admin_session=${await createToken(user.id)}`
 }
 
 afterEach(() => {
@@ -53,5 +55,11 @@ describe('admin generate-image API', () => {
     const cookie = await sessionCookie()
     const { PATCH } = await loadHandlers()
     expect((await PATCH({ request: request({ method: 'PATCH', ip: '203.0.113.104', cookie, body: '{"slugs":["../README"]}' }) })).status).toBe(400)
+  })
+
+  it('answers 403 to a staff status read', async () => {
+    const cookie = await sessionCookie('staff')
+    const { GET } = await loadHandlers()
+    expect((await GET({ request: request({ ip: '203.0.113.109', cookie }) })).status).toBe(403)
   })
 })

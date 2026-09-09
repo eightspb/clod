@@ -4,7 +4,7 @@ import { writeFile, mkdir, readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { buildPrompt, AVAILABLE_MODELS, PROMPTS } from '../../../lib/blog-prompts.js'
-import { guardAdminRead, guardAdminWrite } from '../../../lib/admin-api.js'
+import { guardAdminRead, guardAdminRole } from '../../../lib/admin-api.js'
 
 const API_KEY = process.env.IMAGE_API_KEY
 const POLZA_URL = 'https://polza.ai/api/v1/media'
@@ -139,7 +139,7 @@ function extractImageUrl(data) {
 }
 
 export async function POST({ request }) {
-  const blocked = await guardAdminWrite(request)
+  const blocked = await guardAdminRole(request)
   if (blocked) return blocked
   let body
   try { body = await request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
@@ -217,7 +217,7 @@ async function applyImageToArticle(slug) {
 }
 
 export async function PATCH({ request }) {
-  const blocked = await guardAdminWrite(request)
+  const blocked = await guardAdminRole(request)
   if (blocked) return blocked
   let body
   try { body = await request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
@@ -240,7 +240,7 @@ export async function PATCH({ request }) {
 let polling = false
 
 export async function GET({ request }) {
-  const blocked = await guardAdminRead(request)
+  const blocked = await guardAdminRole(request, { guard: guardAdminRead })
   if (blocked) return blocked
   const jobs = await readJobs()
   const images = await existingImages()

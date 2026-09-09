@@ -18,7 +18,7 @@ test.describe('Admin access security', () => {
   test('keeps the logout button reachable on a phone viewport', async ({ baseURL, page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     const login = await page.request.post('/api/auth/login', {
-      data: { password: process.env.ADMIN_PASSWORD },
+      data: { login: 'admin', password: process.env.ADMIN_PASSWORD },
       headers: { Origin: baseURL },
     })
     expect(login.status(), await login.text()).toBe(200)

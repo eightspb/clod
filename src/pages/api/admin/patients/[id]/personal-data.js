@@ -1,5 +1,6 @@
 export const prerender = false
 
+import { guardAdminPii, guardAdminRole } from '../../../../../lib/admin-api.js'
 import { db } from '../../../../../lib/database.js'
 import { createPatientPersonalDataEndpoint } from '../../../../../lib/admin-patient-api.js'
 import { createPatientHistoryRecords } from '../../../../../lib/patient-history-records.js'
@@ -23,5 +24,10 @@ function log(stage) {
   console.error('[admin/patients/[id]/personal-data]', stage)
 }
 
+/** Destruction of personal data is reserved for the admin role. */
+function guard(request) {
+  return guardAdminRole(request, { guard: guardAdminPii })
+}
+
 export { createPatientPersonalDataEndpoint }
-export const DELETE = createPatientPersonalDataEndpoint({ records, history, log })
+export const DELETE = createPatientPersonalDataEndpoint({ records, history, guard, log })

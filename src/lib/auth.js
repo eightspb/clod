@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { createAdminSessions, SESSION_TTL_MS } from './admin-sessions.js'
+import { createAdminUsers } from './admin-users.js'
 import { db } from './database.js'
 
 const COOKIE_NAME = '__Host-admin_session'
@@ -43,17 +44,29 @@ export function adminSessions() {
   return createAdminSessions({ client: db.$client, secret: getTokenSecret() })
 }
 
-export async function createToken() {
-  return adminSessions().issue()
+/**
+ * Named administrator accounts bound to the application database.
+ */
+export function adminUsers() {
+  return createAdminUsers({ client: db.$client })
+}
+
+export async function createToken(userId) {
+  return adminSessions().issue({ userId })
+}
+
+async function verifiedSession(token) {
+  if (!token) return undefined
+  try {
+    const result = await adminSessions().verify(token)
+    return result.valid ? result : undefined
+  } catch {
+    return undefined
+  }
 }
 
 export async function verifyToken(token) {
-  if (!token) return false
-  try {
-    return (await adminSessions().verify(token)).valid
-  } catch {
-    return false
-  }
+  return (await verifiedSession(token)) !== undefined
 }
 
 /**
@@ -69,6 +82,20 @@ export function getTokenFromCookie(request) {
 export async function isAuthenticated(request) {
   const token = getTokenFromCookie(request)
   return verifyToken(token)
+}
+
+/**
+ * The named user behind a valid session cookie, or undefined for an anonymous or legacy
+ * session without a user. Only pre-migration sessions lack a user.
+ */
+export async function currentAdmin(request) {
+  const session = await verifiedSession(getTokenFromCookie(request))
+  if (!session?.userId) return undefined
+  try {
+    return await adminUsers().byId(session.userId)
+  } catch {
+    return undefined
+  }
 }
 
 export function buildSetCookie(token) {

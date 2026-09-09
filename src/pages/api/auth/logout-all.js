@@ -1,16 +1,17 @@
 export const prerender = false
 
 import { adminSessions, buildClearCookie, getTokenFromCookie } from '../../../lib/auth.js'
-import { guardAdminWrite } from '../../../lib/admin-api.js'
+import { guardAdminRole } from '../../../lib/admin-api.js'
 import { getClientIp } from '../../../lib/client-ip.js'
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
 /**
  * Ends every administrator session at once, the response for a suspected stolen cookie.
+ * Only the admin role may do this.
  */
 export async function POST({ request }) {
-  const blocked = await guardAdminWrite(request)
+  const blocked = await guardAdminRole(request)
   if (blocked) return blocked
   try {
     const sessions = adminSessions()

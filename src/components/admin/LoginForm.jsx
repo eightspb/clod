@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 export function LoginForm() {
+  const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -13,13 +14,13 @@ export function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ login, password }),
       })
       const data = await res.json()
       if (res.ok) {
         window.location.href = '/admin'
       } else {
-        setError(data.error || 'Неправильный пароль. Проверьте введённый текст')
+        setError(data.error || 'Неверное имя пользователя или пароль')
       }
     } catch {
       setError('Ошибка соединения')
@@ -71,6 +72,30 @@ export function LoginForm() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
+            <label htmlFor="admin-login" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+              Имя пользователя
+            </label>
+            <input
+              id="admin-login"
+              type="text"
+              value={login}
+              onChange={e => setLogin(e.target.value)}
+              placeholder="Введите имя пользователя"
+              required
+              autoFocus
+              autoComplete="username"
+              autoCapitalize="none"
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                background: 'white',
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: '16px' }}>
             <label htmlFor="admin-password" style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
               Пароль
             </label>
@@ -81,7 +106,7 @@ export function LoginForm() {
               onChange={e => setPassword(e.target.value)}
               placeholder="Введите пароль"
               required
-              autoFocus
+              autoComplete="current-password"
               aria-invalid={error ? 'true' : undefined}
               aria-describedby={error ? 'login-error' : undefined}
               style={{
@@ -118,17 +143,17 @@ export function LoginForm() {
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !password || !login}
             style={{
               width: '100%',
               padding: '11px',
-              background: loading || !password ? '#94a3b8' : '#1e293b',
+              background: loading || !password || !login ? '#94a3b8' : '#1e293b',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
               fontSize: '14px',
               fontWeight: '600',
-              cursor: loading || !password ? 'not-allowed' : 'pointer',
+              cursor: loading || !password || !login ? 'not-allowed' : 'pointer',
               transition: 'background 0.15s',
             }}
           >

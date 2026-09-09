@@ -87,3 +87,34 @@ describe('admin API client identity', () => {
     expect(statuses.at(-1)).toBe(429)
   })
 })
+
+describe('admin role guard', () => {
+  it('lets the admin role through', async () => {
+    const { adminUsers } = await import('./auth.js')
+    process.env.TOKEN_SECRET = 'admin-api-test-secret-with-enough-entropy'
+    const admin = await adminUsers().create({ login: `chief-${Date.now()}`, displayName: 'Главный', role: 'admin', password: 'пароль-администратора-Ω' })
+    const token = await createToken(admin.id)
+    const { guardAdminRole } = await import('./admin-api.js')
+    const blocked = await guardAdminRole(request({ method: 'POST', ip: '203.0.113.71', origin: 'https://odintsovclinic.ru', cookie: `__Host-admin_session=${token}` }))
+    expect(blocked).toBe(undefined)
+  })
+
+  it('answers 403 to the staff role', async () => {
+    const { adminUsers } = await import('./auth.js')
+    process.env.TOKEN_SECRET = 'admin-api-test-secret-with-enough-entropy'
+    const staff = await adminUsers().create({ login: `staff-${Date.now()}`, displayName: 'Сотрудник', role: 'staff', password: 'пароль-сотрудника-Ω-1' })
+    const token = await createToken(staff.id)
+    const { guardAdminRole } = await import('./admin-api.js')
+    const blocked = await guardAdminRole(request({ method: 'POST', ip: '203.0.113.72', origin: 'https://odintsovclinic.ru', cookie: `__Host-admin_session=${token}` }))
+    expect(blocked?.status).toBe(403)
+  })
+
+  it('reports the same actor for two sessions of one user', async () => {
+    const { adminUsers } = await import('./auth.js')
+    process.env.TOKEN_SECRET = 'admin-api-test-secret-with-enough-entropy'
+    const staff = await adminUsers().create({ login: `same-${Date.now()}`, displayName: 'Сотрудник', role: 'staff', password: 'пароль-сотрудника-Ω-2' })
+    const tokens = [await createToken(staff.id), await createToken(staff.id)]
+    const actors = await Promise.all(tokens.map((token) => adminActor(request({ ip: '203.0.113.73', cookie: `__Host-admin_session=${token}` }))))
+    expect(actors[0] === actors[1] && actors[0] === `u:${staff.id}`).toBe(true)
+  })
+})
