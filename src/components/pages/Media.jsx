@@ -1,7 +1,7 @@
 import { Award, BookOpen, ExternalLink, Mail, Mic, Phone, Tv } from 'lucide-react'
 import { BreadcrumbNav } from '../BreadcrumbNav.jsx'
 import { DOCTORS } from '../../lib/doctors-data.js'
-import { PHONE_NUMBER, PHONE_DISPLAY, TELEGRAM_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, PHONE_DISPLAY, MAX_URL } from '../../lib/contacts.js'
 
 const ALL_TV_APPEARANCES = DOCTORS
   .flatMap((doctor) =>
@@ -189,13 +189,13 @@ export function Media() {
                   {PHONE_DISPLAY}
                 </a>
                 <a
-                  href={TELEGRAM_URL}
+                  href={MAX_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-clay-secondary inline-flex items-center gap-2 justify-center"
                 >
                   <Mail size={16} aria-hidden="true" />
-                  Написать в Telegram
+                  Написать в Max
                 </a>
               </div>
             </div>

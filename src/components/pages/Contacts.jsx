@@ -1,5 +1,5 @@
 import { Bus, Car, Clock, ExternalLink, Mail, MapPin, MessageCircle, Navigation, Phone, Train } from 'lucide-react'
-import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, TELEGRAM_URL, VK_URL } from '../../lib/contacts.js'
+import { PHONE_DISPLAY, PHONE_NUMBER, PHONE_DISPLAY_2, PHONE_NUMBER_2, MAX_URL, VK_URL } from '../../lib/contacts.js'
 
 const METRO_STATIONS = [
   { name: 'Комендантский проспект', line: 'Фиолетовая', walk: '12 мин' },
@@ -28,9 +28,9 @@ export function Contacts() {
                 <Phone size={16} />
                 Позвонить
               </a>
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="btn-clay-secondary justify-center gap-2">
+              <a href={MAX_URL} target="_blank" rel="noopener noreferrer" className="btn-clay-secondary justify-center gap-2">
                 <MessageCircle size={16} />
-                Telegram
+                Max
               </a>
             </div>
           </div>
@@ -81,13 +81,13 @@ export function Contacts() {
           </div>
           <div className="flex flex-wrap gap-3 mt-2">
             <a
-              href={TELEGRAM_URL}
+              href={MAX_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-clay-secondary text-sm inline-flex items-center gap-2"
             >
               <MessageCircle size={15} />
-              Telegram
+              Max
             </a>
             <a
               href={VK_URL}
@@ -240,7 +240,7 @@ export function Contacts() {
           ))}
         </div>
         <p className="text-xs text-clay-muted mt-4">
-          Уточните наличие вашей страховки у администратора по телефону или в Telegram.
+          Уточните наличие вашей страховки у администратора по телефону или в Max.
         </p>
       </section>
     </div>

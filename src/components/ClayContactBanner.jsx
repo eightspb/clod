@@ -1,4 +1,4 @@
-import { PHONE_NUMBER, TELEGRAM_URL } from '../lib/contacts.js'
+import { PHONE_NUMBER, MAX_URL } from '../lib/contacts.js'
 
 function Donut({ style: posStyle }) {
   return (
@@ -56,16 +56,16 @@ function CloudButton() {
   )
 }
 
-function TelegramButton() {
+function MaxButton() {
   return (
     <a
-      href={TELEGRAM_URL}
+      href={MAX_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="clay-banner-telegram-btn inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"
+      className="clay-banner-max-btn inline-flex items-center justify-center cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0.5"
     >
       <span style={{ fontWeight: 700, fontSize: '18px', color: 'white', letterSpacing: '0.01em' }}>
-        Telegram
+        Max
       </span>
     </a>
   )
@@ -91,7 +91,7 @@ export function ClayContactBanner() {
 
           <div className="flex flex-wrap items-end justify-center gap-8 relative z-10">
             <CloudButton />
-            <TelegramButton />
+            <MaxButton />
           </div>
         </div>
       </div>

@@ -31,10 +31,10 @@ describe('Footer', () => {
     expect(phoneLinks.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders Telegram link', () => {
+  it('renders Max link', () => {
     render(<Footer />)
-    const tg = screen.getByRole('link', { name: /telegram/i })
-    expect(tg.getAttribute('href')).toContain('t.me')
+    const max = screen.getByRole('link', { name: /max/i })
+    expect(max.getAttribute('href')).toContain('max.ru')
   })
 
   it('renders privacy policy link', () => {

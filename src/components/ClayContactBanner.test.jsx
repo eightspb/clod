@@ -14,16 +14,16 @@ describe('ClayContactBanner', () => {
     expect(phoneLink.getAttribute('href')).toMatch(/^tel:/)
   })
 
-  it('renders Telegram link', () => {
+  it('renders Max link', () => {
     render(<ClayContactBanner />)
-    const telegramLink = screen.getByRole('link', { name: /telegram/i })
-    expect(telegramLink.getAttribute('href')).toContain('t.me')
+    const maxLink = screen.getByRole('link', { name: /max/i })
+    expect(maxLink.getAttribute('href')).toContain('max.ru')
   })
 
-  it('Telegram link opens in new tab', () => {
+  it('Max link opens in new tab', () => {
     render(<ClayContactBanner />)
-    const telegramLink = screen.getByRole('link', { name: /telegram/i })
-    expect(telegramLink).toHaveAttribute('target', '_blank')
-    expect(telegramLink).toHaveAttribute('rel', 'noopener noreferrer')
+    const maxLink = screen.getByRole('link', { name: /max/i })
+    expect(maxLink).toHaveAttribute('target', '_blank')
+    expect(maxLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 })

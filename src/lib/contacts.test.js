@@ -4,7 +4,7 @@ import {
   PHONE_DISPLAY,
   PHONE_NUMBER_2,
   PHONE_DISPLAY_2,
-  TELEGRAM_URL,
+  MAX_URL,
   ADDRESS,
   HOURS_WEEKDAY,
   HOURS_WEEKEND,
@@ -31,8 +31,8 @@ describe('contacts.js', () => {
   })
 
   describe('messenger links', () => {
-    it('TELEGRAM_URL is valid t.me format', () => {
-      expect(TELEGRAM_URL).toMatch(/^https:\/\/t\.me\/[a-zA-Z0-9_]+$/)
+    it('MAX_URL is valid max.ru format', () => {
+      expect(MAX_URL).toMatch(/^https:\/\/max\.ru\/[a-zA-Z0-9_]+$/)
     })
   })
 

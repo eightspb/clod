@@ -1,7 +1,7 @@
 import { Phone, MessageCircle } from 'lucide-react'
 import { ErrorBoundary } from '../ErrorBoundary.jsx'
 import { FadeInSection } from '../FadeInSection.jsx'
-import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, MAX_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data.js'
 import { HeroSlider } from '../home/HeroSlider.jsx'
 import { DOCTOR_AUTOPLAY_INTERVAL, MobileDoctorCarousel } from '../MobileDoctorCarousel.jsx'
@@ -81,9 +81,9 @@ export function Home({ doctorsData = DOCTORS }) {
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                <a href={MAX_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
                   <MessageCircle size={16} />
-                  Telegram
+                  Max
                 </a>
               </div>
             </div>

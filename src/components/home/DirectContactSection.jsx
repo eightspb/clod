@@ -1,5 +1,5 @@
 import { CheckCircle, MessageCircle, Phone } from 'lucide-react'
-import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, MAX_URL } from '../../lib/contacts.js'
 
 const HOME_REASONS = [
   'Врачи объясняют решения простым языком и без давления',
@@ -44,9 +44,9 @@ export function DirectContactSection() {
                 <Phone size={16} />
                 Позвонить
               </a>
-              <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2 justify-center" target="_blank" rel="noopener noreferrer">
+              <a href={MAX_URL} className="clay btn-clay-secondary gap-2 justify-center" target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={16} />
-                Написать в Telegram
+                Написать в Max
               </a>
             </div>
           </div>

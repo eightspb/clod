@@ -15,7 +15,7 @@ import { getClientIp } from '../../lib/client-ip.js'
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const MAX_NAME_LENGTH = 120
 const MAX_COMMENT_LENGTH = 2000
-const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
+const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Max'
 
 function jsonResponse(payload, status, headers = {}) {
   return new Response(JSON.stringify(payload), {

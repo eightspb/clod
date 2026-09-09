@@ -9,7 +9,7 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' }
 const CLINIC_EMAIL_DOMAIN = '@odintsovclinic.ru'
 const MAX_NAME_LENGTH = 120
 const MAX_COMMENT_LENGTH = 2000
-const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram'
+const UNAVAILABLE_MESSAGE = 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Max'
 const RATE_LIMIT_OPTS = { namespace: 'tax-form', maxRequests: 5, windowMs: 15 * 60 * 1000 }
 
 function jsonResponse(payload, status, headers = {}) {

@@ -675,7 +675,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 |---|---|---|
 | `startup-environment.js` | `assessEnvironment(env)` — обязательные переменные и отключаемые функции для проверки при старте контейнера | `scripts/check-required-env.mjs`, `api/health` |
 | `graceful-shutdown.js` | `createGracefulShutdown(server, {timeoutMs})` — drain по SIGTERM: закрыть listener, дождаться in-flight, выйти 0, по таймауту 1 | `scripts/server.mjs` |
-| `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `TELEGRAM_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
+| `contacts.js` | `PHONE_NUMBER`, `PHONE_DISPLAY`, `PHONE_NUMBER_2`, `PHONE_DISPLAY_2`, `MAX_URL`, `ADDRESS`, `HOURS_WEEKDAY`, `HOURS_WEEKEND` | `Footer`, `Header`, `CtaSection`, `ClayContactBanner` |
 | `swipe-gesture.js` | `createSwipeGesture` — фиксация оси жеста и один шаг за свайп для touch и pointer | `MobileDoctorCarousel` |
 | `use-reduced-motion.js` | `useReducedMotion` — единый источник `prefers-reduced-motion` для автопрокруток | `MobileDoctorCarousel`, `HeroSlider` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
@@ -732,7 +732,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `ServicesSection.jsx` | 64 | Editorial-список направлений + featured routes |
 | `WhyUsSection.jsx` | 74 | «Почему выбирают» + статистика |
 | `DoctorsSection.jsx` | — | Фильтры + полноэкранная mobile-карусель / desktop-карточки врачей |
-| `DirectContactSection.jsx` | 61 | «Прямая связь» + телефон/Telegram |
+| `DirectContactSection.jsx` | 61 | «Прямая связь» + телефон/Max |
 | `PromotionsSection.jsx` | — | Две карточки акций сразу под «Выберите направление» (виден и на mobile), ведут на якоря `/promotions#lab-discount` и `/promotions#health-day` |
 | `ReviewsSection.jsx` | — | Четыре отзыва из `doctors-data.js` с автором, врачом и ссылкой на профиль ПроДокторов |
 | `AppointmentFormSection.jsx` | — | First-party CTA; данные пациента вводятся только внутри общего `BookingFlow` |
