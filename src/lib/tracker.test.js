@@ -22,3 +22,24 @@ describe('public analytics tracker', () => {
     expect(script).toContain('if (!matched) return')
   })
 })
+
+describe('public analytics tracker consent gate', () => {
+  it('reads the same storage key the consent module exports', async () => {
+    const { ANALYTICS_CONSENT_STORAGE_KEY } = await import('./analytics-consent.js')
+    expect(await source('public/tracker.js')).toContain(`var CONSENT_KEY = '${ANALYTICS_CONSENT_STORAGE_KEY}'`)
+  })
+
+  it('listens for the same DOM event the consent module exports', async () => {
+    const { ANALYTICS_CONSENT_EVENT } = await import('./analytics-consent.js')
+    expect(await source('public/tracker.js')).toContain(`var CONSENT_EVENT = '${ANALYTICS_CONSENT_EVENT}'`)
+  })
+
+  it('starts only after a stored grant', async () => {
+    expect(await source('public/tracker.js')).toContain("if (consent() === 'granted') start()")
+  })
+
+  it('drops the visitor identifier when consent is withdrawn', async () => {
+    const script = await source('public/tracker.js')
+    expect(script.slice(script.indexOf('stopTracking = function'))).toContain("localStorage.removeItem('_vid')")
+  })
+})

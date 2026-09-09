@@ -185,6 +185,47 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
       })
     </script>
 
+    <div id="analytics-consent" class="analytics-consent" role="region" aria-label="Согласие на аналитику" hidden>
+      <p class="analytics-consent-text">
+        Сайт ведёт собственную обезличенную статистику посещений без сторонних трекеров. Разрешить сбор? Подробнее — в <a href="/privacy-policy#cookies">политике конфиденциальности</a>.
+      </p>
+      <div class="analytics-consent-actions">
+        <button type="button" class="btn-clay-primary" data-analytics-consent="granted">Разрешить</button>
+        <button type="button" class="btn-clay-secondary" data-analytics-consent="denied">Отклонить</button>
+      </div>
+    </div>
+
+    <script>
+      import { ANALYTICS_CONSENT_EVENT, ANALYTICS_CONSENT_STORAGE_KEY, readAnalyticsConsent } from '../lib/analytics-consent.js'
+
+      const banner = document.getElementById('analytics-consent')
+
+      function storedConsent() {
+        try {
+          return readAnalyticsConsent(localStorage.getItem(ANALYTICS_CONSENT_STORAGE_KEY))
+        } catch {
+          return 'denied'
+        }
+      }
+
+      function decide(decision) {
+        localStorage.setItem(ANALYTICS_CONSENT_STORAGE_KEY, decision)
+        banner.hidden = true
+        document.dispatchEvent(new CustomEvent(ANALYTICS_CONSENT_EVENT, { detail: decision }))
+      }
+
+      banner.hidden = storedConsent() !== undefined
+      document.addEventListener('click', (event) => {
+        const control = event.target instanceof Element ? event.target.closest('[data-analytics-consent]') : null
+        if (!control) return
+        decide(control.getAttribute('data-analytics-consent'))
+        if (control instanceof HTMLButtonElement && control.dataset.analyticsConsentDone) {
+          control.textContent = control.dataset.analyticsConsentDone
+          control.disabled = true
+        }
+      })
+    </script>
+
     <!-- Трекер аналитики: defer чтобы не блокировать отрисовку (Lighthouse) -->
     <script src="/tracker.js" defer></script>
 

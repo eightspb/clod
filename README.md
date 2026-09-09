@@ -150,6 +150,8 @@ API запрос       → src/pages/api/**/*.js (SSR)
 Данные хранятся в трёх таблицах БД: `AnalyticsSession`, `PageView`, `EventLog`.
 Клиент отправляет события на `POST /api/analytics/event` и heartbeat на `POST /api/analytics/heartbeat`.
 
+Согласие (сентябрь 2026, Фаза 2 п.5 аудита). Трекер не стартует, пока посетитель не нажмёт «Разрешить» в баннере «Согласие на аналитику», который `Layout.astro` показывает при первом визите над мобильной sticky-панелью и слева от кнопок размера шрифта на desktop. Решение (`granted`/`denied`) хранится в `localStorage` под ключом `clod-analytics-consent` (`src/lib/analytics-consent.js`), «Отклонить» и отсутствие ответа означают отсутствие сбора; баннер после любого ответа больше не показывается. Кнопка «Отозвать согласие на аналитику» в разделе 9 `/privacy-policy` пишет `denied`, а трекер по событию `clod:analytics-consent` останавливает таймеры и удаляет `_vid`/`_sid`. Других баннеров на сайте нет. Playwright в `playwright.config.js` заранее выдаёт согласие через `storageState`, чтобы баннер не перекрывал элементы в геометрических спеках; `e2e/analytics-consent.spec.js` сбрасывает его и проверяет отсутствие запросов до решения, старт после «Разрешить» и отзыв на странице политики. Контракты: `src/lib/analytics-consent.test.js`, `src/lib/tracker.test.js`, `src/layouts/Layout.test.js`, `src/components/pages/PrivacyPolicy.test.jsx`.
+
 Минимизация и ретеншен (сентябрь 2026, Фаза 1 п.9 аудита). Сервер хранит не полный адрес, а сеть: `/24` для IPv4 и `/48` для IPv6 (`truncateIp` в `src/lib/analytics-privacy.js`); от реферера остаётся только origin, потому что URL поисковой выдачи содержит запрос пациента. Трекер (`public/tracker.js`, побайтово равен `src/lib/tracker.js`, контракт в `src/lib/tracker.test.js`) считает кликом только `a`, `button` или `[data-track]` среди пяти предков и никогда не читает текст элемента: на экране проверки записи это были бы ФИО и телефон. Batch-события проходят тот же allowlist (`click`, `form_submit`, `navigation`) и ту же нормализацию полей (`tag`, `id`, `classes`, `href`, `from`, `action`, `name`), что и одиночные; слишком длинные `details` заменяются на `{"truncated":true}` вместо обрезанного JSON. `GET /api/admin/sessions` отдаёт усечённый адрес и только семейство браузера и платформы (`Chrome · Windows`), сырой User-Agent в браузер не уходит; `GET /api/admin/logs` отдаёт тот же усечённый адрес. Срок хранения задаёт `ANALYTICS_RETENTION_DAYS` (по умолчанию 90): `scripts/prune-analytics.mjs` (`bun run analytics:prune`) в одной транзакции удаляет `EventLog` → `PageView` → `AnalyticsSession` старше окна и попутно дожимает старые строки до усечённого адреса и origin реферера. `scripts/prune-calls.mjs` (`bun run calls:prune`) через `MANGO_CALL_RETENTION_DAYS` (по умолчанию 365) обезличивает звонки MANGO старше окна: номер, маска, отпечаток и связь с пациентом удаляются, ожидание, разговор и статус остаются, для каждого звонка пишется строка `destroy` с актором `retention` в `MangoCallAccess`, а сам аудит хранится дольше. Обе задачи запускает `docker-entrypoint.sh` после `init-db` (ошибка не блокирует старт) и раз в сутки `scripts/server.mjs` через `src/lib/retention-schedule.js`.
 
 ### Безопасность
@@ -1152,6 +1154,12 @@ Certbot-контейнер проверяет сертификат каждые 
 ---
 
 ## Последние изменения (сентябрь 2026)
+
+### Баннер согласия на аналитику и отзыв согласия (9 сентября 2026, Фаза 2 п.5 аудита)
+
+- Трекер `public/tracker.js` завёрнут в `start()` и запускается только при `clod-analytics-consent = granted`; отзыв через событие `clod:analytics-consent` останавливает таймеры и удаляет идентификаторы посетителя
+- Баннер «Согласие на аналитику» в `Layout.astro` с кнопками «Разрешить»/«Отклонить», кнопка «Отозвать согласие на аналитику» в разделе 9 политики конфиденциальности; текст раздела описывает механику согласия
+- Playwright выдаёт согласие через `storageState`; новая спека `e2e/analytics-consent.spec.js`
 
 ### `@libsql/client` 0.18.0: устранена утечка соединений на каждой транзакции (9 сентября 2026)
 

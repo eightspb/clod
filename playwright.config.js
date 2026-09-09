@@ -22,6 +22,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     /** Layout specs assert a settled page; the doctor carousels rotate on their own unless motion is reduced */
     reducedMotion: 'reduce',
+    /** Analytics consent is pre-granted so the banner never covers controls; e2e/analytics-consent.spec.js clears it */
+    storageState: { cookies: [], origins: [{ origin: baseURL, localStorage: [{ name: 'clod-analytics-consent', value: 'granted' }] }] },
   },
   projects: [
     {

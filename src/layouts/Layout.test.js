@@ -115,3 +115,11 @@ describe('Layout structured data', () => {
     expect({ rating: business.aggregateRating, logo: existsSync(localPath(business.logo)), image: existsSync(localPath(business.image)), ogImage: existsSync(localPath(ogImage)) }).toEqual({ rating: undefined, logo: true, image: true, ogImage: true })
   })
 })
+
+describe('Layout analytics consent', () => {
+  it('renders the consent banner hidden until the client checks the stored decision', async () => {
+    const $ = load(await renderLayout('egorova'))
+    const banner = $('#analytics-consent')
+    expect({ hidden: banner.attr('hidden') !== undefined, decisions: banner.find('[data-analytics-consent]').map((_, el) => $(el).attr('data-analytics-consent')).get() }).toEqual({ hidden: true, decisions: ['granted', 'denied'] })
+  })
+})
