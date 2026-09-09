@@ -32,7 +32,7 @@ const OPERATIONAL_PHONE = '+79991112233'
 const CANONICAL_PHONE = '79991112233'
 const IDENTITY_EVIDENCE = Object.freeze({ exactEhr: 0, sameFioBirthDate: 0, patronymicCorrection: 0, surnameChange: 0, sameFioMissingBirthDate: 0, surnameChangeMissingBirthDate: 0, componentConflicts: 0, conflictingStrongIdentifiers: 0, insufficientEvidence: 0, sharedCardDifferentPeople: 0, supplementalPatients: 0, supplementalEnrichments: 0, supplementalIssues: 0 })
 const VISIT_EVIDENCE = Object.freeze({ total: 2, linked: 1, ambiguous: 1, unmatched: 0, exactEhr: 1, exactClinicCard: 0, leadingZeroClinicCard: 0, phoneCompatibleName: 0, exactFullName: 1, conflictingCommentEvidence: 0, missingDate: 1, emptyStatus: 0, shortRow: 0, invalidStartDate: 0, invalidEndDate: 0, controlCharValue: 0, valueTooLarge: 0 })
-const CONTROLS = Object.freeze({ primaryRows: 2, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 1, validBirthDates: 2, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0, nameHistoryRecords: 1 })
+const CONTROLS = Object.freeze({ primaryRows: 2, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 1, validBirthDates: 2, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0, nameHistoryRecords: 1, issues: 1, linkedVisits: 1, ambiguousVisits: 1, unmatchedVisits: 0, invalidStartDates: 0 })
 
 function identityFingerprint(domain, value) {
   return fingerprintClinicImportIdentity({ key: FINGERPRINT_KEY, domain, value })
@@ -114,6 +114,8 @@ function invalidStartDateBundle() {
   value.visitEvidenceCounts.invalidStartDate = 1
   value.report.visits.invalidStartDate = 1
   value.report.issues.visits = 1
+  value.report.controls.issues = 2
+  value.report.controls.invalidStartDates = 1
   return value
 }
 
@@ -305,7 +307,7 @@ describe('clinic import transactional store', () => {
 
   it('rolls back when a trigger adds an unexpected row to a batch-scoped table', async () => {
     const value = await fixture()
-    await value.client.execute("CREATE TRIGGER add_import_issue AFTER INSERT ON ImportBatch BEGIN INSERT INTO ImportIssue VALUES ('00000000-0000-8000-8000-000000000098', NEW.id, 'synthetic.csv', 1, 'UNEXPECTED', NULL, NULL, NULL, NULL, NEW.createdAt, NULL); END")
+    await value.client.execute("CREATE TRIGGER add_import_issue AFTER INSERT ON ImportBatch BEGIN INSERT INTO ImportIssue VALUES ('00000000-0000-8000-8000-000000000098', NEW.id, 'synthetic.csv', 1, 'UNEXPECTED', NULL, NULL, NULL, NULL, NEW.createdAt, NULL, NULL); END")
     const result = await captured(() => applyClinicImportStage(input(value), { clock: () => '2026-08-27T12:00:00.000Z', randomBytes: randomSource() }))
     const counts = await Promise.all(['ImportBatch', 'ImportIssue'].map(async (table) => Number((await value.client.execute(`SELECT COUNT(*) AS total FROM ${table}`)).rows[0].total)))
     expect({ code: result.error?.code, counts }).toEqual({ code: 'IMPORT_RECONCILIATION_FAILED', counts: [0, 0] })
@@ -376,5 +378,15 @@ describe('clinic import transactional store', () => {
     const hostile = Object.freeze({ client: Object.freeze({ execute: (...args) => value.client.execute(...args), transaction: async () => transaction }), stagePath: value.stagePath, repositoryPath: value.repositoryPath, encryptionKey: ENCRYPTION_KEY, fingerprintKey: FINGERPRINT_KEY, expectedManifestHash: value.written.manifestHash, expectedPlanHash: value.written.planHash })
     const result = await captured(() => applyClinicImportStage(hostile))
     expect({ code: result.error?.code, frozen: Object.isFrozen(result.error), coerced, leaked: result.error?.message.includes('private') }).toEqual({ code: 'IMPORT_RECONCILIATION_FAILED', frozen: true, coerced: false, leaked: false })
+  })
+})
+
+describe('clinic import merge evidence', () => {
+  it('stores why two source cards became one patient and replays it idempotently', async () => {
+    const value = await fixture(mergedBirthBundle())
+    await applyClinicImportStage(input(value), { clock: () => '2026-08-27T12:00:00.000Z', randomBytes: randomSource() })
+    await applyClinicImportStage(input(value), { clock: () => '2026-08-28T12:00:00.000Z', randomBytes: randomSource(10) })
+    const rows = await value.client.execute('SELECT ordinal, patientId, reason, firstSourceName, firstSourceRow, secondSourceName, secondSourceRow FROM PatientMergeEvidence')
+    expect(rows.rows).toEqual([{ ordinal: 1, patientId: PATIENT_ID, reason: 'exactEhr', firstSourceName: SOURCE_NAMES.pd, firstSourceRow: 2, secondSourceName: SOURCE_NAMES.pd, secondSourceRow: 3 }])
   })
 })

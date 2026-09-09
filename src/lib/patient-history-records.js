@@ -13,6 +13,8 @@ const ACCESS_KEYS = Object.freeze(['id', 'actor'])
 const REVEAL_KEYS = Object.freeze(['id', 'actor', 'reason'])
 const REASON_PATTERN = /^[\p{L}\p{N}\p{P}\p{Zs}]{5,200}$/u
 const LINK_KEYS = Object.freeze(['page', 'pageSize', 'status'])
+const RESOLVE_KEYS = Object.freeze(['id', 'actor'])
+const MANUAL_LINK_KEYS = Object.freeze(['id', 'patientId', 'actor'])
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const SAFE_TEXT_PATTERN = /^[^\p{Cc}\p{Cf}]{1,255}$/u
@@ -25,10 +27,14 @@ const MAX_PAGE_CANDIDATES = 20_000
 const MAX_COUNT = 50_000_000
 const MAX_REVEAL_CHILDREN = 1_000
 const MAX_STORAGE_ROWS = 20_000
-const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', code: 'EXACT_EHR', score: 100, ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', code: 'EXACT_CLINIC_CARD', score: 90, ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', code: 'LEADING_ZERO_CLINIC_CARD', score: 80, ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', code: 'PHONE_COMPATIBLE_NAME', score: 70, ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', code: 'EXACT_FULL_NAME', score: 60, ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', code: 'CONFLICTING_COMMENT_EVIDENCE', score: 50, ambiguous: true, linked: false }) })
+const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', code: 'EXACT_EHR', score: 100, ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', code: 'EXACT_CLINIC_CARD', score: 90, ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', code: 'LEADING_ZERO_CLINIC_CARD', score: 80, ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', code: 'PHONE_COMPATIBLE_NAME', score: 70, ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', code: 'EXACT_FULL_NAME', score: 60, ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', code: 'CONFLICTING_COMMENT_EVIDENCE', score: 50, ambiguous: true, linked: false }), manual: Object.freeze({ level: 'exact', code: 'MANUAL', score: 100, ambiguous: false }) })
 const ERROR_MESSAGES = Object.freeze({
   PATIENT_NOT_FOUND: 'Patient history was not found',
   PATIENT_PII_DESTROYED: 'Patient personal data has been destroyed',
+  ISSUE_NOT_FOUND: 'Import issue was not found',
+  VISIT_NOT_FOUND: 'Historical visit was not found',
+  VISIT_NOT_AMBIGUOUS: 'Historical visit is not ambiguous',
+  CANDIDATE_NOT_FOUND: 'Patient is not a recorded candidate of the visit',
   PATIENT_HISTORY_STORAGE_INVARIANT: 'Patient history storage contains an invalid record',
 })
 const TRUSTED_ERRORS = new WeakSet()
@@ -523,8 +529,53 @@ async function destroy(configuration, value) {
   }))
 }
 
+/** Marks one import issue as handled by an operator; a second call reports the earlier resolution. */
+async function resolveIssue(configuration, value) {
+  const input = record(value, RESOLVE_KEYS, RESOLVE_KEYS, 'Import issue resolution')
+  const id = uuid(input.id, 'Import issue ID')
+  const resolvedBy = actor(input.actor)
+  return storage(() => inTransaction(configuration, async (transaction) => {
+    const existing = rows(await transaction.execute({ sql: 'SELECT id, resolvedAt FROM ImportIssue WHERE id = ? LIMIT 2', args: [id] }))
+    if (existing.length === 0) invalid('ISSUE_NOT_FOUND')
+    if (existing.length !== 1) invalid()
+    const previous = field(existing[0], 'resolvedAt')
+    if (previous !== null) return Object.freeze({ id, resolvedAt: timestamp(previous), alreadyResolved: true })
+    const resolvedAt = currentTime(configuration)
+    await transaction.execute({ sql: 'UPDATE ImportIssue SET resolvedAt = ?, resolvedBy = ? WHERE id = ? AND resolvedAt IS NULL', args: [resolvedAt, resolvedBy, id] })
+    return Object.freeze({ id, resolvedAt, alreadyResolved: false })
+  }))
+}
+
+/**
+ * Links an ambiguous historical visit to one of its recorded candidates. The candidate table is
+ * the only allowed source of the patient, so an operator cannot attach a visit to an arbitrary
+ * card; open issues of the visit are resolved by the same actor.
+ */
+async function linkVisit(configuration, value) {
+  const input = record(value, MANUAL_LINK_KEYS, MANUAL_LINK_KEYS, 'Manual visit link')
+  const id = uuid(input.id, 'Historical visit ID')
+  const patientId = uuid(input.patientId)
+  const linkedBy = actor(input.actor)
+  return storage(() => inTransaction(configuration, async (transaction) => {
+    const visitRows = rows(await transaction.execute({ sql: 'SELECT id, linkStatus, patientId FROM HistoricalVisit WHERE id = ? LIMIT 2', args: [id] }))
+    if (visitRows.length === 0) invalid('VISIT_NOT_FOUND')
+    if (visitRows.length !== 1) invalid()
+    if (status(field(visitRows[0], 'linkStatus'), VISIT_STATUSES) !== 'ambiguous') invalid('VISIT_NOT_AMBIGUOUS')
+    const candidateRows = rows(await transaction.execute({ sql: 'SELECT patientId FROM HistoricalVisitCandidate WHERE historicalVisitId = ? AND patientId = ? LIMIT 1', args: [id, patientId] }))
+    if (candidateRows.length !== 1) invalid('CANDIDATE_NOT_FOUND')
+    const patientRows = rows(await transaction.execute({ sql: 'SELECT id FROM Patient WHERE id = ? AND piiDestroyedAt IS NULL LIMIT 1', args: [patientId] }))
+    if (patientRows.length !== 1) invalid('PATIENT_NOT_FOUND')
+    const linkedAt = currentTime(configuration)
+    await transaction.execute({ sql: "UPDATE HistoricalVisit SET patientId = ?, linkStatus = 'linked', linkMethod = 'manual', evidenceLevel = 'exact', linkedBy = ?, linkedAt = ? WHERE id = ? AND linkStatus = 'ambiguous'", args: [patientId, linkedBy, linkedAt, id] })
+    await transaction.execute({ sql: 'DELETE FROM HistoricalVisitCandidate WHERE historicalVisitId = ?', args: [id] })
+    await transaction.execute({ sql: 'UPDATE ImportSourceRow SET patientId = ? WHERE historicalVisitId = ? AND patientId IS NULL', args: [patientId, id] })
+    const resolved = await transaction.execute({ sql: 'UPDATE ImportIssue SET resolvedAt = ?, resolvedBy = ? WHERE historicalVisitId = ? AND resolvedAt IS NULL', args: [linkedAt, linkedBy, id] })
+    return Object.freeze({ id, patientId, linkedAt, resolvedIssues: count(resolved.rowsAffected ?? 0) })
+  }))
+}
+
 /** Creates the immutable repository boundary for protected imported patient history. */
 export function createPatientHistoryRecords(value) {
   const configuration = normalizeFactory(value)
-  return Object.freeze({ summaries: (input) => summaries(configuration, input), visits: (input) => visits(configuration, input), issues: (input) => issues(configuration, input), attachments: (input) => attachments(configuration, input), linkIssues: (input) => linkIssues(configuration, input), reveal: (input) => reveal(configuration, input), destroy: (input) => destroy(configuration, input) })
+  return Object.freeze({ summaries: (input) => summaries(configuration, input), visits: (input) => visits(configuration, input), issues: (input) => issues(configuration, input), resolveIssue: (input) => resolveIssue(configuration, input), linkVisit: (input) => linkVisit(configuration, input), attachments: (input) => attachments(configuration, input), linkIssues: (input) => linkIssues(configuration, input), reveal: (input) => reveal(configuration, input), destroy: (input) => destroy(configuration, input) })
 }

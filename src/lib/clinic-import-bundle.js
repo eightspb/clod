@@ -22,7 +22,7 @@ const MAX_TOTAL_CANDIDATES = 20_000
 const MAX_IDENTITY_EVIDENCE_BUCKET = 256
 const MAX_IDENTITY_EVIDENCE_PAIRS = 250_000
 const MAGIC_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
-const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords'])
+const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords', 'issues', 'linkedVisits', 'ambiguousVisits', 'unmatchedVisits', 'invalidStartDates'])
 const IDENTITY_EVIDENCE_KEYS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate', 'componentConflicts', 'conflictingStrongIdentifiers', 'insufficientEvidence', 'sharedCardDifferentPeople', 'supplementalPatients', 'supplementalEnrichments', 'supplementalIssues'])
 const VISIT_EVIDENCE_KEYS = Object.freeze(['total', 'linked', 'ambiguous', 'unmatched', 'exactEhr', 'exactClinicCard', 'leadingZeroClinicCard', 'phoneCompatibleName', 'exactFullName', 'conflictingCommentEvidence', 'missingDate', 'emptyStatus', 'shortRow', 'invalidStartDate', 'invalidEndDate', 'controlCharValue', 'valueTooLarge'])
 const VISIT_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ code: 'EXACT_EHR', level: 'exact', score: 100 }), exact_clinic_card: Object.freeze({ code: 'EXACT_CLINIC_CARD', level: 'strong', score: 90 }), leading_zero_clinic_card: Object.freeze({ code: 'LEADING_ZERO_CLINIC_CARD', level: 'strong', score: 80 }), phone_compatible_name: Object.freeze({ code: 'PHONE_COMPATIBLE_NAME', level: 'strong', score: 70 }), exact_full_name: Object.freeze({ code: 'EXACT_FULL_NAME', level: 'moderate', score: 60 }), conflicting_comment_evidence: Object.freeze({ code: 'CONFLICTING_COMMENT_EVIDENCE', level: 'moderate', score: 50 }) })
@@ -32,7 +32,7 @@ const DETAIL_CODES = new Set(['IDENTITY_INVARIANT_FAILED', 'INPUT_TOO_COMPLEX', 
 const SAFE_FIELD_CODES = new Set(['birth_date', 'clinic_card', 'consent', 'email', 'ehr', 'gender', 'inn', 'legacy_join', 'name', 'observed_at', 'passport', 'phone', 'private_data', 'snils'])
 const SAFE_ERRORS = new WeakSet()
 
-export const CLINIC_IMPORT_PRODUCTION_CONTROLS = Object.freeze({ primaryRows: 16_187, medeskEhrIdentifiers: 16_189, patients: 16_173, visits: 49_768, missingDates: 2_105, validBirthDates: 14_097, cardCollisionGroups: 74, invoices: 12, primaryMerges: 16, supplementalPatients: 2, nameHistoryRecords: 4 })
+export const CLINIC_IMPORT_PRODUCTION_CONTROLS = Object.freeze({ primaryRows: 16_187, medeskEhrIdentifiers: 16_189, patients: 16_173, visits: 49_768, missingDates: 2_105, validBirthDates: 14_097, cardCollisionGroups: 74, invoices: 12, primaryMerges: 16, supplementalPatients: 2, nameHistoryRecords: 4, issues: 2_866, linkedVisits: 48_964, ambiguousVisits: 625, unmatchedVisits: 179, invalidStartDates: 0 })
 
 /** Represents a value-free clinic import bundle failure. */
 export class ClinicImportBundleError extends Error {
@@ -901,10 +901,10 @@ function cardCollisionGroups(identities) {
   return [...rows.values()].filter((values) => values.size > 1).length
 }
 
-function controlsFrom(manifest, identities, visits, invoices, patientRows) {
+function controlsFrom(manifest, identities, visits, invoices, patientRows, normalizationIssues) {
   const primaryRows = manifest.files.find(({ role }) => role === 'pd').rowCount
   const primaryPatients = identities.patients.filter(({ isSupplemental }) => !isSupplemental).length
-  return Object.freeze({ primaryRows, medeskEhrIdentifiers: identities.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length, patients: identities.patients.length, visits: visits.historicalVisits.length, missingDates: visits.evidenceCounts.missingDate, validBirthDates: patientRows.filter(({ profile }) => profile.birthDate !== null).length, cardCollisionGroups: cardCollisionGroups(identities), invoices: invoices.length, primaryMerges: primaryRows - primaryPatients, supplementalPatients: identities.patients.length - primaryPatients, nameHistoryRecords: identities.nameHistory.length })
+  return Object.freeze({ primaryRows, medeskEhrIdentifiers: identities.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length, patients: identities.patients.length, visits: visits.historicalVisits.length, missingDates: visits.evidenceCounts.missingDate, validBirthDates: patientRows.filter(({ profile }) => profile.birthDate !== null).length, cardCollisionGroups: cardCollisionGroups(identities), invoices: invoices.length, primaryMerges: primaryRows - primaryPatients, supplementalPatients: identities.patients.length - primaryPatients, nameHistoryRecords: identities.nameHistory.length, issues: identities.issues.length + visits.issues.length + normalizationIssues.length, linkedVisits: visits.evidenceCounts.linked, ambiguousVisits: visits.evidenceCounts.ambiguous, unmatchedVisits: visits.evidenceCounts.unmatched, invalidStartDates: visits.evidenceCounts.invalidStartDate })
 }
 
 function expectedControlsFrom(value) {
@@ -940,7 +940,7 @@ function composedBundle(loaded, key, expectedControls) {
   const mergeEvidence = phase('identity_merge_evidence', () => identityMergeEvidence(adapted.patientRows, identities))
   const identityEvidenceCounts = phase('identity_evidence', () => validateIdentityEvidence(identities, mergeEvidence))
   phase('relational_invariants', () => validateBundleParts(loaded.manifest, identities, consents, visits, normalizationIssues, sourceRows, invoices, attachments))
-  const controls = phase('production_controls', () => controlsFrom(loaded.manifest, identities, visits, invoices, adapted.patientRows))
+  const controls = phase('production_controls', () => controlsFrom(loaded.manifest, identities, visits, invoices, adapted.patientRows, normalizationIssues))
   phase('production_controls', () => verifyControls(expectedControls, controls))
   const report = phase('report', () => safeReport(loaded.manifest, identities, identityEvidenceCounts, consents, visits, sourceRows, invoices, normalizationIssues, controls))
   return Object.freeze({ version: VERSION, manifest: loaded.manifest, patients: identities.patients, externalIdentifiers: identities.externalIdentifiers, contacts: identities.contacts, nameHistory: identities.nameHistory, privateData: identities.privateData, consents, sourceLinks: identities.sourceLinks, historicalVisits: visits.historicalVisits, visitDetails: visits.visitDetails, visitCandidates: visits.candidates, identityIssues: identities.issues, visitIssues: visits.issues, normalizationIssues, sourceRows, invoices, attachments, identityMergeEvidence: mergeEvidence, identityEvidenceCounts, visitEvidenceCounts: visits.evidenceCounts, report })

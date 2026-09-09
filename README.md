@@ -194,6 +194,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 | `SITE_DOMAIN` | Домен для рендера `nginx.conf` и путей сертификата |
 | `ANALYTICS_RETENTION_DAYS` | Срок хранения аналитики посещений в днях, по умолчанию 90 |
 | `MANGO_CALL_RETENTION_DAYS` | Через сколько дней обезличивается номер звонящего в журнале MANGO, по умолчанию 365 |
+| `UNMATCHED_HISTORY_RETENTION_DAYS` | Через сколько дней обезличиваются исторические визиты без сопоставленного пациента (`unmatched`), по умолчанию 365, минимум 30 |
 | `MONITOR_STATUS_FILE` | Необязательный путь к `status.json` хостового монитора; по умолчанию `/var/lib/clod-monitor/status.json` |
 
 ### Инфраструктура безопасной онлайн-записи
@@ -258,6 +259,7 @@ SQLite-файл `/data/db.sqlite` теперь содержит корневой
 | `ImportBatch` | Manifest hash, hash канонического плана, состояние и контрольные итоги пакета |
 | `ImportSourceRow` | Зашифрованный payload исходной строки, его hash и связь с пациентом или визитом |
 | `ImportIssue` | Безопасный код проблемы, координаты источника и защищённые детали или кандидаты |
+| `PatientMergeEvidence` | Причина и координаты двух исходных строк каждого объединения карточек при импорте (16 в текущей выгрузке) |
 | `PatientAccess` | Аудит административного раскрытия и уничтожения ПДн |
 
 Один человек может иметь несколько EHR ID и номеров карты. Непротиворечивые строки с одним непустым MEDESK EHR ID считаются одной исходной карточкой даже без номера карты клиники; это точная связь по идентификатору источника. Конфликт непустых дат рождения, ИНН или СНИЛС внутри одного EHR ID останавливает подготовку импорта до ручной проверки. Номер карты и телефон сами по себе не доказывают тождество разных EHR-карточек. Общий семейный телефон разрешён у нескольких карточек: поиск возвращает всех кандидатов, а MANGO связывает звонок автоматически только с единственным активным пациентом. Автоматическое объединение разных EHR ID по ФИО требует общего номера карты. Если даты рождения отсутствуют в обеих строках или различается фамилия, дополнительно обязательно независимое совпадение телефона, email, паспорта или договора; одна отсутствующая дата при полном совпадении ФИО обрабатывается как подтверждённый дубликат той же карты. Подтверждённая смена фамилии создаёт одну карточку и строку `surname_change` только когда более раннее наблюдение доказано различающимися доверенными датами. При равных или отсутствующих датах другая фамилия хранится как `identity_alias` без утверждения о порядке; недостаточные или конфликтующие данные оставляют пациентов раздельными и создают `ImportIssue`.
@@ -325,6 +327,12 @@ bun run clinic:import -- \
 
 Перед apply нужно остановить записывающий трафик и закрыть соединения с SQLite. База работает в режиме WAL, а libsql не удаляет `-wal`/`-shm` при закрытии, поэтому после остановки контейнера `app` выполните `sqlite3 /path/db.sqlite 'PRAGMA wal_checkpoint(TRUNCATE)'` и удалите оба sidecar-файла: CLI отказывается работать, пока они существуют. `--backup` должен указывать на отдельную точную побайтовую копию текущей базы с успешным `PRAGMA integrity_check`; размер и SHA-256 backup должны совпадать с целью, а рядом ни с целью, ни с backup не должно быть `-wal` или `-shm`. CLI повторно проверяет inode, размер и hash непосредственно перед транзакцией. Для настоящей `/data/db.sqlite` дополнительно обязателен точный флаг `--confirm-production /data/db.sqlite`. Восстановление выполняется из проверенного backup при любом расхождении контрольных итогов.
 
+#### Разрешение проблем импорта операторами (Фаза 2 п.13 аудита)
+
+С 9 сентября 2026 года очередь `/admin/patients` → «Проблемы сопоставления визитов» не только читается. У `ambiguous`-визита рядом с каждым кандидатом стоит кнопка «Привязать»: `POST /api/admin/patient-history/visits/[id]/link` с `{ "patientId" }` принимает только пациента из `HistoricalVisitCandidate` этого визита (иначе `422 CANDIDATE_NOT_FOUND`), переводит визит в `linked` с `linkMethod = 'manual'`, `evidenceLevel = 'exact'`, пишет `linkedBy` (actor `u:<id>`) и `linkedAt`, проставляет `patientId` строке `ImportSourceRow`, удаляет кандидатов и закрывает открытые `ImportIssue` этого визита тем же актором. Повторная привязка отвечает `409 VISIT_NOT_AMBIGUOUS`; `unmatched`-визиты кнопки не получают — у них нет кандидатов, и произвольную карточку подставить нельзя. Во вкладке «Проблемы данных» карточки пациента у каждой открытой проблемы есть кнопка «Разрешено»: `PATCH /api/admin/patient-history/issues/[id]` с `{ "resolved": true }` пишет `resolvedAt` и `resolvedBy`; повторный вызов возвращает прежнее время с `alreadyResolved: true`. Обе операции доступны и `staff`, обе идут через `guardAdminWrite` (Origin + сессия). Контракты: `src/lib/patient-history-records.test.js` («operator resolution»), `src/test/admin-patient-history-resolution-api.test.js`, `src/components/admin/PatientHistoryIssues.test.jsx`, `src/components/admin/PatientDetails.test.jsx`.
+
+Ретеншен неатрибутированной истории: `bun run history:prune` (`scripts/prune-unmatched-history.mjs`, из entrypoint и раз в сутки из `server.mjs`) обезличивает `unmatched`-визиты старше `UNMATCHED_HISTORY_RETENTION_DAYS` (365) — шифротексты визита, его `ImportSourceRow` (hash становится `destroyed`), `HistoricalInvoice` и `ImportIssue` обнуляются, координаты и статусы остаются; визит, который оператор успел привязать, к тому моменту `linked` и не трогается. Раньше ПДн таких визитов не удалялись вовсе: зачистка шла только по `patientId`. Очистка исходных строк: `bun run clinic:purge-source-rows -- --database /abs/db.sqlite --batch <ImportBatch.id>` печатает число строк и байт шифротекста завершённого пакета (сейчас 115 830 строк, ~132 МБ), `--apply` обнуляет `payloadCiphertext`, сохраняя `payloadHash` и связи, `--apply --vacuum` дополнительно выполняет `VACUUM`; запускать при остановленном `app` после `PRAGMA wal_checkpoint(TRUNCATE)`, как перед `clinic:import --apply`. Контракты: `src/lib/patient-history-retention.test.js`, `src/lib/clinic-import-purge.test.js`.
+
 #### Контрольные итоги текущей выгрузки
 
 | Контроль | Ожидается |
@@ -341,8 +349,13 @@ bun run clinic:import -- \
 | Дополнительных пациентов из `medesk.csv` | 2 |
 | Записей других фамилий | 4 |
 | Импортированных вложений | 0 |
+| Строк `ImportIssue` | 2 866 |
+| Визитов `linked` | 48 964 |
+| Визитов `ambiguous` | 625 |
+| Визитов `unmatched` | 179 |
+| Визитов с невалидной датой начала | 0 |
 
-Дополнительно сумма `linked + ambiguous + unmatched` должна равняться 49 768; две исходные строки с одинаковым appointment ID сохраняются обе. Любое отличие обязательного контроля останавливает пакет до записи или откатывает apply.
+Три контроля по статусу связи заменили прежнюю тавтологическую проверку суммы `linked + ambiguous + unmatched = 49 768`: регрессия, переводящая часть визитов в `unmatched`, теперь останавливает пакет. Две исходные строки с одинаковым appointment ID сохраняются обе. Любое отличие обязательного контроля останавливает пакет до записи или откатывает apply. Dry-run печатает `merges` — 16 решений об объединении карточек с причиной (`exactEhr`, `sameFioBirthDate`, `patronymicCorrection`, `surnameChange`, `sameFioMissingBirthDate`, `surnameChangeMissingBirthDate`) и координатами двух исходных строк; apply сохраняет их в `PatientMergeEvidence`, поэтому после импорта видно, почему две карточки стали одной.
 
 ### SQLite: WAL, busy_timeout и индексы
 
@@ -459,6 +472,7 @@ clod/
 │   ├── backup.sh / restore-check.sh / install-backup-timer.sh # Ежедневный бэкап и проверка восстановления
 │   ├── monitor.sh / install-monitor-timer.sh # Самохостинговый монитор: health, TLS, диск, память, контейнеры, бэкап
 │   ├── prune-analytics.mjs / prune-calls.mjs # Ретеншен аналитики (90 дней) и обезличивание звонков (365 дней)
+│   ├── prune-unmatched-history.mjs / purge-source-rows.mjs # Обезличивание unmatched-визитов (365 дней) и очистка шифротекста ImportSourceRow завершённого пакета
 │   ├── sweep-appointments.mjs     # Зависшие pending записи → needs_review, истёкшие intent → uncertain
 │   ├── render-nginx.sh            # Генерация nginx.conf из шаблона (https|http|bootstrap)
 │   ├── server.mjs                 # Запуск адаптера с graceful shutdown
@@ -588,7 +602,7 @@ clod/
 │   │           ├── doctors.js / doctors/[id].js / doctors/[id]/certificates.js / doctors/sync.js
 │   │           ├── upload/photo.js / upload/certificates.js
 │   │           ├── patients/index.js / patients/[id].js / patients/[id]/reveal.js / patients/[id]/reveal-full.js / patients/[id]/personal-data.js
-│   │           ├── patient-history/issues.js
+│   │           ├── patient-history/issues.js / issues/[id].js / visits/[id]/link.js # GET очередь, PATCH «Разрешено», POST ручная привязка ambiguous-визита
 │   │           ├── appointments/index.js / [id].js / [id]/cancel.js / [id]/resolve.js
 │   │           ├── calls/index.js / [entryId].js / [entryId]/reveal.js / [entryId]/caller.js
 │   │           └── generate-image.js # POST - AI-постер для статьи блога
@@ -1175,6 +1189,12 @@ Certbot-контейнер проверяет сертификат каждые 
 ---
 
 ## Последние изменения (сентябрь 2026)
+
+### Разрешение проблем импорта, ретеншен unmatched-визитов, новые контрольные итоги (9 сентября 2026, Фаза 2 п.13 аудита)
+
+- «Привязать» кандидата к `ambiguous`-визиту и «Разрешено» для `ImportIssue` в админке; `HistoricalVisit.linkedBy/linkedAt`, `ImportIssue.resolvedBy`, метод `manual`
+- `history:prune` обезличивает `unmatched`-визиты старше `UNMATCHED_HISTORY_RETENTION_DAYS`; `clinic:purge-source-rows` очищает шифротекст `ImportSourceRow` завершённого пакета с `VACUUM`
+- Контрольные итоги `issues`, `linkedVisits`, `ambiguousVisits`, `unmatchedVisits`, `invalidStartDates` вместо проверки суммы; таблица `PatientMergeEvidence` и `merges` в выводе dry-run
 
 ### Контракт схемы БД: CHECK, внешние ключи, перестроение legacy-таблиц (9 сентября 2026, Фаза 2 п.12 аудита)
 

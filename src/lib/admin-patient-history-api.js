@@ -1,5 +1,6 @@
 import { MAX_PAGE_NUMBER, isAdminClinicQueryError, parsePatientHistoryIssueQuery } from './admin-clinic-query.js'
-import { guardAdminRead } from './admin-api.js'
+import { adminActor, guardAdminRead, guardAdminWrite, readAdminJson } from './admin-api.js'
+import { isPatientHistoryRecordError } from './patient-history-records.js'
 import { PATIENT_HISTORY_CANDIDATE_EVIDENCE_CODES as CANDIDATE_EVIDENCE_CODES, PATIENT_HISTORY_EVIDENCE_LEVELS as EVIDENCE_LEVELS, PATIENT_HISTORY_LINK_METHODS as LINK_METHODS, PATIENT_HISTORY_SOURCE_STATUSES as SOURCE_STATUSES, PATIENT_HISTORY_VISIT_SOURCES as VISIT_SOURCE_NAMES } from './patient-history-contract.js'
 
 const JSON_HEADERS = Object.freeze({ 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' })
@@ -11,7 +12,7 @@ const MAX_PAGE_SIZE = 50
 const MAX_PAGE_TOTAL = MAX_PAGE_NUMBER * MAX_PAGE_SIZE
 const MAX_COUNT = 50_000_000
 const MAX_CANDIDATES_PER_VISIT = 2_048
-const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', code: 'EXACT_EHR', score: 100, ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', code: 'EXACT_CLINIC_CARD', score: 90, ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', code: 'LEADING_ZERO_CLINIC_CARD', score: 80, ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', code: 'PHONE_COMPATIBLE_NAME', score: 70, ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', code: 'EXACT_FULL_NAME', score: 60, ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', code: 'CONFLICTING_COMMENT_EVIDENCE', score: 50, ambiguous: true }) })
+const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', code: 'EXACT_EHR', score: 100, ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', code: 'EXACT_CLINIC_CARD', score: 90, ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', code: 'LEADING_ZERO_CLINIC_CARD', score: 80, ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', code: 'PHONE_COMPATIBLE_NAME', score: 70, ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', code: 'EXACT_FULL_NAME', score: 60, ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', code: 'CONFLICTING_COMMENT_EVIDENCE', score: 50, ambiguous: true }), manual: Object.freeze({ level: 'exact', code: 'MANUAL', score: 100, ambiguous: false }) })
 
 function json(payload, status) {
   return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS })
@@ -95,13 +96,15 @@ function page(value, expectedStatus) {
   return Object.freeze({ data: Object.freeze(items.map((value) => item(value, expectedStatus))), page: Object.freeze({ number: input.page, size: input.pageSize, total: input.total, pages: input.pages }) })
 }
 
-function configuration(value) {
+function configuration(value, defaultGuard = guardAdminRead) {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Patient history endpoint options are invalid')
   const history = Object.getOwnPropertyDescriptor(value, 'history')?.value
-  const guard = Object.getOwnPropertyDescriptor(value, 'guard')?.value ?? guardAdminRead
+  const guard = Object.getOwnPropertyDescriptor(value, 'guard')?.value ?? defaultGuard
+  const actor = Object.getOwnPropertyDescriptor(value, 'actor')?.value ?? adminActor
+  const body = Object.getOwnPropertyDescriptor(value, 'body')?.value ?? readAdminJson
   const log = Object.getOwnPropertyDescriptor(value, 'log')?.value ?? ((stage) => console.error('[admin/patient-history]', stage))
-  if (![history, guard, log].every((adapter) => typeof adapter === 'function')) throw new TypeError('Patient history endpoint adapters are invalid')
-  return Object.freeze({ history, guard, log })
+  if (![history, guard, actor, body, log].every((adapter) => typeof adapter === 'function')) throw new TypeError('Patient history endpoint adapters are invalid')
+  return Object.freeze({ history, guard, actor, body, log })
 }
 
 function report(options, stage) {
@@ -140,6 +143,71 @@ export function createPatientHistoryIssueEndpoint(value) {
     } catch (error) {
       if (isAdminClinicQueryError(error)) return failure(400, error.code, 'Проверьте параметры запроса')
       return unavailable(options)
+    }
+  }
+}
+
+const RESOLUTION_FAILURES = Object.freeze({ ISSUE_NOT_FOUND: 404, VISIT_NOT_FOUND: 404, PATIENT_NOT_FOUND: 404, VISIT_NOT_AMBIGUOUS: 409, CANDIDATE_NOT_FOUND: 422 })
+const RESOLUTION_MESSAGES = Object.freeze({ ISSUE_NOT_FOUND: 'Проблема не найдена', VISIT_NOT_FOUND: 'Визит не найден', PATIENT_NOT_FOUND: 'Пациент не найден', VISIT_NOT_AMBIGUOUS: 'Визит уже сопоставлен', CANDIDATE_NOT_FOUND: 'Пациент не входит в кандидатов этого визита' })
+
+function resolutionFailure(options, stage, error) {
+  if (isPatientHistoryRecordError(error) && Object.hasOwn(RESOLUTION_FAILURES, error.code)) return failure(RESOLUTION_FAILURES[error.code], error.code, RESOLUTION_MESSAGES[error.code])
+  report(options, stage)
+  return failure(503, 'PATIENT_HISTORY_UNAVAILABLE', 'История пациентов временно недоступна')
+}
+
+function resolvedIssue(value) {
+  const input = properties(value, ['id', 'resolvedAt', 'alreadyResolved'])
+  if (typeof input.alreadyResolved !== 'boolean' || typeof input.resolvedAt !== 'string' || !TIMESTAMP_PATTERN.test(input.resolvedAt)) throw new TypeError('Patient history response is invalid')
+  return Object.freeze({ id: safeUuid(input.id), resolvedAt: input.resolvedAt, alreadyResolved: input.alreadyResolved })
+}
+
+function linkedVisit(value) {
+  const input = properties(value, ['id', 'patientId', 'linkedAt', 'resolvedIssues'])
+  if (typeof input.linkedAt !== 'string' || !TIMESTAMP_PATTERN.test(input.linkedAt) || !Number.isSafeInteger(input.resolvedIssues) || input.resolvedIssues < 0) throw new TypeError('Patient history response is invalid')
+  return Object.freeze({ id: safeUuid(input.id), patientId: safeUuid(input.patientId), linkedAt: input.linkedAt, resolvedIssues: input.resolvedIssues })
+}
+
+async function parsedBody(options, request) {
+  const parsed = await options.body(request)
+  if (parsed.valid) return Object.freeze({ value: parsed.value ?? {} })
+  return Object.freeze({ response: failure(parsed.tooLarge ? 413 : 400, parsed.tooLarge ? 'BODY_TOO_LARGE' : 'INVALID_JSON', parsed.tooLarge ? 'Тело запроса превышает допустимый размер' : 'Передайте корректный JSON') })
+}
+
+/** PATCH /api/admin/patient-history/issues/[id] with `{ "resolved": true }`: marks the issue handled. */
+export function createPatientHistoryIssueResolveEndpoint(value) {
+  const options = configuration(value, guardAdminWrite)
+  return async function patientHistoryIssueResolveEndpoint({ request, params }) {
+    const blocked = await guarded(options, request)
+    if (blocked) return blocked
+    const body = await parsedBody(options, request)
+    if (body.response) return body.response
+    if (typeof params?.id !== 'string' || !UUID_PATTERN.test(params.id)) return failure(400, 'INVALID_ISSUE_ID', 'Некорректный идентификатор проблемы')
+    if (body.value.resolved !== true || Reflect.ownKeys(body.value).length !== 1) return failure(400, 'INVALID_BODY', 'Передайте { "resolved": true }')
+    try {
+      const actor = await options.actor(request)
+      return json({ data: resolvedIssue(await options.history().resolveIssue({ id: params.id, actor })) }, 200)
+    } catch (error) {
+      return resolutionFailure(options, 'RESOLVE_FAILED', error)
+    }
+  }
+}
+
+/** POST /api/admin/patient-history/visits/[id]/link with `{ "patientId" }`: links an ambiguous visit to a recorded candidate. */
+export function createPatientHistoryVisitLinkEndpoint(value) {
+  const options = configuration(value, guardAdminWrite)
+  return async function patientHistoryVisitLinkEndpoint({ request, params }) {
+    const blocked = await guarded(options, request)
+    if (blocked) return blocked
+    const body = await parsedBody(options, request)
+    if (body.response) return body.response
+    if (typeof params?.id !== 'string' || !UUID_PATTERN.test(params.id)) return failure(400, 'INVALID_VISIT_ID', 'Некорректный идентификатор визита')
+    if (typeof body.value.patientId !== 'string' || !UUID_PATTERN.test(body.value.patientId) || Reflect.ownKeys(body.value).length !== 1) return failure(400, 'INVALID_BODY', 'Передайте { "patientId" } кандидата')
+    try {
+      const actor = await options.actor(request)
+      return json({ data: linkedVisit(await options.history().linkVisit({ id: params.id, patientId: body.value.patientId, actor })) }, 200)
+    } catch (error) {
+      return resolutionFailure(options, 'LINK_FAILED', error)
     }
   }
 }

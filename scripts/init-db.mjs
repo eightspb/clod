@@ -164,7 +164,8 @@ const importIssueTableBase = `CREATE TABLE IF NOT EXISTS ImportIssue (
     candidatesCiphertext TEXT,
     detailsCiphertext TEXT,
     createdAt TEXT NOT NULL,
-    resolvedAt TEXT
+    resolvedAt TEXT,
+    resolvedBy TEXT
   )`
 const importIssueTableStatement = withConstraints(importIssueTableBase, ['FOREIGN KEY (batchId) REFERENCES ImportBatch(id)', 'FOREIGN KEY (patientId) REFERENCES Patient(id)', 'FOREIGN KEY (historicalVisitId) REFERENCES HistoricalVisit(id)'])
 const historicalVisitTableBase = `CREATE TABLE IF NOT EXISTS HistoricalVisit (
@@ -184,9 +185,13 @@ const historicalVisitTableBase = `CREATE TABLE IF NOT EXISTS HistoricalVisit (
     linkMethod TEXT,
     evidenceLevel TEXT,
     createdAt TEXT NOT NULL,
-    piiDestroyedAt TEXT
+    piiDestroyedAt TEXT,
+    linkedBy TEXT,
+    linkedAt TEXT
   )`
-const historicalVisitTableStatement = withConstraints(historicalVisitTableBase, [enumCheck('linkStatus', ['linked', 'ambiguous', 'unmatched']), enumCheck('linkMethod', ['exact_ehr', 'exact_clinic_card', 'leading_zero_clinic_card', 'phone_compatible_name', 'exact_full_name', 'conflicting_comment_evidence'], { nullable: true }), enumCheck('evidenceLevel', ['exact', 'strong', 'moderate', 'none'], { nullable: true }), 'FOREIGN KEY (batchId) REFERENCES ImportBatch(id)', 'FOREIGN KEY (patientId) REFERENCES Patient(id)'])
+/** Shape shipped by the schema-contract release before manual links existed (PR #61). */
+const historicalVisitTableBeforeManualLinks = withConstraints(historicalVisitTableBase, [enumCheck('linkStatus', ['linked', 'ambiguous', 'unmatched']), enumCheck('linkMethod', ['exact_ehr', 'exact_clinic_card', 'leading_zero_clinic_card', 'phone_compatible_name', 'exact_full_name', 'conflicting_comment_evidence'], { nullable: true }), enumCheck('evidenceLevel', ['exact', 'strong', 'moderate', 'none'], { nullable: true }), 'FOREIGN KEY (batchId) REFERENCES ImportBatch(id)', 'FOREIGN KEY (patientId) REFERENCES Patient(id)'])
+const historicalVisitTableStatement = withConstraints(historicalVisitTableBase, [enumCheck('linkStatus', ['linked', 'ambiguous', 'unmatched']), enumCheck('linkMethod', ['exact_ehr', 'exact_clinic_card', 'leading_zero_clinic_card', 'phone_compatible_name', 'exact_full_name', 'conflicting_comment_evidence', 'manual'], { nullable: true }), enumCheck('evidenceLevel', ['exact', 'strong', 'moderate', 'none'], { nullable: true }), 'FOREIGN KEY (batchId) REFERENCES ImportBatch(id)', 'FOREIGN KEY (patientId) REFERENCES Patient(id)'])
 const historicalVisitCandidateTableBase = `CREATE TABLE IF NOT EXISTS HistoricalVisitCandidate (
     id TEXT PRIMARY KEY,
     historicalVisitId TEXT NOT NULL,
@@ -208,6 +213,19 @@ const historicalInvoiceTableBase = `CREATE TABLE IF NOT EXISTS HistoricalInvoice
     piiDestroyedAt TEXT
   )`
 const historicalInvoiceTableStatement = withConstraints(historicalInvoiceTableBase, ['FOREIGN KEY (batchId) REFERENCES ImportBatch(id)'])
+const patientMergeEvidenceTableBase = `CREATE TABLE IF NOT EXISTS PatientMergeEvidence (
+    id TEXT PRIMARY KEY,
+    batchId TEXT NOT NULL,
+    ordinal INTEGER NOT NULL,
+    patientId TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    firstSourceName TEXT NOT NULL,
+    firstSourceRow INTEGER NOT NULL,
+    secondSourceName TEXT NOT NULL,
+    secondSourceRow INTEGER NOT NULL,
+    createdAt TEXT NOT NULL
+  )`
+const patientMergeEvidenceTableStatement = withConstraints(patientMergeEvidenceTableBase, [enumCheck('reason', ['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate']), 'FOREIGN KEY (batchId) REFERENCES ImportBatch(id)', 'FOREIGN KEY (patientId) REFERENCES Patient(id)'])
 const patientAccessTableBase = `CREATE TABLE IF NOT EXISTS PatientAccess (
     id TEXT PRIMARY KEY,
     patientId TEXT NOT NULL,
@@ -522,6 +540,9 @@ const statements = [
   historicalInvoiceTableStatement,
   'CREATE UNIQUE INDEX IF NOT EXISTS HistoricalInvoice_batchId_sourceName_sourceRow_unique ON HistoricalInvoice(batchId, sourceName, sourceRow)',
   'CREATE INDEX IF NOT EXISTS HistoricalInvoice_historicalVisitId_idx ON HistoricalInvoice(historicalVisitId)',
+  patientMergeEvidenceTableStatement,
+  'CREATE UNIQUE INDEX IF NOT EXISTS PatientMergeEvidence_batchId_ordinal_unique ON PatientMergeEvidence(batchId, ordinal)',
+  'CREATE INDEX IF NOT EXISTS PatientMergeEvidence_patientId_idx ON PatientMergeEvidence(patientId)',
   patientAccessTableStatement,
   'CREATE INDEX IF NOT EXISTS PatientAccess_patientId_createdAt_idx ON PatientAccess(patientId, createdAt)',
   appointmentTableStatement,
@@ -753,6 +774,7 @@ const importIssueColumns = [
   ['detailsCiphertext', 'TEXT', 0, null, 0],
   ['createdAt', 'TEXT', 1, null, 0],
   ['resolvedAt', 'TEXT', 0, null, 0],
+  ['resolvedBy', 'TEXT', 0, null, 0],
 ]
 const importIssueIndexes = tableIndexes('ImportIssue', [
   indexContract('ImportIssue_batchId_code_idx', ['batchId', 'code']),
@@ -777,6 +799,8 @@ const historicalVisitColumns = [
   ['evidenceLevel', 'TEXT', 0, null, 0],
   ['createdAt', 'TEXT', 1, null, 0],
   ['piiDestroyedAt', 'TEXT', 0, null, 0],
+  ['linkedBy', 'TEXT', 0, null, 0],
+  ['linkedAt', 'TEXT', 0, null, 0],
 ]
 const historicalVisitIndexes = tableIndexes('HistoricalVisit', [
   indexContract('HistoricalVisit_batchId_sourceName_sourceRow_unique', ['batchId', 'sourceName', 'sourceRow'], 1),
@@ -811,6 +835,23 @@ const historicalInvoiceIndexes = tableIndexes('HistoricalInvoice', [
   indexContract('HistoricalInvoice_batchId_sourceName_sourceRow_unique', ['batchId', 'sourceName', 'sourceRow'], 1),
   indexContract('HistoricalInvoice_historicalVisitId_idx', ['historicalVisitId']),
 ])
+const patientMergeEvidenceColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['batchId', 'TEXT', 1, null, 0],
+  ['ordinal', 'INTEGER', 1, null, 0],
+  ['patientId', 'TEXT', 1, null, 0],
+  ['reason', 'TEXT', 1, null, 0],
+  ['firstSourceName', 'TEXT', 1, null, 0],
+  ['firstSourceRow', 'INTEGER', 1, null, 0],
+  ['secondSourceName', 'TEXT', 1, null, 0],
+  ['secondSourceRow', 'INTEGER', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+]
+const patientMergeEvidenceIndexes = [
+  { name: 'PatientMergeEvidence_batchId_ordinal_unique', unique: 1, origin: 'c', partial: 0, columns: ['batchId', 'ordinal'], collations: ['BINARY', 'BINARY'], descending: [0, 0] },
+  { name: 'PatientMergeEvidence_patientId_idx', unique: 0, origin: 'c', partial: 0, columns: ['patientId'], collations: ['BINARY'], descending: [0] },
+  { name: 'sqlite_autoindex_PatientMergeEvidence_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
 const patientAccessColumns = [
   ['id', 'TEXT', 0, null, 1],
   ['patientId', 'TEXT', 1, null, 0],
@@ -1073,28 +1114,29 @@ const clinicSchemas = [
   { name: 'PageView', statement: pageViewTableStatement, columns: pageViewColumns, indexes: pageViewIndexes, previous: [pageViewTableBase, ...legacyTableShapes.PageView], convert: { enteredAt: ISO_DATE, duration: WHOLE_NUMBER } },
   { name: 'EventLog', statement: eventLogTableStatement, columns: eventLogColumns, indexes: eventLogIndexes, previous: [eventLogTableBase, ...legacyTableShapes.EventLog], convert: { createdAt: ISO_DATE } },
   { name: 'Patient', statement: patientTableStatement, columns: patientColumns, indexes: patientIndexes },
-  { name: 'PatientExternalIdentifier', statement: patientExternalIdentifierTableStatement, columns: patientExternalIdentifierColumns, indexes: patientExternalIdentifierIndexes , previous: [patientExternalIdentifierTableBase] },
-  { name: 'PatientContact', statement: patientContactTableStatement, columns: patientContactColumns, indexes: patientContactIndexes , previous: [patientContactTableBase] },
-  { name: 'PatientNameHistory', statement: patientNameHistoryTableStatement, columns: patientNameHistoryColumns, indexes: patientNameHistoryIndexes , previous: [patientNameHistoryTableBase] },
-  { name: 'PatientPrivateData', statement: patientPrivateDataTableStatement, columns: patientPrivateDataColumns, indexes: patientPrivateDataIndexes , previous: [patientPrivateDataTableBase] },
-  { name: 'PatientConsent', statement: patientConsentTableStatement, columns: patientConsentColumns, indexes: patientConsentIndexes , previous: [patientConsentTableBase] },
-  { name: 'PatientAttachment', statement: patientAttachmentTableStatement, columns: patientAttachmentColumns, indexes: patientAttachmentIndexes , previous: [patientAttachmentTableBase] },
-  { name: 'ImportBatch', statement: importBatchTableStatement, columns: importBatchColumns, indexes: importBatchIndexes , previous: [importBatchTableBase] },
+  { name: 'PatientExternalIdentifier', statement: patientExternalIdentifierTableStatement, columns: patientExternalIdentifierColumns, indexes: patientExternalIdentifierIndexes, previous: [patientExternalIdentifierTableBase] },
+  { name: 'PatientContact', statement: patientContactTableStatement, columns: patientContactColumns, indexes: patientContactIndexes, previous: [patientContactTableBase] },
+  { name: 'PatientNameHistory', statement: patientNameHistoryTableStatement, columns: patientNameHistoryColumns, indexes: patientNameHistoryIndexes, previous: [patientNameHistoryTableBase] },
+  { name: 'PatientPrivateData', statement: patientPrivateDataTableStatement, columns: patientPrivateDataColumns, indexes: patientPrivateDataIndexes, previous: [patientPrivateDataTableBase] },
+  { name: 'PatientConsent', statement: patientConsentTableStatement, columns: patientConsentColumns, indexes: patientConsentIndexes, previous: [patientConsentTableBase] },
+  { name: 'PatientAttachment', statement: patientAttachmentTableStatement, columns: patientAttachmentColumns, indexes: patientAttachmentIndexes, previous: [patientAttachmentTableBase] },
+  { name: 'ImportBatch', statement: importBatchTableStatement, columns: importBatchColumns, indexes: importBatchIndexes, previous: [importBatchTableBase] },
   { name: 'ImportSourceRow', statement: importSourceRowTableStatement, columns: importSourceRowColumns, indexes: importSourceRowIndexes },
-  { name: 'ImportIssue', statement: importIssueTableStatement, columns: importIssueColumns, indexes: importIssueIndexes , previous: [importIssueTableBase] },
-  { name: 'HistoricalVisit', statement: historicalVisitTableStatement, columns: historicalVisitColumns, indexes: historicalVisitIndexes , previous: [historicalVisitTableBase] },
-  { name: 'HistoricalVisitCandidate', statement: historicalVisitCandidateTableStatement, columns: historicalVisitCandidateColumns, indexes: historicalVisitCandidateIndexes , previous: [historicalVisitCandidateTableBase] },
-  { name: 'HistoricalInvoice', statement: historicalInvoiceTableStatement, columns: historicalInvoiceColumns, indexes: historicalInvoiceIndexes , previous: [historicalInvoiceTableBase] },
-  { name: 'PatientAccess', statement: patientAccessTableStatement, columns: patientAccessColumns, indexes: patientAccessIndexes , previous: [patientAccessTableBase] },
-  { name: 'Appointment', statement: appointmentTableStatement, columns: appointmentColumns, indexes: appointmentIndexes , previous: [appointmentTableBase] },
-  { name: 'MedflexDoctorLink', statement: medflexDoctorLinkTableStatement, columns: medflexDoctorLinkColumns, indexes: medflexDoctorLinkIndexes , previous: [medflexDoctorLinkTableBase] },
-  { name: 'MangoCall', statement: mangoCallTableStatement, columns: mangoCallColumns, indexes: mangoCallIndexes , previous: [mangoCallTableBase] },
-  { name: 'MangoCallLeg', statement: mangoCallLegTableStatement, columns: mangoCallLegColumns, indexes: mangoCallLegIndexes , previous: [mangoCallLegTableBase] },
-  { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes , previous: [mangoCallAccessTableBase] },
+  { name: 'ImportIssue', statement: importIssueTableStatement, columns: importIssueColumns, indexes: importIssueIndexes, previous: [importIssueTableBase] },
+  { name: 'HistoricalVisit', statement: historicalVisitTableStatement, columns: historicalVisitColumns, indexes: historicalVisitIndexes, previous: [historicalVisitTableBase, historicalVisitTableBeforeManualLinks] },
+  { name: 'HistoricalVisitCandidate', statement: historicalVisitCandidateTableStatement, columns: historicalVisitCandidateColumns, indexes: historicalVisitCandidateIndexes, previous: [historicalVisitCandidateTableBase] },
+  { name: 'HistoricalInvoice', statement: historicalInvoiceTableStatement, columns: historicalInvoiceColumns, indexes: historicalInvoiceIndexes, previous: [historicalInvoiceTableBase] },
+  { name: 'PatientMergeEvidence', statement: patientMergeEvidenceTableStatement, columns: patientMergeEvidenceColumns, indexes: patientMergeEvidenceIndexes },
+  { name: 'PatientAccess', statement: patientAccessTableStatement, columns: patientAccessColumns, indexes: patientAccessIndexes, previous: [patientAccessTableBase] },
+  { name: 'Appointment', statement: appointmentTableStatement, columns: appointmentColumns, indexes: appointmentIndexes, previous: [appointmentTableBase] },
+  { name: 'MedflexDoctorLink', statement: medflexDoctorLinkTableStatement, columns: medflexDoctorLinkColumns, indexes: medflexDoctorLinkIndexes, previous: [medflexDoctorLinkTableBase] },
+  { name: 'MangoCall', statement: mangoCallTableStatement, columns: mangoCallColumns, indexes: mangoCallIndexes, previous: [mangoCallTableBase] },
+  { name: 'MangoCallLeg', statement: mangoCallLegTableStatement, columns: mangoCallLegColumns, indexes: mangoCallLegIndexes, previous: [mangoCallLegTableBase] },
+  { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes, previous: [mangoCallAccessTableBase] },
   { name: 'MangoCallIssue', statement: mangoCallIssueTableStatement, columns: mangoCallIssueColumns, indexes: mangoCallIssueIndexes },
-  { name: 'AdminSession', statement: adminSessionTableStatement, columns: adminSessionColumns, indexes: adminSessionIndexes , previous: [adminSessionTableBase] },
+  { name: 'AdminSession', statement: adminSessionTableStatement, columns: adminSessionColumns, indexes: adminSessionIndexes, previous: [adminSessionTableBase] },
   { name: 'AdminUser', statement: adminUserTableStatement, columns: adminUserColumns, indexes: adminUserIndexes },
-  { name: 'AdminAuthEvent', statement: adminAuthEventTableStatement, columns: adminAuthEventColumns, indexes: adminAuthEventIndexes , previous: [adminAuthEventTableBase] },
+  { name: 'AdminAuthEvent', statement: adminAuthEventTableStatement, columns: adminAuthEventColumns, indexes: adminAuthEventIndexes, previous: [adminAuthEventTableBase] },
 ]
 
 async function schemaIndexes(database, tableName) {
@@ -1248,6 +1290,9 @@ try {
     for (const statement of statements) await transaction.execute(statement)
     await addColumnIfMissing(transaction, 'PatientAccess', 'reason', 'TEXT')
     await addColumnIfMissing(transaction, 'AdminSession', 'userId', 'TEXT')
+    await addColumnIfMissing(transaction, 'ImportIssue', 'resolvedBy', 'TEXT')
+    await addColumnIfMissing(transaction, 'HistoricalVisit', 'linkedBy', 'TEXT')
+    await addColumnIfMissing(transaction, 'HistoricalVisit', 'linkedAt', 'TEXT')
     await transaction.execute('CREATE INDEX IF NOT EXISTS AdminSession_userId_idx ON AdminSession(userId)')
     let rebuilt = false
     for (const schema of clinicSchemas) if (await reconcileSchema(transaction, schema)) rebuilt = true

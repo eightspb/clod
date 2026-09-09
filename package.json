@@ -18,6 +18,8 @@
     "clinic:import": "node scripts/import-clinic-history.mjs",
     "analytics:prune": "node scripts/prune-analytics.mjs",
     "calls:prune": "node scripts/prune-calls.mjs",
+    "history:prune": "node scripts/prune-unmatched-history.mjs",
+    "clinic:purge-source-rows": "node scripts/purge-source-rows.mjs",
     "appointments:sweep": "node scripts/sweep-appointments.mjs",
     "test": "vitest",
     "test:run": "vitest run",
