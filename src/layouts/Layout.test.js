@@ -67,7 +67,7 @@ describe('Layout booking flow', () => {
 describe('Layout structured data', () => {
   it('preserves the publication calendar date in related article cards', () => {
     const html = renderToStaticMarkup(createElement(RelatedArticles, { articles: [{ slug: 'kak-podgotovitsya-k-vab', title: 'Подготовка к ВАБ', publishDate: '2026-04-01T00:00:00.000Z' }] }))
-    expect(load(html)('section').text()).toContain('1 апреля 2026')
+    expect(load(html)('section').text()).toContain('1 апреля 2026 г.')
   })
 
   it('identifies the doctor as the main entity of the profile page', async () => {
