@@ -1,5 +1,5 @@
 import { ArrowRight, Zap, Eye, Shield, Microscope, CheckCircle, Clock, BookOpen } from 'lucide-react'
-import { TELEGRAM_URL } from '../../lib/contacts.js'
+import { MAX_URL } from '../../lib/contacts.js'
 import { DOCTORS } from '../../lib/doctors-data'
 import { getShortPriceCategoryBySlug, formatPriceLabel } from '../../lib/price-list.js'
 import { FaqSection } from '../FaqSection.jsx'
@@ -323,8 +323,8 @@ export function Mastopatiya() {
                     Записаться на приём
                     <ArrowRight size={16} />
                   </button>
-                  <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                    Написать в Telegram
+                  <a href={MAX_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                    Написать в Max
                   </a>
                 </div>
               </div>

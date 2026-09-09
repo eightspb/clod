@@ -144,7 +144,7 @@ describe('POST /api/tax-form', () => {
       success: false,
       error: {
         code: 'CONFIG_ERROR',
-        message: 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Telegram',
+        message: 'Форма временно недоступна. Позвоните +7 (812) 748-22-10 или напишите в Max',
       },
     })
     expect(sendMailMock).not.toHaveBeenCalled()

@@ -1,7 +1,7 @@
-import { Phone, MapPin, Clock, Award, Zap } from 'lucide-react'
+import { Phone, MapPin, Clock, Award, Zap, MessageCircle } from 'lucide-react'
 import {
   PHONE_NUMBER, PHONE_DISPLAY, PHONE_NUMBER_2, PHONE_DISPLAY_2,
-  TELEGRAM_URL, VK_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND,
+  MAX_URL, VK_URL, ADDRESS, HOURS_WEEKDAY, HOURS_WEEKEND,
 } from '../lib/contacts.js'
 import { FOOTER_LINKS } from '../lib/nav.js'
 import { CLINIC_FACTS } from '../lib/clinic-info.js'
@@ -75,16 +75,13 @@ export function Footer() {
               </p>
               <div className="flex gap-3">
                 <a
-                  href={TELEGRAM_URL}
+                  href={MAX_URL}
                   className="clay clay-card p-2.5 rounded-2xl hover:scale-105 transition-transform"
-                  aria-label="Telegram"
+                  aria-label="Max"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-clay-blue" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z" />
-                    <path d="M22 2 11 13" />
-                  </svg>
+                  <MessageCircle size={18} className="text-clay-blue" />
                 </a>
                 <a
                   href={VK_URL}

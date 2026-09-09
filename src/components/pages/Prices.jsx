@@ -1,5 +1,5 @@
 import { ArrowRight, Shield, Database, MessageCircle, CheckCircle, Lock, Phone, Star, Clock, Stethoscope, HeartPulse, Activity, Leaf, ReceiptText, FileText, WalletCards, Landmark } from 'lucide-react'
-import { PHONE_NUMBER, TELEGRAM_URL } from '../../lib/contacts.js'
+import { PHONE_NUMBER, MAX_URL } from '../../lib/contacts.js'
 import {
   FULL_PRICE_LIST_PATH,
   OFFICIAL_PRICE_LIST_UPDATED_AT,
@@ -359,8 +359,8 @@ export function Prices() {
                   <Phone size={16} />
                   Позвонить
                 </a>
-                <a href={TELEGRAM_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
-                  Написать в Telegram
+                <a href={MAX_URL} className="clay btn-clay-secondary gap-2" target="_blank" rel="noopener noreferrer">
+                  Написать в Max
                 </a>
               </div>
             </div>

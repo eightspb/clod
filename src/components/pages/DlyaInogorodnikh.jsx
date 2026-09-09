@@ -4,7 +4,7 @@ import {
   PHONE_DISPLAY,
   PHONE_NUMBER_2,
   PHONE_DISPLAY_2,
-  TELEGRAM_URL,
+  MAX_URL,
   ADDRESS,
 } from '../../lib/contacts.js'
 
@@ -37,16 +37,16 @@ const CONTACT_CARDS = [
     iconBg: 'icon-circle-blue',
     card: 'clay-card-soft-blue',
     title: 'Напишите в мессенджер',
-    desc: 'Telegram - удобно для отправки снимков и документов.',
+    desc: 'Max - удобно для отправки снимков и документов.',
     action: (
       <a
-        href={TELEGRAM_URL}
+        href={MAX_URL}
         target="_blank"
         rel="noopener noreferrer"
         className="btn-clay-secondary text-sm inline-flex items-center gap-2 mt-1"
       >
         <MessageCircle size={14} />
-        Написать в Telegram
+        Написать в Max
       </a>
     ),
   },
@@ -193,17 +193,17 @@ export function DlyaInogorodnikh() {
               <div className="clay-card p-6">
                 <div className="font-bold text-clay-dark mb-2">Совет</div>
                 <p className="text-sm text-clay-text leading-relaxed">
-                  Перед поездкой отправьте нам снимки и заключения в Telegram - мы заранее изучим
+                  Перед поездкой отправьте нам снимки и заключения в Max - мы заранее изучим
                   ваш случай и сразу сможем предложить оптимальный план визита.
                 </p>
                 <a
-                  href={TELEGRAM_URL}
+                  href={MAX_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-clay-secondary text-sm inline-flex items-center gap-2 mt-4"
                 >
                   <MessageCircle size={14} />
-                  Отправить документы в Telegram
+                  Отправить документы в Max
                 </a>
               </div>
             </div>

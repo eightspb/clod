@@ -1438,7 +1438,7 @@
 .clay-banner-donut { display: var(--decoration-display); }
 .clay-banner-sphere { display: var(--decoration-display); }
 
-.clay-banner-telegram-btn {
+.clay-banner-max-btn {
   padding: 17px 42px;
   border-radius: var(--radius-full);
   background: #5a96e8;

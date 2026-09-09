@@ -1,5 +1,5 @@
 import { Accessibility as AccessibilityIcon, Phone, MessageCircle, Car, Users, Eye, Type } from 'lucide-react'
-import { PHONE_NUMBER, PHONE_DISPLAY, TELEGRAM_URL, ADDRESS } from '../../lib/contacts.js'
+import { PHONE_NUMBER, PHONE_DISPLAY, MAX_URL, ADDRESS } from '../../lib/contacts.js'
 
 const MEASURES = [
   {
@@ -72,7 +72,7 @@ export function Accessibility() {
           <div className="clay cta-gradient-card p-6 md:p-8">
             <h2 className="text-2xl sm:text-3xl heading-serif text-clay-dark mb-3">Предупредите о визите заранее</h2>
             <p className="text-clay-muted mb-2 max-w-2xl leading-relaxed">
-              Позвоните или напишите в Telegram и расскажите, какая помощь нужна. Адрес клиники: {ADDRESS}.
+              Позвоните или напишите в Max и расскажите, какая помощь нужна. Адрес клиники: {ADDRESS}.
             </p>
             <p className="text-clay-muted mb-6 max-w-2xl leading-relaxed">
               Ответственный за организацию доступной среды — администратор клиники; замечания и предложения по доступности принимаются по тем же контактам.
@@ -82,9 +82,9 @@ export function Accessibility() {
                 <Phone size={16} aria-hidden="true" />
                 {PHONE_DISPLAY}
               </a>
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="clay btn-clay-secondary inline-flex items-center gap-2">
+              <a href={MAX_URL} target="_blank" rel="noopener noreferrer" className="clay btn-clay-secondary inline-flex items-center gap-2">
                 <MessageCircle size={16} aria-hidden="true" />
-                Telegram
+                Max
               </a>
             </div>
           </div>
