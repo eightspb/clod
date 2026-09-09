@@ -35,3 +35,10 @@ describe('PrivacyPolicy registry claim', () => {
     expect(document.body.textContent).not.toMatch(/реестр операторов/)
   })
 })
+
+describe('PrivacyPolicy analytics opt-out', () => {
+  it('offers a button that withdraws analytics consent', () => {
+    render(<PrivacyPolicy />)
+    expect(screen.getByRole('button', { name: 'Отозвать согласие на аналитику' })).toHaveAttribute('data-analytics-consent', 'denied')
+  })
+})
