@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { createClient } from '@libsql/client'
+import { createSqliteClient } from '../lib/database.js'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { runClinicImportCommand } from '../../scripts/import-clinic-history.mjs'
 import { writeClinicImportStage } from '../lib/clinic-import-stage.js'
@@ -320,6 +321,36 @@ describe('clinic history import CLI', () => {
     const result = await runClinicImportCommand(applyArguments(value), environment(), runtime.values)
     const residue = (await readdir(value.root)).filter((name) => name.startsWith('.clinic-import-'))
     expect({ status: result.status, bound: typeof openedFile === 'string' && openedFile.includes('/.clinic-import-') && openedFile.endsWith('/database.sqlite'), residue }).toEqual({ status: 'completed', bound: true, residue: [] })
+  })
+
+  it('retries a busy WAL checkpoint so committed stage frames never strand the private binding', async () => {
+    const value = await fixture()
+    let clients = 0
+    let contender = null
+    onTestFinished(() => contender?.close())
+    const createDatabaseClient = (options) => {
+      const client = createSqliteClient(options)
+      const target = (clients += 1) === 2
+      return Object.freeze({ execute: async (...input) => {
+        if (!target || input[0] !== 'PRAGMA wal_checkpoint(TRUNCATE)') return client.execute(...input)
+        if (contender !== null) { contender.close(); contender = null; return client.execute(...input) }
+        await client.execute('PRAGMA wal_checkpoint(PASSIVE)')
+        contender = createClient(options)
+        await contender.execute('BEGIN')
+        await contender.execute('SELECT COUNT(*) FROM PatientAccess')
+        return { rows: [{ busy: 1, log: -1, checkpointed: -1 }] }
+      }, transaction: (...input) => client.transaction(...input), close: () => client.close() })
+    }
+    const runtime = dependencies({ createDatabaseClient, applyStage: async (stageInput) => {
+      const transaction = await stageInput.client.transaction('write')
+      await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: ['00000000-0000-8000-8000-000000000092', '00000000-0000-8000-8000-000000000093', 'reveal', 'checkpoint-retry', '2026-09-09T00:00:00.000Z'] })
+      await transaction.commit()
+      await transaction.close()
+      return Object.freeze({ batchId: '00000000-0000-8000-8000-000000000001', manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, status: 'completed', applied: true, controls: Object.freeze({ patients: 2 }), summary: Object.freeze({ patients: 2 }) })
+    } })
+    const result = await captured(() => runClinicImportCommand(applyArguments(value), environment(), runtime.values))
+    const residue = (await readdir(value.root)).filter((name) => name.startsWith('.clinic-import-'))
+    expect({ code: result.error?.code, status: result.value?.status, residue }).toEqual({ code: undefined, status: 'completed', residue: [] })
   })
 
   it('runs backup integrity and target access only through inode-bound private aliases', async () => {

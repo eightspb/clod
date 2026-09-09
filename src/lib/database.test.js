@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
+import { mkdtemp, readdir, readlink, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { sql } from 'drizzle-orm'
 import { AnalyticsSession, MedflexDoctorLink, createDatabase, databaseErrorCode, lazyDatabase } from './database.js'
 
@@ -67,33 +72,50 @@ describe('lazyDatabase', () => {
   })
 })
 
-describe('withBusyTimeout', () => {
-  it('sets the busy timeout before the first statement runs', async () => {
-    const executed = []
-    const { withBusyTimeout } = await import('./database.js')
-    const client = withBusyTimeout({ execute: async (statement) => { executed.push(statement); return { rows: [] } } }, 5000)
-    await client.execute('SELECT 1')
-    expect(executed).toEqual(['PRAGMA busy_timeout = 5000', 'SELECT 1'])
+/** Counts this process's open descriptors on one SQLite file and its WAL sidecars. */
+async function openDatabaseHandles(databasePath) {
+  if (process.platform === 'linux') {
+    const entries = await readdir('/proc/self/fd')
+    const links = await Promise.all(entries.map((entry) => readlink(join('/proc/self/fd', entry)).catch(() => '')))
+    return links.filter((link) => link.startsWith(databasePath)).length
+  }
+  return execFileSync('/usr/sbin/lsof', ['-p', String(process.pid)], { encoding: 'utf8' }).split('\n').filter((line) => line.includes(databasePath)).length
+}
+
+async function fileDatabase() {
+  const root = await mkdtemp(join(tmpdir(), 'clod-database-'))
+  onTestFinished(() => rm(root, { recursive: true, force: true }))
+  const databasePath = join(root, 'app.db')
+  const database = createDatabase({ ASTRO_DB_REMOTE_URL: pathToFileURL(databasePath).href })
+  await database.$client.execute('CREATE TABLE "AnalyticsSession" ("id" text PRIMARY KEY)')
+  return Object.freeze({ database, databasePath })
+}
+
+describe('connection lifetime', () => {
+  it('releases the connection every transaction borrows instead of leaking it', async () => {
+    const { database, databasePath } = await fileDatabase()
+    const before = await openDatabaseHandles(databasePath)
+    for (let index = 0; index < 25; index += 1) {
+      const transaction = await database.$client.transaction('write')
+      await transaction.execute({ sql: 'INSERT INTO "AnalyticsSession" (id) VALUES (?)', args: [`сессия-${index}`] })
+      await transaction.commit()
+      await transaction.close()
+    }
+    expect(await openDatabaseHandles(databasePath)).toBe(before)
   })
 
-  it('sets the busy timeout only once across statements and batches', async () => {
-    const executed = []
-    const { withBusyTimeout } = await import('./database.js')
-    const client = withBusyTimeout({ execute: async (statement) => { executed.push(statement); return { rows: [] } }, batch: async (statements) => { executed.push(...statements); return [] } }, 5000)
-    await client.execute('SELECT 1')
-    await client.batch(['SELECT 2'])
-    expect(executed.filter((statement) => statement.startsWith('PRAGMA'))).toHaveLength(1)
+  it('arms the busy timeout on every connection the pool hands out', async () => {
+    const { database } = await fileDatabase()
+    const reads = Array.from({ length: 12 }, () => database.$client.execute('PRAGMA busy_timeout'))
+    const timeouts = await Promise.all(reads)
+    expect(timeouts.map((result) => Number(result.rows[0].timeout))).toEqual(Array.from({ length: 12 }, () => 5000))
   })
+})
 
+describe('busy timeout', () => {
   it('applies the timeout to the real application client', async () => {
     const database = createDatabase({ ASTRO_DB_REMOTE_URL: ':memory:' })
     const result = await database.$client.execute('PRAGMA busy_timeout')
     expect(Number(result.rows[0].timeout)).toBe(5000)
-  })
-
-  it('keeps non-statement members of the client reachable', async () => {
-    const { withBusyTimeout } = await import('./database.js')
-    const client = withBusyTimeout({ execute: async () => ({ rows: [] }), close: () => 'closed' }, 5000)
-    expect(client.close()).toBe('closed')
   })
 })

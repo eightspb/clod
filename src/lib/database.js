@@ -4,31 +4,17 @@ import { drizzle } from 'drizzle-orm/libsql'
 export * from './database-schema.js'
 export { and, asc, avg, count, countDistinct, desc, eq, gt, gte, ilike, inArray, isNotNull, isNull, like, lt, lte, ne, or, sql } from 'drizzle-orm'
 
-export const BUSY_TIMEOUT_MS = 5000
-const STATEMENT_METHODS = Object.freeze(['execute', 'batch', 'executeMultiple', 'transaction', 'migrate'])
+const BUSY_TIMEOUT_MS = 5000
 
 /**
- * Wraps a libsql client so `PRAGMA busy_timeout` runs once before the first statement: without it a
- * second writer (webhook, admin action, import CLI) gets SQLITE_BUSY immediately instead of waiting.
+ * Opens a libsql client whose every pooled connection waits instead of failing on SQLITE_BUSY:
+ * without it a second writer (webhook, admin action, import CLI) gets SQLITE_BUSY immediately.
+ * The timeout belongs in the client configuration rather than a `PRAGMA` statement because the
+ * client keeps a pool and hands a different connection to each call, so a pragma would arm only
+ * the one connection that happened to run it.
  */
-export function withBusyTimeout(client, milliseconds) {
-  if (!Number.isSafeInteger(milliseconds) || milliseconds <= 0) throw new TypeError('Busy timeout must be a positive integer number of milliseconds')
-  let ready
-  const prepare = () => {
-    if (!ready) ready = client.execute(`PRAGMA busy_timeout = ${milliseconds}`)
-    return ready
-  }
-  return new Proxy(client, {
-    get(target, key) {
-      const value = Reflect.get(target, key)
-      if (typeof value !== 'function') return value
-      if (!STATEMENT_METHODS.includes(key)) return value.bind(target)
-      return async (...input) => {
-        await prepare()
-        return value.apply(target, input)
-      }
-    },
-  })
+export function createSqliteClient(configuration) {
+  return createClient({ ...configuration, timeout: BUSY_TIMEOUT_MS })
 }
 
 /**
@@ -38,7 +24,7 @@ export function withBusyTimeout(client, milliseconds) {
 export function createDatabase(env) {
   const url = env.ASTRO_DB_REMOTE_URL
   if (typeof url !== 'string' || url.trim() === '') throw new Error('ASTRO_DB_REMOTE_URL must point at the SQLite database before any query runs')
-  const client = withBusyTimeout(createClient({ url, authToken: env.ASTRO_DB_APP_TOKEN || undefined }), BUSY_TIMEOUT_MS)
+  const client = createSqliteClient({ url, authToken: env.ASTRO_DB_APP_TOKEN || undefined })
   return drizzle(client)
 }
 

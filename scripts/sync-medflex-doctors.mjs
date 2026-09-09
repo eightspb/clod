@@ -1,5 +1,4 @@
-import { createClient } from '@libsql/client'
-import { BUSY_TIMEOUT_MS, withBusyTimeout } from '../src/lib/database.js'
+import { createSqliteClient } from '../src/lib/database.js'
 import { createAdminDoctorSync } from '../src/lib/admin-doctor-sync.js'
 
 function required(name) {
@@ -9,7 +8,7 @@ function required(name) {
 }
 
 async function run() {
-  const database = withBusyTimeout(createClient({ url: required('ASTRO_DB_REMOTE_URL'), authToken: process.env.ASTRO_DB_APP_TOKEN || undefined }), BUSY_TIMEOUT_MS)
+  const database = createSqliteClient({ url: required('ASTRO_DB_REMOTE_URL'), authToken: process.env.ASTRO_DB_APP_TOKEN || undefined })
   try {
     const result = await createAdminDoctorSync({ client: database }).sync()
     process.stdout.write(`${JSON.stringify({ ok: true, report: result.report })}\n`)

@@ -3,8 +3,7 @@ import { constants } from 'node:fs'
 import { access, link, lstat, mkdtemp, open, realpath, rmdir, unlink } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { createClient } from '@libsql/client'
-import { BUSY_TIMEOUT_MS, withBusyTimeout } from '../src/lib/database.js'
+import { createSqliteClient } from '../src/lib/database.js'
 import { createClinicImportBundle } from '../src/lib/clinic-import-bundle.js'
 import { CLINIC_IMPORT_STAGE_LIMITS } from '../src/lib/clinic-import-stage-limits.js'
 import { writeClinicImportStage } from '../src/lib/clinic-import-stage.js'
@@ -20,6 +19,8 @@ const BOOLEAN_FLAGS = new Set(['--apply', '--dry-run'])
 const SAFE_ERRORS = new WeakSet()
 const ERROR_CODES = new Set(['BACKUP_INVALID', 'CLI_FAILED', 'CLI_FILE_INVALID', 'CLI_INPUT_INVALID', 'MANIFEST_MISMATCH', 'PRODUCTION_CONFIRMATION_REQUIRED', 'TARGET_INTEGRITY_FAILED'])
 const DEFAULT_FILE_SYSTEM = Object.freeze({ open })
+const CHECKPOINT_ATTEMPTS = 3
+const CHECKPOINT_RETRY_MS = 25
 
 /** Represents a value-free clinic import command failure. */
 export class ClinicImportCliError extends Error {
@@ -329,16 +330,29 @@ async function rejectSqliteSidecars(filePath, code) {
 }
 
 function patientDatabaseClient(configuration) {
-  return withBusyTimeout(createClient(configuration), BUSY_TIMEOUT_MS)
+  return createSqliteClient(configuration)
+}
+
+function checkpointTruncated(result) {
+  const row = Array.isArray(result?.rows) ? result.rows[0] : undefined
+  return row !== undefined && Number(row.busy) === 0
 }
 
 /**
  * The database runs in WAL mode and libsql leaves `-wal`/`-shm` next to the private alias on
  * close, so the CLI checkpoints first; the binding cleanup then removes only an empty WAL and
- * keeps failing closed on anything else.
+ * keeps failing closed on anything else. `PRAGMA wal_checkpoint` reports contention in its `busy`
+ * column instead of throwing, and libsql keeps the connection a transaction took over open, so a
+ * single attempt can leave committed frames in the WAL and strand the binding; the checkpoint is
+ * retried while another reader still holds the WAL.
  */
 async function closeCheckpointed(client) {
-  try { await client.execute('PRAGMA wal_checkpoint(TRUNCATE)') } catch { /* a non-SQLite file has no WAL to checkpoint */ }
+  try {
+    for (let attempt = 1; attempt <= CHECKPOINT_ATTEMPTS; attempt += 1) {
+      if (checkpointTruncated(await client.execute('PRAGMA wal_checkpoint(TRUNCATE)'))) break
+      if (attempt < CHECKPOINT_ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, CHECKPOINT_RETRY_MS))
+    }
+  } catch { /* a non-SQLite file has no WAL to checkpoint */ }
   await client.close()
 }
 
