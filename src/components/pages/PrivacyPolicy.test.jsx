@@ -28,3 +28,10 @@ describe('PrivacyPolicy operator disclosure', () => {
     expect(document.body).toHaveTextContent(/на территории Российской Федерации/)
   })
 })
+
+describe('PrivacyPolicy registry claim', () => {
+  it('does not claim registration in the Roskomnadzor operator registry', () => {
+    render(<PrivacyPolicy />)
+    expect(document.body.textContent).not.toMatch(/реестр операторов/)
+  })
+})

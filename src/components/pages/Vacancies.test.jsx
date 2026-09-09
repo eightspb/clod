@@ -5,6 +5,6 @@ import { Vacancies } from './Vacancies.jsx'
 describe('Vacancies page', () => {
   it('offers an e-mail address for unsolicited applications when no vacancy is open', () => {
     render(<Vacancies />)
-    expect(screen.getByRole('link', { name: /@odintsovclinic\.ru/ })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+    expect(screen.getByRole('link', { name: /dir@odintsovclinic\.ru/ })).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
   })
 })

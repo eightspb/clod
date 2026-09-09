@@ -36,9 +36,9 @@ const REGULATIONS = [
 ]
 
 const AUTHORITIES = [
-  { name: 'Территориальный орган Росздравнадзора по г. Санкт-Петербургу и Ленинградской области', href: 'https://78reg.roszdravnadzor.gov.ru/', scope: 'Контроль качества и безопасности медицинской деятельности, лицензирование' },
-  { name: 'Комитет по здравоохранению Санкт-Петербурга', href: 'https://zdrav.spb.ru/', scope: 'Орган исполнительной власти в сфере охраны здоровья' },
-  { name: 'Управление Роспотребнадзора по городу Санкт-Петербургу', href: 'https://78.rospotrebnadzor.ru/', scope: 'Санитарно-эпидемиологический надзор и защита прав потребителей' },
+  { name: 'Территориальный орган Росздравнадзора по г. Санкт-Петербургу и Ленинградской области', href: 'https://78reg.roszdravnadzor.gov.ru/', scope: 'Контроль качества и безопасности медицинской деятельности, лицензирование', address: '197342, Санкт-Петербург, ул. Кантемировская, д. 4, лит. А', phone: '8 (812) 246-69-86' },
+  { name: 'Комитет по здравоохранению Санкт-Петербурга', href: 'https://zdrav.spb.ru/', scope: 'Орган исполнительной власти в сфере охраны здоровья', address: '191023, Санкт-Петербург, ул. Малая Садовая, д. 1', phone: '8 (812) 679-60-04' },
+  { name: 'Управление Роспотребнадзора по городу Санкт-Петербургу', href: 'https://78.rospotrebnadzor.ru/', scope: 'Санитарно-эпидемиологический надзор и защита прав потребителей', address: '191025, Санкт-Петербург, ул. Стремянная, д. 19', phone: '8 (812) 679-67-07' },
 ]
 
 export function PatientInfo() {
@@ -141,6 +141,8 @@ export function PatientInfo() {
                 <li key={authority.href} className="rounded-[16px] border border-[color:var(--border-color)] bg-[color:var(--surface-card-hover)] p-4">
                   <a href={authority.href} target="_blank" rel="noopener noreferrer" className="font-semibold text-clay-dark underline-offset-4 hover:underline">{authority.name}</a>
                   <p className="mt-1 text-clay-muted">{authority.scope}</p>
+                  <p className="mt-2 text-clay-muted">{authority.address}</p>
+                  <a href={`tel:${authority.phone.replace(/[^\d+]/g, '').replace(/^8/, '+7')}`} className="text-clay-dark underline-offset-4 hover:underline">{authority.phone}</a>
                 </li>
               ))}
             </ul>

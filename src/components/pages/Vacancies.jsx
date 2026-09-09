@@ -1,7 +1,7 @@
 import { Briefcase, Mail, Phone, Users, Heart, GraduationCap } from 'lucide-react'
 import { PHONE_NUMBER, PHONE_DISPLAY } from '../../lib/contacts.js'
 
-const HR_EMAIL = 'info@odintsovclinic.ru'
+const HR_EMAIL = 'dir@odintsovclinic.ru'
 
 const VALUES = [
   {
