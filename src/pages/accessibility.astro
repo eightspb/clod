@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { Accessibility } from '../components/pages/Accessibility.jsx'
+---
+
+<Layout
+  title="Доступная среда — клиника Одинцова в Санкт-Петербурге"
+  description="Как клиника Одинцова принимает пациентов с инвалидностью и ограниченной мобильностью: сопровождение, вход, помощь при нарушениях зрения и слуха, доступный сайт."
+  keywords="доступная среда клиника, приём маломобильных пациентов СПб, клиника Одинцова инвалидность"
+  canonicalUrl="https://odintsovclinic.ru/accessibility"
+>
+  <BreadcrumbNav items={[{ label: 'Доступная среда' }]} />
+  <Accessibility />
+</Layout>

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 const DESKTOP_VIEWPORTS = [{ width: 1440, height: 800 }, { width: 1280, height: 800 }]
 /** /doctors and /tax-form open with a collection and a form instead of a hero, so their first section is legitimately taller than a screen */
-const HERO_ROUTES = ['/', '/about', '/adenomioz', '/blog', '/blog/vab-ili-operatsiya', '/contacts', '/dlya-inogorodnikh', '/endocrinology', '/endometrioz', '/eroziya-sheyki-matki', '/fibroadenoma', '/gipotireoz', '/gynecology', '/kista-molochnoy-zhelezy', '/licenses', '/mammology', '/mastopatiya', '/media', '/nashi-rezultaty', '/nutrition', '/prices', '/prices/full', '/privacy-policy', '/second-opinion', '/tireoidit-khashimoto', '/vab']
+const HERO_ROUTES = ['/', '/about', '/accessibility', '/adenomioz', '/blog', '/blog/vab-ili-operatsiya', '/contacts', '/dlya-inogorodnikh', '/endocrinology', '/endometrioz', '/eroziya-sheyki-matki', '/fibroadenoma', '/gipotireoz', '/gynecology', '/kista-molochnoy-zhelezy', '/licenses', '/mammology', '/mastopatiya', '/media', '/nashi-rezultaty', '/nutrition', '/patient-info', '/prices', '/prices/full', '/privacy-policy', '/promotions', '/second-opinion', '/tireoidit-khashimoto', '/vab', '/vacancies']
 
 async function heroFit(page) {
   return page.locator('h1').first().evaluate((heading) => {

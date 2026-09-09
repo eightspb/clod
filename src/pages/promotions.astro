@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { Promotions } from '../components/pages/Promotions.jsx'
+---
+
+<Layout
+  title="Акции клиники Одинцова — скидка 20% на анализы и День женского здоровья"
+  description="Действующие акции клиники Одинцова в Санкт-Петербурге: скидка 20% на анализы по вторникам и средам и программа «День женского здоровья» по понедельникам."
+  keywords="акции клиника Одинцова, скидка на анализы СПб, день женского здоровья, УЗИ молочных желёз акция, скидка 20% анализы"
+  canonicalUrl="https://odintsovclinic.ru/promotions"
+>
+  <BreadcrumbNav items={[{ label: 'Акции' }]} />
+  <Promotions client:idle />
+</Layout>

@@ -269,9 +269,11 @@ export function DoctorPage({ doctor }) {
                   </div>
                 ))}
               </div>
-              <p className="mt-5 border-t border-[color:var(--border-color)] pt-4 text-xs text-clay-muted">
-                Всего: 4 патента РФ, 12 рационализаторских предложений, 68 печатных работ
-              </p>
+              {doctor.publicationsSummary && (
+                <p className="mt-5 border-t border-[color:var(--border-color)] pt-4 text-xs text-clay-muted">
+                  {safeText(doctor.publicationsSummary)}
+                </p>
+              )}
             </div>
           </div>
         </section>

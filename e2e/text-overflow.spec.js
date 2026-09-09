@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 const VIEWPORTS = [{ width: 1440, height: 800 }, { width: 1280, height: 800 }, { width: 1024, height: 800 }, { width: 390, height: 844 }]
-const PUBLIC_ROUTES = ['/', '/about', '/adenomioz', '/dlya-inogorodnikh', '/doctors', '/endocrinology', '/endometrioz', '/eroziya-sheyki-matki', '/fibroadenoma', '/gipotireoz', '/gynecology', '/kista-molochnoy-zhelezy', '/mammology', '/mastopatiya', '/media', '/nashi-rezultaty', '/nutrition', '/prices', '/second-opinion', '/tireoidit-khashimoto', '/vab']
+const PUBLIC_ROUTES = ['/', '/about', '/accessibility', '/adenomioz', '/dlya-inogorodnikh', '/doctors', '/endocrinology', '/endometrioz', '/eroziya-sheyki-matki', '/fibroadenoma', '/gipotireoz', '/gynecology', '/kista-molochnoy-zhelezy', '/mammology', '/mastopatiya', '/media', '/nashi-rezultaty', '/nutrition', '/patient-info', '/prices', '/promotions', '/second-opinion', '/tireoidit-khashimoto', '/vab', '/vacancies']
 
 /** Text that is wider than its own block or cut by an overflow-hidden ancestor */
 async function clippedText(page) {

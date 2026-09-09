@@ -344,9 +344,9 @@ bun run clinic:import -- \
 
 ### SQLite: WAL, busy_timeout и индексы
 
-`scripts/init-db.mjs` при каждом старте контейнера ставит `PRAGMA busy_timeout = 5000` и переводит файл базы в `PRAGMA journal_mode = WAL` (ошибка, если SQLite вернул другой режим): в rollback-режиме любая запись эксклюзивно блокировала весь файл на 446 МБ, а второй писатель (webhook MANGO, действие админа, CLI импорта) сразу получал `SQLITE_BUSY`. Клиент приложения (`createDatabase` в `src/lib/database.js`) оборачивается `withBusyTimeout`: перед первым statement он один раз выполняет `PRAGMA busy_timeout = 5000`, то же делают `bun run medflex:sync-doctors` и `bun run clinic:import`. Для трёх таблиц аналитики добавлены индексы `AnalyticsSession(startedAt)`, `AnalyticsSession(lastActiveAt)`, `PageView(sessionId)`, `PageView(page)`, `EventLog(createdAt)`, `EventLog(eventType, createdAt)` и `EventLog(sessionId)` (раньше не было ни одного), график посещений за 30 дней в `/api/admin/stats` считается `GROUP BY substr(startedAt, 1, 10)` вместо загрузки месяца сессий в память, список пациентов без поиска по телефону обходится без `SELECT DISTINCT`, а исторические визиты без даты сортируются первыми (`ORDER BY startsAt DESC NULLS FIRST`). Номер страницы во всех admin-списках ограничен `MAX_PAGE_NUMBER = 10 000` (`src/lib/admin-clinic-query.js`), `/api/admin/logs` клампит `page` к тому же пределу. Составной индекс `Patient(lastSeenAt DESC, id)` из рекомендации аудита не добавлен: существующий `Patient_lastSeenAt_idx` уже покрывает `ORDER BY lastSeenAt DESC`, а добавление индекса на `Patient` требует правки строгих инвариантов схемы в `init-db` и трёх миграционных тестов ради сортировки хвоста с равным `lastSeenAt`. Контракт: `src/test/sqlite-concurrency-migration.test.js`.
+`scripts/init-db.mjs` при каждом старте контейнера ставит `PRAGMA busy_timeout = 5000` и переводит файл базы в `PRAGMA journal_mode = WAL` (ошибка, если SQLite вернул другой режим): в rollback-режиме любая запись эксклюзивно блокировала весь файл на 446 МБ, а второй писатель (webhook MANGO, действие админа, CLI импорта) сразу получал `SQLITE_BUSY`. Клиент приложения и все CLI открываются через `createSqliteClient` (`src/lib/database.js`), который передаёт `timeout: 5000` в конфигурацию `@libsql/client`. Таймаут задан именно опцией клиента, а не отдельным `PRAGMA busy_timeout`: с версии 0.18.0 клиент держит пул соединений и выдаёт разные соединения разным вызовам, поэтому pragma armила бы только то соединение, на котором случайно выполнилась, а остальные работали бы с таймаутом SQLite по умолчанию (ноль) — замер на пуле показывал `[5000, 0, 0, …]`. Опция `timeout` применяется при открытии каждого соединения пула. Прежняя обёртка `withBusyTimeout` удалена. Для трёх таблиц аналитики добавлены индексы `AnalyticsSession(startedAt)`, `AnalyticsSession(lastActiveAt)`, `PageView(sessionId)`, `PageView(page)`, `EventLog(createdAt)`, `EventLog(eventType, createdAt)` и `EventLog(sessionId)` (раньше не было ни одного), график посещений за 30 дней в `/api/admin/stats` считается `GROUP BY substr(startedAt, 1, 10)` вместо загрузки месяца сессий в память, список пациентов без поиска по телефону обходится без `SELECT DISTINCT`, а исторические визиты без даты сортируются первыми (`ORDER BY startsAt DESC NULLS FIRST`). Номер страницы во всех admin-списках ограничен `MAX_PAGE_NUMBER = 10 000` (`src/lib/admin-clinic-query.js`), `/api/admin/logs` клампит `page` к тому же пределу. Составной индекс `Patient(lastSeenAt DESC, id)` из рекомендации аудита не добавлен: существующий `Patient_lastSeenAt_idx` уже покрывает `ORDER BY lastSeenAt DESC`, а добавление индекса на `Patient` требует правки строгих инвариантов схемы в `init-db` и трёх миграционных тестов ради сортировки хвоста с равным `lastSeenAt`. Контракт: `src/test/sqlite-concurrency-migration.test.js`.
 
-WAL меняет операционные привычки: libsql не удаляет `-wal`/`-shm` при закрытии соединения, поэтому копировать `db.sqlite` вручную нельзя (данные могут быть ещё в WAL) — только `sqlite3 .backup`, как делает `scripts/backup.sh`; перед `clinic:import --apply` и перед восстановлением из бэкапа нужно остановить `app`, выполнить `PRAGMA wal_checkpoint(TRUNCATE)` и удалить оба sidecar-файла. CLI импорта делает checkpoint своих приватных alias-соединений сам и удаляет только пустой `-wal`.
+WAL меняет операционные привычки: libsql не удаляет `-wal`/`-shm` при закрытии соединения, поэтому копировать `db.sqlite` вручную нельзя (данные могут быть ещё в WAL) — только `sqlite3 .backup`, как делает `scripts/backup.sh`; перед `clinic:import --apply` и перед восстановлением из бэкапа нужно остановить `app`, выполнить `PRAGMA wal_checkpoint(TRUNCATE)` и удалить оба sidecar-файла. CLI импорта делает checkpoint своих приватных alias-соединений сам и удаляет только пустой `-wal`. `PRAGMA wal_checkpoint` сообщает о конфликте колонкой `busy`, а не исключением, поэтому CLI проверяет результат и повторяет checkpoint до трёх раз: libsql оставляет открытым соединение, которое забрала транзакция, и одной попытки не хватало — закоммиченные кадры оставались в WAL, а приватная привязка `.clinic-import-*` не удалялась и CLI падал с `CLI_FAILED`. Контракт — «retries a busy WAL checkpoint so committed stage frames never strand the private binding» в `src/test/clinic-import-cli.test.js`.
 
 ### Мониторинг без внешних сервисов
 
@@ -480,6 +480,7 @@ clod/
 │   │   │   ├── Vab.jsx / SecondOpinion.jsx / Prices.jsx / Contacts.jsx
 │   │   │   ├── Doctors.jsx / DoctorPage.jsx
 │   │   │   ├── DlyaInogorodnikh.jsx / NashiRezultaty.jsx / Media.jsx
+│   │   │   ├── Promotions.jsx / Vacancies.jsx / Accessibility.jsx / PatientInfo.jsx # Акции, вакансии, доступная среда, информация для пациентов
 │   │   │   ├── PrivacyPolicy.jsx / Licenses.jsx
 │   │   │   └── BlogImageGenerator.jsx # Инструмент /admin/blog-images
 │   │   ├── admin/                 # Компоненты админ-панели
@@ -539,6 +540,7 @@ clod/
 │   │   ├── gipotireoz.astro / adenomioz.astro / endometrioz.astro / tireoidit-khashimoto.astro # MedicalCondition JSON-LD
 │   │   ├── vab.astro              # /vab (MedicalProcedure + FAQPage JSON-LD)
 │   │   ├── dlya-inogorodnikh.astro / nashi-rezultaty.astro / media.astro / contacts.astro
+│   │   ├── promotions.astro / vacancies.astro / accessibility.astro / patient-info.astro
 │   │   ├── second-opinion.astro / tax-form.astro
 │   │   ├── prices.astro / prices/full.astro
 │   │   ├── blog/index.astro / blog/[slug].astro # ItemList / MedicalWebPage + Article JSON-LD
@@ -615,6 +617,10 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `/tireoidit-khashimoto` | `tireoidit-khashimoto.astro` | `TireoiditKhashimoto.jsx` |
 | `/vab` | `vab.astro` | `Vab.jsx` |
 | `/dlya-inogorodnikh` | `dlya-inogorodnikh.astro` | `DlyaInogorodnikh.jsx` |
+| `/promotions` | `promotions.astro` | `Promotions.jsx` |
+| `/vacancies` | `vacancies.astro` | `Vacancies.jsx` |
+| `/accessibility` | `accessibility.astro` | `Accessibility.jsx` |
+| `/patient-info` | `patient-info.astro` | `PatientInfo.jsx` |
 | `/nashi-rezultaty` | `nashi-rezultaty.astro` | `NashiRezultaty.jsx` |
 | `/media` | `media.astro` | `Media.jsx` |
 | `/contacts` | `contacts.astro` | `Contacts.jsx` |
@@ -673,6 +679,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `swipe-gesture.js` | `createSwipeGesture` — фиксация оси жеста и один шаг за свайп для touch и pointer | `MobileDoctorCarousel` |
 | `use-reduced-motion.js` | `useReducedMotion` — единый источник `prefers-reduced-motion` для автопрокруток | `MobileDoctorCarousel`, `HeroSlider` |
 | `nav.js` | `DIRECTIONS`, `NAV_ITEMS`, `FOOTER_LINKS` | `Header`, `Footer` |
+| `promotions.js` | `PROMOTIONS`, `LAB_DISCOUNT`, `HEALTH_DAY`, `formatRoubles` — действующие акции (скидка 20 % на анализы по вторникам и средам, «День женского здоровья» по понедельникам) | `PromotionsSection`, `Promotions` |
 | `filters.js` | `FILTER_TABS`, `FILTER_TABS_SHORT`, `FILTER_BG`, `FILTER_BG_FLAT`, `matchesFilter` | `Doctors`, `DoctorsSection` |
 | `clinic-info.js` | `CLINIC_FACTS`, `SERVICES`, `WHY_ITEMS` | `Footer`, `ServicesSection`, `WhyUsSection` |
 | `constants.js` | `ICON_SIZES`, `RING_COLOR_MAP` | `DoctorCard`, `DoctorPage` |
@@ -726,6 +733,7 @@ Astro file-based routing - каждый `.astro`-файл в `src/pages/` = от
 | `WhyUsSection.jsx` | 74 | «Почему выбирают» + статистика |
 | `DoctorsSection.jsx` | — | Фильтры + полноэкранная mobile-карусель / desktop-карточки врачей |
 | `DirectContactSection.jsx` | 61 | «Прямая связь» + телефон/Telegram |
+| `PromotionsSection.jsx` | — | Две карточки акций сразу под «Выберите направление» (виден и на mobile), ведут на якоря `/promotions#lab-discount` и `/promotions#health-day` |
 | `ReviewsSection.jsx` | — | Четыре отзыва из `doctors-data.js` с автором, врачом и ссылкой на профиль ПроДокторов |
 | `AppointmentFormSection.jsx` | — | First-party CTA; данные пациента вводятся только внутри общего `BookingFlow` |
 
@@ -751,6 +759,17 @@ Hero-секция каждой публичной страницы на desktop 
 Слайды 4–6 добавлены 6 сентября 2026 года: раньше hero показывал только маммологические сценарии, поэтому три из четырёх направлений клиники не были представлены в первом экране. Заголовок каждого нового слайда занимает не больше трёх строк на 1280 px, иначе hero перестал бы помещаться в viewport (`e2e/hero-viewport-fit.spec.js`). Полный цикл автопрокрутки теперь 36 секунд; контракты счётчика слайдов — `HeroSlider.test.jsx` и `e2e/home.spec.js`.
 
 ---
+
+## Акции и обязательные разделы для пациентов (9 сентября 2026)
+
+- **Акции** (`/promotions`, данные в `src/lib/promotions.js`): скидка 20 % на лабораторные исследования по вторникам и средам и программа «День женского здоровья» по понедельникам (УЗИ молочных желёз, малого таза, щитовидной железы и консультация гинеколога-эндокринолога, 7 500 ₽ вместо 9 800 ₽, приём ведёт Захарова Т. Н.). Контент перенесён со старого сайта odintsovclinic.ru (`/action`, `/lab`); цены и условия — редакционные факты клиники. На главной `PromotionsSection` стоит сразу под блоком «Выберите направление» на всех ширинах. Старый адрес `/action` теперь ведёт на `/promotions`
+- **Вакансии** (`/vacancies`): открытых вакансий нет, резюме принимаются на `info@odintsovclinic.ru`; `/job` со старого сайта ведёт сюда
+- **Доступная среда** (`/accessibility`): организационные меры (сопровождение администратором, помощь при входе, сопровождающий и переводчик РЖЯ, кнопки размера текста). Физические характеристики помещения (пандус, ширина дверей) на странице сознательно не заявлены до подтверждения владельцем
+- **Информация для пациентов** (`/patient-info`): права и обязанности пациента (ст. 19 и 27 323-ФЗ), правила записи и приёма, нормативные документы (323-ФЗ, ПП РФ № 736, 2300-1, 152-ФЗ, программа госгарантий) и контролирующие органы (Росздравнадзор по СПб и ЛО, Комитет по здравоохранению СПб, Роспотребнадзор по СПб) со ссылками на официальные сайты; адреса и телефоны органов не указаны, пока владелец их не подтвердит
+- **Миссия** на `/about` (`#mission`): дополнена принципом «молочные железы нельзя рассматривать в отрыве от репродуктивной и эндокринной систем» и тремя обязательствами из приветствия главврача на старом сайте (`/mission`)
+- **Политика конфиденциальности** расширена до 11 разделов: оператор с ОГРН/ИНН, термины, категории данных, цели и правовые основания (152-ФЗ ст. 6 и 10, 323-ФЗ ст. 13 и 22), локализация в РФ и сроки хранения (аналитика 90 дней, номера звонков 365 дней, резюме 6 месяцев), обработчики (Medflex, MANGO OFFICE, партнёрские лаборатории), права по ст. 14 и срок ответа 10 рабочих дней, cookie и собственный счётчик. Утверждение о включении в реестр операторов Роскомнадзора и назначении ответственного требует подтверждения владельцем
+- Меню «Пациентам» получило «Акции», «Информация для пациентов» и «Доступная среда», меню «О клинике» — «Вакансии»; те же ссылки в футере. Чтобы колонка «Пациентам» футера не растягивалась до девяти пунктов, «Доктора» перенесены в колонку «Направления», а «Блог» и «Контакты» — в колонку «Клиника» (6/7/6 ссылок); эти три ссылки помечены `primary: true` и выделены в футере полужирным тёмным текстом как верхнеуровневые разделы. Новые маршруты добавлены в `e2e/text-overflow.spec.js` и `e2e/hero-viewport-fit.spec.js`
+- **Врачи**: Егорова А. А. не выполняет ВАБ — `Vab.jsx` отбирает врачей по пункту «ВАБ» в `helpsWith`, а не по слову «онколог» в специализации; строка «Всего: 4 патента РФ, 12 рационализаторских предложений, 68 печатных работ» вынесена из `DoctorPage.jsx` в поле `publicationsSummary` и осталась только у Одинцова; в tagline Власенко добавлено «врач УЗД»
 
 ## Дизайн-система: Skinnable CSS Architecture
 
@@ -1134,6 +1153,14 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ## Последние изменения (сентябрь 2026)
 
+### `@libsql/client` 0.18.0: устранена утечка соединений на каждой транзакции (9 сентября 2026)
+
+- **Проблема**: в 0.17.0 `Sqlite3Client.transaction()` отдавал открытое соединение объекту транзакции и обнулял собственную ссылку, `Sqlite3Transaction.close()` выполнял только `ROLLBACK`, а `Sqlite3Client.close()` закрывал лишь новое лениво созданное соединение. Каждая транзакция навсегда теряла открытое соединение SQLite. Замер на реальных модулях сервера (`sweepStaleBookings` + `pruneAnalytics`, 80 транзакций против мигрированной базы): 4 → 164 дескриптора, `client.close()` не освобождал ни одного. Транзакции идут на каждом booking, webhook MANGO, действии админа и в фоновых задачах — девять точек вызова плюс `db.transaction()` drizzle, который использует тот же путь
+- **Решение**: обновление до 0.18.0, где клиент держит пул соединений, транзакция берёт соединение из пула и возвращает его в `close()`. Тот же замер после обновления: 4 → 4. Версия 0.17.4 дефект не чинит
+- **Пул меняет два правила**. Во-первых, `PRAGMA busy_timeout` больше не работает как настройка клиента: пул выдаёт разным вызовам разные соединения, поэтому pragma armила бы одно из них, а конкурентный замер давал `[5000, 0, 0, …]`. Таймаут переехал в опцию `timeout` конфигурации клиента (`createSqliteClient`), которая применяется при открытии каждого соединения; обёртка `withBusyTimeout` удалена. Во-вторых, при исчерпании пула (по умолчанию `concurrency: 20`) новая транзакция получает `TRANSACTION_ACTIVE` вместо молчаливого открытия ещё одного соединения, как было в 0.17
+- **Контракты**: `releases the connection every transaction borrows instead of leaking it` (25 транзакций не увеличивают число дескрипторов на файл базы) и `arms the busy timeout on every connection the pool hands out` в `src/lib/database.test.js`
+
+
 ### Бирюзовая серия обложек блога (8 сентября 2026)
 
 - Все 40 обложек статей в `public/images/blog/` перегенерированы встроенным imagegen по сценам из `src/lib/blog-prompts.js`: светлая журнальная стилистика, кремово-белый фон и фирменные бирюзовые акценты `#1C89A1`. Упоминания прежнего изумрудного в сценах заменены; естественные цвета кожи и еды сохранены.
@@ -1193,7 +1220,7 @@ Certbot-контейнер проверяет сертификат каждые 
 
 ### SQLite WAL, busy_timeout и индексы аналитики (6 сентября 2026, Фаза 1 п.8 аудита)
 
-- `init-db` включает WAL и `busy_timeout = 5000`; клиент приложения и оба CLI ставят тот же timeout перед первым statement
+- `init-db` включает WAL и `busy_timeout = 5000`; клиент приложения и все CLI получают тот же timeout опцией `createSqliteClient`, которая применяется к каждому соединению пула
 - Семь индексов на `AnalyticsSession`/`PageView`/`EventLog`; график посещений считается SQL-агрегатом; список пациентов без DISTINCT, когда нет JOIN; визиты без даты первыми
 - Страницы admin-списков ограничены 10 000; CLI импорта делает checkpoint и убирает пустые sidecar-файлы своих alias-соединений
 - Отклонение от аудита: составной индекс `Patient(lastSeenAt DESC, id)` не добавлен (см. раздел «SQLite: WAL, busy_timeout и индексы»)

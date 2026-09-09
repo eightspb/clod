@@ -265,4 +265,13 @@ describe('Home hero slider', () => {
     const trigger = within(section).getByRole('button', { name: /записаться/i })
     expect({ heading: heading.textContent.trim(), type: trigger.getAttribute('type'), booking: trigger.getAttribute('data-booking-btn'), doctor: trigger.hasAttribute('data-booking-doctor'), forms: section.querySelectorAll('form').length, inputs: section.querySelectorAll('input').length }).toEqual({ heading: 'Запишитесь на приём', type: 'button', booking: 'true', doctor: false, forms: 0, inputs: 0 })
   })
+
+  it('places the promotions section right after the directions block', async () => {
+    await act(async () => {
+      render(<Home doctorsData={[]} />)
+    })
+    const directions = document.getElementById('home-directions')
+    const promotions = document.getElementById('home-promotions')
+    expect(directions.compareDocumentPosition(promotions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })

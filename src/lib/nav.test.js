@@ -72,9 +72,9 @@ describe('nav.js', () => {
       expect(directions.vab).toEqual(VAB_ITEM)
     })
 
-    it('О клинике has dropdown children with about, results, media, licenses', () => {
+    it('О клинике has dropdown children with about, results, media, licenses, vacancies', () => {
       const about = NAV_ITEMS.find((i) => i.label === 'О клинике')
-      expect(about.children).toHaveLength(4)
+      expect(about.children).toHaveLength(5)
       expect(about.children[0].to).toBe('/about')
     })
 
@@ -93,8 +93,16 @@ describe('nav.js', () => {
       expect(FOOTER_LINKS).toHaveProperty('patients')
     })
 
-    it('directions group includes all DIRECTIONS plus VAB', () => {
-      expect(FOOTER_LINKS.directions).toHaveLength(DIRECTIONS.length + 1)
+    it('directions group includes all DIRECTIONS plus VAB and the doctors index', () => {
+      expect(FOOTER_LINKS.directions.map((link) => link.to)).toEqual([...DIRECTIONS.map((d) => d.to), '/vab', '/doctors'])
+    })
+
+    it('keeps the blog and contacts in the clinic column instead of the tail of the patients column', () => {
+      expect({ clinic: FOOTER_LINKS.clinic.map((link) => link.to).slice(-2), patientsTail: FOOTER_LINKS.patients.some((link) => ['/doctors', '/blog', '/contacts'].includes(link.to)) }).toEqual({ clinic: ['/blog', '/contacts'], patientsTail: false })
+    })
+
+    it('balances the footer columns within seven links each', () => {
+      expect(Object.values(FOOTER_LINKS).map((group) => group.length).every((count) => count <= 7)).toBe(true)
     })
 
     it('each link in every group has label and to', () => {
@@ -103,5 +111,16 @@ describe('nav.js', () => {
         expect(l).toHaveProperty('to')
       })
     })
+  })
+})
+
+describe('patient and clinic service pages', () => {
+  it('links the promotions, patient information and accessibility pages from the Пациентам menu', () => {
+    const patients = NAV_ITEMS.find((item) => item.label === 'Пациентам').children.map((child) => child.to)
+    expect(patients).toEqual(expect.arrayContaining(['/promotions', '/patient-info', '/accessibility']))
+  })
+  it('links the vacancies page from the О клинике menu and the footer', () => {
+    const clinic = NAV_ITEMS.find((item) => item.label === 'О клинике').children.map((child) => child.to)
+    expect({ menu: clinic.includes('/vacancies'), footer: FOOTER_LINKS.clinic.some((link) => link.to === '/vacancies') }).toEqual({ menu: true, footer: true })
   })
 })

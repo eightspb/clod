@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { Vacancies } from '../components/pages/Vacancies.jsx'
+---
+
+<Layout
+  title="Вакансии — работа в клинике Одинцова в Санкт-Петербурге"
+  description="Открытые вакансии клиники Одинцова в Санкт-Петербурге и адрес для отправки резюме врачам и администраторам."
+  keywords="вакансии клиника Одинцова, работа врачом СПб, вакансии медицинский центр Санкт-Петербург"
+  canonicalUrl="https://odintsovclinic.ru/vacancies"
+>
+  <BreadcrumbNav items={[{ label: 'Вакансии' }]} />
+  <Vacancies />
+</Layout>

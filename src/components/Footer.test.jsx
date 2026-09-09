@@ -89,3 +89,11 @@ describe('Footer', () => {
     expect(screen.getByRole('link', { name: /ВАБ/ })).toBeInTheDocument()
   })
 })
+
+describe('Footer primary sections', () => {
+  it('renders the doctors, blog and contacts links in bold as top-level sections', () => {
+    render(<Footer />)
+    const links = Array.from(screen.getByRole('navigation', { name: 'Навигация по сайту' }).querySelectorAll('a'))
+    expect(links.filter((link) => link.classList.contains('font-semibold')).map((link) => link.textContent)).toEqual(['Доктора', 'Блог', 'Контакты'])
+  })
+})

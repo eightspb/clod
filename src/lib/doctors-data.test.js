@@ -110,3 +110,12 @@ describe('doctors-data.js', () => {
     })
   })
 })
+
+describe('doctor descriptions', () => {
+  it('lists ultrasound diagnostics in the Власенко tagline', () => {
+    expect(getDoctorBySlug('vlasenko').tagline).toMatch(/врач УЗД/)
+  })
+  it('keeps the patent and publication summary only on Одинцов', () => {
+    expect(DOCTORS.filter((doctor) => doctor.publicationsSummary).map((doctor) => doctor.slug)).toEqual(['odintsov'])
+  })
+})

@@ -6,7 +6,7 @@ import { ResponsiveDoctorHero } from '../ResponsiveDoctorHero.jsx'
 import { ResponsiveDoctorCollection } from '../ResponsiveDoctorCollection.jsx'
 
 const VAB_DOCTORS = DOCTORS.filter((d) =>
-  /онколог/i.test(d.specialization)
+  d.helpsWith.some((item) => /ВАБ/.test(item))
 )
 
 const STEPS = [

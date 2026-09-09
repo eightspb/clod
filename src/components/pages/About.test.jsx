@@ -58,3 +58,11 @@ describe('About page sections', () => {
     expect(titles.filter((title, index) => titles.indexOf(title) !== index)).toEqual([])
   })
 })
+
+describe('About mission', () => {
+  it('states the holistic principle of the clinic in the mission section', () => {
+    render(<About />)
+    const section = document.getElementById('mission')
+    expect(section).toHaveTextContent(/нельзя рассматривать в отрыве от репродуктивной и эндокринной систем/)
+  })
+})

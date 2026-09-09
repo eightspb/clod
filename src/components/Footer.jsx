@@ -108,7 +108,7 @@ export function Footer() {
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.directions.map((link) => (
                       <li key={link.to}>
-                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                        <a href={link.to} className={`text-sm transition-colors duration-200 hover:text-clay-mint ${link.primary ? 'font-semibold text-clay-dark' : 'text-clay-muted'}`}>
                           {link.label}
                         </a>
                       </li>
@@ -120,7 +120,7 @@ export function Footer() {
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.clinic.map((link) => (
                       <li key={link.to}>
-                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                        <a href={link.to} className={`text-sm transition-colors duration-200 hover:text-clay-mint ${link.primary ? 'font-semibold text-clay-dark' : 'text-clay-muted'}`}>
                           {link.label}
                         </a>
                       </li>
@@ -132,7 +132,7 @@ export function Footer() {
                   <ul className="flex flex-col gap-2">
                     {FOOTER_LINKS.patients.map((link) => (
                       <li key={link.to}>
-                        <a href={link.to} className="text-sm text-clay-muted hover:text-clay-mint transition-colors duration-200">
+                        <a href={link.to} className={`text-sm transition-colors duration-200 hover:text-clay-mint ${link.primary ? 'font-semibold text-clay-dark' : 'text-clay-muted'}`}>
                           {link.label}
                         </a>
                       </li>

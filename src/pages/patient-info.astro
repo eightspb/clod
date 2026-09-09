@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { BreadcrumbNav } from '../components/BreadcrumbNav.jsx'
+import { PatientInfo } from '../components/pages/PatientInfo.jsx'
+---
+
+<Layout
+  title="Информация для пациентов — права, правила приёма, контролирующие органы"
+  description="Права и обязанности пациента, правила записи и приёма, нормативные документы и контролирующие органы клиники Одинцова в Санкт-Петербурге."
+  keywords="права пациента, правила приёма клиника, контролирующие органы медицинская организация, клиника Одинцова документы"
+  canonicalUrl="https://odintsovclinic.ru/patient-info"
+>
+  <BreadcrumbNav items={[{ label: 'Информация для пациентов' }]} />
+  <PatientInfo />
+</Layout>

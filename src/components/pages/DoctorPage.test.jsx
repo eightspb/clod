@@ -81,4 +81,14 @@ describe('DoctorPage', () => {
     const doctors = Array.from(container.querySelectorAll('[data-booking-btn]'), (trigger) => trigger.getAttribute('data-booking-doctor'))
     expect(doctors).toEqual(['odintsov-layout', 'odintsov-layout'])
   })
+  it('shows the publication summary only for the doctor who declares one', () => {
+    const doctor = { ...RIGHT_PHOTO_DOCTOR, publications: [{ title: 'Вакуумно-аспирационная биопсия: опыт применения', year: '2020', type: 'article' }] }
+    render(<DoctorPage doctor={doctor} />)
+    expect(screen.queryByText(/4 патента РФ/)).toBeNull()
+  })
+  it('renders the declared publication summary under the publication list', () => {
+    const doctor = { ...RIGHT_PHOTO_DOCTOR, publications: [{ title: 'Тиреоидология и телемедицина', year: '2015', type: 'article' }], publicationsSummary: 'Всего: 4 патента РФ, 68 печатных работ' }
+    render(<DoctorPage doctor={doctor} />)
+    expect(screen.getByText('Всего: 4 патента РФ, 68 печатных работ')).toBeInTheDocument()
+  })
 })

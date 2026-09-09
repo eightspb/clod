@@ -8,6 +8,7 @@ import { DOCTOR_AUTOPLAY_INTERVAL, MobileDoctorCarousel } from '../MobileDoctorC
 import { SecondOpinionSection } from '../home/SecondOpinionSection.jsx'
 import { VabSection } from '../home/VabSection.jsx'
 import { ServicesSection } from '../home/ServicesSection.jsx'
+import { PromotionsSection } from '../home/PromotionsSection.jsx'
 import { WhyUsSection } from '../home/WhyUsSection.jsx'
 import { DoctorsSection } from '../home/DoctorsSection.jsx'
 import { DirectContactSection } from '../home/DirectContactSection.jsx'
@@ -30,6 +31,10 @@ export function Home({ doctorsData = DOCTORS }) {
 
       <FadeInSection>
         <ServicesSection />
+      </FadeInSection>
+
+      <FadeInSection>
+        <PromotionsSection />
       </FadeInSection>
 
       <FadeInSection>

@@ -57,6 +57,7 @@ export const NAV_ITEMS = [
       { label: 'Наши результаты', to: '/nashi-rezultaty' },
       { label: 'Медиа / СМИ', to: '/media' },
       { label: 'Лицензии', to: '/licenses' },
+      { label: 'Вакансии', to: '/vacancies' },
     ]
   },
   { label: 'Направления', mega: true, children: DIRECTIONS, vab: VAB_ITEM },
@@ -65,9 +66,12 @@ export const NAV_ITEMS = [
     label: 'Пациентам',
     children: [
       { label: 'Бесплатное второе мнение', to: '/second-opinion' },
+      { label: 'Акции', to: '/promotions' },
       { label: 'Для иногородних', to: '/dlya-inogorodnikh' },
       { label: 'Цены', to: '/prices' },
       { label: 'Форма для налоговой', to: '/tax-form' },
+      { label: 'Информация для пациентов', to: '/patient-info' },
+      { label: 'Доступная среда', to: '/accessibility' },
     ]
   },
   { label: 'Блог', to: '/blog' },
@@ -78,20 +82,24 @@ export const FOOTER_LINKS = {
   directions: [
     ...DIRECTIONS.map((d) => ({ label: d.label, to: d.to })),
     VAB_ITEM,
+    { label: 'Доктора', to: '/doctors', primary: true },
   ],
   clinic: [
     { label: 'О клинике', to: '/about' },
     { label: 'Наши результаты', to: '/nashi-rezultaty' },
     { label: 'Медиа / СМИ', to: '/media' },
     { label: 'Лицензии', to: '/licenses' },
+    { label: 'Вакансии', to: '/vacancies' },
+    { label: 'Блог', to: '/blog', primary: true },
+    { label: 'Контакты', to: '/contacts', primary: true },
   ],
   patients: [
     { label: 'Бесплатное второе мнение', to: '/second-opinion' },
+    { label: 'Акции', to: '/promotions' },
     { label: 'Для иногородних', to: '/dlya-inogorodnikh' },
     { label: 'Цены', to: '/prices' },
     { label: 'Форма для налоговой', to: '/tax-form' },
-    { label: 'Доктора', to: '/doctors' },
-    { label: 'Блог', to: '/blog' },
-    { label: 'Контакты', to: '/contacts' },
+    { label: 'Информация для пациентов', to: '/patient-info' },
+    { label: 'Доступная среда', to: '/accessibility' },
   ],
 }

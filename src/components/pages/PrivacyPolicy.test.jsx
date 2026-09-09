@@ -13,3 +13,18 @@ describe('PrivacyPolicy integration disclosure', () => {
     expect(section).toHaveTextContent('уничтожении персональных данных')
   })
 })
+
+describe('PrivacyPolicy operator disclosure', () => {
+  it('names the operator with its registration numbers', () => {
+    render(<PrivacyPolicy />)
+    expect(document.body).toHaveTextContent(/ОГРН 1137847430412/)
+  })
+  it('states the response period for requests of data subjects', () => {
+    render(<PrivacyPolicy />)
+    expect(document.body).toHaveTextContent(/10 рабочих дней/)
+  })
+  it('declares that personal data are stored on servers in the Russian Federation', () => {
+    render(<PrivacyPolicy />)
+    expect(document.body).toHaveTextContent(/на территории Российской Федерации/)
+  })
+})
