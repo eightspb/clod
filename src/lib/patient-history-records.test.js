@@ -183,7 +183,15 @@ describe('patient history records', () => {
     expect(failure.code).toBe('PATIENT_HISTORY_STORAGE_INVARIANT')
   })
 
-  it.each(['sourceName', 'linkMethod', 'evidenceLevel'])('rejects patient text stored in the safe historical-visit %s field', async (column) => {
+  it.each(['linkMethod', 'evidenceLevel'])('refuses to store patient text in the constrained historical-visit %s column', async (column) => {
+    const { client } = await fixture()
+    await historyRows(client)
+    const failure = await captured(() => client.execute({ sql: `UPDATE HistoricalVisit SET ${column} = ? WHERE id = ?`, args: ['Пациентка Секретова Ия', VISIT_ID] }))
+    client.close()
+    expect(failure.code).toBe('SQLITE_CONSTRAINT')
+  })
+
+  it.each(['sourceName'])('rejects patient text stored in the safe historical-visit %s field', async (column) => {
     const { client, records } = await fixture()
     await historyRows(client)
     const secret = 'Пациентка Секретова Ия'

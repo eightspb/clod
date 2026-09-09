@@ -86,3 +86,13 @@ describe('doctor records', () => {
     expect({ result, total: doctors.length, doctor: doctors[0] }).toMatchObject({ result: { active: 1, created: 0, preserved: 1, total: 2 }, total: 1, doctor: { id: 'doctor-odintsov', name: 'Ручное имя', slug: 'manual-slug', medflexDoctorId: 70121 } })
   })
 })
+
+describe('doctor records media dates', () => {
+  it('stores the seeded photo creation time as ISO-8601 text', async () => {
+    const client = await database()
+    await createDoctorRecords({ client }).sync({ doctors: [DOCTOR], syncedAt: SYNCED_AT })
+    const media = await client.execute("SELECT createdAt FROM Media WHERE folder = 'doctors'")
+    client.close()
+    expect(media.rows[0].createdAt).toBe(SYNCED_AT)
+  })
+})

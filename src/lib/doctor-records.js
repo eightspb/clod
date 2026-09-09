@@ -79,7 +79,7 @@ async function insertDoctor(executor, item, syncedAt) {
   const id = `doctor-${item.slug}`
   const photoId = `doctor-seed-photo-${item.slug}`
   const filename = item.photo.split('/').at(-1)
-  await executor.execute({ sql: 'INSERT INTO Media (id, filename, mimeType, url, folder, createdAt) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING', args: [photoId, filename, 'image/webp', item.photo, 'doctors', Date.parse(syncedAt)] })
+  await executor.execute({ sql: 'INSERT INTO Media (id, filename, mimeType, url, folder, createdAt) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING', args: [photoId, filename, 'image/webp', item.photo, 'doctors', syncedAt] })
   await executor.execute({ sql: 'INSERT INTO Doctor (id, name, slug, specialization, experienceYears, bio, photoMediaId) VALUES (?, ?, ?, ?, ?, ?, ?)', args: [id, item.name, item.slug, item.specialization, item.experienceYears, item.bio, photoId] })
   return id
 }

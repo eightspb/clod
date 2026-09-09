@@ -207,7 +207,7 @@ describe('clinic import transactional store', () => {
   it('rejects replay when safe import-batch state has drifted despite matching hashes', async () => {
     const value = await fixture()
     await applyClinicImportStage(input(value), { clock: () => '2026-08-27T12:00:00.000Z', randomBytes: randomSource() })
-    await value.client.execute("UPDATE ImportBatch SET mode = 'dry-run' WHERE manifestHash = ?", [MANIFEST_HASH])
+    await value.client.execute("UPDATE ImportBatch SET completedAt = '2026-08-27T12:00:01.000Z' WHERE manifestHash = ?", [MANIFEST_HASH])
     const result = await captured(() => applyClinicImportStage(input(value), { clock: () => '2026-08-28T12:00:00.000Z', randomBytes: randomSource(10) }))
     expect({ code: result.error?.code, frozen: Object.isFrozen(result.error) }).toEqual({ code: 'MANIFEST_CONFLICT', frozen: true })
   })

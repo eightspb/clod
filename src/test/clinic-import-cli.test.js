@@ -69,6 +69,7 @@ async function fixture() {
   const stagePath = join(root, 'clinic-import.stage')
   await migratedDatabase(databasePath)
   const database = createClient({ url: pathToFileURL(databasePath).href })
+  await database.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['00000000-0000-8000-8000-000000000091', null, null, null, null, null, '2026-08-27T00:00:00.000Z', '2026-08-27T00:00:00.000Z', null] })
   await database.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: ['00000000-0000-8000-8000-000000000090', '00000000-0000-8000-8000-000000000091', 'reveal', 'synthetic-cli-marker', '2026-08-27T00:00:00.000Z'] })
   await database.execute('PRAGMA wal_checkpoint(TRUNCATE)')
   database.close()
@@ -343,7 +344,7 @@ describe('clinic history import CLI', () => {
     }
     const runtime = dependencies({ createDatabaseClient, applyStage: async (stageInput) => {
       const transaction = await stageInput.client.transaction('write')
-      await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: ['00000000-0000-8000-8000-000000000092', '00000000-0000-8000-8000-000000000093', 'reveal', 'checkpoint-retry', '2026-09-09T00:00:00.000Z'] })
+      await transaction.execute({ sql: 'INSERT INTO PatientAccess (id, patientId, action, actor, createdAt) VALUES (?, ?, ?, ?, ?)', args: ['00000000-0000-8000-8000-000000000092', '00000000-0000-8000-8000-000000000091', 'reveal', 'checkpoint-retry', '2026-09-09T00:00:00.000Z'] })
       await transaction.commit()
       await transaction.close()
       return Object.freeze({ batchId: '00000000-0000-8000-8000-000000000001', manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, status: 'completed', applied: true, controls: Object.freeze({ patients: 2 }), summary: Object.freeze({ patients: 2 }) })
@@ -380,7 +381,7 @@ describe('clinic history import CLI', () => {
       args[args.indexOf('--manifest') + 1] = dry.manifestHash
       const applied = await runClinicImportCommand(args, environment(), applyRuntime.values)
       const database = createClient({ url: pathToFileURL(value.databasePath).href })
-      const counts = await database.execute('SELECT (SELECT COUNT(*) FROM ImportBatch) AS batches, (SELECT COUNT(*) FROM Patient) AS patients, (SELECT COUNT(*) FROM HistoricalVisit) AS visits, (SELECT COUNT(*) FROM HistoricalInvoice) AS invoices')
+      const counts = await database.execute({ sql: 'SELECT (SELECT COUNT(*) FROM ImportBatch) AS batches, (SELECT COUNT(*) FROM Patient WHERE id <> ?) AS patients, (SELECT COUNT(*) FROM HistoricalVisit) AS visits, (SELECT COUNT(*) FROM HistoricalInvoice) AS invoices', args: ['00000000-0000-8000-8000-000000000091'] })
       database.close()
       return Object.freeze({ dry, applied, counts: counts.rows })
     })
