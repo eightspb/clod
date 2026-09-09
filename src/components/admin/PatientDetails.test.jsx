@@ -286,3 +286,15 @@ describe('PatientDetails', () => {
     expect({ message: alert.textContent, leaked: alert.textContent.includes('79215550129') }).toEqual({ message: 'Не удалось загрузить карточку пациента', leaked: false })
   })
 })
+
+describe('PatientDetails for the staff role', () => {
+  it('hides the destruction trigger from staff', async () => {
+    transport([json(DETAIL)])
+    document.body.dataset.adminRole = 'staff'
+    render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
+    await screen.findByRole('button', { name: 'Раскрыть персональные данные' })
+    const trigger = screen.queryByRole('button', { name: 'Уничтожить персональные данные' })
+    delete document.body.dataset.adminRole
+    expect(trigger).toBe(null)
+  })
+})

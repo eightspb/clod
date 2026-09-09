@@ -273,7 +273,9 @@ describe('auth.js', () => {
     })
 
     it('rejects every token after ending all sessions', async () => {
-      const first = await createToken()
+      const { adminUsers } = await import('./auth.js')
+      const admin = await adminUsers().create({ login: `chief-${Date.now()}`, displayName: 'Главный', role: 'admin', password: 'пароль-администратора-Ω' })
+      const first = await createToken(admin.id)
       const second = await createToken()
       await logoutAllPost({ request: makeJsonRequest({ cookie: `__Host-admin_session=${first}`, ip: '203.0.113.201' }) })
 

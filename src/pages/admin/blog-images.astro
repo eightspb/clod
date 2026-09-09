@@ -4,6 +4,10 @@ export const prerender = false
 import AdminLayout from '../../layouts/AdminLayout.astro'
 import { BlogImageGenerator } from '../../components/pages/BlogImageGenerator.jsx'
 import { getCollection } from 'astro:content'
+import { currentAdmin } from '../../lib/auth.js'
+
+const admin = await currentAdmin(Astro.request)
+if (admin?.role === 'staff') return Astro.redirect('/admin')
 
 const allPosts = await getCollection('blog')
 const articles = allPosts

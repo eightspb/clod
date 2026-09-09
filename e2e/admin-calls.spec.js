@@ -7,7 +7,7 @@ const PATIENT = { id: PATIENT_ID, name: 'О’Коннор-Сидорова Лё
 const DETAIL = { data: PATIENT, history: { visits: { data: [], page: { number: 1, size: 10, total: 0, pages: 0 } }, issues: { data: [], page: { number: 1, size: 10, total: 0, pages: 0 } }, attachments: [] } }
 
 async function authenticate(page, baseURL) {
-  const response = await page.request.post('/api/auth/login', { data: { password: process.env.ADMIN_PASSWORD }, headers: { Origin: baseURL } })
+  const response = await page.request.post('/api/auth/login', { data: { login: 'admin', password: process.env.ADMIN_PASSWORD }, headers: { Origin: baseURL } })
   expect(response.status(), await response.text()).toBe(200)
 }
 

@@ -170,7 +170,7 @@ API запрос       → src/pages/api/**/*.js (SSR)
 
 | Переменная | Описание |
 |---|---|
-| `ADMIN_PASSWORD` | Пароль для входа в админ-панель |
+| `ADMIN_PASSWORD` | Пароль встроенной учётной записи `admin` при первом входе (bootstrap); дальше пароли живут в `AdminUser` |
 | `TOKEN_SECRET` | Обязательный секрет для HMAC-подписи токенов админ-сессии |
 | `MEDFLEX_CLINIC_TOKEN` | Серверный токен клиники для официального Medflex API; значение не должно иметь префикс `PUBLIC_` |
 | `BOOKING_INTENT_SECRET` | Отдельный сильный случайный HMAC-секрет для идентичности и дедупликации попыток онлайн-записи |
@@ -366,7 +366,13 @@ Server-side интеграция принимает подписанные вх�
 
 ### Админ-панель
 
-Доступна по адресу `/admin/login`. Для входа нужен `ADMIN_PASSWORD`, а для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
+Доступна по адресу `/admin/login`: вход по имени пользователя и паролю; для выпуска и проверки сессий обязателен отдельный `TOKEN_SECRET`.
+
+Именованные учётные записи (сентябрь 2026, Фаза 2 п.7 аудита). Таблица `AdminUser(id, login, displayName, role, passwordHash, createdAt, disabledAt, passwordChangedAt)` хранит две роли: `admin` и `staff`. Пароли хешируются scrypt (`N=16384, r=8, p=1`, строка `scrypt$N$r$p$salt$hash`, `src/lib/admin-users.js`), минимум 12 символов; логин — 3–32 строчных латинских символа, цифры, `.`, `-`, `_`. `ADMIN_PASSWORD` больше не сравнивается при каждом входе: первый вход в пустую таблицу создаёт встроенную учётную запись `admin` с этим паролем (bootstrap), дальше пароль администратора меняется в интерфейсе, а переменная нужна только для первого запуска и остаётся обязательной для `check-required-env`. Сессия хранит `AdminSession.userId` (аддитивная колонка, индекс создаётся после `ALTER TABLE`; контракт апгрейда старой базы — `src/test/admin-users-migration.test.js`); заблокированный пользователь теряет все сессии сразу, потому что `verify` проверяет `AdminUser.disabledAt` на каждом запросе. Actor в `PatientAccess`, `MangoCallAccess` и `AdminAuthEvent` теперь `u:<id пользователя>`, поэтому два входа одного сотрудника дают одного актора; прежний формат `v1:<hmac>` принимается для старых строк и сессий, выпущенных до миграции.
+
+Роль `staff` (сотрудник клиники) работает с пациентами, записями, звонками и раскрытием ПДн, но получает `403 ROLE_REQUIRED` (`guardAdminRole` в `src/lib/admin-api.js`) на уничтожение ПДн пациента (`DELETE /api/admin/patients/[id]/personal-data`), уничтожение номера звонящего (`DELETE /api/admin/calls/[entryId]/caller`), `POST /api/auth/logout-all`, генерацию постеров (`/api/admin/generate-image`) и управление пользователями; страницы `/admin/users` и `/admin/blog-images` перенаправляют сотрудника на `/admin`. `AdminLayout.astro` ставит `data-admin-role` на `<body>`, показывает имя и роль в шапке и прячет для `staff` пункты «Постеры блога», «Пользователи» и кнопку «Завершить все сессии»; `isStaffViewer()` (`src/lib/admin-role.js`) скрывает кнопки уничтожения в таблицах, но правило всегда проверяет сервер.
+
+Раздел `/admin/users` (только `admin`): создание сотрудников (`POST /api/admin/users`), смена пароля любому пользователю и блокировка/разблокировка сотрудника (`PATCH /api/admin/users/[id]` с `{ password }` или `{ disabled }`); смена пароля или блокировка отзывает сессии цели, кроме случая, когда администратор меняет собственный пароль; учётную запись `admin` отключить нельзя, себя заблокировать тоже. Ниже на той же странице — журнал доступа к ПДн: `GET /api/admin/access?page&pageSize&patientId` объединяет `PatientAccess` и `MangoCallAccess`, подставляет логин и имя пользователя (строки до миграции подписаны «Сессия до именованных учётных записей», строки ретеншена — «Автоматический ретеншен») и показывает действие, объект и причину по московскому времени. Карточка пациента получила вкладку «История доступа» с тем же журналом, отфильтрованным по пациенту. Контракты: `src/lib/admin-users.test.js`, `src/test/admin-users-api.test.js`, `src/test/admin-access-api.test.js`, `src/components/admin/AdminUsers.test.jsx`, `src/components/admin/AccessLog.test.jsx`, `src/components/admin/LoginForm.test.jsx`, `e2e/admin-users.spec.js`.
 
 Сессии администратора хранятся на сервере (сентябрь 2026, Фаза 1 п.10 аудита). Cookie `__Host-admin_session` (всегда `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`) несёт `sessionId.issuedAt.signature`, а строка `AdminSession(id, issuedAt, lastSeenAt, revokedAt)` решает, действительна ли она: подпись HMAC-SHA-256 по `TOKEN_SECRET`, абсолютный срок 24 часа, простой более 60 минут закрывает сессию, `lastSeenAt` обновляется не чаще раза в минуту. Кнопка «Выйти» вызывает `POST /api/auth/logout`, который ставит `revokedAt` и только потом просит браузер удалить cookie; «Завершить все сессии» (`POST /api/auth/logout-all`, с подтверждением) отзывает все активные сессии сразу — это ответ на подозрение об украденной cookie. Дублирующаяся cookie с тем же именем считается отсутствием сессии. Логика в `src/lib/admin-sessions.js`, контракт в `src/lib/admin-sessions.test.js`.
 
@@ -382,6 +388,7 @@ Server-side интеграция принимает подписанные вх�
 | Звонки | `/admin/calls` | Live-журнал MANGO, сворачиваемые фильтры по статусу, периоду, линии, добавочному, повтору и связи с пациентом, метрики, reveal и уничтожение номера |
 | Доктора | `/admin/doctors` | Автозаполнение пустого каталога из Medflex, ручная синхронизация и редактирование данных докторов без перезаписи ручных полей |
 | Постеры блога | `/admin/blog-images` | Генерация AI-постеров для статей; slug проверяется по allowlist промптов, исходящие запросы ограничены по времени и размеру |
+| Пользователи | `/admin/users` | Только `admin`: сотрудники панели, смена пароля, блокировка, журнал доступа к ПДн с именами пользователей |
 
 Три плотные таблицы админки (`/admin/calls`, `/admin/patients`, `/admin/appointments`) используют один контракт раскладки: у каждой колонки фиксированная ширина в `th`, значения дат, телефонов, длительностей и статусных плашек не переносятся (`whitespace-nowrap`), отступы строк — `px-4 py-2.5`. Действия — квадратные кнопки-иконки 40 px (`ICON_BUTTON`/`ICON_BUTTON_DANGER` в `src/components/admin/row-button.js`) с прежними `aria-label` и `title`; текстовые подписи в строках убраны, потому что на ноутбуке 1456 px колонка действий с подписями съедала треть таблицы и остальные колонки рвались на три строки. Фильтры, пагинация и диалоги сохраняют `SMALL_BUTTON` с зоной нажатия 44 px.
 
@@ -487,6 +494,7 @@ clod/
 │   │   │   └── BlogImageGenerator.jsx # Инструмент /admin/blog-images
 │   │   ├── admin/                 # Компоненты админ-панели
 │   │   │   ├── LoginForm.jsx / Dashboard.jsx / SessionsViewer.jsx / LogsViewer.jsx
+│   │   │   ├── AdminUsers.jsx / AccessLog.jsx # Пользователи панели и журнал доступа к ПДн (только admin)
 │   │   │   ├── DoctorList.jsx / DoctorEditForm.jsx / DoctorPhotoUpload.jsx / DoctorCertificates.jsx
 │   │   │   ├── Patients.jsx / PatientDetails.jsx / PatientPrivateData.jsx / PatientVisitDetails.jsx / PatientHistoryIssues.jsx
 │   │   │   ├── Appointments.jsx / Calls.jsx
@@ -521,7 +529,7 @@ clod/
 │   │   └── AdminLayout.astro      # Лейаут админ-панели (с проверкой авторизации)
 │   ├── lib/                       # Доменная логика (полная таблица в «Централизованные данные и утилиты»)
 │   │   ├── database.js / database-schema.js # Drizzle поверх @libsql/client, таблицы
-│   │   ├── auth.js / admin-sessions.js / admin-api.js / rate-limit.js / client-ip.js / bounded-json.js
+│   │   ├── auth.js / admin-sessions.js / admin-users.js / admin-user-api.js / admin-access-api.js / admin-role.js / admin-api.js / rate-limit.js / client-ip.js / bounded-json.js
 │   │   ├── appointment-*.js / medflex-*.js # Онлайн-запись, sweeper зависших записей и клиент Medflex
 │   │   ├── patient-records.js / patient-history-*.js / protected-patient-data.js / contact-identity.js
 │   │   ├── clinic-import-*.js / tabular-csv.js / tabular-xlsx.js # Импорт исторической базы
@@ -560,10 +568,11 @@ clod/
 │   │       ├── analytics/event.js / heartbeat.js # POST - трекер и heartbeat сессий
 │   │       ├── appointments/slots.js / book.js  # GET расписание / POST защищённое создание записи
 │   │       ├── second-opinion.js / tax-form.js  # POST - публичные формы (SMTP)
-│   │       ├── auth/login.js / logout.js / logout-all.js # POST - вход (durable 5 попыток / 15 мин), выход, отзыв всех сессий
+│   │       ├── auth/login.js / logout.js / logout-all.js # POST - вход по логину и паролю (durable 5 попыток / 15 мин), выход, отзыв всех сессий (только admin)
 │   │       ├── integrations/mango/              # POST events/call, events/summary — подписанные webhook MANGO
 │   │       └── admin/
 │   │           ├── stats.js / sessions.js / logs.js
+│   │           ├── users/index.js / users/[id].js / access.js # Пользователи панели и журнал доступа к ПДн (только admin)
 │   │           ├── doctors.js / doctors/[id].js / doctors/[id]/certificates.js / doctors/sync.js
 │   │           ├── upload/photo.js / upload/certificates.js
 │   │           ├── patients/index.js / patients/[id].js / patients/[id]/reveal.js / patients/[id]/reveal-full.js / patients/[id]/personal-data.js
@@ -1049,7 +1058,7 @@ SEO, локальная видимость и GEO в генеративном п
 
 | Переменная | Описание |
 |---|---|
-| `ADMIN_PASSWORD` | Пароль для входа в админ-панель |
+| `ADMIN_PASSWORD` | Пароль встроенной учётной записи `admin` при первом входе (bootstrap); дальше пароли живут в `AdminUser` |
 | `TOKEN_SECRET` | Секрет для HMAC-подписи токенов |
 | `MEDFLEX_CLINIC_TOKEN` | Server-only токен клиники для Medflex API; никогда не использовать префикс `PUBLIC_` |
 | `BOOKING_INTENT_SECRET` | Отдельный стабильный server-only HMAC-секрет для защищённой дедупликации записи |
@@ -1154,6 +1163,12 @@ Certbot-контейнер проверяет сертификат каждые 
 ---
 
 ## Последние изменения (сентябрь 2026)
+
+### Именованные учётные записи админки и журнал доступа (9 сентября 2026, Фаза 2 п.7 аудита)
+
+- Вход по имени пользователя и паролю; `AdminUser` с ролями `admin`/`staff`, scrypt-хеши, bootstrap учётной записи `admin` из `ADMIN_PASSWORD` при первом входе
+- `AdminSession.userId`, блокировка пользователя завершает его сессии; actor аудита — `u:<id>`
+- `staff` не может уничтожать ПДн, завершать все сессии, генерировать постеры и управлять пользователями; `/admin/users` для администратора с журналом доступа к ПДн и вкладка «История доступа» в карточке пациента
 
 ### Баннер согласия на аналитику и отзыв согласия (9 сентября 2026, Фаза 2 п.5 аудита)
 

@@ -3,7 +3,7 @@
  */
 
 import { createHmac } from 'node:crypto'
-import { getTokenFromCookie, getTokenSecret, isAuthenticated, validateOrigin } from './auth.js'
+import { currentAdmin, getTokenFromCookie, getTokenSecret, isAuthenticated, validateOrigin } from './auth.js'
 import { checkRateLimit } from './rate-limit.js'
 import { readBoundedJson } from './bounded-json.js'
 import { getClientIp } from './client-ip.js'
@@ -81,14 +81,29 @@ export async function guardAdminWrite(request) {
 }
 
 /**
- * Derives a stable audit identity from a valid session without exposing its token.
+ * Audit identity of the caller: the named user id (`u:<uuid>`), so two logins of the same
+ * operator share one actor. A legacy session without a user falls back to a session fingerprint.
  */
 export async function adminActor(request) {
   if (!await isAuthenticated(request)) throw new TypeError('Authenticated admin session is required')
+  const user = await currentAdmin(request)
+  if (user) return `u:${user.id}`
   const token = getTokenFromCookie(request)
   if (typeof token !== 'string' || token.length === 0) throw new TypeError('Authenticated admin session is required')
   const digest = createHmac('sha256', getTokenSecret()).update(ACTOR_DOMAIN, 'utf8').update(token, 'utf8').digest('hex')
   return `v1:${digest}`
+}
+
+/**
+ * Restricts a route to the `admin` role after the normal write checks: staff cannot destroy
+ * personal data, end all sessions, generate posters or manage users.
+ */
+export async function guardAdminRole(request, { guard = guardAdminWrite } = {}) {
+  const blocked = await guard(request)
+  if (blocked) return blocked
+  const user = await currentAdmin(request)
+  if (user?.role === 'admin') return undefined
+  return new Response(JSON.stringify({ error: 'Forbidden', code: 'ROLE_REQUIRED' }), { status: 403, headers: JSON_HEADERS })
 }
 
 /**

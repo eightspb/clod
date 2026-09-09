@@ -10,7 +10,7 @@ const REVEALED = { id: PATIENT_ID, profile: { firstName: 'Лёля', lastName: '
 const AMBIGUOUS = { id: '73000000-0000-4000-8000-000000000003', sourceName: VISIT.sourceName, sourceRow: 41, startsAt: null, sourceStatus: 'unknown', linkStatus: 'ambiguous', linkMethod: 'exact_clinic_card', evidenceLevel: 'strong', candidates: [{ patientId: PATIENT_ID, evidenceCode: 'EXACT_CLINIC_CARD', score: 90 }, { patientId: SECOND_PATIENT_ID, evidenceCode: 'EXACT_CLINIC_CARD', score: 90 }] }
 
 async function authenticate(page, baseURL) {
-  const response = await page.request.post('/api/auth/login', { data: { password: process.env.ADMIN_PASSWORD }, headers: { Origin: baseURL } })
+  const response = await page.request.post('/api/auth/login', { data: { login: 'admin', password: process.env.ADMIN_PASSWORD }, headers: { Origin: baseURL } })
   expect(response.status(), await response.text()).toBe(200)
 }
 

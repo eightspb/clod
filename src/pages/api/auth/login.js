@@ -2,10 +2,10 @@ export const prerender = false
 
 import {
   adminSessions,
+  adminUsers,
   assertAuthConfiguration,
   buildSetCookie,
   getAdminPassword,
-  timingSafeEqualText,
   validateOrigin,
 } from '../../../lib/auth.js'
 import { getClientIp } from '../../../lib/client-ip.js'
@@ -21,8 +21,9 @@ function json(payload, status, headers = {}) {
 }
 
 /**
- * Password login. Failed attempts are counted from AdminAuthEvent, so the lockout survives a
- * container restart instead of resetting with the in-memory limiter.
+ * Login by user name and password. Failed attempts are counted from AdminAuthEvent, so the
+ * lockout survives a container restart instead of resetting with the in-memory limiter. The
+ * first login ever bootstraps the built-in `admin` account from ADMIN_PASSWORD.
  */
 export async function POST({ request }) {
   if (!validateOrigin(request)) return json({ error: 'Forbidden' }, 403)
@@ -38,13 +39,16 @@ export async function POST({ request }) {
       const retryAfterSec = Math.ceil(FAILURE_WINDOW_MS / 1000)
       return json({ error: `Слишком много попыток. Попробуйте через ${retryAfterSec} секунд.` }, 429, { 'Retry-After': String(retryAfterSec) })
     }
-    const { password } = parsed.value ?? {}
-    if (!timingSafeEqualText(typeof password === 'string' ? password : '', getAdminPassword())) {
+    const { login, password } = parsed.value ?? {}
+    const users = adminUsers()
+    await users.bootstrap({ password: getAdminPassword() })
+    const user = await users.authenticate({ login: typeof login === 'string' ? login.trim().toLowerCase() : '', password: typeof password === 'string' ? password : '' })
+    if (!user) {
       await sessions.record({ kind: 'login_failure', ip, userAgent })
-      return json({ error: 'Неверный пароль' }, 401)
+      return json({ error: 'Неверное имя пользователя или пароль' }, 401)
     }
-    const token = await sessions.issue()
-    await sessions.record({ kind: 'login_success', actor: sessions.sessionId(token), ip, userAgent })
+    const token = await sessions.issue({ userId: user.id })
+    await sessions.record({ kind: 'login_success', actor: `u:${user.id}`, ip, userAgent })
     return json({ ok: true }, 200, { 'Set-Cookie': buildSetCookie(token) })
   } catch (err) {
     console.error('[auth/login]', err?.code ?? err?.name ?? 'UNKNOWN')

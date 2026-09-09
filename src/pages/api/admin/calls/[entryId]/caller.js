@@ -1,5 +1,6 @@
 export const prerender = false
 
+import { guardAdminPii, guardAdminRole } from '../../../../../lib/admin-api.js'
 import { db } from '../../../../../lib/database.js'
 import { createCallCallerEndpoint } from '../../../../../lib/admin-call-api.js'
 import { createMangoCallRecords } from '../../../../../lib/mango-call-records.js'
@@ -18,5 +19,10 @@ function log(stage) {
   console.error('[admin/calls/[entryId]/caller]', stage)
 }
 
+/** Destruction of a caller number is reserved for the admin role. */
+function guard(request) {
+  return guardAdminRole(request, { guard: guardAdminPii })
+}
+
 export { createCallCallerEndpoint }
-export const DELETE = createCallCallerEndpoint({ records, log })
+export const DELETE = createCallCallerEndpoint({ records, guard, log })

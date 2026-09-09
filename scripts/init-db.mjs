@@ -273,7 +273,18 @@ const adminSessionTableStatement = `CREATE TABLE IF NOT EXISTS AdminSession (
     id TEXT PRIMARY KEY,
     issuedAt TEXT NOT NULL,
     lastSeenAt TEXT NOT NULL,
-    revokedAt TEXT
+    revokedAt TEXT,
+    userId TEXT
+  )`
+const adminUserTableStatement = `CREATE TABLE IF NOT EXISTS AdminUser (
+    id TEXT PRIMARY KEY,
+    login TEXT NOT NULL,
+    displayName TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('admin', 'staff')),
+    passwordHash TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    disabledAt TEXT,
+    passwordChangedAt TEXT NOT NULL
   )`
 const adminAuthEventTableStatement = `CREATE TABLE IF NOT EXISTS AdminAuthEvent (
     id TEXT PRIMARY KEY,
@@ -430,11 +441,13 @@ const statements = [
   mangoCallAccessTableStatement,
   mangoCallIssueTableStatement,
   adminSessionTableStatement,
+  adminUserTableStatement,
   adminAuthEventTableStatement,
   'CREATE INDEX IF NOT EXISTS MangoCallAccess_entryId_createdAt_idx ON MangoCallAccess(entryId, createdAt)',
 
   'CREATE INDEX IF NOT EXISTS MangoCallIssue_createdAt_idx ON MangoCallIssue(createdAt)',
   'CREATE INDEX IF NOT EXISTS AdminSession_lastSeenAt_idx ON AdminSession(lastSeenAt)',
+  'CREATE UNIQUE INDEX IF NOT EXISTS AdminUser_login_unique ON AdminUser(login)',
   'CREATE INDEX IF NOT EXISTS AdminAuthEvent_ip_kind_createdAt_idx ON AdminAuthEvent(ip, kind, createdAt)',
   'CREATE INDEX IF NOT EXISTS AdminAuthEvent_createdAt_idx ON AdminAuthEvent(createdAt)',
 ]
@@ -825,10 +838,26 @@ const adminSessionColumns = [
   ['issuedAt', 'TEXT', 1, null, 0],
   ['lastSeenAt', 'TEXT', 1, null, 0],
   ['revokedAt', 'TEXT', 0, null, 0],
+  ['userId', 'TEXT', 0, null, 0],
 ]
 const adminSessionIndexes = [
   { name: 'AdminSession_lastSeenAt_idx', unique: 0, origin: 'c', partial: 0, columns: ['lastSeenAt'], collations: ['BINARY'], descending: [0] },
+  { name: 'AdminSession_userId_idx', unique: 0, origin: 'c', partial: 0, columns: ['userId'], collations: ['BINARY'], descending: [0] },
   { name: 'sqlite_autoindex_AdminSession_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
+]
+const adminUserColumns = [
+  ['id', 'TEXT', 0, null, 1],
+  ['login', 'TEXT', 1, null, 0],
+  ['displayName', 'TEXT', 1, null, 0],
+  ['role', 'TEXT', 1, null, 0],
+  ['passwordHash', 'TEXT', 1, null, 0],
+  ['createdAt', 'TEXT', 1, null, 0],
+  ['disabledAt', 'TEXT', 0, null, 0],
+  ['passwordChangedAt', 'TEXT', 1, null, 0],
+]
+const adminUserIndexes = [
+  { name: 'AdminUser_login_unique', unique: 1, origin: 'c', partial: 0, columns: ['login'], collations: ['BINARY'], descending: [0] },
+  { name: 'sqlite_autoindex_AdminUser_1', unique: 1, origin: 'pk', partial: 0, columns: ['id'], collations: ['BINARY'], descending: [0] },
 ]
 const adminAuthEventColumns = [
   ['id', 'TEXT', 0, null, 1],
@@ -866,6 +895,7 @@ const clinicSchemas = [
   { name: 'MangoCallAccess', statement: mangoCallAccessTableStatement, columns: mangoCallAccessColumns, indexes: mangoCallAccessIndexes },
   { name: 'MangoCallIssue', statement: mangoCallIssueTableStatement, columns: mangoCallIssueColumns, indexes: mangoCallIssueIndexes },
   { name: 'AdminSession', statement: adminSessionTableStatement, columns: adminSessionColumns, indexes: adminSessionIndexes },
+  { name: 'AdminUser', statement: adminUserTableStatement, columns: adminUserColumns, indexes: adminUserIndexes },
   { name: 'AdminAuthEvent', statement: adminAuthEventTableStatement, columns: adminAuthEventColumns, indexes: adminAuthEventIndexes },
 ]
 
@@ -974,6 +1004,8 @@ try {
     if (patientState === 'previous') await rebuildPatientTable(transaction)
     for (const statement of statements) await transaction.execute(statement)
     await addColumnIfMissing(transaction, 'PatientAccess', 'reason', 'TEXT')
+    await addColumnIfMissing(transaction, 'AdminSession', 'userId', 'TEXT')
+    await transaction.execute('CREATE INDEX IF NOT EXISTS AdminSession_userId_idx ON AdminSession(userId)')
     await verifyBookingIntentSchema(transaction)
     for (const schema of clinicSchemas) await verifySchema(transaction, schema)
     await transaction.commit()

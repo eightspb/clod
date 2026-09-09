@@ -1,0 +1,21 @@
+---
+export const prerender = false
+
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import { AdminUsers } from '../../components/admin/AdminUsers.jsx'
+import { AccessLog } from '../../components/admin/AccessLog.jsx'
+import { currentAdmin } from '../../lib/auth.js'
+
+const admin = await currentAdmin(Astro.request)
+if (admin?.role === 'staff') return Astro.redirect('/admin')
+---
+
+<AdminLayout title="Пользователи и доступ" activeSection="users">
+  <div class="space-y-10">
+    <AdminUsers client:load />
+    <section aria-labelledby="access-log-title" class="space-y-4">
+      <h2 id="access-log-title" class="font-serif text-2xl text-clay-dark">Журнал доступа к персональным данным</h2>
+      <AccessLog client:load />
+    </section>
+  </div>
+</AdminLayout>
