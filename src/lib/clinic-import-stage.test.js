@@ -15,7 +15,7 @@ const MANIFEST_HASH = createHash('sha256').update(JSON.stringify({ version: 1, f
 const SECRET_VALUES = Object.freeze(['Скрытая Фамилия', '+79991112233', '0000000000007001', 'Скрытый комментарий', 'Скрытый адрес', 'Скрытая услуга', 'female'])
 const IDENTITY_EVIDENCE = Object.freeze({ exactEhr: 0, sameFioBirthDate: 0, patronymicCorrection: 0, surnameChange: 0, sameFioMissingBirthDate: 0, surnameChangeMissingBirthDate: 0, componentConflicts: 0, conflictingStrongIdentifiers: 0, insufficientEvidence: 0, sharedCardDifferentPeople: 0, supplementalPatients: 0, supplementalEnrichments: 0, supplementalIssues: 0 })
 const VISIT_EVIDENCE = Object.freeze({ total: 1, linked: 1, ambiguous: 0, unmatched: 0, exactEhr: 1, exactClinicCard: 0, leadingZeroClinicCard: 0, phoneCompatibleName: 0, exactFullName: 0, conflictingCommentEvidence: 0, missingDate: 0, emptyStatus: 0, shortRow: 0, invalidStartDate: 0, invalidEndDate: 0, controlCharValue: 0, valueTooLarge: 0 })
-const CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 1, patients: 1, visits: 1, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0, nameHistoryRecords: 1 })
+const CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 1, patients: 1, visits: 1, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 1, primaryMerges: 0, supplementalPatients: 0, nameHistoryRecords: 1, issues: 0, linkedVisits: 1, ambiguousVisits: 0, unmatchedVisits: 0, invalidStartDates: 0 })
 
 function source(sourceRow) {
   return Object.freeze({ sourceName: SOURCE_NAMES.pd, sourceRow })
@@ -96,6 +96,8 @@ function ambiguousBundle(change = () => {}) {
     value.consents.push({ ...value.consents[0], id: '00000000-0000-8000-8000-000000000086', patientId, status: 'not_granted' })
     value.historicalVisits[0].patientId = null
     value.historicalVisits[0].linkStatus = 'ambiguous'
+    value.report.controls.linkedVisits = 0
+    value.report.controls.ambiguousVisits = 1
     value.historicalVisits[0].linkMethod = 'exact_full_name'
     value.historicalVisits[0].evidenceLevel = 'moderate'
     value.sourceRows.find(({ sourceRole }) => sourceRole === 'visits').patientId = null

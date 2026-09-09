@@ -109,3 +109,21 @@ describe('schema contract migration', () => {
     expect(mismatches).toEqual([])
   })
 })
+
+describe('historical visit manual-link migration', () => {
+  it('upgrades the schema-contract release shape that had no manual link method', async () => {
+    const path = await databasePath('clod-schema-manual-link-')
+    await migrate(path)
+    const client = createClient({ url: `file:${path}` })
+    await client.execute('DROP TABLE HistoricalVisitCandidate')
+    await client.execute('DROP TABLE HistoricalVisit')
+    await client.execute("CREATE TABLE HistoricalVisit (id TEXT PRIMARY KEY, batchId TEXT NOT NULL, sourceName TEXT NOT NULL, sourceRow INTEGER NOT NULL, patientId TEXT, appointmentIdCiphertext TEXT, appointmentIdFingerprint TEXT, startsAt TEXT, endsAt TEXT, sourceStatus TEXT NOT NULL, doctorCiphertext TEXT, detailsCiphertext TEXT, linkStatus TEXT NOT NULL, linkMethod TEXT, evidenceLevel TEXT, createdAt TEXT NOT NULL, piiDestroyedAt TEXT, CHECK (linkStatus IN ('linked', 'ambiguous', 'unmatched')), CHECK (linkMethod IS NULL OR linkMethod IN ('exact_ehr', 'exact_clinic_card', 'leading_zero_clinic_card', 'phone_compatible_name', 'exact_full_name', 'conflicting_comment_evidence')), CHECK (evidenceLevel IS NULL OR evidenceLevel IN ('exact', 'strong', 'moderate', 'none')), FOREIGN KEY (batchId) REFERENCES ImportBatch(id), FOREIGN KEY (patientId) REFERENCES Patient(id))")
+    for (const statement of ["CREATE INDEX HistoricalVisit_appointmentIdFingerprint_idx ON HistoricalVisit(appointmentIdFingerprint)", "CREATE INDEX HistoricalVisit_linkStatus_startsAt_idx ON HistoricalVisit(linkStatus, startsAt)", "CREATE INDEX HistoricalVisit_patientId_startsAt_idx ON HistoricalVisit(patientId, startsAt)", "CREATE UNIQUE INDEX HistoricalVisit_batchId_sourceName_sourceRow_unique ON HistoricalVisit(batchId, sourceName, sourceRow)"]) await client.execute(statement).catch(() => undefined)
+    client.close()
+    await migrate(path)
+    const upgraded = createClient({ url: `file:${path}` })
+    const sql = await upgraded.execute("SELECT sql FROM sqlite_master WHERE name = 'HistoricalVisit'")
+    upgraded.close()
+    expect(sql.rows[0].sql).toContain("'manual'")
+  })
+})

@@ -28,7 +28,7 @@ const MAX_COUNT = 50_000_000
 const MAX_CANDIDATES_PER_VISIT = 2_048
 const MAX_PLAIN_VALUE_WORK = 10_000
 const MAX_REVEAL_JSON_BYTES = 1024 * 1024
-const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', ambiguous: true, linked: false }) })
+const LINK_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ level: 'exact', ambiguous: false }), exact_clinic_card: Object.freeze({ level: 'strong', ambiguous: true }), leading_zero_clinic_card: Object.freeze({ level: 'strong', ambiguous: false }), phone_compatible_name: Object.freeze({ level: 'strong', ambiguous: true }), exact_full_name: Object.freeze({ level: 'moderate', ambiguous: true }), conflicting_comment_evidence: Object.freeze({ level: 'moderate', ambiguous: true, linked: false }), manual: Object.freeze({ level: 'exact', ambiguous: false }) })
 
 function json(payload, status) {
   return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS })

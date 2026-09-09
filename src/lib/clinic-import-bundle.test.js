@@ -13,7 +13,7 @@ const PARSING_MODES = Object.freeze({ pd: 'strict', patients: 'strict', visits: 
 const PRIMARY_EHR = '0000000000007001'
 const SUPPLEMENTAL_EHR = '0000000000007002'
 const SECRET_VALUES = Object.freeze(['Секретова', 'Тайный комментарий', 'Секретная услуга', 'С-7001'])
-const SYNTHETIC_CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 12, primaryMerges: 0, supplementalPatients: 1, nameHistoryRecords: 0 })
+const SYNTHETIC_CONTROLS = Object.freeze({ primaryRows: 1, medeskEhrIdentifiers: 2, patients: 2, visits: 2, missingDates: 0, validBirthDates: 1, cardCollisionGroups: 0, invoices: 12, primaryMerges: 0, supplementalPatients: 1, nameHistoryRecords: 0, issues: 2, linkedVisits: 2, ambiguousVisits: 0, unmatchedVisits: 0, invalidStartDates: 0 })
 
 function sourceRow(role, sourceRow, values, structuralIssues = []) {
   return Object.freeze({ sourceRole: role, sourceName: FILENAMES[role], sourceRow, values: Object.freeze(values), structuralIssues: Object.freeze(structuralIssues) })

@@ -298,3 +298,14 @@ describe('PatientDetails for the staff role', () => {
     expect(trigger).toBe(null)
   })
 })
+
+describe('PatientDetails issue resolution', () => {
+  it('marks an issue resolved through PATCH and reloads the card', async () => {
+    const calls = transport([json(DETAIL), json({ data: { id: ISSUE.id, resolvedAt: '2026-09-09T10:00:00.000Z', alreadyResolved: false } }), json({ ...DETAIL, history: { ...DETAIL.history, issues: { data: [{ ...ISSUE, resolvedAt: '2026-09-09T10:00:00.000Z' }], page: DETAIL.history.issues.page } } })])
+    render(<PatientDetails patientId={PATIENT_ID} onClose={() => undefined} onDestroyed={() => undefined} />)
+    fireEvent.click(await screen.findByRole('tab', { name: 'Проблемы данных' }))
+    fireEvent.click(await screen.findByRole('button', { name: `Отметить разрешённой проблему строки ${ISSUE.sourceRow}` }))
+    await waitFor(() => expect(calls).toHaveLength(3))
+    expect({ url: calls[1][0], method: calls[1][1].method, body: JSON.parse(calls[1][1].body), button: screen.queryByRole('button', { name: `Отметить разрешённой проблему строки ${ISSUE.sourceRow}` }) }).toEqual({ url: `/api/admin/patient-history/issues/${ISSUE.id}`, method: 'PATCH', body: { resolved: true }, button: null })
+  })
+})

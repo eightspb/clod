@@ -17,6 +17,17 @@ async function page(url) {
   return response.json()
 }
 
+async function linkVisit(visitId, patientId) {
+  const response = await fetch(`/api/admin/patient-history/visits/${encodeURIComponent(visitId)}/link`, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ patientId }) })
+  if (response.status === 401) {
+    window.location.href = '/admin/login'
+    throw new Error('Unauthorized')
+  }
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(payload.message || `HTTP ${response.status}`)
+  return payload.data
+}
+
 /** Renders the read-only queue of unresolved historical visits. */
 export function PatientHistoryIssues() {
   const [items, setItems] = useState([])
@@ -24,6 +35,8 @@ export function PatientHistoryIssues() {
   const [status, setStatus] = useState('ambiguous')
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [notice, setNotice] = useState('')
+  const [linking, setLinking] = useState('')
   const requestGeneration = useRef(0)
   const load = useCallback(async (number, currentStatus) => {
     const generation = requestGeneration.current + 1
@@ -50,11 +63,25 @@ export function PatientHistoryIssues() {
     load(1, status)
     return () => { requestGeneration.current += 1 }
   }, [load, status])
+  async function link(item, patientId) {
+    setLinking(`${item.id}:${patientId}`)
+    setNotice('')
+    try {
+      const result = await linkVisit(item.id, patientId)
+      setNotice(`Визит из строки ${item.sourceRow} привязан к пациенту; закрыто проблем: ${result.resolvedIssues}`)
+      await load(pagination.number, status)
+    } catch (failure) {
+      setNotice(failure.message)
+    } finally {
+      setLinking('')
+    }
+  }
   if (isLoading && items.length === 0) return <div role="status" className="clay-card flex min-h-40 items-center justify-center p-6 text-clay-admin-muted">Загружаем проблемы сопоставления…</div>
   return (
     <section role="region" aria-label="Проблемы сопоставления визитов" className="clay-card space-y-4 p-5 sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-clay-peach">Контроль качества</p><h2 className="mt-2 font-serif text-2xl text-clay-dark">Проблемы сопоставления</h2><p className="mt-1 text-sm text-clay-admin-muted">Только просмотр причин и кандидатов, без автоматического объединения.</p></div><label className="flex min-w-56 flex-col gap-1.5 text-xs font-bold uppercase tracking-wider text-clay-admin-muted">Статус проблемы<select className={INPUT_CLASS} value={status} onChange={(event) => setStatus(event.target.value)}><option value="ambiguous">Неоднозначные</option><option value="unmatched">Не сопоставленные</option></select></label></div>
-      {errorMessage ? <div role="alert" className="border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">{errorMessage}</div> : items.length === 0 ? <p className="py-6 text-center text-sm text-clay-admin-muted">Проблем этого типа нет</p> : <div className="space-y-2">{items.map((item) => <article key={item.id} className="rounded-xl border border-clay-admin-border bg-white px-4 py-3"><div className="flex flex-wrap items-start justify-between gap-3"><div className="flex items-start gap-3"><AlertTriangle aria-hidden="true" className="mt-0.5 shrink-0 text-amber-600" size={18} /><div><strong className="text-sm text-clay-admin-dark">{STATUS_LABELS[item.linkStatus] || item.linkStatus}</strong><p className="mt-1 text-xs text-clay-admin-muted">Строка источника {item.sourceRow} · {item.startsAt || 'дата не указана'}</p></div></div><span className="rounded-full bg-clay-admin-bg px-3 py-1 text-xs font-semibold text-clay-admin-dark">{item.candidates.length} кандидатов</span></div>{item.candidates.length > 0 && <ul className="mt-3 space-y-2 border-t border-clay-admin-border pt-3">{item.candidates.map((candidate) => <li key={`${candidate.patientId}:${candidate.evidenceCode}`} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="text-clay-text">{EVIDENCE_LABELS[candidate.evidenceCode] || candidate.evidenceCode} · {candidate.score}</span><a className="inline-flex min-h-11 items-center font-semibold text-clay-mint hover:underline" href={`/admin/patients?patient=${encodeURIComponent(candidate.patientId)}`}>Открыть кандидата</a></li>)}</ul>}</article>)}</div>}
+      {errorMessage ? <div role="alert" className="border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">{errorMessage}</div> : items.length === 0 ? <p className="py-6 text-center text-sm text-clay-admin-muted">Проблем этого типа нет</p> : <div className="space-y-2">{items.map((item) => <article key={item.id} className="rounded-xl border border-clay-admin-border bg-white px-4 py-3"><div className="flex flex-wrap items-start justify-between gap-3"><div className="flex items-start gap-3"><AlertTriangle aria-hidden="true" className="mt-0.5 shrink-0 text-amber-600" size={18} /><div><strong className="text-sm text-clay-admin-dark">{STATUS_LABELS[item.linkStatus] || item.linkStatus}</strong><p className="mt-1 text-xs text-clay-admin-muted">Строка источника {item.sourceRow} · {item.startsAt || 'дата не указана'}</p></div></div><span className="rounded-full bg-clay-admin-bg px-3 py-1 text-xs font-semibold text-clay-admin-dark">{item.candidates.length} кандидатов</span></div>{item.candidates.length > 0 && <ul className="mt-3 space-y-2 border-t border-clay-admin-border pt-3">{item.candidates.map((candidate) => <li key={`${candidate.patientId}:${candidate.evidenceCode}`} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="text-clay-text">{EVIDENCE_LABELS[candidate.evidenceCode] || candidate.evidenceCode} · {candidate.score}</span><span className="flex items-center gap-3"><a className="inline-flex min-h-11 items-center font-semibold text-clay-mint hover:underline" href={`/admin/patients?patient=${encodeURIComponent(candidate.patientId)}`}>Открыть кандидата</a>{item.linkStatus === 'ambiguous' && <button type="button" className={SMALL_BUTTON} disabled={linking !== ''} aria-label={`Привязать визит из строки ${item.sourceRow} к кандидату ${candidate.patientId}`} onClick={() => link(item, candidate.patientId)}>Привязать</button>}</span></li>)}</ul>}</article>)}</div>}
+      {notice && <p role="status" className="text-sm text-clay-admin-dark">{notice}</p>}
       {!errorMessage && <div className="flex items-center justify-between gap-3"><button type="button" className={SMALL_BUTTON} disabled={pagination.number <= 1 || isLoading} onClick={() => load(pagination.number - 1, status)} aria-label="Предыдущая страница проблем"><ChevronLeft aria-hidden="true" size={16} />Назад</button><span className="text-xs text-clay-admin-muted">Страница {pagination.number} из {pagination.pages || 1}</span><button type="button" className={SMALL_BUTTON} disabled={pagination.pages === 0 || pagination.number >= pagination.pages || isLoading} onClick={() => load(pagination.number + 1, status)} aria-label="Следующая страница проблем">Далее<ChevronRight aria-hidden="true" size={16} /></button></div>}
     </section>
   )

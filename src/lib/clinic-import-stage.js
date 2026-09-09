@@ -65,7 +65,7 @@ const PATIENT_REPORT_KEYS = Object.freeze(['total', 'supplemental', 'externalIde
 const IDENTITY_EVIDENCE_KEYS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate', 'componentConflicts', 'conflictingStrongIdentifiers', 'insufficientEvidence', 'sharedCardDifferentPeople', 'supplementalPatients', 'supplementalEnrichments', 'supplementalIssues'])
 const IDENTITY_MERGE_REASONS = Object.freeze(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate'])
 const VISIT_REPORT_KEYS = Object.freeze(['total', 'linked', 'ambiguous', 'unmatched', 'exactEhr', 'exactClinicCard', 'leadingZeroClinicCard', 'phoneCompatibleName', 'exactFullName', 'conflictingCommentEvidence', 'missingDate', 'emptyStatus', 'shortRow', 'invalidStartDate', 'invalidEndDate', 'controlCharValue', 'valueTooLarge'])
-const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords'])
+const CONTROL_KEYS = Object.freeze(['primaryRows', 'medeskEhrIdentifiers', 'patients', 'visits', 'missingDates', 'validBirthDates', 'cardCollisionGroups', 'invoices', 'primaryMerges', 'supplementalPatients', 'nameHistoryRecords', 'issues', 'linkedVisits', 'ambiguousVisits', 'unmatchedVisits', 'invalidStartDates'])
 const CANDIDATE_EVIDENCE_CODES = new Set(['EXACT_EHR', 'EXACT_CLINIC_CARD', 'LEADING_ZERO_CLINIC_CARD', 'PHONE_COMPATIBLE_NAME', 'EXACT_FULL_NAME', 'CONFLICTING_COMMENT_EVIDENCE'])
 const VISIT_EVIDENCE = Object.freeze({ exact_ehr: Object.freeze({ code: 'EXACT_EHR', level: 'exact', score: 100 }), exact_clinic_card: Object.freeze({ code: 'EXACT_CLINIC_CARD', level: 'strong', score: 90 }), leading_zero_clinic_card: Object.freeze({ code: 'LEADING_ZERO_CLINIC_CARD', level: 'strong', score: 80 }), phone_compatible_name: Object.freeze({ code: 'PHONE_COMPATIBLE_NAME', level: 'strong', score: 70 }), exact_full_name: Object.freeze({ code: 'EXACT_FULL_NAME', level: 'moderate', score: 60 }), conflicting_comment_evidence: Object.freeze({ code: 'CONFLICTING_COMMENT_EVIDENCE', level: 'moderate', score: 50 }) })
 const IDENTITY_ISSUE_CODES = new Set(['COMPONENT_IDENTITY_CONFLICT', 'CONFLICTING_STRONG_IDENTIFIER', 'INCOMPLETE_PATIENT_NAME', 'INSUFFICIENT_IDENTITY_EVIDENCE', 'SHARED_CARD_DIFFERENT_PEOPLE', 'SUPPLEMENTAL_EHR_AMBIGUOUS', 'SUPPLEMENTAL_EHR_NOT_FOUND', 'SUPPLEMENTAL_INSUFFICIENT_EVIDENCE', 'SUPPLEMENTAL_NAME_ONLY_MATCH'])
@@ -843,7 +843,7 @@ function verifyRelations(manifest, report, collections, identityMergeEvidenceVal
   const medesk = collections.externalIdentifiers.filter(({ system }) => system === 'medesk_ehr').length
   const supplemental = collections.patients.filter(({ isSupplemental }) => isSupplemental).length
   const validBirthDates = collections.sourceRows.filter(({ sourceRole, birthDateValid }) => sourceRole === 'pd' && birthDateValid).length
-  const controls = Object.freeze({ primaryRows: manifest.files.find(({ role }) => role === 'pd').rowCount, medeskEhrIdentifiers: medesk, patients: collections.patients.length, visits: collections.historicalVisits.length, missingDates: visits.missingDate, validBirthDates, cardCollisionGroups: cardCollisionGroups(collections), invoices: collections.invoices.length, primaryMerges: manifest.files.find(({ role }) => role === 'pd').rowCount - (collections.patients.length - supplemental), supplementalPatients: supplemental, nameHistoryRecords: collections.nameHistory.length })
+  const controls = Object.freeze({ primaryRows: manifest.files.find(({ role }) => role === 'pd').rowCount, medeskEhrIdentifiers: medesk, patients: collections.patients.length, visits: collections.historicalVisits.length, missingDates: visits.missingDate, validBirthDates, cardCollisionGroups: cardCollisionGroups(collections), invoices: collections.invoices.length, primaryMerges: manifest.files.find(({ role }) => role === 'pd').rowCount - (collections.patients.length - supplemental), supplementalPatients: supplemental, nameHistoryRecords: collections.nameHistory.length, issues: collections.identityIssues.length + collections.visitIssues.length + collections.normalizationIssues.length, linkedVisits: visits.linked, ambiguousVisits: visits.ambiguous, unmatchedVisits: visits.unmatched, invalidStartDates: visits.invalidStartDate })
   equalCounts(report.sourceRows.byRole, byRole, SOURCE_CONTRACTS.map(({ role }) => role))
   equalCounts(report.visits, visits, VISIT_REPORT_KEYS)
   if (!equalRecord(report.patients.evidenceCounts, identityEvidence, IDENTITY_EVIDENCE_KEYS) || !equalRecord(report.visits, visitEvidence, VISIT_REPORT_KEYS)) invalid()
@@ -983,6 +983,11 @@ function protectedInput(value, key) {
 
 function stageSummary(plan) {
   return Object.freeze({ patients: plan.patients.length, externalIdentifiers: plan.externalIdentifiers.length, contacts: plan.contacts.length, nameHistory: plan.nameHistory.length, historicalVisits: plan.historicalVisits.length, sourceRows: plan.sourceRows.length, invoices: plan.invoices.length, attachments: plan.attachments.length, issues: plan.identityIssues.length + plan.visitIssues.length + plan.normalizationIssues.length })
+}
+
+/** Merge decisions as printed by dry-run: reason and the two source coordinates, never a value. */
+function safeMergeEvidence(plan) {
+  return Object.freeze(plan.identityMergeEvidence.map(({ ordinal, reason, sources }) => Object.freeze({ ordinal, reason, sources: Object.freeze(sources.map(({ sourceName, sourceRow }) => Object.freeze({ sourceName, sourceRow }))) })))
 }
 
 function stageAad(manifestHash, planHash) {
@@ -1291,7 +1296,7 @@ export async function writeClinicImportStage(value, dependencies) {
     const after = await regularDigest(input.databasePath, fileSystem)
     if (before.hash !== after.hash || before.byteSize !== after.byteSize) invalid('DATABASE_CHANGED')
     await writeExclusive(stage.target, stage, encrypted.bytes, randomBytes, afterLink, fileSystem)
-    return Object.freeze({ version: VERSION, manifestHash: staged.plan.manifestHash, planHash: encrypted.planHash, byteSize: encrypted.bytes.byteLength, summary: stageSummary(staged.plan) })
+    return Object.freeze({ version: VERSION, manifestHash: staged.plan.manifestHash, planHash: encrypted.planHash, byteSize: encrypted.bytes.byteLength, summary: stageSummary(staged.plan), mergeEvidence: safeMergeEvidence(staged.plan) })
   } catch (error) {
     if (error instanceof ClinicImportStageError) throw error
     throw new ClinicImportStageError('STAGE_WRITE_FAILED')

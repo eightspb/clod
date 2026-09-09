@@ -94,3 +94,20 @@ describe('PatientHistoryIssues', () => {
     expect({ message: alert.textContent, leaked: alert.textContent.includes('Секретный') }).toEqual({ message: 'Не удалось загрузить проблемы сопоставления', leaked: false })
   })
 })
+
+describe('PatientHistoryIssues manual linking', () => {
+  it('posts the chosen candidate and reloads the queue', async () => {
+    const calls = transport([json(PAGE), json({ data: { id: ITEM.id, patientId: SECOND_PATIENT_ID, linkedAt: '2026-09-09T10:00:00.000Z', resolvedIssues: 1 } }), json({ data: [], page: { number: 1, size: 50, total: 0, pages: 0 } })])
+    render(<PatientHistoryIssues />)
+    fireEvent.click(await screen.findByRole('button', { name: `Привязать визит из строки ${ITEM.sourceRow} к кандидату ${SECOND_PATIENT_ID}` }))
+    await screen.findByRole('status')
+    expect({ url: calls[1][0], body: JSON.parse(calls[1][1].body), reloaded: calls.length }).toEqual({ url: `/api/admin/patient-history/visits/${ITEM.id}/link`, body: { patientId: SECOND_PATIENT_ID }, reloaded: 3 })
+  })
+
+  it('offers no link button for unmatched visits', async () => {
+    transport([json(UNMATCHED_PAGE)])
+    render(<PatientHistoryIssues />)
+    await screen.findByText('Не сопоставлен')
+    expect(screen.queryByRole('button', { name: /Привязать визит/ })).toBe(null)
+  })
+})

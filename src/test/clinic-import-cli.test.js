@@ -127,7 +127,7 @@ describe('clinic history import CLI', () => {
     const value = await fixture()
     const runtime = dependencies()
     const result = await runClinicImportCommand(dryArguments(value), environment(), runtime.values)
-    expect({ mode: result.mode, calls: runtime.calls, output: runtime.output, leaked: runtime.output.some((line) => line.includes('synthetic') || line.includes(value.root)) }).toEqual({ mode: 'dry-run', calls: { bundle: 1, stage: 1, apply: 0 }, output: [JSON.stringify({ mode: 'dry-run', manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, summary: { patients: 2, historicalVisits: 3 } })], leaked: false })
+    expect({ mode: result.mode, calls: runtime.calls, output: runtime.output, leaked: runtime.output.some((line) => line.includes('synthetic') || line.includes(value.root)) }).toEqual({ mode: 'dry-run', calls: { bundle: 1, stage: 1, apply: 0 }, output: [JSON.stringify({ mode: 'dry-run', manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, summary: { patients: 2, historicalVisits: 3 }, merges: [] })], leaked: false })
   })
 
   it('rejects unknown arguments before calling any import service', async () => {
@@ -409,5 +409,19 @@ describe('clinic history import CLI', () => {
   it('prints only a fixed safe error code when invoked as a subprocess', async () => {
     const result = await captured(() => executeFile(process.execPath, [join(PROJECT_ROOT, 'scripts/import-clinic-history.mjs'), '--unknown', 'private-value'], { cwd: PROJECT_ROOT, env: {}, timeout: 10_000, maxBuffer: 10_000 }))
     expect({ failed: result.error !== null, stderr: result.error?.stderr, leaked: result.error?.stderr.includes('private-value') }).toEqual({ failed: true, stderr: `${JSON.stringify({ status: 'failed', code: 'CLI_INPUT_INVALID' })}\n`, leaked: false })
+  })
+
+  it('prints merge decisions of a dry-run as reasons and source coordinates only', async () => {
+    const value = await fixture()
+    const runtime = dependencies({ writeStage: async () => Object.freeze({ manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, summary: Object.freeze({ patients: 2, historicalVisits: 3 }), mergeEvidence: [{ ordinal: 1, reason: 'exactEhr', sources: [{ sourceName: 'PD.csv', sourceRow: 12 }, { sourceName: 'PD.csv', sourceRow: 40 }], patientId: 'должен-быть-отброшен' }] }) })
+    const result = await runClinicImportCommand(dryArguments(value), environment(), runtime.values)
+    expect(result.merges).toEqual([{ ordinal: 1, reason: 'exactEhr', sources: [{ sourceName: 'PD.csv', sourceRow: 12 }, { sourceName: 'PD.csv', sourceRow: 40 }] }])
+  })
+
+  it('refuses a dry-run whose merge list carries an unknown reason', async () => {
+    const value = await fixture()
+    const runtime = dependencies({ writeStage: async () => Object.freeze({ manifestHash: MANIFEST_HASH, planHash: PLAN_HASH, summary: Object.freeze({ patients: 2 }), mergeEvidence: [{ ordinal: 1, reason: 'Фамилия совпала', sources: [{ sourceName: 'PD.csv', sourceRow: 1 }, { sourceName: 'PD.csv', sourceRow: 2 }] }] }) })
+    const result = await captured(() => runClinicImportCommand(dryArguments(value), environment(), runtime.values))
+    expect({ code: result.error?.code, output: runtime.output }).toEqual({ code: 'CLI_FAILED', output: [] })
   })
 })

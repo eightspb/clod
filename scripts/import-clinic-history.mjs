@@ -275,9 +275,22 @@ function countRecord(value) {
   return Object.freeze(result)
 }
 
+const MERGE_REASONS = new Set(['exactEhr', 'sameFioBirthDate', 'patronymicCorrection', 'surnameChange', 'sameFioMissingBirthDate', 'surnameChangeMissingBirthDate'])
+
+function safeMerge(value, index) {
+  if (value === null || typeof value !== 'object' || value.ordinal !== index + 1 || !MERGE_REASONS.has(value.reason) || !Array.isArray(value.sources) || value.sources.length !== 2) invalid('CLI_FAILED')
+  const sources = value.sources.map((source) => {
+    if (source === null || typeof source !== 'object' || typeof source.sourceName !== 'string' || !/^[A-Za-z0-9._ \u2014-]{1,80}$/.test(source.sourceName) || !Number.isSafeInteger(source.sourceRow) || source.sourceRow < 1) invalid('CLI_FAILED')
+    return Object.freeze({ sourceName: source.sourceName, sourceRow: source.sourceRow })
+  })
+  return Object.freeze({ ordinal: value.ordinal, reason: value.reason, sources: Object.freeze(sources) })
+}
+
 function printedDryRun(written) {
   if (written === null || typeof written !== 'object') invalid('CLI_FAILED')
-  return Object.freeze({ mode: 'dry-run', manifestHash: hash(written.manifestHash, 'CLI_FAILED'), planHash: hash(written.planHash, 'CLI_FAILED'), summary: countRecord(written.summary) })
+  const merges = written.mergeEvidence === undefined ? [] : written.mergeEvidence
+  if (!Array.isArray(merges) || merges.length > 100_000) invalid('CLI_FAILED')
+  return Object.freeze({ mode: 'dry-run', manifestHash: hash(written.manifestHash, 'CLI_FAILED'), planHash: hash(written.planHash, 'CLI_FAILED'), summary: countRecord(written.summary), merges: Object.freeze(merges.map(safeMerge)) })
 }
 
 function printedApply(result, expectedManifestHash, expectedPlanHash) {

@@ -47,8 +47,8 @@ async function historyRows(client) {
   await client.execute({ sql: 'INSERT INTO PatientExternalIdentifier VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['75000000-0000-4000-8000-000000000005', PATIENT_ID, 'clinic_card', 'sealed-card', 'v1:card', null, 'clinic_card:v1:card', PD_SOURCE, 17, true, NOW, NOW] })
   await client.execute({ sql: 'INSERT INTO PatientContact VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['76000000-0000-4000-8000-000000000006', PATIENT_ID, 'phone', 'sealed-contact', 'v1:phone', '+7 •••••••• 41', true, PD_SOURCE, NOW, NOW, null] })
   await client.execute({ sql: 'INSERT INTO PatientNameHistory VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['77000000-0000-4000-8000-000000000007', PATIENT_ID, 'sealed-name', 'v1:name-secondary', PD_SOURCE, 'sealed-source', NOW, 'surname_change', null] })
-  await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 29, PATIENT_ID, 'sealed-appointment', 'v1:appointment', null, null, 'unknown', 'sealed-doctor', 'sealed-details', 'linked', 'exact_clinic_card', 'strong', NOW, null] })
-  await client.execute({ sql: 'INSERT INTO ImportIssue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['78000000-0000-4000-8000-000000000008', BATCH_ID, VISIT_SOURCE, 29, 'INVALID_START_DATE', PATIENT_ID, VISIT_ID, null, null, NOW, null] })
+  await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 29, PATIENT_ID, 'sealed-appointment', 'v1:appointment', null, null, 'unknown', 'sealed-doctor', 'sealed-details', 'linked', 'exact_clinic_card', 'strong', NOW, null, null, null] })
+  await client.execute({ sql: 'INSERT INTO ImportIssue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['78000000-0000-4000-8000-000000000008', BATCH_ID, VISIT_SOURCE, 29, 'INVALID_START_DATE', PATIENT_ID, VISIT_ID, null, null, NOW, null, null] })
 }
 
 function sealed(domain, value) {
@@ -67,7 +67,7 @@ async function protectedRows(client) {
 }
 
 async function protectedVisitRows(client) {
-  await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 29, PATIENT_ID, sealed('visit_details', { value: 'appointment-protected-29' }), 'v1:appointment', null, null, 'completed', sealed('visit_details', { value: 'Врач Защищённый' }), sealed('visit_details', { services: ['Приём'], cabinet: '7', comment: 'Позвонить вечером' }), 'linked', 'exact_ehr', 'exact', NOW, null] })
+  await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 29, PATIENT_ID, sealed('visit_details', { value: 'appointment-protected-29' }), 'v1:appointment', null, null, 'completed', sealed('visit_details', { value: 'Врач Защищённый' }), sealed('visit_details', { services: ['Приём'], cabinet: '7', comment: 'Позвонить вечером' }), 'linked', 'exact_ehr', 'exact', NOW, null, null, null] })
 }
 
 async function captured(operation) {
@@ -160,7 +160,7 @@ describe('patient history records', () => {
   it('lists undated historical visits before dated ones', async () => {
     const { client, records } = await fixture()
     await historyRows(client)
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['79000000-0000-4000-8000-000000000009', BATCH_ID, VISIT_SOURCE, 30, PATIENT_ID, null, null, '2026-08-01T07:00:00.000Z', '2026-08-01T07:30:00.000Z', 'completed', null, null, 'linked', 'exact_clinic_card', 'strong', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['79000000-0000-4000-8000-000000000009', BATCH_ID, VISIT_SOURCE, 30, PATIENT_ID, null, null, '2026-08-01T07:00:00.000Z', '2026-08-01T07:30:00.000Z', 'completed', null, null, 'linked', 'exact_clinic_card', 'strong', NOW, null, null, null] })
     const result = await records.visits({ patientId: PATIENT_ID, page: 1, pageSize: 10, status: 'linked' })
     client.close()
     expect(result.items.map(({ startsAt }) => startsAt)).toEqual([null, '2026-08-01T07:00:00.000Z'])
@@ -240,7 +240,7 @@ describe('patient history records', () => {
 
   it('paginates unresolved visits and retains every safe candidate reason', async () => {
     const { client, records } = await fixture()
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000024', VISIT_ID, PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000025', VISIT_ID, SECOND_PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     const result = await records.linkIssues({ page: 1, pageSize: 70, status: 'ambiguous' })
@@ -250,7 +250,7 @@ describe('patient history records', () => {
 
   it('rejects an ambiguous visit with only one candidate', async () => {
     const { client, records } = await fixture()
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000024', VISIT_ID, PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     const failure = await captured(() => records.linkIssues({ page: 1, pageSize: 10, status: 'ambiguous' }))
     client.close()
@@ -259,7 +259,7 @@ describe('patient history records', () => {
 
   it('rejects unmatched candidates and mismatched linkage evidence', async () => {
     const { client, records } = await fixture()
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'unmatched', null, 'none', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'unmatched', null, 'none', NOW, null, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000024', VISIT_ID, PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     const unmatched = await captured(() => records.linkIssues({ page: 1, pageSize: 10, status: 'unmatched' }))
     await client.execute({ sql: 'DELETE FROM HistoricalVisitCandidate WHERE historicalVisitId = ?', args: [VISIT_ID] })
@@ -274,7 +274,7 @@ describe('patient history records', () => {
   it('rejects patient text stored as a visit candidate evidence code', async () => {
     const { client, records } = await fixture()
     const secret = 'IVANOV'
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000024', VISIT_ID, PATIENT_ID, secret, 90, NOW] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000025', VISIT_ID, SECOND_PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     const failure = await captured(() => records.linkIssues({ page: 1, pageSize: 10, status: 'ambiguous' }))
@@ -460,11 +460,11 @@ describe('patient history records', () => {
   it('destroys protected descendants of visits where the patient is only an ambiguity candidate', async () => {
     const { client, records } = await fixture()
     await protectedRows(client)
-    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [CANDIDATE_VISIT_ID, BATCH_ID, VISIT_SOURCE, 39, null, sealed('visit_details', { value: 'appointment-candidate-secret' }), 'v1:candidate-appointment', null, null, 'unknown', sealed('visit_details', { value: 'doctor-candidate-secret' }), sealed('visit_details', { comment: 'candidate-secret' }), 'ambiguous', 'exact_clinic_card', 'strong', NOW, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [CANDIDATE_VISIT_ID, BATCH_ID, VISIT_SOURCE, 39, null, sealed('visit_details', { value: 'appointment-candidate-secret' }), 'v1:candidate-appointment', null, null, 'unknown', sealed('visit_details', { value: 'doctor-candidate-secret' }), sealed('visit_details', { comment: 'candidate-secret' }), 'ambiguous', 'exact_clinic_card', 'strong', NOW, null, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000034', CANDIDATE_VISIT_ID, PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000035', CANDIDATE_VISIT_ID, SECOND_PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
     await client.execute({ sql: 'INSERT INTO ImportSourceRow VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['7c000000-0000-4000-8000-000000000032', BATCH_ID, VISIT_SOURCE, 39, null, CANDIDATE_VISIT_ID, sealed('source_row', { value: 'candidate-source-secret' }), 'sha256:candidate-source', NOW, null] })
-    await client.execute({ sql: 'INSERT INTO ImportIssue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['78000000-0000-4000-8000-000000000038', BATCH_ID, VISIT_SOURCE, 39, 'INVALID_START_DATE', null, CANDIDATE_VISIT_ID, sealed('source_row', { candidate: 'candidate-secret' }), sealed('source_row', { detail: 'candidate-secret' }), NOW, null] })
+    await client.execute({ sql: 'INSERT INTO ImportIssue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['78000000-0000-4000-8000-000000000038', BATCH_ID, VISIT_SOURCE, 39, 'INVALID_START_DATE', null, CANDIDATE_VISIT_ID, sealed('source_row', { candidate: 'candidate-secret' }), sealed('source_row', { detail: 'candidate-secret' }), NOW, null, null] })
     await client.execute({ sql: 'INSERT INTO HistoricalInvoice VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['7d000000-0000-4000-8000-000000000033', BATCH_ID, INVOICE_SOURCE, 3, CANDIDATE_VISIT_ID, sealed('invoice', { value: 'candidate-invoice-secret' }), 'incomplete_source', NOW, null] })
     await records.destroy({ id: PATIENT_ID, actor: ACTOR })
     const snapshot = await client.execute({ sql: 'SELECT (SELECT COUNT(*) FROM HistoricalVisit WHERE id = ?) AS visits, (SELECT COUNT(*) FROM HistoricalVisitCandidate WHERE historicalVisitId = ? AND patientId = ?) AS candidates, (SELECT COUNT(*) FROM HistoricalVisit WHERE id = ? AND appointmentIdCiphertext IS NULL AND appointmentIdFingerprint IS NULL AND doctorCiphertext IS NULL AND detailsCiphertext IS NULL AND piiDestroyedAt IS NOT NULL) + (SELECT COUNT(*) FROM ImportSourceRow WHERE historicalVisitId = ? AND payloadCiphertext IS NULL AND payloadHash = ? AND piiDestroyedAt IS NOT NULL) + (SELECT COUNT(*) FROM ImportIssue WHERE historicalVisitId = ? AND candidatesCiphertext IS NULL AND detailsCiphertext IS NULL) + (SELECT COUNT(*) FROM HistoricalInvoice WHERE historicalVisitId = ? AND payloadCiphertext IS NULL AND piiDestroyedAt IS NOT NULL) AS cleared', args: [CANDIDATE_VISIT_ID, CANDIDATE_VISIT_ID, PATIENT_ID, CANDIDATE_VISIT_ID, CANDIDATE_VISIT_ID, 'destroyed', CANDIDATE_VISIT_ID, CANDIDATE_VISIT_ID] })
@@ -505,5 +505,68 @@ describe('patient history records', () => {
     const row = await client.execute('SELECT patientId, callerFingerprint, piiDestroyedAt FROM MangoCall WHERE entryId = ?', ['entry-shared'])
     client.close()
     expect(row.rows[0]).toEqual({ patientId: SECOND_PATIENT_ID, callerFingerprint: fingerprint, piiDestroyedAt: null })
+  })
+})
+
+describe('patient history operator resolution', () => {
+  async function ambiguousVisit(client) {
+    await client.execute({ sql: 'INSERT INTO HistoricalVisit VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: [VISIT_ID, BATCH_ID, VISIT_SOURCE, 31, null, null, null, null, null, 'unknown', null, null, 'ambiguous', 'exact_clinic_card', 'strong', NOW, null, null, null] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000024', VISIT_ID, PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
+    await client.execute({ sql: 'INSERT INTO HistoricalVisitCandidate VALUES (?, ?, ?, ?, ?, ?)', args: ['7e000000-0000-4000-8000-000000000025', VISIT_ID, SECOND_PATIENT_ID, 'EXACT_CLINIC_CARD', 90, NOW] })
+    await client.execute({ sql: 'INSERT INTO ImportIssue VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['78000000-0000-4000-8000-000000000008', BATCH_ID, VISIT_SOURCE, 31, 'INSUFFICIENT_IDENTITY_EVIDENCE', null, VISIT_ID, null, null, NOW, null, null] })
+  }
+
+  it('marks an issue resolved with the operator and the clock time', async () => {
+    const { client, records } = await fixture()
+    await historyRows(client)
+    const result = await records.resolveIssue({ id: '78000000-0000-4000-8000-000000000008', actor: ACTOR })
+    const stored = await client.execute("SELECT resolvedAt, resolvedBy FROM ImportIssue WHERE id = '78000000-0000-4000-8000-000000000008'")
+    client.close()
+    expect({ ...result, ...stored.rows[0] }).toEqual({ id: '78000000-0000-4000-8000-000000000008', resolvedAt: NOW, alreadyResolved: false, resolvedBy: ACTOR })
+  })
+
+  it('reports an earlier resolution instead of overwriting it', async () => {
+    const { client, records } = await fixture()
+    await historyRows(client)
+    await client.execute("UPDATE ImportIssue SET resolvedAt = '2026-08-20T12:00:00.000Z', resolvedBy = 'u:11111111-1111-4111-8111-111111111111'")
+    const result = await records.resolveIssue({ id: '78000000-0000-4000-8000-000000000008', actor: ACTOR })
+    client.close()
+    expect(result).toEqual({ id: '78000000-0000-4000-8000-000000000008', resolvedAt: '2026-08-20T12:00:00.000Z', alreadyResolved: true })
+  })
+
+  it('links an ambiguous visit to a recorded candidate and resolves its issues', async () => {
+    const { client, records } = await fixture()
+    await ambiguousVisit(client)
+    const result = await records.linkVisit({ id: VISIT_ID, patientId: SECOND_PATIENT_ID, actor: ACTOR })
+    const visit = await client.execute({ sql: 'SELECT patientId, linkStatus, linkMethod, evidenceLevel, linkedBy, linkedAt, (SELECT COUNT(*) FROM HistoricalVisitCandidate WHERE historicalVisitId = ?) AS candidates, (SELECT resolvedBy FROM ImportIssue WHERE historicalVisitId = ?) AS issueResolvedBy FROM HistoricalVisit WHERE id = ?', args: [VISIT_ID, VISIT_ID, VISIT_ID] })
+    client.close()
+    expect({ result, ...visit.rows[0] }).toEqual({ result: { id: VISIT_ID, patientId: SECOND_PATIENT_ID, linkedAt: NOW, resolvedIssues: 1 }, patientId: SECOND_PATIENT_ID, linkStatus: 'linked', linkMethod: 'manual', evidenceLevel: 'exact', linkedBy: ACTOR, linkedAt: NOW, candidates: 0, issueResolvedBy: ACTOR })
+  })
+
+  it('refuses to link a visit to a patient who is not a recorded candidate', async () => {
+    const { client, records } = await fixture()
+    await ambiguousVisit(client)
+    await client.execute({ sql: 'INSERT INTO Patient VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', args: ['71000000-0000-4000-8000-000000000099', null, null, null, NOW, NOW, NOW, NOW, null] })
+    const failure = await captured(() => records.linkVisit({ id: VISIT_ID, patientId: '71000000-0000-4000-8000-000000000099', actor: ACTOR }))
+    client.close()
+    expect(failure.code).toBe('CANDIDATE_NOT_FOUND')
+  })
+
+  it('refuses to relink a visit that is already linked', async () => {
+    const { client, records } = await fixture()
+    await ambiguousVisit(client)
+    await records.linkVisit({ id: VISIT_ID, patientId: PATIENT_ID, actor: ACTOR })
+    const failure = await captured(() => records.linkVisit({ id: VISIT_ID, patientId: PATIENT_ID, actor: ACTOR }))
+    client.close()
+    expect(failure.code).toBe('VISIT_NOT_AMBIGUOUS')
+  })
+
+  it('lists a manually linked visit among the patient visits', async () => {
+    const { client, records } = await fixture()
+    await ambiguousVisit(client)
+    await records.linkVisit({ id: VISIT_ID, patientId: PATIENT_ID, actor: ACTOR })
+    const result = await records.visits({ patientId: PATIENT_ID, page: 1, pageSize: 10 })
+    client.close()
+    expect(result.items.map(({ id, linkMethod }) => ({ id, linkMethod }))).toEqual([{ id: VISIT_ID, linkMethod: 'manual' }])
   })
 })
