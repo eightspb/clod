@@ -17,12 +17,12 @@ export function reachGoal(goal, scope = globalThis) {
 }
 
 /**
- * Maps a contact link to its goal: phone_click for tel:, telegram_click for t.me.
+ * Maps a contact link to its goal: phone_click for tel:, max_click for max.ru.
  */
 export function contactGoal(element) {
   const href = element.getAttribute('href') || ''
   if (href.startsWith('tel:')) return 'phone_click'
-  if (/^https?:\/\/t\.me\//.test(href)) return 'telegram_click'
+  if (/^https?:\/\/max\.ru\//.test(href)) return 'max_click'
   return undefined
 }
 

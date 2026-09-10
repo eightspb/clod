@@ -16,8 +16,8 @@ describe('metrika', () => {
     expect(contactGoal({ getAttribute: () => 'tel:+78127482210' })).toBe('phone_click')
   })
 
-  it('names the telegram goal for a t.me link', () => {
-    expect(contactGoal({ getAttribute: () => 'https://t.me/odintsov_clinic?start=приём' })).toBe('telegram_click')
+  it('names the MAX goal for a max.ru link', () => {
+    expect(contactGoal({ getAttribute: () => 'https://max.ru/odintsovclinic?start=приём' })).toBe('max_click')
   })
 
   it('returns no goal for an ordinary link', () => {
