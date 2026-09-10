@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Shield, Paperclip, X, AlertCircle, CheckCircle } from 'lucide-react'
+import { reachGoal } from '../lib/metrika.js'
 import {
   MAX_FILES,
   MAX_FILE_SIZE_BYTES,
@@ -149,6 +150,7 @@ export function SecondOpinionForm({ onClose, modalTitleId }) {
         throw new Error(await getErrorMessage(res))
       }
       setIsSuccess(true)
+      reachGoal('second_opinion_sent')
     } catch (err) {
       setErrorMsg(err.message || 'Ошибка соединения. Проверьте интернет и попробуйте через минуту')
     } finally {

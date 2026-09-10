@@ -91,3 +91,18 @@ describe('SecondOpinionForm', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Заявка успешно отправлена')
   })
 })
+
+describe('SecondOpinionForm metrika goal', () => {
+  it('reports a successful submission as second_opinion_sent', async () => {
+    globalThis.ym = vi.fn()
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
+    render(<SecondOpinionForm />)
+    fillRequiredFields()
+    fireEvent.change(document.getElementById('file-upload'), { target: { files: [new File(['снимок'], 'узи.png', { type: 'image/png' })] } })
+    fireEvent.submit(screen.getByRole('button', { name: /отправить/i }).closest('form'))
+    fireEvent.click(await screen.findByRole('button', { name: /подтвердить/i }))
+    await screen.findByRole('status')
+    expect(globalThis.ym).toHaveBeenCalledWith(26618208, 'reachGoal', 'second_opinion_sent')
+    delete globalThis.ym
+  })
+})

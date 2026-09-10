@@ -3,6 +3,7 @@ import { Loader2, Phone, X } from 'lucide-react'
 import { validateBookingPayload } from '../../lib/appointment-validation.js'
 import { PHONE_DISPLAY, PHONE_NUMBER } from '../../lib/contacts.js'
 import { matchesFilter } from '../../lib/filters.js'
+import { reachGoal } from '../../lib/metrika.js'
 import { AppointmentTypePicker } from './AppointmentTypePicker.jsx'
 import { BookingDialogFooter } from './BookingDialogFooter.jsx'
 import { BookingResult } from './BookingResult.jsx'
@@ -340,6 +341,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
       submittedPhoneRef.current = ''
       setStep(slug ? (selected ? 'loading' : 'unavailable') : 'doctor')
       setIsOpen(true)
+      reachGoal('booking_open')
   }, [clock, doctors, pageDoctorSlug])
   useEffect(() => {
     function open(event) {
@@ -618,6 +620,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
     setIsSubmitting(true)
     setRetryAfter(0)
     setLiveMessage('Отправляем запрос на запись')
+    reachGoal('booking_submit')
     try {
       const response = await fetcher('/api/appointments/book', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!response || typeof response.status !== 'number' || typeof response.json !== 'function') throw new TypeError('Booking transport response is invalid')
@@ -636,6 +639,7 @@ export function BookingFlow({ doctors, pageDoctorSlug = '', fetcher = defaultFet
         setFieldErrors({})
         setLiveMessage('Запись подтверждена')
         setStep('result')
+        reachGoal('booking_confirmed')
         return
       }
       if (response.status === 202) {

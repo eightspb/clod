@@ -187,7 +187,7 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
 
     <div id="analytics-consent" class="analytics-consent" role="region" aria-label="Согласие на аналитику" hidden>
       <p class="analytics-consent-text">
-        Сайт ведёт собственную обезличенную статистику посещений без сторонних трекеров. Разрешить сбор? Подробнее — в <a href="/privacy-policy#cookies">политике конфиденциальности</a>.
+        Сайт ведёт собственную обезличенную статистику посещений. Разрешить сбор? Подробнее — в <a href="/privacy-policy#cookies">политике конфиденциальности</a>.
       </p>
       <div class="analytics-consent-actions">
         <button type="button" class="btn-clay-primary" data-analytics-consent="granted">Разрешить</button>
@@ -228,6 +228,18 @@ const BOOKING_DOCTORS = DOCTORS.map(({ slug, name, specialization, photo, photoT
 
     <!-- Трекер аналитики: defer чтобы не блокировать отрисовку (Lighthouse) -->
     <script src="/tracker.js" defer></script>
+
+    <script>
+      import { contactGoal, installMetrika, reachGoal } from '../lib/metrika.js'
+
+      installMetrika(window)
+      document.addEventListener('click', (event) => {
+        const link = event.target instanceof Element ? event.target.closest('a[href]') : null
+        if (!link) return
+        const goal = contactGoal(link)
+        if (goal) reachGoal(goal)
+      })
+    </script>
 
   </body>
 </html>

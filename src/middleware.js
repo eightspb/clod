@@ -4,7 +4,8 @@ import { throttleUnauthenticatedAdmin } from './lib/admin-api.js'
 
 // Yandex Maps widget is embedded as an iframe on the Contacts page.
 // Fonts are self-hosted (/fonts/), so no external font host is allowed.
-// tracker.js makes fetch calls only to same-origin /api/* endpoints.
+// tracker.js makes fetch calls only to same-origin /api/* endpoints; Yandex Metrika
+// (src/lib/metrika.js) needs mc.yandex.ru for its tag, beacons and cross-domain frame.
 // Astro SSG hydration and JSON-LD scripts require 'unsafe-inline' for script-src.
 // NOTE: 'require-trusted-types-for' is intentionally omitted — it conflicts with
 // 'unsafe-inline' and provides no real enforcement when both are present.
@@ -12,15 +13,15 @@ import { throttleUnauthenticatedAdmin } from './lib/admin-api.js'
 // In dev, connect-src allows Cursor debug ingest (127.0.0.1:7460).
 function getCspDirectives() {
   const connectSrc = import.meta.env.DEV
-    ? "'self' http://127.0.0.1:7460"
-    : "'self'"
+    ? "'self' https://mc.yandex.ru https://mc.yandex.com http://127.0.0.1:7460"
+    : "'self' https://mc.yandex.ru https://mc.yandex.com"
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' https://mc.yandex.ru",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: https:",
-    "frame-src https://yandex.ru",
+    "frame-src https://yandex.ru https://mc.yandex.ru",
     `connect-src ${connectSrc}`,
     "object-src 'none'",
     "base-uri 'self'",

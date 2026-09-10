@@ -29,7 +29,7 @@ describe('security middleware', () => {
     vi.stubEnv('MODE', 'development')
     const response = await responseFor()
     const directives = parseCsp(response.headers.get('Content-Security-Policy'))
-    expect({ script: directives['script-src'], frame: directives['frame-src'], connect: directives['connect-src'] }).toEqual({ script: ["'self'", "'unsafe-inline'"], frame: ['https://yandex.ru'], connect: ["'self'", 'http://127.0.0.1:7460'] })
+    expect({ script: directives['script-src'], frame: directives['frame-src'], connect: directives['connect-src'] }).toEqual({ script: ["'self'", "'unsafe-inline'", 'https://mc.yandex.ru'], frame: ['https://yandex.ru', 'https://mc.yandex.ru'], connect: ["'self'", 'https://mc.yandex.ru', 'https://mc.yandex.com', 'http://127.0.0.1:7460'] })
   })
 
   it('retains every production security directive and header without the retired widget origin', async () => {
@@ -38,7 +38,7 @@ describe('security middleware', () => {
     const response = await responseFor()
     const directives = parseCsp(response.headers.get('Content-Security-Policy'))
     const headers = Object.fromEntries(['Cross-Origin-Opener-Policy', 'X-Content-Type-Options', 'X-Frame-Options', 'X-XSS-Protection', 'Referrer-Policy', 'Permissions-Policy', 'Strict-Transport-Security'].map((name) => [name, response.headers.get(name)]))
-    expect(directives).toEqual({ 'default-src': ["'self'"], 'script-src': ["'self'", "'unsafe-inline'"], 'style-src': ["'self'", "'unsafe-inline'"], 'font-src': ["'self'"], 'img-src': ["'self'", 'data:', 'https:'], 'frame-src': ['https://yandex.ru'], 'connect-src': ["'self'"], 'object-src': ["'none'"], 'base-uri': ["'self'"], 'form-action': ["'self'"] })
+    expect(directives).toEqual({ 'default-src': ["'self'"], 'script-src': ["'self'", "'unsafe-inline'", 'https://mc.yandex.ru'], 'style-src': ["'self'", "'unsafe-inline'"], 'font-src': ["'self'"], 'img-src': ["'self'", 'data:', 'https:'], 'frame-src': ['https://yandex.ru', 'https://mc.yandex.ru'], 'connect-src': ["'self'", 'https://mc.yandex.ru', 'https://mc.yandex.com'], 'object-src': ["'none'"], 'base-uri': ["'self'"], 'form-action': ["'self'"] })
     expect(headers).toEqual({ 'Cross-Origin-Opener-Policy': 'same-origin-allow-popups', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'X-XSS-Protection': null, 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' })
   })
 
